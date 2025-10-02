@@ -1,0 +1,283 @@
+[
+    {
+      "id": 1,
+      "parentId": null,
+      "name": "Dr. Max",
+      "sections": [
+        {
+          "name": "Novinky a akce",
+          "items": [
+            { "name": "Akce a slevy", "iconSet": "fa-solid", "icon": "badge-percent", "rowType": "bold" },
+            { "name": "Výprodej", "iconSet": "fa-solid", "icon": "box-open-full", "rowType": "bold" },
+            { "name": "Novinky", "iconSet": "fa-solid", "icon": "stars", "rowType": "bold" }
+          ]
+        },
+        {
+          "name": "Nabídka e-shopu",
+          "items": [
+            { "name": "Procházet kategorie", "iconSet": "fa-regular", "icon": "shopping-bag", "linkMenuId": 2 },
+            { "name": "Zdravé léto", "iconSet": "fa-regular", "icon": "sun" },
+            { "name": "Bjut: Luxusní kosmetika", "iconSet": "fa-regular", "icon": "spray-can-sparkles" },
+            { "name": "Produkty Dr. Max", "iconSet": "fa-regular", "icon": "prescription-bottle-pill" },
+            { "name": "3 za 2", "iconSet": "fa-regular", "icon": "boxes" }
+          ]
+        },
+        {
+          "name": "Klientská zóna",
+          "items": [
+            { "name": "Můj účet", "iconSet": "fa-regular", "icon": "user-circle", "linkMenuId": 9 },
+            { "name": "Věrnostní program", "iconSet": "fa-regular", "icon": "hand-holding-star", "linkMenuId": 10 },
+            { "name": "Mapa lékáren a boxů", "iconSet": "fa-regular", "icon": "map-location" },
+            { "name": "Poradenství a články", "iconSet": "fa-regular", "icon": "messages", "linkMenuId": 8 },
+            { "name": "Kontakty", "iconSet": "fa-regular", "icon": "phone", "linkMenuId": 4 }
+          ]
+        },
+        {
+          "name": "Více",
+          "items": [
+            { "name": "O dopravě, platbě, reklamaci", "iconSet": "fa-regular", "icon": "box-isometric-tape", "linkMenuId": 7 },
+            { "name": "Média", "iconSet": "fa-regular", "icon": "share-nodes", "linkMenuId": 5 },
+            { "name": "Česko, čeština", "iconSet": "custom", "icon": "empty", "linkMenuId": 6 }
+          ]
+        }
+      ]
+    },
+  
+    {
+      "id": 2,
+      "parentId": 1,
+      "name": "Procházet kategorie",
+      "sections": [
+        {
+          "name": "Kategorie",
+          "items": [
+            { "name": "Domácnost a drogerie", "iconSet": "fa-regular", "icon": "jug-bottle" },
+            { "name": "Doplňky stravy", "iconSet": "fa-regular", "icon": "capsules" },
+            { "name": "Krása a péče", "iconSet": "fa-regular", "icon": "mortar-pestle" },
+            { "name": "Matka a dítě", "iconSet": "fa-regular", "icon": "person-breastfeeding" },
+            { "name": "Pro sportovce", "iconSet": "fa-regular", "icon": "dumbbell" },
+            { "name": "Pro zvířata", "iconSet": "fa-regular", "icon": "dog-leashed" },
+            { "name": "Zdravá výživa", "iconSet": "fa-regular", "icon": "pot-food" },
+            { "name": "Zdraví a léky", "iconSet": "fa-regular", "icon": "prescription-bottle-pill", "linkMenuId": 3 },
+            { "name": "Zdravotnické potřeby", "iconSet": "fa-regular", "icon": "stethoscope" }
+          ]
+        },
+        {
+          "name": "Léky",
+          "items": [
+            { "name": "E-recepty", "iconSet": "fa-regular", "icon": "prescription-bottle-pill" }
+          ]
+        },
+        {
+          "name": "Značky",
+          "items": [
+            { "name": "Dr. Max produkty", "iconSet": "fa-regular", "icon": "box-open-full" },
+            { "name": "Dr. Max dárkové karty", "iconSet": "fa-regular", "icon": "gift-card" },
+            { "name": "Procházet všechny značky", "iconSet": "fa-regular", "icon": "rectangle-history" }
+          ]
+        }
+      ]
+    },
+  
+    {
+      "id": 3,
+      "parentId": 2,
+      "name": "Zdraví a léky",
+      "sections": [
+        {
+          "name": "Kategorie",
+          "items": [
+            { "name": "Procházet vše" },
+            { "name": "Bolest" },
+            { "name": "Dutina ústní" },
+            { "name": "Gynekologické obtíže, antikoncepce" },
+            { "name": "Homeopatika" },
+            { "name": "Chřipka, nachlazení" },
+            { "name": "Léky na alergii", "route": "products/zdravi-a-leky" },
+            { "name": "Léky na paměť a soustředění" },
+            { "name": "Léčba hemoroidů" },
+            { "name": "Močové cesty a ledviny" },
+            { "name": "Nadváha" },
+            { "name": "Oči" },
+            { "name": "Odvykání kouření" },
+            { "name": "Pálení žáhy a žaludek" },
+            { "name": "Pokožka, kůže, vlasy" },
+            { "name": "Prostata" },
+            { "name": "Průjem, zácpa, nevolnost, nadýmaní" },
+            { "name": "Spánek, uklidnění" },
+            { "name": "Trávení, játra, žlučník" },
+            { "name": "Vitamíny, minerály, imunita" },
+            { "name": "Výživa kloubů a kostí" },
+            { "name": "Výživa v nemoci" },
+            { "name": "Zdravotnické prostředky" },
+            { "name": "Žilní obtíže" }
+          ]
+        }
+      ]
+    },
+  
+    {
+      "id": 4,
+      "parentId": 1,
+      "name": "Kontakty",
+      "sections": [
+        {
+          "name": "Kontaktujte nás",
+          "items": [
+            { "name": "Zákaznická linka", "iconSet": "fa-regular", "icon": "phone" },
+            { "name": "Dotazy na stav objednávky", "iconSet": "fa-regular", "icon": "boxes" },
+            { "name": "E-mail", "iconSet": "fa-regular", "icon": "envelope" }
+          ]
+        },
+        {
+          "name": "Pro firmy",
+          "items": [
+            { "name": "Kontakt pro B2B", "iconSet": "fa-regular", "icon": "briefcase" },
+            { "name": "Tiskový mluvčí", "iconSet": "fa-regular", "icon": "microphone-stand" }
+          ]
+        },
+        {
+          "name": "Pro uchazeče",
+          "items": [
+            { "name": "Kariéra a volná místa", "iconSet": "fa-regular", "icon": "handshake" }
+          ]
+        }
+      ]
+    },
+  
+    {
+      "id": 5,
+      "parentId": 1,
+      "name": "Média",
+      "sections": [
+        {
+          "name": "Sociální sítě",
+          "items": [
+            { "name": "Facebook", "iconSet": "fa-brands", "icon": "facebook" },
+            { "name": "Instagram", "iconSet": "fa-brands", "icon": "instagram" },
+            { "name": "LinkedIn", "iconSet": "fa-brands", "icon": "linkedin" },
+            { "name": "Youtube", "iconSet": "fa-brands", "icon": "youtube" }
+          ]
+        },
+        {
+          "name": "Tisk",
+          "items": [
+            { "name": "Online leták", "iconSet": "fa-regular", "icon": "newspaper" },
+            { "name": "Magazín MAXIMUM", "iconSet": "fa-regular", "icon": "newspaper" }
+          ]
+        }
+      ]
+    },
+  
+    {
+      "id": 6,
+      "parentId": 1,
+      "name": "Země",
+      "sections": [
+        {
+          "name": null,
+          "type": "language",
+          "items": [
+            { "name": "Česko", "iconSet": "custom", "icon": "check", "value": "cs" },
+            { "name": "English", "iconSet": "custom", "icon": "empty", "value": "en" },
+            { "name": "Slovensko", "iconSet": "custom", "icon": "empty", "value": "sk" },
+            { "name": "Polsko", "iconSet": "custom", "icon": "empty", "value": "pl" },
+            { "name": "Rumunsko", "iconSet": "custom", "icon": "empty", "value": "ro" },
+            { "name": "Itálie", "iconSet": "custom", "icon": "empty", "value": "it" },
+            { "name": "Srbsko", "iconSet": "custom", "icon": "empty", "value": "rs" }
+          ]
+        }
+      ]
+    },
+  
+    {
+      "id": 7,
+      "parentId": 1,
+      "name": "O dopravě, platbě, reklamaci",
+      "sections": [
+        {
+          "name": "Doprava",
+          "items": [
+            { "name": "Možnosti dopravy", "iconSet": "fa-regular", "icon": "boxes-packing" },
+            { "name": "Reklamace nebo vrácení", "iconSet": "fa-regular", "icon": "arrow-left-from-line" },
+            { "name": "Výdejní místa e-shopu", "iconSet": "fa-regular", "icon": "map-location" },
+            { "name": "Sledování objednávky", "iconSet": "fa-regular", "icon": "boxes" }
+          ]
+        },
+        {
+          "name": "Platba",
+          "items": [
+            { "name": "Možnosti platby", "iconSet": "fa-regular", "icon": "wallet" },
+            { "name": "FKSP, Benefit plus a další", "iconSet": "fa-regular", "icon": "cards-blank" }
+          ]
+        },
+        {
+          "name": "Obecné",
+          "items": [
+            { "name": "Vše o nákupu v e-shopu", "iconSet": "fa-regular", "icon": "book" },
+            { "name": "Právní dokumenty", "iconSet": "fa-regular", "icon": "books" }
+          ]
+        }
+      ]
+    },
+  
+    {
+      "id": 8,
+      "parentId": 1,
+      "name": "Poradenství a články",
+      "sections": [
+        {
+          "name": "Poradna",
+          "items": [
+            { "name": "Preventivní péče", "iconSet": "fa-regular", "icon": "hospital-user" },
+            { "name": "Zeptejte se lékárníka online", "iconSet": "fa-regular", "icon": "messages" },
+            { "name": "Dermocentra", "iconSet": "fa-regular", "icon": "hand-holding-droplet" },
+            { "name": "Články a blogy", "iconSet": "fa-regular", "icon": "glasses" }
+          ]
+        }
+      ]
+    },
+  
+    {
+      "id": 9,
+      "parentId": 1,
+      "name": "Můj účet",
+      "sections": [
+        {
+          "name": null,
+          "items": [
+            { "name": "Moje objednávky", "iconSet": "fa-regular", "icon": "boxes-stacked" },
+            { "name": "Profil", "iconSet": "fa-regular", "icon": "user-circle" },
+            { "name": "Moje slevy a kupóny", "iconSet": "fa-regular", "icon": "badge-percent" },
+            { "name": "Moje oblíbené", "iconSet": "fa-regular", "icon": "heart" },
+            { "name": "Hlídací psi", "iconSet": "fa-regular", "icon": "dog" },
+            { "name": "Moje Karta výhod", "iconSet": "fa-regular", "icon": "barcode" }
+          ]
+        }
+      ]
+    },
+  
+    {
+      "id": 10,
+      "parentId": 1,
+      "name": "Věrnostní program",
+      "sections": [
+        {
+          "name": "Moje karta výhod",
+          "type": "loyalty"
+        },
+        {
+          "name": "Pro členy",
+          "items": [
+            { "name": "Vše o kartě výhod", "iconSet": "fa-regular", "icon": "credit-card" },
+            { "name": "Benefity věrnostního programu", "iconSet": "fa-regular", "icon": "tags" },
+            { "name": "Doprava zdarma", "iconSet": "fa-regular", "icon": "truck" },
+            { "name": "Kolik ušetříte", "iconSet": "fa-regular", "icon": "piggy-bank" },
+            { "name": "Registrace / Přihlášení", "iconSet": "fa-regular", "icon": "key" }
+          ]
+        }
+      ]
+    }
+  ]
+
+

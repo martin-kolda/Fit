@@ -1,0 +1,23 @@
+:root {
+    /* gray */
+    --max-gray-0:#fff; --max-gray-12-5:#fbfbfb; --max-gray-25:#f8f8f8; --max-gray-50:#f1f1f1;
+    --max-gray-75:#e9e9e9; --max-gray-100:#e2e2e2; --max-gray-150:#d4d4d4; --max-gray-200:#c6c6c6;
+    --max-gray-300:#ababab; --max-gray-400:#919191; --max-gray-500:#757575; --max-gray-600:#5e5e5e;
+    --max-gray-700:#474747; --max-gray-800:#303030; --max-gray-850:#262626; --max-gray-900:#1b1b1b;
+    --max-gray-950:#111; --max-gray-1000:#000;
+  
+    /* green */
+    --max-green-25:#f8f9eb; --max-green-50:#e7f5cc; --max-green-100:#cfeda2; --max-green-200:#95da39;
+    --max-green-300:#78be20; --max-green-400:#5da20a; --max-green-500:#47850a; --max-green-600:#356b09;
+    --max-green-700:#235106; --max-green-800:#143804; --max-green-900:#082102;
+  
+    /* red */
+    --max-red-25:#fef6f5; --max-red-50:#feebe8; --max-red-100:#fedad6; --max-red-200:#feb4ac;
+    --max-red-300:#fe8a81; --max-red-400:#fd5553; --max-red-500:#e4002b; --max-red-600:#ba192a;
+    --max-red-700:#8d1221; --max-red-800:#660615; --max-red-900:#3f020a;
+  
+    /* blue */
+    --max-blue-25:#f5f8fd; --max-blue-50:#e5f1fe; --max-blue-100:#cde5fe; --max-blue-200:#95ccfe;
+    --max-blue-300:#58b2f9; --max-blue-400:#3997dd; --max-blue-500:#0d77ba; --max-blue-600:#09629d;
+    --max-blue-700:#054979; --max-blue-800:#043256; --max-blue-900:#021d35;
+  }

@@ -1,0 +1,10 @@
+[
+    { "name": "Benefit Plus", "eshop_payment": true, "pharmacy_payment": true},
+    { "name": "Edenred Benefity Premium (účet)", "eshop_payment": true, "pharmacy_payment": true},
+    { "name": "Edenred Card", "eshop_payment": true, "pharmacy_payment": true},
+    { "name": "Pluxee", "eshop_payment": true, "pharmacy_payment": true},
+    { "name": "Up eBenefity", "eshop_payment": true, "pharmacy_payment": true},
+    { "name": "Benefity a.s.", "eshop_payment": false, "pharmacy_payment": true},
+    { "name": "Pluxee flexi card", "eshop_payment": false, "pharmacy_payment": true},
+    { "name": "Papírové poukázky Edenred, Pluxee a Up ČR", "eshop_payment": false, "pharmacy_payment": true}
+]

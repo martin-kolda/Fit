@@ -1,0 +1,40 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>container-scroll</title>
+  <style>
+    html, body { height: 100%; margin: 0; overflow: hidden; background: #fafafa; }
+    #app {
+      height: 100%;
+      overflow: auto;
+      -webkit-overflow-scrolling: touch;
+      /* normalize viewport math */
+      min-height: 100svh; 
+      min-height: 100dvh;
+      padding-bottom: env(safe-area-inset-bottom, 0);
+    }
+    .section { height: 160vh; background: #fff; padding: 16px; }
+    /* sticky bar inside the scroller */
+    .sticky-bar {
+      position: sticky;
+      bottom: 0;
+      z-index: 50;
+      padding-bottom: env(safe-area-inset-bottom, 0);
+      background: #fff;
+      border-top: 1px solid #ddd;
+      box-shadow: 0 -10px 24px rgba(0,0,0,.08);
+      padding: 12px 16px;
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <div class="section">
+      <h1>Scroll inside #app</h1>
+    </div>
+    <div class="sticky-bar">Sticky CTA (bottom of #app)</div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,8 @@
+[
+    { "name": "Bolest", "image": "./images/bolest.webp", "products": 0 },
+    { "name": "Průjem, zácpa, nevolnost, nadýmání", "image": "./images/prujem.webp", "products": 0 },
+    { "name": "Chřipka, nachlazení", "image": "./images/chripka.webp", "products": 0 },
+    { "name": "Pokožka, kůže, vlasy", "image": "./images/pokozka.webp", "products": 0 },
+    { "name": "Léky na alergii", "image": "./images/alergie.webp", "products": 0 },
+    { "name": "Vitamíny, minerály, imunita", "image": "./images/vitaminy.webp", "products": 0 }
+]

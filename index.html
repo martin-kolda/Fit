@@ -1,0 +1,2077 @@
+<!doctype html>
+<html data-theme="max">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Prototype prototype</title>
+
+  <!-- CDN / dependecies -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Figtree:ital,wght@0,300..900;1,300..900&display=swap" rel="stylesheet">
+  <script src="https://kit.fontawesome.com/2c7f1c6cae.js" crossorigin="anonymous"></script>   
+  <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css" />
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <link rel="stylesheet" href="./theme/max-tokens.css"> 
+  <script> // cannot be loaded by classic link
+    fetch('./theme/tw-mapping.css', { cache: 'no-store' }).then(r => r.text()).then(css => {const s = document.createElement('style');s.type = 'text/tailwindcss';s.textContent = css;document.head.appendChild(s);});
+  </script>
+  <link rel="stylesheet" href="./theme/max.css" type="text/css">
+  <script defer src="https://unpkg.com/@alpinejs/persist@3.x.x/dist/cdn.min.js"></script>
+  <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>  
+  <style>
+  [x-cloak]{display:none}
+  @keyframes slideInLeft  { from { transform: translateX(-6%); opacity: .01 } to { transform: translateX(0); opacity: 1 } }
+  @keyframes slideInRight { from { transform: translateX( 6%); opacity: .01 } to { transform: translateX(0); opacity: 1 } }
+  .slide-in-left  { animation: slideInLeft  .18s ease-out; }
+  .slide-in-right { animation: slideInRight .18s ease-out; }    
+  body {
+      font-family: 'Figtree', sans-serif;
+     
+    }
+  </style>
+</head>
+
+<body class="bg-base-200 overflow-x-hidden" x-data="storeApp">
+  <!-- TOP-BAR LOGO + SEARCH -->
+<div class="navbar md:p-6 p-2 pt-4 pb-1 bg-base-100 overflow-x-hidden">
+  <!-- left: menu + logo + (desktop) search -->
+  <div class="flex flex-1 items-center gap-3 md:gap-4 min-w-0">
+    <button class="btn btn-primary w-[46px] h-[46px] btn-lg btn-square max-gradient inline-flex md:hidden shrink-0"
+            @click="$store.menu.openAt()">
+      <img alt="Menu" class="relative h-[26px] w-[27px]" src="./icons/Bars.svg" />
+    </button>
+
+    <svg viewBox="0 0 137 46" fill="none" xmlns="http://www.w3.org/2000/svg"
+         class="h-[46px] md:h-[56px] w-auto shrink-0">
+         <svg viewBox="0 0 137 46" fill="none" xmlns="http://www.w3.org/2000/svg" class="h-[46px] md:h-[56px] shrink-0">
+          <path fill-rule="evenodd" clip-rule="evenodd" d="M23.2836 45.2917C10.8401 45.2917 0.716797 35.2915 0.716797 23C0.716797 10.7082 10.8401 0.708008 23.2836 0.708008H113.716C126.16 0.708008 136.283 10.7082 136.283 23C136.283 35.2915 126.16 45.2917 113.716 45.2917H23.2836Z" fill="white"/>
+          <path fill-rule="evenodd" clip-rule="evenodd" d="M113.716 0H23.284C10.4451 0 0 10.3177 0 22.9999C0 35.682 10.4451 46 23.284 46H113.716C126.555 46 137 35.682 137 22.9999C137 10.3177 126.555 0 113.716 0M113.716 1.41634C125.765 1.41634 135.566 11.0987 135.566 22.9999C135.566 34.901 125.765 44.5837 113.716 44.5837H23.284C11.2357 44.5837 1.43382 34.901 1.43382 22.9999C1.43382 11.0987 11.2357 1.41634 23.284 1.41634H113.716" fill="#A7A8AA"/>
+          <path fill-rule="evenodd" clip-rule="evenodd" d="M120.794 11.6358H117.464V8.34591C117.464 7.1797 116.503 6.23047 115.322 6.23047C114.141 6.23047 113.18 7.1797 113.18 8.34591V11.6358H109.85C108.669 11.6358 107.708 12.5847 107.708 13.7512C107.708 14.9177 108.669 15.8669 109.85 15.8669H113.18V19.1565C113.18 20.3233 114.141 21.2722 115.322 21.2722C116.503 21.2722 117.464 20.3233 117.464 19.1565V15.8669H120.794C121.975 15.8669 122.936 14.9177 122.936 13.7512C122.936 12.5847 121.975 11.6358 120.794 11.6358Z" fill="#78BE20"/>
+          <path d="M85.4546 17.7158C89.5262 17.7158 93.0472 19.4528 93.0474 24.2979V33.2529C93.0473 33.6425 92.7276 33.9578 92.3335 33.958H88.9282C88.5144 33.958 88.1792 33.6269 88.1792 33.2188V31.46H88.1177C86.8629 33.4403 85.3324 34.3242 83.0669 34.3242C79.9134 34.3242 77.0962 32.7696 77.0962 29.3262C77.0964 24.4812 82.3933 23.9023 85.3325 23.9023C86.2199 23.9024 87.1996 23.9932 87.9038 24.1152C87.873 21.9519 86.2503 21.373 84.2603 21.373C82.6326 21.3731 81.0676 21.6288 79.6284 22.333C79.4478 22.4213 79.1721 22.2252 79.1675 22.0264L79.0972 19.2578C79.0909 19.0095 79.2418 18.7797 79.4771 18.6924C81.3186 18.0086 83.2532 17.7158 85.4546 17.7158ZM47.1782 29.4854C48.4415 29.4856 49.4653 30.5441 49.4653 31.8486C49.4653 33.1535 48.4415 34.2117 47.1782 34.2119C45.9147 34.2119 44.8901 33.1536 44.8901 31.8486C44.8901 30.5439 45.9148 29.4854 47.1782 29.4854ZM24.3267 12.6641C30.8944 12.6641 35.4896 14.9892 35.4897 23.2168C35.4897 31.1702 30.7595 33.9433 24.3267 33.9434H18.2173C17.8497 33.9434 17.5513 33.6068 17.5513 33.1924V13.415C17.5513 13.0003 17.8497 12.6641 18.2173 12.6641H24.3267ZM41.9097 20.1387C43.7154 17.3021 46.6765 17.5948 48.2319 18.1738C48.4727 18.2637 48.6008 18.5224 48.519 18.7637L47.5317 21.6865C47.4225 22.0103 47.0734 22.18 46.7407 22.0879C44.3565 21.4305 41.9097 22.7076 41.9097 26.7285V33.1924C41.9097 33.6067 41.6122 33.9433 41.2446 33.9434H37.8833C37.5157 33.9433 37.2173 33.6068 37.2173 33.1924V18.8701C37.2175 18.4559 37.5158 18.1201 37.8833 18.1201H41.2446C41.6121 18.1202 41.9095 18.4559 41.9097 18.8701V20.1387ZM59.356 12.6787C59.7235 12.6787 60.1161 13.0144 60.2329 13.4287L63.772 26.0264L67.312 13.4287C67.4286 13.0145 67.8214 12.6787 68.189 12.6787H73.1606C73.528 12.679 73.8571 13.0146 73.896 13.4287L75.731 33.2949C75.7694 33.7095 75.5027 33.9432 75.1353 33.9434H71.5171C71.1493 33.9432 70.8204 33.7095 70.7817 33.2949L69.5894 20.3486L65.98 33.2949C65.8851 33.6328 65.7294 33.9432 65.3315 33.9434H62.2134C61.8363 33.9434 61.6599 33.6329 61.5649 33.2949L57.9556 20.3486L56.5542 33.2949C56.5158 33.7095 56.1873 33.9432 55.8198 33.9434H52.4097C52.0421 33.9433 51.7753 33.7096 51.814 33.2949L53.6489 13.4287C53.6875 13.0145 54.0165 12.6788 54.3843 12.6787H59.356ZM98.8892 18.1201C99.3107 18.1199 99.5588 18.18 99.8657 18.5938L102.433 22.0898L105 18.5938C105.307 18.1798 105.555 18.1198 105.977 18.1201H109.941C110.362 18.1206 110.513 18.4106 110.303 18.7119L105.075 25.8076L110.512 33.1992C110.777 33.5263 110.627 33.9432 110.218 33.9434H106.217C105.799 33.9414 105.523 33.7421 105.278 33.4072L102.433 29.5254L99.5884 33.4072C99.343 33.7422 99.0674 33.9413 98.6489 33.9434H94.6479C94.2389 33.9433 94.0884 33.5263 94.353 33.1992L99.7915 25.8076L94.563 18.7119C94.3531 18.4106 94.5034 18.1205 94.9253 18.1201H98.8892ZM85.5776 26.8271C83.7099 26.8271 82.2397 27.407 82.2397 28.9307C82.24 30.0275 83.22 30.667 84.5054 30.667C86.5872 30.667 87.9038 28.7777 87.9038 26.9189C87.1997 26.8886 86.4039 26.8272 85.5776 26.8271ZM22.7231 16.8789V29.7383H24.4341C28.9445 29.7383 30.1958 27.5444 30.1958 23.3086C30.1958 19.0729 28.9804 16.8789 24.4341 16.8789H22.7231Z" fill="#E72234"/>
+        </svg>
+    </svg>
+
+    <!-- desktop search only -->
+    <label
+      class="input p-4 input-bordered rounded-full max-w-2xl items-center gap-2 w-full h-[46px] md:h-[56px] hidden md:flex max-input-gradient"
+      aria-label="Vyhledávání">
+      <svg class="h-[20px] w-[20px] text-gray-500 shrink-0" viewBox="0 0 26 26" fill="currentColor" aria-hidden="true">
+        <path d="M18.6966 10.9427 ..."/>
+      </svg>
+      <input type="search" placeholder="Hledej dle názvu" x-model.debounce.300ms="search" class="grow text-lg min-w-0" />
+    </label>
+  </div>
+
+  <!-- TOP-BAR QUICK ACTIONS (desktop only) -->
+  <div class="hidden md:flex md:px-4">
+    <button type="button" class="btn btn-link hidden lg:flex items-center gap-2 p-2 md:p-4 group no-underline hover:!no-underline focus-visible:!no-underline">
+      <i class="fa-classic fa-xl fa-regular fa-map-location-dot"></i>
+      <span class="hidden lg:block underline-offset-2 decoration-1 decoration-current group-hover:underline group-focus-visible:underline text-secondary">
+        Mapa lékáren a boxů
+      </span>
+    </button>
+
+    <div class="dropdown dropdown-start">
+      <button type="button" class="btn btn-link hidden md:flex items-center gap-2 p-2 md:p-4 group no-underline hover:!no-underline focus-visible:!no-underline">
+        <img alt="Language" class="relative h-[26px] w-[27px]" src="./icons/languages/En.svg" />
+        <span class="hidden lg:block underline-offset-2 decoration-1 decoration-current group-hover:underline group-focus-visible:underline text-secondary">
+          English
+        </span>
+        <i class="fa-classic fa-md fa-solid fa-chevron-down"></i>
+      </button>
+      <ul tabindex="0" class="menu menu-compact dropdown-content mt-3 p-2 shadow bg-base-100 rounded-box w-52">
+        <li><a><i class="fa-classic fa-md fa-solid fa-empty"></i> English</a></li>
+        <li><a><i class="fa-classic fa-md fa-solid fa-empty"></i> Polski</a></li>
+        <li><a><i class="fa-classic fa-md fa-solid fa-check"></i> Česky</a></li>
+      </ul>
+    </div>
+
+    <button type="button" class="btn btn-link hidden md:flex items-center gap-2 p-2 md:p-4 group no-underline hover:!no-underline focus-visible:!no-underline">
+      <i class="fa-classic fa-xl fa-solid fa-phone"></i>
+      <span class="hidden lg:block underline-offset-2 decoration-1 decoration-current group-hover:underline group-focus-visible:underline text-secondary">
+        516 770 100
+      </span>
+    </button>
+  </div>
+
+  <!-- TOP-BAR BUTTONS + CART (mobile + desktop) -->
+  <div class="flex gap-2 flex-none">
+    <button class="btn btn-primary w-12 h-12 btn-lg btn-square max-gradient-gray hidden md:block">
+      <i class="fa-classic fa-xl fa-regular fa-truck-fast text-gray-700 max-embos-v-gray"></i>
+    </button>
+
+    <button class="btn btn-primary w-12 h-12 btn-lg btn-square max-gradient">
+      <i class="fa-classic fa-xl fa-regular fa-heart text-white max-embos-v"></i>
+    </button>
+
+    <div class="dropdown dropdown-end">
+      <label tabindex="0" class="btn btn-primary w-12 h-12 max-gradient btn-square">
+        <div class="w-10 rounded-full bg-neutral-focus text-neutral-content flex items-center justify-center">
+          <i class="fa-classic fa-2xl fa-regular fa-user-circle text-white max-embos-v"></i>
+        </div>
+      </label>
+      <ul tabindex="0" class="menu menu-compact dropdown-content mt-3 p-2 shadow bg-base-100 rounded-box w-52">
+        <li><a>Profile</a></li>
+        <li><a>Settings</a></li>
+        <li><a>Logout</a></li>
+      </ul>
+    </div>
+
+    <button class="btn btn-primary w-12 h-12 btn-lg btn-square max-gradient indicator"
+            aria-label="Otevřít košík" title="Košík"
+            @click="location.hash='/cart'">
+      <i class="fa-classic fa-xl fa-regular fa-basket-shopping text-white max-embos-v"></i>
+      <span class="badge badge-error badge-sm indicator-item"></span>
+    </button>
+  </div>
+</div>
+
+  
+
+
+  <!-- MOBILE ONLY SEARCH -->
+  <div class="navbar flex md:hidden text-primary-content h-12 p-2 pt-0 bg-white mb-6">
+    <label class="input input-bordered rounded-full flex items-center gap-2 w-full" aria-label="Vyhledávání">                
+      <svg class="h-[20px] w-[20px] text-gray-500" viewBox="0 0 26 26" fill="currentColor" aria-hidden="true">
+        <path d="M18.6966 10.9427C18.6966 6.47173 15.0386 2.81369 10.5677 2.81369C6.09673 2.81369 2.43869 6.47173 2.43869 10.9427C2.43869 15.4136 6.09673 19.0716 10.5677 19.0716C15.0386 19.0716 18.6966 15.4136 18.6966 10.9427ZM17.1216 19.224C15.3434 20.6466 13.0572 21.5103 10.5677 21.5103C4.72496 21.5103 0 16.7854 0 10.9427C0 5.09996 4.72496 0.375 10.5677 0.375C16.4104 0.375 21.1353 5.09996 21.1353 10.9427C21.1353 13.4322 20.2716 15.7184 18.849 17.4966L25.6571 24.3047C26.1143 24.7619 26.1143 25.5748 25.6571 26.0321C25.1998 26.4893 24.3869 26.4893 23.9297 26.0321L17.1216 19.224Z"/>          
+      </svg>
+      <input type="search" placeholder="Hledej dle názvu" x-model.debounce.300ms="search" class="grow" />
+    </label>
+  </div>
+
+  <!-- NAVBAR PRODUCT NAVIGATION -->
+  <div class="navbar hidden md:flex bg-primary max-gradient-v text-primary-content h-12 p-1 pl-4 pr-4">
+
+    <ul class="menu flex-none w-fit menu-horizontal rounded-box text-base font-medium">
+      <li>
+        <a @click="$store.menu.openAt()"><i class="fa-solid fa-bars"></i>Procházet kategorie</a>
+      </li>
+
+      <li>
+        <a>Zdravé léto</a>
+      </li>
+      <li>
+        <a>Na opalování
+        </a>
+      </li>
+      <li>
+        <a>Produkty Dr. Max</a>
+      </li>
+      <li>
+        <a>3 za 2</a>
+      </li>      
+    </ul>
+  </div>
+
+  <!-- BREADCRUMBS -->
+  <div class="breadcrumbs hidden md:block lg:w-10/12 sm:w-11/12 p-4 text-sm mx-auto">
+    <ul>
+      <li>Domů</li>
+      <li>Zdraví a léky</li>
+    </ul>
+  </div>
+
+<!-- ROUTE == PRODUCTS -->
+<section x-show="is('products')" x-cloak>
+<!-- PAGE CONTENT -->  
+<h1 class="text-3xl w-11/12 lg:w-10/12 pl-0 md:pl-4 mx-auto">Zdraví a léky</h1>
+
+<!-- CATEGORIES GRID -->
+<div x-data="categoriesList" x-cloak class="sm:w-11/12 lg:w-10/12 mx-auto">
+  <div class="grid gap-2 md:gap-4 sm:grid-cols-2 lg:grid-cols-3 p-4">
+    
+    <template x-for="cat in categories" :key="cat.name">
+      <a class="card card-side items-center shadow-sm hover:shadow-md bg-white transition cursor-pointer h-14 md:h-auto">
+        <figure class="p-2 shrink-0 ">
+          <div class="h-10 md:h-16 w-10 md:w-16 rounded bg-base-200 overflow-hidden grid place-content-center">
+            <img
+              :src="imageUrl(cat)"
+              :alt="cat.name"
+              class="h-full w-full object-contain"
+              @error="$event.target.src = fallback"
+            />
+          </div>
+        </figure>
+    
+        <div class="card-body min-w-0 pl-1">
+          <h2 class="card-title block truncate max-w-full text-base font-medium" :title="cat.name" x-text="cat.name"></h2>
+          <!--<div class="card-actions justify-end">
+            <span class="badge badge-outline" x-text="productsLabel(cat.products)"></span>
+          </div>-->
+        </div>
+      </a>
+    </template>
+
+  </div>
+</div>
+
+
+
+<!-- FILTERS -->
+<section aria-labelledby="filters-heading" class="space-y-3">
+  <!-- Heading row -->
+  <div class="lg:w-10/12 sm:w-11/12 mx-auto px-4 flex flex-wrap items-center gap-2">
+    <h2 id="filters-heading" class="text-lg font-semibold">Filtry a řazení</h2>
+    <span class="badge badge-primary badge-outline">
+      Nalezeno: <span class="ml-1 font-semibold" x-text="filteredCount()"></span>
+    </span>
+  </div>
+
+  <!-- Controls -->
+  <div class="flex flex-col sm:flex-row flex-wrap items-stretch gap-2 p-4 lg:w-10/12 sm:w-11/12 mx-auto">
+
+    <!-- Kategorie -->
+    <div class="dropdown">
+      <div tabindex="0" role="button"
+           class="select select-bordered w-full sm:w-56 flex items-center justify-between">
+        <span x-text="selectedCategory || 'Kategorie: všechny'"></span>
+        <span class="badge badge-sm" x-show="!!selectedCategory">1</span>
+      </div>
+      <ul tabindex="0"
+          class="dropdown-content menu bg-base-100 rounded-box shadow p-2 w-full sm:w-64
+                 max-h-72 overflow-auto grid grid-cols-1">
+        <li>
+          <label class="label cursor-pointer justify-start gap-2">
+            <input type="radio" name="cat" class="radio radio-sm"
+                   :checked="!selectedCategory" @change="selectedCategory=''" />
+            <span>Všechny kategorie</span>
+          </label>
+        </li>
+        <template x-for="c in categories" :key="'cat-'+c">
+          <li>
+            <label class="label cursor-pointer justify-start gap-2">
+              <input type="radio" name="cat" class="radio radio-sm"
+                     :checked="selectedCategory===c" @change="selectedCategory=c" />
+              <span x-text="c"></span>
+            </label>
+          </li>
+        </template>
+      </ul>
+    </div>
+
+    <!-- Forma -->
+    <div class="dropdown">
+      <div tabindex="0" role="button"
+           class="select select-bordered w-full sm:w-56 flex items-center justify-between">
+        <span x-text="selectedForm || 'Forma: všechny'"></span>
+        <span class="badge badge-sm" x-show="!!selectedForm">1</span>
+      </div>
+      <ul tabindex="0"
+          class="dropdown-content menu bg-base-100 rounded-box shadow p-2 w-full sm:w-64
+                 max-h-72 overflow-auto grid grid-cols-1">
+        <li>
+          <label class="label cursor-pointer justify-start gap-2">
+            <input type="radio" name="form" class="radio radio-sm"
+                   :checked="!selectedForm" @change="selectedForm=''" />
+            <span>Všechny formy</span>
+          </label>
+        </li>
+        <template x-for="f in forms" :key="'form-'+f">
+          <li>
+            <label class="label cursor-pointer justify-start gap-2">
+              <input type="radio" name="form" class="radio radio-sm"
+                     :checked="selectedForm===f" @change="selectedForm=f" />
+              <span x-text="f"></span>
+            </label>
+          </li>
+        </template>
+      </ul>
+    </div>
+
+    <!-- Vhodné pro (multi) -->
+    <div class="dropdown">
+      <div tabindex="0" role="button"
+           class="select select-bordered w-full sm:w-56 flex items-center justify-between gap-2">
+        <span class="truncate" x-text="consumersLabel()"></span>
+        <button x-show="selectedConsumers.length"
+                class="btn btn-xs btn-ghost" aria-label="Zrušit Vhodné pro"
+                @click.stop="selectedConsumers=[]">
+          ✕
+        </button>
+      </div>
+      <ul tabindex="0"
+          class="dropdown-content menu bg-base-100 rounded-box shadow p-2 w-full sm:w-64
+                 max-h-72 overflow-auto grid grid-cols-1">
+        <template x-for="opt in consumersList" :key="'cons-'+opt">
+          <li>
+            <label class="label cursor-pointer justify-start gap-2">
+              <input type="checkbox" class="checkbox checkbox-sm"
+                     :value="opt"
+                     @change="toggleConsumer(opt)"
+                     :checked="selectedConsumers.includes(opt)"/>
+              <span x-text="opt"></span>
+            </label>
+          </li>
+        </template>
+      </ul>
+    </div>
+
+    <!-- Možnosti (binary toggles) -->
+    <div class="dropdown">
+      <div tabindex="0" role="button"
+           class="select select-bordered w-full sm:w-56 flex items-center justify-between gap-2">
+        <span class="truncate" x-text="optionsLabel()"></span>
+        <button x-show="optionsCount()>0"
+                class="btn btn-xs btn-ghost" aria-label="Zrušit Možnosti"
+                @click.stop="clearOptions()">
+          ✕
+        </button>
+      </div>
+      <ul tabindex="0"
+          class="dropdown-content menu bg-base-100 rounded-box shadow p-2 w-full sm:w-64
+                 max-h-72 overflow-auto grid grid-cols-1">
+        <li>
+          <label class="label cursor-pointer justify-start gap-2">
+            <input type="checkbox" class="checkbox checkbox-sm" x-model="onlyInStock">
+            <span>Pouze skladem</span>
+          </label>
+        </li>
+        <li>
+          <label class="label cursor-pointer justify-start gap-2">
+            <input type="checkbox" class="checkbox checkbox-sm" x-model="benefitOnly">
+            <span>Lze platit benefity</span>
+          </label>
+        </li>
+        <li>
+          <label class="label cursor-pointer justify-start gap-2">
+            <input type="checkbox" class="checkbox checkbox-sm" x-model="onlyDiscounted">
+            <span>Produkty v akci</span>
+          </label>
+        </li>
+      </ul>
+    </div>
+
+    <!-- Řadit dle -->
+    <div class="dropdown">
+      <div tabindex="0" role="button"
+           class="select select-bordered w-full sm:w-56 flex items-center justify-between">
+        <span x-text="sortLabel()"></span>
+      </div>
+      <ul tabindex="0"
+          class="dropdown-content menu bg-base-100 rounded-box shadow p-2 w-full sm:w-64
+                 max-h-72 overflow-auto grid grid-cols-1">
+        <li>
+          <label class="label cursor-pointer justify-start gap-2">
+            <input type="radio" name="sort" class="radio radio-sm"
+                   :checked="!sortOrder" @change="sortOrder=''" />
+            <span>Doporučeno</span>
+          </label>
+        </li>
+        <li>
+          <label class="label cursor-pointer justify-start gap-2">
+            <input type="radio" name="sort" class="radio radio-sm"
+                   :checked="sortOrder==='priceAsc'" @change="sortOrder='priceAsc'" />
+            <span>Cena ↑</span>
+          </label>
+        </li>
+        <li>
+          <label class="label cursor-pointer justify-start gap-2">
+            <input type="radio" name="sort" class="radio radio-sm"
+                   :checked="sortOrder==='priceDesc'" @change="sortOrder='priceDesc'" />
+            <span>Cena ↓</span>
+          </label>
+        </li>
+        <li>
+          <label class="label cursor-pointer justify-start gap-2">
+            <input type="radio" name="sort" class="radio radio-sm"
+                   :checked="sortOrder==='alphaAsc'" @change="sortOrder='alphaAsc'" />
+            <span>Abecedně A–Z</span>
+          </label>
+        </li>
+        <li>
+          <label class="label cursor-pointer justify-start gap-2">
+            <input type="radio" name="sort" class="radio radio-sm"
+                   :checked="sortOrder==='alphaDesc'" @change="sortOrder='alphaDesc'" />
+            <span>Abecedně Z–A</span>
+          </label>
+        </li>
+      </ul>
+    </div>
+
+    <!-- Search (compact & flexible) -->
+    <label class="input input-bordered flex items-center gap-2
+                  w-full sm:flex-1 sm:min-w-[220px] sm:max-w-[420px] ml-0 sm:ml-auto"
+           aria-label="Vyhledávání">
+      <svg class="h-5 w-5 opacity-70" viewBox="0 0 26 26" fill="currentColor" aria-hidden="true">
+        <path d="M18.6966 10.94c0-4.47-3.658-8.129-8.129-8.129S2.439 6.47 2.439 10.94c0 4.471 3.658 8.129 8.129 8.129 4.471 0 8.129-3.658 8.129-8.129zm1.728 6.556 6.808 6.808a1.15 1.15 0 0 1-1.628 1.628l-6.808-6.808"/>
+      </svg>
+      <input type="search" placeholder="Hledej dle názvu"
+             x-model.debounce.300ms="search" class="grow min-w-0" />
+    </label>
+  </div>
+
+
+<!-- Heading row -->
+<div class="lg:w-10/12 sm:w-11/12 mx-auto px-4 flex flex-wrap items-center gap-2">
+  <h2 id="filters-heading" class="text-lg font-semibold">Filtry a řazení</h2>
+  <span class="badge badge-primary badge-outline">
+    Nalezeno: <span class="ml-1 font-semibold" x-text="filteredCount()"></span>
+  </span>
+  <button class="btn btn-sm btn-ghost ml-auto" @click="clearFilters()">
+    Vymazat filtry
+  </button>
+</div>
+</section>
+
+<!-- LOADER -->
+<div x-show="isLoading" class="flex justify-center py-8" aria-live="polite" aria-busy="true">
+  <span class="loading loading-spinner loading-lg"></span>
+</div>
+
+<!-- PRODUCT CARDS GRID -->
+<div
+  x-show="!isLoading"
+  x-transition.opacity.duration.200ms
+  class="p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:w-10/12 sm:w-11/12 mx-auto items-stretch"
+>
+  <template x-for="product in pagedProducts()" :key="product.id">
+    <article class="h-full">
+      <div class="card h-full bg-base-100 shadow relative">
+        <!-- BADGES -->
+        <div x-show="product.badges?.length" class="absolute left-2 top-2 z-10 flex flex-col gap-1">
+          <template x-for="(b,i) in (product?.badges || [])" :key="i">
+            <span class="badge badge-error badge-sm font-semibold" x-text="b"></span>
+          </template>
+        </div>
+
+        <!-- IMAGE (clickable) -->
+        <figure class="h-48 flex items-center justify-center overflow-hidden">
+          <a href="#/product" class="block w-full h-full">
+            <img :src="product.image" class="object-contain max-h-full w-full h-full" :alt="product.name" />
+          </a>
+        </figure>
+
+        <!-- BODY -->
+        <div class="card-body min-w-0 flex flex-col">
+          <!-- TITLE (clickable) -->
+          <h2 class="card-title">
+            <a href="#/product" class="hover:underline focus:outline-none focus:ring-2 focus:ring-primary/50" x-text="product.name"></a>
+          </h2>
+
+          <p class="clamp-2" x-text="product.description"></p>
+
+          <!-- ACTIONS -->
+          <div class="card-actions mt-auto justify-between items-center">
+            <!-- PRICE BLOCK -->
+            <div class="flex flex-col leading-tight">
+              <span
+                x-show="product.discounted_price && product.discounted_price < product.price"
+                class="font-bold text-lg text-error"
+                x-text="`${product.discounted_price} Kč`"
+              ></span>
+              <span
+                x-show="product.discounted_price && product.discounted_price < product.price"
+                class="text-sm line-through text-base-content/60 -mt-0.5"
+                x-text="`${product.price} Kč`"
+              ></span>
+              <span
+                x-show="!product.discounted_price || !(product.discounted_price < product.price)"
+                class="font-bold text-lg"
+                x-text="`${product.price} Kč`"
+              ></span>
+            </div>
+
+            <!-- CTA or STEPPER -->
+            <template x-if="!$store.cart.inCart(product.id)">
+              <button class="btn btn-primary btn-md font-semibold"
+                      @click="$store.cart.add(product)">
+                Do košíku
+              </button>
+            </template>
+
+            <template x-if="$store.cart.inCart(product.id)">
+              <div class="join">
+                <button class="btn btn-square btn-md join-item"
+                        @click="$store.cart.decrement(product.id)"
+                        aria-label="Odebrat kus">−</button>
+
+                <input type="number" min="1"
+                      class="input input-bordered input-sm w-14 text-center join-item"
+                      :value="$store.cart.qty(product.id)"
+                      @input="$store.cart.setQty(product.id, $event.target.value)"
+                      @keydown.enter.prevent
+                      aria-label="Počet kusů" />
+
+                <button class="btn btn-square btn-sm join-item"
+                        @click="$store.cart.increment(product.id)"
+                        aria-label="Přidat kus">+</button>
+              </div>
+            </template>
+          </div>
+
+          <!-- META -->
+          <div class="mt-2 text-sm">
+            <span class="text-success font-bold" x-text="product.stock"></span>
+            <span class="mx-1 opacity-40">•</span>
+            <span class="opacity-70" x-text="product.category"></span>
+          </div>
+        </div>
+      </div>
+    </article>
+  </template>
+</div>
+
+
+<!-- EMPTY STATE -->
+<div x-show="!isLoading && filteredProducts().length === 0" class="py-16 text-center opacity-70">
+  Nic jsme nenašli pro zadané filtrování.
+</div>
+
+<!-- PAGINATION + LOAD MORE -->
+<div x-show="!isLoading && (totalPages() > 1 || canLoadMoreFirstPage())"
+     class="mt-6 flex items-center justify-between gap-4 flex-wrap w-11/12 lg:w-10/12 mx-auto p-4">
+  <!-- left: range -->
+  <div class="text-sm opacity-70">
+    <span x-text="rangeLabel()"></span>
+  </div>
+
+  <!-- center: pager -->
+  <div class="join mx-auto">
+    <button class="btn btn-md join-item" :class="{'btn-disabled': page === 1}"
+            @click="page = Math.max(1, page - 1)" aria-label="Předchozí stránka">«</button>
+
+    <template x-for="n in pagesToShow()" :key="`p-${n}-${page}`">
+      <button class="btn btn-md join-item"
+              :class="{'btn-active': n === page, 'btn-disabled': n === '…'}"
+              @click="if(n !== '…') page = n"
+              x-text="n === '…' ? '…' : n"
+              :aria-current="n === page ? 'page' : null"></button>
+    </template>
+
+    <button class="btn btn-md join-item" :class="{'btn-disabled': page === totalPages()}"
+            @click="page = Math.min(totalPages(), page + 1)" aria-label="Další stránka">»</button>
+  </div>
+
+  <button x-show="canLoadMoreFirstPage()" class="btn btn-secondary btn-md" @click="loadMore()" :disabled="isLoading">
+    <span x-text="loadMoreLabel()"></span>
+  </button>
+</div>
+</div>
+<div class="w-11/12 lg:w-10/12 mx-auto p-4 pt-12 pb-12">V kategorii Zdraví a léky naleznete volně prodejné léčivé přípravky, které pomáhají při různých obtížích. Jsou to například léky proti bolesti, při rýmě či kašli, na zvýšenou teplotu nebo při chřipce a nachlazení. Léčbu těmito přípravky zvládnete sami doma. V případě opakujících se nebo déle přetrvávajících obtíží je vždy na místě vyhledat pomoc lékaře. O vhodném léku se nejprve poraďte s lékárníkem.</div>
+</section>
+
+<!-- ROUTE == PRODUCT DETAIL -->
+<section x-show="is('product')" x-cloak>
+  <div x-data="productDetail({ fetchUrl: 'data/product.json' })" class="mx-auto w-auto md:w-11/12 lg:w-8/12 p-4 py-6">
+
+    <!-- gallery -->
+    <div class="grid md:grid-cols-2 gap-6 items-start">
+      <section class="relative">
+        <div x-show="product?.badges?.length" class="absolute left-2 top-2 z-10 flex flex-col gap-1">
+          <template x-for="(b,i) in (product?.badges || [])" :key="i">
+            <span class="badge badge-accent border-0 bg-max-red-500 badge-md font-semibold" x-text="b"></span>
+          </template>
+        </div>
+        <div class="aspect-square bg-base-200 rounded-xl flex items-center justify-center overflow-hidden">
+          <img class="object-contain w-full h-full"
+               :src="images[currentImage] || ''"
+               :alt="`${product?.name || ''} – obrázek ${currentImage+1}`">
+        </div>
+        <div class="mt-3 flex gap-2 overflow-x-auto">
+          <template x-for="(img, idx) in images" :key="idx">
+            <button type="button" class="shrink-0 rounded-md border p-1 w-16 h-16 bg-base-100"
+                    :class="idx === currentImage ? 'ring ring-primary' : 'border-base-300'"
+                    @click="currentImage = idx">
+              <img :src="img" class="object-contain w-full h-full" :alt="`Náhled ${idx+1}`">
+            </button>
+          </template>
+        </div>
+      </section>
+  
+      <!-- buy box (variants + price + add to cart) -->
+      <section class="space-y-6">
+        <h1 class="text-2xl md:text-3xl font-semibold" x-text="product?.name || '…'"></h1>
+
+        <!-- user rating -->
+        <div x-data="ratingLine()" x-init="$watch('product.reviews', v => v && set(v))" class="flex items-center gap-2 text-sm">
+          <span class="flex items-center gap-0 text-lg leading-none">
+            <template x-for="(s,i) in stars()" :key="i">
+              <i
+                :class="s === 'full'
+                  ? 'fa-solid fa-star text-yellow-400'
+                  : (s === 'half'
+                      ? 'fa-solid fa-star-half-stroke text-yellow-400'
+                      : 'fa-regular fa-star text-base-content/30')">
+              </i>
+            </template>
+          </span>
+        
+          <span class="font-bold" x-text="fmtAvg()"></span>
+          <span class="text-base-content/60">(<span x-text="count"></span> recenzí)</span>
+        </div>
+        
+        <div x-text="product?.perex || ''"></div>   
+
+        <section>
+          <div>Brand: <a href="" class="underline-offset-2 decoration-1 decoration-current hover:underline focus-visible:underline text-secondary font-semibold" x-text="product?.brand || ''"></span></a> /
+          <a href="" class="underline-offset-2 decoration-1 decoration-current hover:underline focus-visible:underline text-secondary font-semibold" x-text="product?.productLine || ''"></span></a></div>
+        </section>
+        <div x-show="variants?.length" class="space-y-2">
+          <div class="textmd font-semibold">Varianta</div>
+          <div class="flex flex-wrap gap-2">
+            <template x-for="v in variants" :key="v.id">
+              <button
+                type="button"
+                class="btn btn-md rounded-lg"
+                :class="selectedVariant?.id === v.id ? 'btn-secondary' : 'btn-outline'"
+                @click="selectVariant(v.id)"
+                x-text="v.name"
+              ></button>
+            </template>
+          </div>
+        </div>
+  
+
+            <div class="flex items-end gap-3">
+              <div class="flex flex-col">
+                <span x-show="hasDiscount()" class="text-2xl font-extrabold text-error" x-text="formatPrice(priceNow())"></span>
+                <span x-show="hasDiscount()" class="text-sm line-through text-base-content/60 -mt-0.5" x-text="formatPrice(priceOriginal())"></span>
+                <span x-show="!hasDiscount()" class="text-2xl font-extrabold" x-text="formatPrice(priceOriginal())"></span>
+              </div>
+              <span x-show="hasDiscount()" class="badge badge-error badge-sm">-<span x-text="discountPercent()"></span>%</span>
+            </div>
+  
+            <div class="text-sm mt-1 gap-1 grid">
+              <div class="text-success font-semibold text-xl" x-text="product?.stock || 'Skladem'"></div>
+
+              <div class="text-base"><i class="fa-classic fa-md fa-regular fa-truck-fast"></i> Odešleme ještě dnes, předpokládané doručení 1.10.</div>
+              <div class="text-base"><i class="fa-classic fa-md fa-regular fa-shop"></i> Dostupné také v 347 lékárnách</div>
+             
+            </div>
+  
+            <div class="pt-2">
+              <button class="btn btn-primary btn-xl" @click="addToCartClick()">Do košíku</button>
+            </div>
+
+      </section>
+    </div>
+    
+      <!-- ACCORIDONS -->
+       <section class="space-y-2 py-6">
+
+        <div class="collapse bg-base-100 collapse-arrow border-yellow-300 border p-2">
+          <input type="checkbox" />
+          <div class="collapse-title font-medium text-lg text-max-gray-600 inline-flex gap-3 items-center"><i class="fa-classic fa-md fa-solid fa-truck-fast"></i>Jak získat dopravu zdrama?</div>
+          <div class="collapse-content text-md flex gap-3 items-center">
+            Doprava zdarma při nákupu nad 1 500 Kč. Limit pro přihlášené je 399 Kč
+            <button class="btn btn-secondary btn-md">Přihlásit se</button>
+          </div>
+        </div>
+        <div class="collapse bg-yellow-50 collapse-arrow border-yellow-300 border p-2">
+          <input type="checkbox" />
+          <div class="collapse-title font-medium text-lg text-max-gray-600 inline-flex gap-3 items-center"><i class="fa-classic fa-md fa-solid fa-badge-percent"></i>Máte možnost získat slevu 13%</div>
+          <div class="collapse-content text-md flex gap-3 items-center">
+            Staňte se členem věrnostního programu Dr. Max a získejte produkt za 108 Kč (sleva 13%)
+            <button class="btn btn-secondary btn-md">Přihlásit se</button>
+          </div>
+        </div>
+
+
+      <div class="collapse collapse-open bg-base-100 collapse-arrow border-base-300 border p-3">
+        <input type="checkbox" />
+        <div class="collapse-title font-medium text-lg text-max-gray-600">O produktu </div>
+        
+        <div class="collapse-content text-md">
+
+          <div x-text="product?.name" class="uppercase text-max-gray-600"></div>
+          <div class="pb-4 text-max-gray-600">SKU: <span x-text="product?.SKU" class="uppercase"></span></div>
+          <div x-html="product?.description || ''"></div>
+
+        </div>
+      </div>
+      <div class="collapse bg-base-100 collapse-arrow border-base-300 border p-2">
+        <input type="checkbox" />
+        <div class="collapse-title font-medium text-lg text-max-gray-600">Parametry</div>
+        <div class="collapse-content">
+
+            <div class="overflow-x-auto">
+              <table class="table table-zebra text-base">
+                <tbody>
+                  <template x-for="(row,i) in product?.parameters || []" :key="i">
+                    <tr>
+                      <td class="w-auto md:w-1/3 font-semibold" x-text="row.name"></td>
+                      <td x-text="row.value"></td>
+                    </tr>
+                  </template>
+                </tbody>
+              </table>
+            </div>
+          
+        </div>
+      </div>
+      <div class="collapse bg-base-100 collapse-arrow border-base-300 border p-2">
+        <input type="checkbox" />
+        <div class="collapse-title font-medium text-lg text-max-gray-600">Skladem v lékárnách <span class="opacity-50 text-sm">(347)</span></div>
+        <div class="collapse-content text-sm">
+          <iframe src="https://www.google.com/maps/embed?pb=!1m16!1m12!1m3!1d81853.65539237593!2d14.427750211155628!3d50.1250929885876!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!2m1!1sDr.%20Max!5e0!3m2!1sen!2scz!4v1758902085984!5m2!1sen!2scz" width="100%" height="450" style="border:0;"  allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+        </div>
+      </div>
+ 
+      <template x-if="product?.comparison_id">
+        <div x-data="comparisonSection({ url: 'data/comparison.json', id: product.comparison_id })"
+             class="collapse bg-base-100 collapse-arrow border-base-300 border p-2">
+      
+          <input type="checkbox" />
+      
+          <!-- Heading: N podobných produktů k porovnání -->
+          <div class="collapse-title font-medium text-lg text-max-gray-600">
+            <span x-show="loading">Načítám porovnání…</span>
+            <span x-show="!loading" x-text="`Podobné produkty k porovnání`"></span> <span class="opacity-50 text-sm" x-show="!loading && !error">(<span x-text="count()"></span>)</span>
+          </div>
+      
+          <div class="collapse-content text-md">
+            <!-- Error -->
+            <div x-show="!loading && error" class="alert alert-error my-2">
+              <span x-text="error"></span>
+            </div>
+      
+            <!-- Empty -->
+            <div x-show="!loading && !error && !count()" class="alert my-2">
+              <span>Pro tento produkt zatím nemáme srovnatelné položky.</span>
+            </div>
+      
+            <!-- Table -->
+            <div x-show="!loading && !error && count()" class="overflow-x-auto">
+              <table class="table table-zebra min-w-[900px]">
+                <thead>
+                  <tr>
+                    <!-- attribute column heading -->
+                    <th class="w-36 md:w-60"></th>
+      
+                    <!-- product columns -->
+                    <template x-for="(p, i) in items" :key="i">
+                      <th class="align-top">
+                        <img :src="p.image" :alt="p.name" class="h-20 object-contain mb-2">
+                        <div class="font-medium text-sm leading-snug line-clamp-2" x-text="p.name"></div>
+                      </th>
+                    </template>
+                  </tr>
+                </thead>
+      
+                <tbody>
+                  <!-- Kategorie -->
+                  <tr>
+                    <th>Kategorie</th>
+                    <template x-for="(p, i) in items" :key="'cat-'+i">
+                      <td x-text="p.category || '—'"></td>
+                    </template>
+                  </tr>
+      
+                  <!-- Forma -->
+                  <tr>
+                    <th>Forma</th>
+                    <template x-for="(p, i) in items" :key="'form-'+i">
+                      <td x-text="p.form || '—'"></td>
+                    </template>
+                  </tr>
+      
+                  <!-- Účinná látka -->
+                  <tr>
+                    <th>Účinná látka</th>
+                    <template x-for="(p, i) in items" :key="'subst-'+i">
+                      <td x-text="p.medicinal_substance || '—'"></td>
+                    </template>
+                  </tr>
+      
+                  <!-- Objem -->
+                  <tr>
+                    <th>Objem</th>
+                    <template x-for="(p, i) in items" :key="'vol-'+i">
+                      <td x-text="p.volume ? `${p.volume} ${p.unit || ''}` : '—'"></td>
+                    </template>
+                  </tr>
+      
+                  <!-- Cena (zohlední slevu) -->
+                  <tr>
+                    <th>Cena</th>
+                    <template x-for="(p, i) in items" :key="'price-'+i">
+                      <td class="align-middle">
+                        <div x-show="(Number(p.discounted_price||0) > 0) && (Number(p.discounted_price) < Number(p.price||0))" class="space-y-0.5">
+                          <div class="font-semibold text-error" x-text="fmtPrice(priceNow(p))"></div>
+                          <div class="text-sm line-through text-base-content/60" x-text="fmtPrice(priceOriginal(p))"></div>
+                        </div>
+                        <div x-show="!(Number(p.discounted_price||0) > 0 && Number(p.discounted_price) < Number(p.price||0))">
+                          <span class="font-semibold" x-text="fmtPrice(priceOriginal(p))"></span>
+                        </div>
+                      </td>
+                    </template>
+                  </tr>
+      
+                  <!-- Cena za jednotku -->
+                  <tr>
+                    <th>Cena za jednotku</th>
+                    <template x-for="(p, i) in items" :key="'ppu-'+i">
+                      <td x-text="unitPriceText(p)"></td>
+                    </template>
+                  </tr>
+      
+                  <!-- Dostupnost -->
+                  <tr>
+                    <th>Dostupnost</th>
+                    <template x-for="(p, i) in items" :key="'stock-'+i">
+                      <td>
+                        <span :class="(p.stock||'').toLowerCase().includes('sklad') ? 'text-success font-medium' : ''"
+                              x-text="p.stock || '—'"></span>
+                      </td>
+                    </template>
+                  </tr>
+      
+                  <!-- Štítky -->
+                  <tr>
+                    <th>Štítky</th>
+                    <template x-for="(p, i) in items" :key="'badges-'+i">
+                      <td>
+                        <div class="flex flex-wrap gap-1">
+                          <template x-for="(b, bi) in (p.badges || [])" :key="bi">
+                            <span class="badge badge-accent badge-xs" x-text="b"></span>
+                          </template>
+                          <span x-show="!(p.badges && p.badges.length)">—</span>
+                        </div>
+                      </td>
+                    </template>
+                  </tr>
+      
+                  <!-- Popis (krátký) -->
+                  <tr>
+                    <th>Popis</th>
+                    <template x-for="(p, i) in items" :key="'desc-'+i">
+                      <td x-text="shortDesc(p.description)"></td>
+                    </template>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </template>
+
+
+      <div class="collapse bg-base-100 collapse-arrow border-base-300 border p-2">
+        <input type="checkbox" />
+        <div class="collapse-title font-medium text-lg text-max-gray-600">
+          Dokumenty, návody, letáky
+          <span class="opacity-50 text-sm">(1)</span>
+        </div>
+        <div class="collapse-content text-sm">
+          <a class="underline-offset-2 decoration-1 decoration-current hover:underline focus-visible:underline text-secondary font-semibold">PDF</a>
+        </div>
+      </div>
+
+      <div x-data="benefitsSection({ url: 'data/benefits.json' })"
+      class="collapse bg-base-100 collapse-arrow border-base-300 border p-2">
+ 
+   <input type="checkbox" />
+   <div class="collapse-title font-medium text-lg text-max-gray-600 flex items-center gap-2">
+     Lze platit vybranými benefity<span class="opacity-50 text-sm" x-show="!loading && !error">(<span x-text="count()"></span>)</span>
+   </div>
+ 
+   <div class="collapse-content text-sm">
+     <!-- Loading -->
+     <div x-show="loading" class="flex gap-2 items-center">
+       <div class="skeleton h-5 w-24"></div>
+       <div class="skeleton h-5 w-40"></div>
+     </div>
+ 
+     <!-- Error -->
+     <div x-show="!loading && error" class="alert alert-error my-2">
+       <span x-text="error"></span>
+     </div>
+ 
+     <!-- Table -->
+     <div x-show="!loading && !error" class="overflow-x-auto">
+       <table class="table table-zebra min-w-[420px]">
+         <thead>
+           <tr>
+             <th class="w-14 text-center">Dostupné</th>
+             <th>Název benefitu</th>
+           </tr>
+         </thead>
+         <tbody>
+           <template x-for="(b, i) in items" :key="i">
+             <tr>
+               <td class="text-center">
+                 <i :class="b.available
+                           ? 'fa-solid fa-circle-check text-success'
+                           : 'fa-solid fa-circle-xmark text-error'"></i>
+               </td>
+               <td class="font-medium" x-text="b.name"></td>
+             </tr>
+           </template>
+         </tbody>
+       </table>
+     </div>
+ 
+     <!-- Empty state -->
+     <div x-show="!loading && !error && !count()" class="alert mt-3">
+       <span>Pro tento produkt nejsou k dispozici žádné benefity.</span>
+     </div>
+   </div>
+ </div>
+      
+      <!-- User reviews -->
+      <div x-data="reviewsSection({ url: 'data/reviews.json' })"
+      class="collapse bg-base-100 collapse-arrow border-base-300 border p-2">
+ 
+   <input type="checkbox" />
+ 
+   <!-- Title: N recenzí + avg stars (only when loaded) -->
+   <div class="collapse-title font-medium text-lg text-max-gray-600 block md:flex items-center justify-between gap-3">
+     <span>
+       Recenze zákazníků <span class="opacity-50 text-sm" x-show="!loading && !error">(<span x-text="count()"></span>)</span>
+     </span>
+ 
+     <!-- Average stars summary using your ratingLine component -->
+     <template x-if="count()">
+       <div x-data="ratingLine({ average: average(), count: count() })"
+            class="flex items-center gap-2 text-sm pt-2 md:pt-0">
+         <span class="flex items-center gap-0 text-lg leading-none">
+           <template x-for="(s,i) in stars()" :key="i">
+             <i :class="s === 'full'
+                         ? 'fa-solid fa-star text-yellow-400'
+                         : (s === 'half'
+                             ? 'fa-solid fa-star-half-stroke text-yellow-400'
+                             : 'fa-regular fa-star text-base-content/30')"></i>
+           </template>
+         </span>
+         <span class="font-bold" x-text="fmtAvg()"></span>
+
+       </div>
+     </template>
+   </div>
+ 
+   <div class="collapse-content text-md">
+     <!-- Loading / error -->
+     <div x-show="loading" class="flex gap-2 items-center">
+       <div class="skeleton h-5 w-24"></div>
+       <div class="skeleton h-5 w-40"></div>
+     </div>
+     <div x-show="!loading && error" class="alert alert-error my-2">
+       <span x-text="error"></span>
+     </div>
+ 
+     <!-- Reviews list -->
+     <div x-show="!loading && !error" class="space-y-3 pt-3">
+       <template x-for="(r, i) in items" :key="i">
+         <article class="border border-base-300 rounded-lg p-3 md:p-4 space-y-1">
+           <header class="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm">
+             <!-- Stars per review -->
+             <span class="flex items-center gap-0.5">
+               <template x-for="(s, si) in starsFor(r.score)" :key="si">
+                 <i :class="s === 'full'
+                             ? 'fa-solid fa-star text-yellow-400'
+                             : (s === 'half'
+                                 ? 'fa-solid fa-star-half-stroke text-yellow-400'
+                                 : 'fa-regular fa-star text-base-content/30')"></i>
+               </template>
+             </span>
+             <span class="font-medium" x-text="Number(r.score).toFixed(1)"></span>
+             <span class="opacity-50">•</span>
+             <span class="opacity-70" x-text="r.source"></span>
+             <span class="opacity-50">•</span>
+             <span class="opacity-70" x-text="r.date"></span>
+           </header>
+ 
+           <div class="text-sm opacity-70">
+             <span class="font-semibold" x-text="r.author"></span>
+           </div>
+ 
+           <p class="mt-1 leading-relaxed" x-text="r.review"></p>
+         </article>
+       </template>
+ 
+       <!-- Empty state -->
+       <div x-show="!count()" class="alert">
+         <span>Zatím zde nejsou žádné recenze.</span>
+       </div>
+     </div>
+   </div>
+ </div> 
+      
+    </section>
+  
+    <a href="#/products"
+    class="font-medium text-max-blue-600 group inline-flex items-center gap-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 rounded my-8">
+   <i class="fa-solid fa-arrow-left fa-sm" aria-hidden="true"></i>
+   <span class="group-hover:underline group-focus-visible:underline underline-offset-2">
+    Zpět na výpis produktů
+   </span>
+  </a>
+   
+    <!-- Mobile sticky CTA bar -->
+    <div
+      class="fixed inset-x-0 bottom-0 z-50 md:hidden
+            transition-all duration-200
+            ease-out pb-[env(safe-area-inset-bottom)]" 
+      :class="ctaVisible ? 'translate-y-0 opacity-100' : 'translate-y-full opacity-0 pointer-events-none'">
+
+      <div class="bg-base-100 border-t border-base-200 shadow-2xl
+                  px-4 py-3
+                  pb-[calc(env(safe-area-inset-bottom,0px)+0.75rem)]">
+        <div class="flex items-center justify-between gap-3">
+          <!-- price -->
+          <div class="flex flex-col leading-tight">
+            <!-- discounted -->
+            <span x-show="hasDiscount()" class="text-lg font-extrabold text-error"
+                  x-text="formatPrice(priceNow())"></span>
+            <span x-show="hasDiscount()" class="text-xs line-through text-base-content/60 -mt-0.5"
+                  x-text="formatPrice(priceOriginal())"></span>
+
+            <!-- regular -->
+            <span x-show="!hasDiscount()" class="text-lg font-extrabold"
+                  x-text="formatPrice(priceOriginal())"></span>
+          </div>
+
+          <!-- CTA -->
+          <button class="btn btn-primary btn-sm min-w-28"
+                  @click="addToCartClick()">
+            Do košíku
+          </button>
+        </div>
+      </div>
+    </div>
+
+    </div>
+</section>
+
+<!-- ROUTE == CART -->
+<section x-show="is('cart')" x-cloak>
+  <h1 class="text-3xl lg:w-10/12 sm:w-11/12 pl-4 mx-auto text-[var(--max-gray-100)] text-max-blue-100">Nákupní košík</h1>
+  <div class="lg:w-10/12 sm:w-11/12 p-4  mx-auto">
+
+<a href="#/products" class="font-medium text-max-blue-600 hover:underline">Zpět</a>
+  </div>
+</section>
+
+
+
+
+<!-- FOOTER -->
+<div class="block bg-gray-200">
+<footer class="footer footer-horizontal hidden lg:grid py-12 mx-auto w-11/12 lg:w-10/12 px-4">
+  <nav>
+      <h6 class="footer-title">Services</h6>
+      <a class="link link-hover">Branding</a>
+      <a class="link link-hover">Design</a>
+      <a class="link link-hover">Marketing</a>
+      <a class="link link-hover">Advertisement</a>
+    </nav>
+    <nav>
+      <h6 class="footer-title">Company</h6>
+      <a class="link link-hover">About us</a>
+      <a class="link link-hover">Contact</a>
+      <a class="link link-hover">Jobs</a>
+      <a class="link link-hover">Press kit</a>
+    </nav>
+    <nav>
+      <h6 class="footer-title">Legal</h6>
+      <a class="link link-hover">Terms of use</a>
+      <a class="link link-hover">Privacy policy</a>
+      <a class="link link-hover">Cookie policy</a>
+    </nav>
+    <nav>
+      <h6 class="footer-title">Legal</h6>
+      <a class="link link-hover">Terms of use</a>
+      <a class="link link-hover">Privacy policy</a>
+      <a class="link link-hover">Cookie policy</a>
+    </nav>
+    <nav>
+      <h6 class="footer-title">Legal</h6>
+      <a class="link link-hover">Terms of use</a>
+      <a class="link link-hover">Privacy policy</a>
+      <a class="link link-hover">Cookie policy</a>
+    </nav>
+  </footer>
+  <footer class="footer footer-horizontal p-4 pb-6 lg:pb-6 pt-10 lg:pt-4 mx-auto w-11/12 lg:w-10/12 text-base-content">
+    <aside class="w-full">
+      <p class="text-sm opacity-70">© 2025 Dr. Max — All rights reserved</p>
+  
+      <!-- contact row -->
+      <address class="not-italic mt-2">
+        <p class="flex flex-wrap items-center gap-y-2 gap-x-6">
+          <a href="tel:+420516770100"
+             class="group inline-flex items-center gap-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 rounded">
+            <i class="fa-solid fa-phone fa-sm" aria-hidden="true"></i>
+            <span class="group-hover:underline group-focus-visible:underline underline-offset-2">
+              +420 516 770 100
+            </span>
+          </a>
+  
+          <a href="mailto:info@drmax.cz"
+             class="group inline-flex items-center gap-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 rounded">
+            <i class="fa-solid fa-envelope fa-sm" aria-hidden="true"></i>
+            <span class="group-hover:underline group-focus-visible:underline underline-offset-2">
+              info@drmax.cz
+            </span>
+          </a>
+        </p>
+      </address>
+    </aside>
+  </footer>
+</div>
+
+
+  <script>
+    document.addEventListener('alpine:init', () => {
+      // CART
+      Alpine.store('cart', {
+    items: {},
+
+    inCart(id) { id = String(id); return Object.prototype.hasOwnProperty.call(this.items, id); },
+    qty(id)    { id = String(id); return this.items[id]?.qty ?? 0; },
+
+    add(product) {
+      const id = String(product.id);
+      if (this.inCart(id)) { this.increment(id); return; }
+      this.items = { ...this.items, [id]: { qty: 1, product } };
+      Alpine.store('toast')?.push(`Přidáno do košíku: ${product.name}`, 'success');
+    },
+    increment(id) {
+      id = String(id);
+      if (!this.inCart(id)) return;
+      this.items[id].qty++;
+    },
+    decrement(id) {
+      id = String(id);
+      if (!this.inCart(id)) return;
+      const next = this.items[id].qty - 1;
+      if (next <= 0) {
+        const copy = { ...this.items };
+        delete copy[id];
+        this.items = copy;
+      } else {
+        this.items[id].qty = next;
+      }
+    },
+    setQty(id, raw) {
+      id = String(id);
+      let n = parseInt(raw, 10);
+      if (!Number.isFinite(n) || n <= 0) {
+        const copy = { ...this.items };
+        delete copy[id];
+        this.items = copy;
+        return;
+      }
+      if (!this.inCart(id)) return;
+      this.items[id].qty = n;
+    }
+  });
+
+      // TOASTS
+      Alpine.store('toast', {
+    items: [],
+    push(text, type = 'success', life = 3000) {
+      const id = (crypto.randomUUID?.() || Math.random().toString(36).slice(2)) + Date.now();
+      const item = { id, text, type, show: true };
+      this.items.push(item);
+      // auto-hide after `life` ms
+      item._lifeTimer = setTimeout(() => this.hide(id), life);
+    },
+    hide(id) {
+      const t = this.items.find(i => i.id === id);
+      if (!t || !t.show) return;
+      t.show = false; // triggers leave transition
+      // remove after transition finishes (keep in sync with duration-300)
+      clearTimeout(t._removeTimer);
+      t._removeTimer = setTimeout(() => this.remove(id), 320);
+    },
+    remove(id) {
+      this.items = this.items.filter(t => t.id !== id);
+    }
+  });
+    // PRODUCT DETAIL
+    Alpine.data('productDetail', (opts = {}) => ({
+      // options / inputs
+      id: opts.id ?? null,
+      fetchUrl: opts.fetchUrl ?? 'data/product.json',
+      initialProduct: opts.product ?? null,
+      // botto-bar
+      ctaVisible: false,
+      _scrollY: 0,
+      _scrollThreshold: 1300,   // px from top before CTA can appear
+      _scrollJitter: 2,        // ignore tiny scroll jitter
+      _onScroll: null,
+      // state
+      product: { badges: [], reviews: null, description: '' },
+      images: [],
+      variants: [],
+      selectedVariant: null,
+      currentImage: 0,
+      activeTab: 'desc',
+
+      // lifecycle — Alpine auto-calls init(), so x-init="init()" is NOT needed
+     async init() {
+        try {
+          // Either use provided product or fetch
+          this.product = this.initialProduct || await (await fetch(this.fetchUrl)).json();
+
+          this.images = this.product.images || [];
+          this.variants = this.product.variants || [];
+          this.selectedVariant = this.variants[0] || null;
+        } catch (e) {
+          console.error('product.json load failed', e);
+        }
+        // bottom-bar
+        this._scrollY = window.scrollY;
+        this._onScroll = () => {
+        const y = window.scrollY;
+        const down = y > this._scrollY + this._scrollJitter;
+        const up   = y < this._scrollY - this._scrollJitter;
+        this._scrollY = y;
+
+        if (y < this._scrollThreshold) { this.ctaVisible = false; return; }
+        if (down) this.ctaVisible = true;
+        if (up)   this.ctaVisible = false;
+      };
+      window.addEventListener('scroll', this._onScroll, { passive: true });
+ 
+      },
+
+
+
+      // variants
+      selectVariant(id) {
+        const v = this.variants.find(x => x.id === id);
+        if (v) this.selectedVariant = v;
+      },
+
+      // pricing helpers
+      basePrice() {
+        const p = this.selectedVariant || this.product || {};
+        return Number(p.price ?? 0);
+      },
+      baseDiscounted() {
+        const p = this.selectedVariant || this.product || {};
+        const d = Number(p.discounted_price ?? 0);
+        return d > 0 ? d : null;
+      },
+      priceOriginal() { return this.basePrice(); },
+      priceNow()      { return this.baseDiscounted() ?? this.basePrice(); },
+      hasDiscount()   { return this.baseDiscounted() != null && this.baseDiscounted() < this.basePrice(); },
+      discountPercent() {
+        if (!this.hasDiscount()) return 0;
+        return Math.round(100 - (this.baseDiscounted() / this.basePrice()) * 100);
+      },
+      formatPrice(v) {
+        return new Intl.NumberFormat('cs-CZ', { style: 'currency', currency: 'CZK', maximumFractionDigits: 0 }).format(v);
+      },
+
+      // add to cart toast (hook into your existing toast store)
+      addToCartClick() {
+        const name = this.product?.name || 'Produkt';
+        Alpine.store('toast')?.push(`Přidáno do košíku: ${name}`, 'success');
+        // If you also want to add to your global cart, call your store method here.
+      }
+    })); 
+
+    // USER REVIEWS LIS
+    Alpine.data('reviewsSection', (opts = {}) => ({
+    url: opts.url ?? 'data/reviews.json',
+    items: [],
+    loading: true,
+    error: null,
+
+    async init() {
+      try {
+        const res = await fetch(this.url);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        this.items = await res.json();
+      } catch (e) {
+        console.error('reviews load failed', e);
+        this.error = 'Nepodařilo se načíst recenze.';
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    count() {
+      return Array.isArray(this.items) ? this.items.length : 0;
+    },
+    average() {
+      if (!this.count()) return 0;
+      const sum = this.items.reduce((s, r) => s + Number(r.score || 0), 0);
+      return +(sum / this.count()).toFixed(1);
+    },
+
+    // Build 5 icons for a given score (full/half/empty)
+    starsFor(val) {
+      const v = Math.max(0, Math.min(5, Math.round(Number(val) * 2) / 2)); // nearest 0.5
+      return Array.from({ length: 5 }, (_, i) => {
+        const n = i + 1;
+        if (v >= n) return 'full';
+        if (v >= n - 0.5) return 'half';
+        return 'empty';
+      });
+    }
+  })),    
+    //BENEFIT PAYMENTS
+    Alpine.data('benefitsSection', (opts = {}) => ({
+    url: opts.url ?? 'data/benefits.json',
+    items: [],
+    loading: true,
+    error: null,
+
+    async init() {
+      try {
+        const res = await fetch(this.url);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        // sort: available first, then name
+        this.items = (Array.isArray(data) ? data : [])
+          .sort((a,b) => (b.available - a.available) || String(a.name).localeCompare(String(b.name), 'cs'));
+      } catch (e) {
+        console.error('benefits load failed', e);
+        this.error = 'Nepodařilo se načíst seznam benefitních karet.';
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    count(){ return this.items.length; }
+  })),
+
+    //PRODUCT COMPARISON
+    Alpine.data('comparisonSection', (opts = {}) => ({
+    url: opts.url ?? 'data/comparison.json',
+    id:  opts.id ?? null,
+
+    loading: true,
+    error: null,
+    items: [],   // products to compare (columns)
+
+    async init() {
+      if (!this.id) { this.loading = false; return; }
+      await this.load(this.id);
+    },
+
+    async load(groupId) {
+      this.loading = true; this.error = null;
+      try {
+        const res = await fetch(this.url);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const groups = await res.json();
+        const found = Array.isArray(groups) ? groups.find(g => Number(g.id) === Number(groupId)) : null;
+        this.items = found?.product_comparison || [];
+      } catch (e) {
+        console.error('comparison load failed', e);
+        this.error = 'Nepodařilo se načíst porovnání.';
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    count(){ return this.items.length; },
+
+    priceNow(p){
+      const price = Number(p?.price ?? 0);
+      const disc  = Number(p?.discounted_price ?? 0);
+      // use discounted only if it exists and is lower than regular
+      return (disc > 0 && disc < price) ? disc : price;
+    },
+    priceOriginal(p){ return Number(p?.price ?? 0); },
+
+    unitLabel(p){
+      const u = (p?.unit || '').trim();
+      return u || 'jedn.';
+    },
+
+    pricePerUnit(p){
+      const v = Number(p?.volume ?? 0);
+      if (!v) return null;
+      return this.priceNow(p) / v;
+    },
+
+    unitPriceText(p){
+      const v = Number(p?.volume ?? 0);
+      if (!v) return '—';
+      const num = new Intl.NumberFormat('cs-CZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(this.pricePerUnit(p));
+      return `${num} Kč / ${this.unitLabel(p)}`;
+    },
+
+    fmtPrice(v){
+      return new Intl.NumberFormat('cs-CZ', { style: 'currency', currency: 'CZK', maximumFractionDigits: 0 }).format(Number(v||0));
+    },
+
+    shortDesc(txt, n = 120){
+      if (!txt) return '—';
+      const t = String(txt).trim();
+      return t.length > n ? t.slice(0, n - 1) + '…' : t;
+    }
+  })),
+
+      // STORE CORE + ROUTER
+      Alpine.data('storeApp', () => ({
+  // persisted prefs
+  locale: Alpine.$persist('cs').as('locale'),
+
+  // state
+  products: [],
+  categories: [],
+  forms: [],
+  consumersList: [],
+
+  search: '',
+  selectedCategory: '',
+  selectedForm: '',
+  selectedConsumers: [],            // multi
+  onlyInStock: false,
+  benefitOnly: false,
+  onlyDiscounted: false,
+
+  sortOrder: '',
+  isLoading: true,
+  _filterTimer: null,
+  page: 1,
+  pageSize: 8,
+  showCount: 8,
+
+  // router
+  route: 'products',
+  params: {},
+
+  // ---- lifecycle ----
+  init() {
+    // 1) Router
+    window.addEventListener('hashchange', () => this._onRoute());
+    this._onRoute();
+
+    // 2) Watchers -> reset paging + loader delay when anything changes
+    const trigger = () => {
+      this.page = 1;
+      this.showCount = this.pageSize;
+      this.scheduleDisplayDelay();
+    };
+    this.$watch('search', trigger);
+    this.$watch('selectedCategory', trigger);
+    this.$watch('selectedForm', trigger);
+    this.$watch('selectedConsumers', trigger);
+    this.$watch('onlyInStock', trigger);
+    this.$watch('benefitOnly', trigger);
+    this.$watch('onlyDiscounted', trigger);
+    this.$watch('sortOrder', trigger);
+
+    // keep page in range if results shrink
+    this.$watch(() => this.filteredProducts().length, () => {
+      this.page = Math.min(this.page, this.totalPages());
+    });
+
+    // 3) Load data
+    this.loadData();
+  },
+
+  async loadData() {
+    try {
+      const res = await fetch('data/products.json');
+      this.products = await res.json();
+
+      // facets
+      this.categories = [...new Set(this.products.map(p => p.category).filter(Boolean))]
+        .sort((a,b)=>a.localeCompare(b,'cs'));
+      this.forms = [...new Set(this.products.map(p => (p.form || '').trim()).filter(Boolean))]
+        .sort((a,b)=>a.localeCompare(b,'cs'));
+      const cons = new Set();
+      this.products.forEach(p => (Array.isArray(p.consumers) ? p.consumers : []).forEach(c => cons.add(c)));
+      this.consumersList = [...cons].sort((a,b)=>a.localeCompare(b,'cs'));
+    } catch (e) {
+      console.error('Failed to load products.json', e);
+    } finally {
+      this.isLoading = false;
+    }
+  },
+
+  // ---- router helpers (the ones that were missing) ----
+  truncate(str, max = 34) {
+  const s = String(str || '');
+  return s.length > max ? s.slice(0, max - 1) + '…' : s;
+  },
+  consumersLabel() {
+    if (!this.selectedConsumers.length) return 'Vhodné pro';
+    // join and trim; looks like "Pro kojence, Pro batolata, Pro…"
+    return this.truncate(this.selectedConsumers.join(', '));
+  },
+  optionsLabel() {
+    const on = [];
+    if (this.onlyInStock)     on.push('Skladem');
+    if (this.benefitOnly)     on.push('Benefity');
+    if (this.onlyDiscounted)  on.push('V akci');
+    return on.length ? this.truncate(on.join(', ')) : 'Možnosti';
+  },
+  clearOptions() {
+    this.onlyInStock = false;
+    this.benefitOnly = false;
+    this.onlyDiscounted = false;
+  },
+  go(to) {
+    location.hash = to.startsWith('#') ? to : ('#' + to.replace(/^#/, ''));
+  },
+  is(nameOrArr) {
+    return Array.isArray(nameOrArr)
+      ? nameOrArr.includes(this.route)
+      : this.route === nameOrArr;
+  },
+  _onRoute() {
+    const raw = (location.hash || '#/products').replace(/^#\/?/, '');
+    const [pathPart] = raw.split('?');
+    const seg = pathPart.split('/').map(s => decodeURIComponent(s || ''));
+    const [path, id, sub] = seg;
+
+    switch (path) {
+      case '':
+      case 'products':
+        this.route = 'products';
+        this.params = {};
+        break;
+
+      case 'cart':
+        this.route = 'cart';
+        this.params = {};
+        break;
+
+      case 'product':
+        if (id) {
+          this.route = 'product';
+          this.params = { id, tab: sub || 'desc' };
+        } else {
+          this.route = 'product';
+          this.params = {};
+        }
+        break;
+
+      default:
+        this.route = 'products';
+        this.params = {};
+    }
+    // (Optional) If you keep a store for global UI visibility:
+    // Alpine.store('route')?.name = this.route;
+  },
+
+  // ---- filter helpers ----
+  optionsCount() {
+  let n = 0;
+  if (this.onlyInStock) n++;
+  if (this.benefitOnly) n++;
+  if (this.onlyDiscounted) n++;
+  return n;
+  },
+  filteredCount() { return this.filteredProducts().length; },
+
+  sortLabel() {
+  switch (this.sortOrder) {
+    case 'priceAsc':  return 'Řadit dle: Cena ↑';
+    case 'priceDesc': return 'Řadit dle: Cena ↓';
+    case 'alphaAsc':  return 'Řadit dle: Abecedně A–Z';
+    case 'alphaDesc': return 'Řadit dle: Abecedně Z–A';
+    default:          return 'Řadit dle: Doporučeno';
+  }
+  },
+  toggleConsumer(val) {
+    const i = this.selectedConsumers.indexOf(val);
+    if (i >= 0) this.selectedConsumers.splice(i, 1);
+    else this.selectedConsumers.push(val);
+    this.selectedConsumers = [...this.selectedConsumers]; // normalize
+  },
+
+  hasActiveFilters() {
+    return !!(
+      this.search ||
+      this.selectedCategory ||
+      this.selectedForm ||
+      this.selectedConsumers.length ||
+      this.onlyInStock ||
+      this.benefitOnly ||
+      this.onlyDiscounted
+    );
+  },
+  activeFiltersCount() {
+    let n = 0;
+    if (this.search) n++;
+    if (this.selectedCategory) n++;
+    if (this.selectedForm) n++;
+    n += this.selectedConsumers.length;
+    if (this.onlyInStock) n++;
+    if (this.benefitOnly) n++;
+    if (this.onlyDiscounted) n++;
+    return n;
+  },
+  clearFilters() {
+    this.search = '';
+    this.selectedCategory = '';
+    this.selectedForm = '';
+    this.selectedConsumers = [];
+    this.onlyInStock = false;
+    this.benefitOnly = false;
+    this.onlyDiscounted = false;
+    this.sortOrder = '';
+  },
+
+  // ---- loader delay ----
+  scheduleDisplayDelay() {
+    this.isLoading = true;
+    clearTimeout(this._filterTimer);
+    this._filterTimer = setTimeout(() => { this.isLoading = false; }, 750);
+  },
+
+  // ---- filtering/sorting ----
+  filteredProducts() {
+    let items = this.products;
+
+    if (this.search) {
+      const s = this.search.toLowerCase();
+      items = items.filter(p =>
+        (p.name || '').toLowerCase().includes(s) ||
+        (p.description || '').toLowerCase().includes(s)
+      );
+    }
+    if (this.selectedCategory) {
+      items = items.filter(p => p.category === this.selectedCategory);
+    }
+    if (this.selectedForm) {
+      items = items.filter(p => (p.form || '').trim() === this.selectedForm);
+    }
+    if (this.selectedConsumers.length) {
+      items = items.filter(p => {
+        const arr = Array.isArray(p.consumers) ? p.consumers : [];
+        return this.selectedConsumers.some(c => arr.includes(c)); // ANY match
+      });
+    }
+    if (this.onlyInStock) {
+      items = items.filter(p => String(p.stock || '').toLowerCase().includes('sklad'));
+    }
+    if (this.benefitOnly) {
+      items = items.filter(p => !!p.benefitPayment);
+    }
+    if (this.onlyDiscounted) {
+      items = items.filter(p => {
+        const d = Number(p.discounted_price || 0);
+        const pr = Number(p.price || 0);
+        return d > 0 && d < pr;
+      });
+    }
+
+    if (this.sortOrder === 'priceAsc') {
+      items = items.slice().sort((a, b) => (a.price ?? 0) - (b.price ?? 0));
+    } else if (this.sortOrder === 'priceDesc') {
+      items = items.slice().sort((a, b) => (b.price ?? 0) - (a.price ?? 0));
+    } else if (this.sortOrder === 'alphaAsc') {
+      items = items.slice().sort((a, b) => String(a.name).localeCompare(String(b.name), 'cs', {sensitivity:'base'}));
+    } else if (this.sortOrder === 'alphaDesc') {
+      items = items.slice().sort((a, b) => String(b.name).localeCompare(String(a.name), 'cs', {sensitivity:'base'}));
+    }
+
+    return items;
+  },
+
+  // ---- pagination (unchanged) ----
+  canLoadMoreFirstPage() {
+    return this.page === 1 && this.showCount < this.filteredProducts().length;
+  },
+  loadMore() {
+    const total = this.filteredProducts().length;
+    this.showCount = Math.min(this.showCount + this.pageSize, total);
+  },
+  loadMoreLabel() {
+    const remaining = this.filteredProducts().length - this.showCount;
+    const n = Math.min(this.pageSize, Math.max(0, remaining));
+    return n ? `Načíst dalších ${n} produktů` : 'Vše načteno';
+  },
+  totalPages() {
+    const total = this.filteredProducts().length;
+    if (total <= this.showCount) return 1;
+    return 1 + Math.ceil((total - this.showCount) / this.pageSize);
+  },
+  pagedProducts() {
+    const items = this.filteredProducts();
+    if (this.page === 1) return items.slice(0, this.showCount);
+    const start = this.showCount + (this.page - 2) * this.pageSize;
+    return items.slice(start, start + this.pageSize);
+  },
+  pagesToShow() {
+    const p = this.page, t = this.totalPages();
+    if (t <= 7) return Array.from({ length: t }, (_, i) => i + 1);
+    if (p <= 4) return [1, 2, 3, 4, 5, '…', t];
+    if (p >= t - 3) return [1, '…', t - 4, t - 3, t - 2, t - 1, t];
+    return [1, '…', p - 1, p, p + 1, '…', t];
+  },
+  rangeLabel() {
+    const total = this.filteredProducts().length;
+    if (!total) return '0 z 0';
+    if (this.page === 1) return `1–${this.showCount} z ${total}`;
+    const start = this.showCount + (this.page - 2) * this.pageSize + 1;
+    const end = Math.min(this.showCount + (this.page - 1) * this.pageSize, total);
+    return `${start}–${end} z ${total}`;
+  }
+})),
+
+  // HAMBURGER MENU  
+  Alpine.store('menu', {
+    // state
+    open: false,
+    menus: [],
+    current: null,     // active menu object
+    stack: [],         // for back navigation
+    slideDir: 1,       // 1 forward, -1 back (animation)
+    viewKey: 0,        // bump to retrigger pane animation
+    loading: false,
+    error: null,
+
+    async load(url = 'data/menus.json') {
+      if (this.menus.length) return;
+      this.loading = true; this.error = null;
+      try {
+        const res = await fetch(url);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const raw = await res.json();
+        this.menus = this.normalize(raw);
+      } catch (e) {
+        console.error('menu load failed', e);
+        this.error = 'Nepodařilo se načíst menu.';
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    // Accepts either my camelCase schema or your snake_case + single-string icon
+    normalize(arr){
+      const normItem = (it = {}) => {
+        const out = { ...it };
+
+        // snake_case -> camelCase
+        if (out.link_to_menu_id != null) out.linkMenuId = out.link_to_menu_id;
+        if (out.router_link) out.route = out.router_link;
+        if (out.row_type) out.rowType = out.row_type;
+
+        // icon: "fa-regular capsules" -> { iconSet:'fa-regular', icon:'capsules' }
+        if (!out.iconSet && typeof out.icon === 'string' && out.icon.includes(' ')) {
+          const [set, name] = out.icon.split(/\s+/, 2);
+          out.iconSet = set;
+          out.icon = name;
+        }
+
+        return out;
+      };
+
+      return (arr || []).map(m => ({
+        id: m.id,
+        parentId: m.parentId ?? m.parent ?? null,
+        name: m.name,
+        // some menus have root items, some only sections – handle both
+        items: Array.isArray(m.items) ? m.items.map(normItem) : [],
+        sections: Array.isArray(m.sections)
+          ? m.sections.map(s => ({
+              name: s.name ?? null,
+              type: s.type ?? null,     // 'language' / 'loyalty' / undefined
+              items: Array.isArray(s.items) ? s.items.map(normItem) : []
+            }))
+          : []
+      }));
+    },
+
+    // helpers
+    byId(id){ return this.menus.find(m => Number(m.id) === Number(id)); },
+    canGoBack(){ return this.stack.length > 0 || (this.current && this.current.parentId != null); },
+
+    // open from anywhere; default id by screen (lg desktop -> 2, mobile -> 1)
+    async openAt(id = null) {
+      await this.load();
+      if (id == null) {
+        id = window.matchMedia('(min-width: 1024px)').matches ? 2 : 1;
+      }
+      this.stack = [];
+      this.slideDir = 1;
+      this.current = this.byId(id) || null;
+      this.viewKey++;
+      this.open = true;
+      document.documentElement.style.overflow = 'hidden'; // lock scroll
+    },
+
+    close() {
+      this.open = false;
+      this.stack = [];
+      this.current = null;
+      document.documentElement.style.overflow = '';
+    },
+
+    goToMenu(id) {
+      if (!id) return;
+      if (!this.current || Number(this.current.id) !== Number(id)) {
+        if (this.current) this.stack.push(this.current.id);
+        this.slideDir = 1;
+        this.current = this.byId(id) || this.current;
+        this.viewKey++;
+      }
+    },
+
+    back() {
+      if (!this.canGoBack()) { this.close(); return; }
+      const prevId = this.stack.pop() ?? this.current?.parentId;
+      if (prevId != null) {
+        this.slideDir = -1;
+        this.current = this.byId(prevId) || this.current;
+        this.viewKey++;
+      }
+    },
+
+    // click handlers
+    onItemClick(item) {
+      if (item.linkMenuId != null) {
+        this.goToMenu(item.linkMenuId);
+        return;
+      }
+      if (item.route) {
+        location.hash = '#/' + String(item.route).replace(/^#?\/?/, '');
+        this.close();
+        return;
+      }
+      // no link/route: no-op
+    }
+  }),  
+  
+  // PRODUCT RATING
+    Alpine.data('ratingLine', (src = {}) => ({
+    avg: Number(src?.average ?? 0),
+    count: Number(src?.count ?? 0),
+
+    set(r){ this.avg = Number(r?.average ?? 0); this.count = Number(r?.count ?? 0); },
+
+    // array of 5 slots: 'full' | 'half' | 'empty'
+    stars() {
+      const v = Math.max(0, Math.min(5, Math.round(this.avg * 2) / 2)); // nearest 0.5
+      return Array.from({ length: 5 }, (_, i) => {
+        const n = i + 1;
+        if (v >= n) return 'full';
+        if (v >= n - 0.5) return 'half';
+        return 'empty';
+      });
+    },
+
+    fmtAvg(){ return (isFinite(this.avg) ? this.avg : 0).toFixed(1); }
+  })),
+
+      // CATEGORIES LIST
+      Alpine.data('categoriesList', () => ({
+      categories: [],
+      fallback: './images/placeholder.png',
+
+      async init() {
+        // adjust path if needed
+        const res = await fetch('./data/categories.json');
+        this.categories = await res.json();
+      },
+
+      imageUrl(cat) {
+        const base = (cat.image || '').trim();
+        const withSlug = base.endsWith('/') ? `${base}${this.slug(cat.name)}.webp` : base;
+        return base ? withSlug : this.fallback;
+      },
+
+      slug(str) {
+        return str
+          .toLowerCase()
+          .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // remove diacritics
+          .replace(/[^a-z0-9]+/g, '-')
+          .replace(/(^-|-$)/g, '');
+      },
+
+      productsLabel(n) {
+        // Czech pluralization-ish
+        if (n === 1) return '1 produkt';
+        if (n >= 2 && n <= 4) return `${n} produkty`;
+        return `${n} produktů`;
+      },
+    }))
+    })
+  </script>
+
+<!-- TOAST OUTLET -->
+<div x-data x-cloak class="fixed inset-0 z-50 pointer-events-none">
+  <div class="toast toast-end toast-bottom">
+    
+    <template x-for="t in $store.toast.items" :key="t.id">
+      <div
+        x-show="t.show"
+        x-transition:enter="transform ease-out duration-300"
+        x-transition:enter-start="translate-y-4 opacity-0"
+        x-transition:enter-end="translate-y-0 opacity-100"
+        x-transition:leave="transform ease-in duration-300"
+        x-transition:leave-start="translate-y-0 opacity-100"
+        x-transition:leave-end="translate-y-4 opacity-0"
+        class="alert alert-success pointer-events-auto cursor-pointer"
+        role="status" aria-live="polite"
+        @click="$store.toast.hide(t.id)">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 shrink-0 stroke-current" fill="none" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        <span x-text="t.text"></span>
+      </div>
+    </template>
+  
+  </div>
+</div>
+
+<!-- MENU OVERLAY -->
+<div x-data x-cloak x-show="$store.menu.open"
+     x-transition.opacity.duration.150ms
+     class="fixed inset-0 z-[70] bg-black/50"
+     @click="$store.menu.close()"
+     @keydown.escape.window="$store.menu.close()"
+     aria-hidden="true"></div>
+
+<!-- Panel -->
+<div x-data x-cloak
+     class="fixed inset-y-0 left-0 z-[80] w-[100dvw] max-w-full lg:max-w-md bg-base-100 shadow-2xl
+     -translate-x-full transform transition-transform duration-200 ease-out"
+     :class="{'translate-x-0': $store.menu.open}">
+
+<!-- Top bar -->
+<div class="sticky top-0 z-10 bg-base-100 border-b border-base-200 h-18 px-3 relative">
+  <!-- row: left + spacer + right -->
+  <div class="h-full flex items-center gap-2">
+    <!-- Left: Back OR Account -->
+    <div class="shrink-0">
+      <template x-if="$store.menu.canGoBack()">
+        <button class="btn btn-ghost btn-sm" @click.stop="$store.menu.back()" aria-label="Zpět">
+          <i class="fa-solid fa-chevron-left fa-xl"></i>
+        </button>
+      </template>
+      <template x-if="!$store.menu.canGoBack()">
+        <button class="btn btn-ghost btn-sm" @click.stop="$store.menu.goToMenu(9)" aria-label="Můj účet">
+          <i class="fa-regular fa-user-circle fa-xl"></i>
+        </button>
+      </template>
+    </div>
+
+    <div class="flex-1"></div>
+
+    <!-- Right: Close -->
+    <button class="btn btn-ghost btn-sm shrink-0" @click.stop="$store.menu.close()" aria-label="Zavřít">
+      <i class="fa-solid fa-xmark fa-xl"></i>
+    </button>
+  </div>
+
+  <div class="absolute inset-x-14 top-1/2 -translate-y-1/2 text-center font-semibold">
+    <span class="block truncate" x-text="$store.menu.current?.name || 'Menu'"></span>
+  </div>
+</div>
+
+  <!-- Content (slides on menu change) -->
+  <div class="h-[calc(100vh-3.5rem)] overflow-y-auto p-2"
+       :class="$store.menu.slideDir === 1 ? 'slide-in-right' : 'slide-in-left'"
+       :key="$store.menu.viewKey">
+
+    <!-- Loading / Error -->
+    <template x-if="$store.menu.loading">
+      <div class="p-4 space-y-2">
+        <div class="skeleton h-6 w-48"></div>
+        <div class="skeleton h-4 w-64"></div>
+        <div class="skeleton h-4 w-56"></div>
+      </div>
+    </template>
+
+    <template x-if="$store.menu.error">
+      <div class="alert alert-error m-2" x-text="$store.menu.error"></div>
+    </template>
+
+    <!-- Current menu -->
+    <template x-if="$store.menu.current && !$store.menu.loading && !$store.menu.error">
+      <div>
+        <!-- root items (optional) -->
+        <div class="divide-y divide-base-200">
+          <template x-for="(it, i) in ($store.menu.current.items || [])" :key="'root-'+i">
+            <button class="w-full text-left py-3 px-3 flex items-center gap-3 hover:bg-base-200/60 rounded-lg transition cursor-pointer"
+                    @click.stop="$store.menu.onItemClick(it)">
+              <!-- left icon (only if present) -->
+              <template x-if="it.icon || it.iconSet">
+                <i :class="[
+                      it.iconSet === 'custom' && it.icon === 'check' ? 'fa-solid fa-circle-check' :
+                      it.iconSet === 'custom' && it.icon === 'empty' ? 'fa-regular fa-circle' :
+                      (it.iconSet || 'fa-regular') + ' fa-' + (it.icon || ''),
+                      it.rowType === 'bold' ? 'text-error' : 'text-base-content/70'
+                    ]"></i>
+              </template>
+        
+              <div class="flex-1">
+                <div :class="it.rowType === 'bold' ? 'text-error font-semibold' : 'font-medium'">
+                  <span x-text="it.name"></span>
+                </div>
+                <div x-show="it.description" class="text-xs opacity-70 mt-0.5" x-text="it.description"></div>
+              </div>
+        
+              <i x-show="it.linkMenuId" class="fa-solid fa-chevron-right text-base-content/40 self-center"></i>
+            </button>
+          </template>
+        </div>
+
+        <!-- sections -->
+        <div class="mt-2 space-y-3 mb-12">
+          <template x-for="(sec, si) in ($store.menu.current.sections || [])" :key="'sec-'+si">
+            <section>
+              <h3 class="px-3 pt-3 pb-2 text-xs font-semibold tracking-wide uppercase text-base-content/50" x-text="sec.name"></h3>
+
+              <!-- special: loyalty card -->
+              <template x-if="sec.type === 'loyalty'">
+                <div class="px-3 pb-2">
+                  <div class="rounded-xl border border-base-300 p-3 bg-gradient-to-br from-base-100 to-base-200">
+                    <div class="flex items-center justify-between">
+                      <img src="./images/logoDrmax.svg" alt="Dr. Max" class="h-6">
+                      <span class="text-xs font-semibold text-success">Celková úspora: 123 Kč</span>
+                    </div>
+                    <div class="mt-3 text-center">
+                      <div class="font-mono text-lg tracking-widest">1234 5678 9012</div>
+                      <div class="mt-2 bg-white h-14 rounded-sm flex items-center justify-center">
+                        <img src="./images/barcode.png" alt="Čárový kód" class="h-16 w-auto">
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </template>
+
+              <!-- special: language list (radio-like) -->
+              <template x-if="sec.type === 'language'">
+                <div class="divide-y divide-base-200 bg-base-100 rounded-lg mx-2">
+                  <template x-for="(it, i) in (sec.items || [])" :key="'lang-'+i">
+                    <button class="w-full text-left py-3 px-3 flex items-center gap-3 hover:bg-base-200/60 transition">
+                      <i :class="it.icon === 'check' ? 'fa-solid fa-circle-check text-success' : 'fa-regular fa-circle text-base-content/40'"></i>
+                      <span class="font-medium" x-text="it.name"></span>
+                    </button>
+                  </template>
+                </div>
+              </template>
+
+              <!-- default: list -->
+              <template x-if="!sec.type || sec.type === 'list'">
+                <div class="divide-y divide-base-200 bg-base-100 rounded-lg mx-2">
+                  <template x-for="(it, i) in (sec.items || [])" :key="'item-'+i">
+                    <button class="w-full text-left py-4 px-3 flex items-center gap-3 hover:bg-max-gray-50 border-0 transition cursor-pointer"
+                            @click.stop="$store.menu.onItemClick(it)">
+                      <template x-if="it.icon || it.iconSet">
+                        <i :class="[
+                              it.iconSet === 'custom' && it.icon === 'check' ? 'fa-solid fa-circle-check fa-xl ' :
+                              it.iconSet === 'custom' && it.icon === 'empty' ? 'fa-regular fa-circle fa-xl ' :
+                              (it.iconSet || 'fa-regular') + ' fa-xl fa-' + (it.icon || ''),
+                              it.rowType === 'bold' ? 'text-error' : 'fa-light text-max-green-500 fa-xl'
+                            ]"></i>
+                      </template>
+              
+                      <div class="flex-1">
+                        <div :class="it.rowType === 'bold' ? 'text-error font-semibold' : 'font-normal'">
+                          <span x-text="it.name"></span>
+                        </div>
+                        <div x-show="it.description" class="text-xs opacity-70 mt-0.5" x-text="it.description"></div>
+                      </div>
+              
+                      <i x-show="it.linkMenuId" class="fa-regular fa-chevron-right text-base-content/40 self-center"></i>
+                    </button>
+                  </template>
+                </div>
+              </template>
+            </section>
+          </template>
+        </div>
+      </div>
+    </template>
+  </div>
+</div>
+
+
+</body>
+</html>

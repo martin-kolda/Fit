@@ -1,0 +1,61 @@
+[
+    {
+      "id": 1,
+      "product_comparison": [
+        {
+        "image": "./images/fenistil.webp",
+        "name": "Fenistil gel 50 g",
+        "price": 369,
+        "discounted_price": 527,
+        "unit": "g",
+        "volume": 50,
+        "form": "Gel",
+        "medicinal_substance": "Dimetinden-maleinát",
+        "description": "Fenistil gel přináší rychlou úlevu při poštípání hmyzem, při spálení od sluníčka a při kopřivce. Rychle zmírňuje svědění a podráždění kůže.",
+        "category": "Léky na alergii",
+        "stock": "Skladem",
+        "badges": []
+        },
+        {
+        "image": "./images/fenistil.webp",
+        "name": "Fenistil gel 30 g",
+        "price": 245,
+        "unit": "g",
+        "volume": 30,
+        "form": "Gel",
+        "medicinal_substance": "Dimetinden-maleinát",
+        "description": "Fenistil gel přináší rychlou úlevu při poštípání hmyzem, při spálení od sluníčka a při kopřivce. Rychle zmírňuje svědění a podráždění kůže.",
+        "category": "Léky na alergii",
+        "stock": "Skladem",
+        "badges": []
+        },        
+        {
+        "image": "./images/fenistil-kapky.webp",
+        "name": "Fenistil kapky 20 ml",
+        "price": 225,
+        "discounted_price": 199,
+        "unit": "ml",
+        "volume": 20,
+        "form": "Kapky",
+        "medicinal_substance": "",
+        "description": "Fenistil kapky se používají k léčbě příznaků alergie (kožní vyrážky, svědění, senná rýma, jiné druhy alergické rýmy) u dospělých, dospívajících a dětí od 1 roku.",
+        "category": "Léky na alergii",
+        "stock": "Skladem",
+        "badges": ["Do 15 minut"]
+        },        
+        {
+        "image": "./images/claritine.webp",
+        "name": "Claritine 10 mg 60 tablet",
+        "price": 449,
+        "unit": "tbl",
+        "volume": 60,
+        "form": "Tablety",
+        "medicinal_substance": "Loratadin",
+        "description": "Tlumí příznaky alergické rýmy jako jsou kýchání, rýma, pálení a svědění nosu a očí. Zmírňuje svědění a zarudnutí při kopřivce. 24hodinový účinek.",
+        "category": "Léky na alergii",
+        "stock": "Dočasně nedostupné",
+        "badges": []
+        }
+    ]
+    }
+]
