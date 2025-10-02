@@ -211,15 +211,12 @@
 <!-- FILTERS -->
 <section aria-labelledby="filters-heading" class="space-y-3">
   <!-- Heading row -->
-  <div class="lg:w-10/12 sm:w-11/12 mx-auto px-4 flex flex-wrap items-center gap-2">
+  <div class="lg:w-10/12 sm:w-11/12 mx-auto px-4 pt-6 flex flex-wrap items-center gap-2">
     <h2 id="filters-heading" class="text-lg font-semibold">Filtry a řazení</h2>
-    <span class="badge badge-primary badge-outline">
-      Nalezeno: <span class="ml-1 font-semibold" x-text="filteredCount()"></span>
-    </span>
   </div>
 
   <!-- Controls -->
-  <div class="flex flex-col sm:flex-row flex-wrap items-stretch gap-2 p-4 lg:w-10/12 sm:w-11/12 mx-auto">
+  <div class="flex flex-col sm:flex-row flex-wrap items-stretch gap-2 px-4 lg:w-10/12 sm:w-11/12 mx-auto">
 
     <!-- Kategorie -->
     <div class="dropdown">
@@ -403,12 +400,10 @@
 
 
 <!-- Heading row -->
-<div class="lg:w-10/12 sm:w-11/12 mx-auto px-4 flex flex-wrap items-center gap-2">
-  <h2 id="filters-heading" class="text-lg font-semibold">Filtry a řazení</h2>
-  <span class="badge badge-primary badge-outline">
-    Nalezeno: <span class="ml-1 font-semibold" x-text="filteredCount()"></span>
-  </span>
-  <button class="btn btn-sm btn-ghost ml-auto" @click="clearFilters()">
+<div class="lg:w-10/12 sm:w-11/12 mx-auto px-4 pt-6 flex flex-wrap items-center gap-2">
+  <h2 id="filters-heading" class="text-lg font-semibold">Výpis produktů: <span class="ml-1 font-semibold" x-text="filteredCount()"></span></h2>
+
+  <button class="btn btn-sm btn-outline ml-2" @click="clearFilters()">
     Vymazat filtry
   </button>
 </div>
