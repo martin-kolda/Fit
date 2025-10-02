@@ -34,7 +34,7 @@
 
 <body class="bg-base-200 overflow-x-hidden" x-data="storeApp">
   <!-- TOP-BAR LOGO + SEARCH -->
-<div class="navbar md:p-6 p-2 pt-4 pb-1 bg-base-100 overflow-x-hidden">
+<div class="navbar md:p-6 p-2 pt-4 pb-2 bg-base-100 overflow-x-hidden">
   <!-- left: menu + logo + (desktop) search -->
   <div class="flex flex-1 items-center gap-3 md:gap-4 min-w-0">
     <button class="btn btn-primary w-[46px] h-[46px] btn-lg btn-square max-gradient inline-flex md:hidden shrink-0"
@@ -56,9 +56,7 @@
     <label
       class="input p-4 input-bordered rounded-full max-w-2xl items-center gap-2 w-full h-[46px] md:h-[56px] hidden md:flex max-input-gradient"
       aria-label="Vyhledávání">
-      <svg class="h-[20px] w-[20px] text-gray-500 shrink-0" viewBox="0 0 26 26" fill="currentColor" aria-hidden="true">
-        <path d="M18.6966 10.9427 ..."/>
-      </svg>
+      <i class="fa-classic fa-xl fa-regular fa-search text-max-gray-600"></i>
       <input type="search" placeholder="Hledej dle názvu" x-model.debounce.300ms="search" class="grow text-lg min-w-0" />
     </label>
   </div>
@@ -131,12 +129,13 @@
 
 
   <!-- MOBILE ONLY SEARCH -->
-  <div class="navbar flex md:hidden text-primary-content h-12 p-2 pt-0 bg-white mb-6">
-    <label class="input input-bordered rounded-full flex items-center gap-2 w-full" aria-label="Vyhledávání">                
-      <svg class="h-[20px] w-[20px] text-gray-500" viewBox="0 0 26 26" fill="currentColor" aria-hidden="true">
-        <path d="M18.6966 10.9427C18.6966 6.47173 15.0386 2.81369 10.5677 2.81369C6.09673 2.81369 2.43869 6.47173 2.43869 10.9427C2.43869 15.4136 6.09673 19.0716 10.5677 19.0716C15.0386 19.0716 18.6966 15.4136 18.6966 10.9427ZM17.1216 19.224C15.3434 20.6466 13.0572 21.5103 10.5677 21.5103C4.72496 21.5103 0 16.7854 0 10.9427C0 5.09996 4.72496 0.375 10.5677 0.375C16.4104 0.375 21.1353 5.09996 21.1353 10.9427C21.1353 13.4322 20.2716 15.7184 18.849 17.4966L25.6571 24.3047C26.1143 24.7619 26.1143 25.5748 25.6571 26.0321C25.1998 26.4893 24.3869 26.4893 23.9297 26.0321L17.1216 19.224Z"/>          
-      </svg>
-      <input type="search" placeholder="Hledej dle názvu" x-model.debounce.300ms="search" class="grow" />
+  <div class="navbar flex md:hidden h-12 p-2 pt-0 bg-white mb-6 text-base-content">
+    <label class="input input-bordered rounded-full flex items-center gap-2 w-full max-input-gradient"
+           aria-label="Vyhledávání">
+      <i class="fa-solid fa-magnifying-glass text-max-gray-600"></i>
+      <input type="search" placeholder="Hledej dle názvu"
+             x-model.debounce.300ms="search"
+             class="grow min-w-0 placeholder:opacity-60" />
     </label>
   </div>
 
@@ -175,7 +174,7 @@
 <!-- ROUTE == PRODUCTS -->
 <section x-show="is('products')" x-cloak>
 <!-- PAGE CONTENT -->  
-<h1 class="text-3xl w-11/12 lg:w-10/12 pl-0 md:pl-4 mx-auto">Zdraví a léky</h1>
+<h1 class="text-3xl w-11/12 lg:w-10/12 pl-0 md:pl-4 mx-auto mt-4">Zdraví a léky</h1>
 
 <!-- CATEGORIES GRID -->
 <div x-data="categoriesList" x-cloak class="sm:w-11/12 lg:w-10/12 mx-auto">
@@ -207,7 +206,6 @@
 </div>
 
 
-
 <!-- FILTERS -->
 <section aria-labelledby="filters-heading" class="space-y-3">
   <!-- Heading row -->
@@ -220,25 +218,35 @@
 
     <!-- Kategorie -->
     <div class="dropdown">
-      <div tabindex="0" role="button"
-           class="select select-bordered w-full sm:w-56 flex items-center justify-between">
-        <span x-text="selectedCategory || 'Kategorie: všechny'"></span>
-        <span class="badge badge-sm" x-show="!!selectedCategory">1</span>
-      </div>
+        <div tabindex="0" role="button"
+             class="relative select select-bordered w-full sm:w-56 flex items-center justify-between gap-2"
+             x-ref="catBtn">
+          <span class="truncate" x-text="selectedCategory || 'Kategorie: všechny'"></span>
+      
+          <!-- Clear button -->
+          <button type="button"
+                  class="btn btn-xs btn-outline bg-white absolute right-2"
+                  x-show="!!selectedCategory"
+                  aria-label="Zrušit kategorii"
+                  @mousedown.prevent.stop
+                  @click.prevent.stop="selectedCategory=''; $refs.catBtn.blur()">
+            ✕
+          </button>
+        </div>
       <ul tabindex="0"
           class="dropdown-content menu bg-base-100 rounded-box shadow p-2 w-full sm:w-64
                  max-h-72 overflow-auto grid grid-cols-1">
         <li>
-          <label class="label cursor-pointer justify-start gap-2">
-            <input type="radio" name="cat" class="radio radio-sm"
+          <label class="label cursor-pointer justify-start gap-2 text-max-gray-800">
+            <input type="radio" name="cat" class="radio radio-sm radio-secondary"
                    :checked="!selectedCategory" @change="selectedCategory=''" />
             <span>Všechny kategorie</span>
           </label>
         </li>
         <template x-for="c in categories" :key="'cat-'+c">
           <li>
-            <label class="label cursor-pointer justify-start gap-2">
-              <input type="radio" name="cat" class="radio radio-sm"
+            <label class="label cursor-pointer justify-start gap-2 text-max-gray-800">
+              <input type="radio" name="cat" class="radio radio-sm radio-secondary"
                      :checked="selectedCategory===c" @change="selectedCategory=c" />
               <span x-text="c"></span>
             </label>
@@ -250,24 +258,34 @@
     <!-- Forma -->
     <div class="dropdown">
       <div tabindex="0" role="button"
-           class="select select-bordered w-full sm:w-56 flex items-center justify-between">
-        <span x-text="selectedForm || 'Forma: všechny'"></span>
-        <span class="badge badge-sm" x-show="!!selectedForm">1</span>
+           class="relative select select-bordered w-full sm:w-56 flex items-center justify-between gap-2"
+           x-ref="formBtn">
+        <span class="truncate" x-text="selectedForm || 'Forma: všechny'"></span>
+    
+        <!-- Clear button -->
+        <button type="button"
+                class="btn btn-xs btn-outline bg-white absolute right-2"
+                x-show="!!selectedForm"
+                aria-label="Zrušit formu"
+                @mousedown.prevent.stop
+                @click.prevent.stop="selectedForm=''; $refs.formBtn.blur()">
+          ✕
+        </button>
       </div>
       <ul tabindex="0"
           class="dropdown-content menu bg-base-100 rounded-box shadow p-2 w-full sm:w-64
                  max-h-72 overflow-auto grid grid-cols-1">
         <li>
-          <label class="label cursor-pointer justify-start gap-2">
-            <input type="radio" name="form" class="radio radio-sm"
+          <label class="label cursor-pointer justify-start gap-2 text-max-gray-800">
+            <input type="radio" name="form" class="radio radio-sm radio-secondary"
                    :checked="!selectedForm" @change="selectedForm=''" />
             <span>Všechny typy</span>
           </label>
         </li>
         <template x-for="f in forms" :key="'form-'+f">
           <li>
-            <label class="label cursor-pointer justify-start gap-2">
-              <input type="radio" name="form" class="radio radio-sm"
+            <label class="label cursor-pointer justify-start gap-2 text-max-gray-800">
+              <input type="radio" name="form" class="radio radio-sm radio-secondary"
                      :checked="selectedForm===f" @change="selectedForm=f" />
               <span x-text="f"></span>
             </label>
@@ -279,11 +297,17 @@
     <!-- Vhodné pro (multi) -->
     <div class="dropdown">
       <div tabindex="0" role="button"
-           class="select select-bordered w-full sm:w-56 flex items-center justify-between gap-2">
+           class="relative select select-bordered w-full sm:w-56 flex items-center justify-between gap-2"
+           x-ref="consBtn">
         <span class="truncate" x-text="consumersLabel()"></span>
-        <button x-show="selectedConsumers.length"
-                class="btn btn-xs btn-ghost" aria-label="Zrušit Vhodné pro"
-                @click.stop="selectedConsumers=[]">
+    
+        <!-- Clear button -->
+        <button type="button"
+                class="btn btn-xs btn-outline bg-white absolute right-2"
+                x-show="selectedConsumers.length"
+                aria-label="Zrušit Vhodné pro"
+                @mousedown.prevent.stop
+                @click.prevent.stop="selectedConsumers=[]; $refs.consBtn.blur()">
           ✕
         </button>
       </div>
@@ -292,8 +316,8 @@
                  max-h-72 overflow-auto grid grid-cols-1">
         <template x-for="opt in consumersList" :key="'cons-'+opt">
           <li>
-            <label class="label cursor-pointer justify-start gap-2">
-              <input type="checkbox" class="checkbox checkbox-sm"
+            <label class="label cursor-pointer justify-start gap-2 text-max-gray-800">
+              <input type="checkbox" class="checkbox checkbox-sm checkbox-secondary"
                      :value="opt"
                      @change="toggleConsumer(opt)"
                      :checked="selectedConsumers.includes(opt)"/>
@@ -307,11 +331,17 @@
     <!-- Možnosti (binary toggles) -->
     <div class="dropdown">
       <div tabindex="0" role="button"
-           class="select select-bordered w-full sm:w-56 flex items-center justify-between gap-2">
+           class="relative select select-bordered w-full sm:w-56 flex items-center justify-between gap-2"
+           x-ref="optsBtn">
         <span class="truncate" x-text="optionsLabel()"></span>
-        <button x-show="optionsCount()>0"
-                class="btn btn-xs btn-ghost" aria-label="Zrušit Možnosti"
-                @click.stop="clearOptions()">
+    
+        <!-- Clear button -->
+        <button type="button"
+                class="btn btn-xs btn-outline bg-white absolute right-2"
+                x-show="optionsCount()>0"
+                aria-label="Zrušit možnosti"
+                @mousedown.prevent.stop
+                @click.prevent.stop="clearOptions(); $refs.optsBtn.blur()">
           ✕
         </button>
       </div>
@@ -319,20 +349,20 @@
           class="dropdown-content menu bg-base-100 rounded-box shadow p-2 w-full sm:w-64
                  max-h-72 overflow-auto grid grid-cols-1">
         <li>
-          <label class="label cursor-pointer justify-start gap-2">
-            <input type="checkbox" class="checkbox checkbox-sm" x-model="onlyInStock">
+          <label class="label cursor-pointer justify-start gap-2 text-max-gray-800">
+            <input type="checkbox" class="checkbox checkbox-sm checkbox-secondary" x-model="onlyInStock">
             <span>Pouze skladem</span>
           </label>
         </li>
         <li>
-          <label class="label cursor-pointer justify-start gap-2">
-            <input type="checkbox" class="checkbox checkbox-sm" x-model="benefitOnly">
+          <label class="label cursor-pointer justify-start gap-2 text-max-gray-800">
+            <input type="checkbox" class="checkbox checkbox-sm checkbox-secondary" x-model="benefitOnly">
             <span>Lze platit benefity</span>
           </label>
         </li>
         <li>
-          <label class="label cursor-pointer justify-start gap-2">
-            <input type="checkbox" class="checkbox checkbox-sm" x-model="onlyDiscounted">
+          <label class="label cursor-pointer justify-start gap-2 text-max-gray-800">
+            <input type="checkbox" class="checkbox checkbox-sm checkbox-secondary" x-model="onlyDiscounted">
             <span>Produkty v akci</span>
           </label>
         </li>
@@ -349,36 +379,36 @@
           class="dropdown-content menu bg-base-100 rounded-box shadow p-2 w-full sm:w-64
                  max-h-72 overflow-auto grid grid-cols-1">
         <li>
-          <label class="label cursor-pointer justify-start gap-2">
-            <input type="radio" name="sort" class="radio radio-sm"
+          <label class="label cursor-pointer justify-start gap-2 text-max-gray-800">
+            <input type="radio" name="sort" class="radio radio-sm radio-secondary"
                    :checked="!sortOrder" @change="sortOrder=''" />
             <span>Doporučeno</span>
           </label>
         </li>
         <li>
-          <label class="label cursor-pointer justify-start gap-2">
-            <input type="radio" name="sort" class="radio radio-sm"
+          <label class="label cursor-pointer justify-start gap-2 text-max-gray-800">
+            <input type="radio" name="sort" class="radio radio-sm radio-secondary"
                    :checked="sortOrder==='priceAsc'" @change="sortOrder='priceAsc'" />
             <span>Cena ↑</span>
           </label>
         </li>
         <li>
-          <label class="label cursor-pointer justify-start gap-2">
-            <input type="radio" name="sort" class="radio radio-sm"
+          <label class="label cursor-pointer justify-start gap-2 text-max-gray-800">
+            <input type="radio" name="sort" class="radio radio-sm radio-secondary"
                    :checked="sortOrder==='priceDesc'" @change="sortOrder='priceDesc'" />
             <span>Cena ↓</span>
           </label>
         </li>
         <li>
-          <label class="label cursor-pointer justify-start gap-2">
-            <input type="radio" name="sort" class="radio radio-sm"
+          <label class="label cursor-pointer justify-start gap-2 text-max-gray-800">
+            <input type="radio" name="sort" class="radio radio-sm radio-secondary"
                    :checked="sortOrder==='alphaAsc'" @change="sortOrder='alphaAsc'" />
             <span>Abecedně A–Z</span>
           </label>
         </li>
         <li>
-          <label class="label cursor-pointer justify-start gap-2">
-            <input type="radio" name="sort" class="radio radio-sm"
+          <label class="label cursor-pointer justify-start gap-2 text-max-gray-800">
+            <input type="radio" name="sort" class="radio radio-sm radio-secondary"
                    :checked="sortOrder==='alphaDesc'" @change="sortOrder='alphaDesc'" />
             <span>Abecedně Z–A</span>
           </label>
@@ -387,23 +417,21 @@
     </div>
 
     <!-- Search (compact & flexible) -->
-    <label class="input input-bordered flex items-center gap-2
-                  w-full sm:flex-1 sm:min-w-[220px] sm:max-w-[420px] ml-0 sm:ml-auto"
+     <div>
+    <label class="input input-bordered items-center gap-2 w-full"
            aria-label="Vyhledávání">
-      <svg class="h-5 w-5 opacity-70" viewBox="0 0 26 26" fill="currentColor" aria-hidden="true">
-        <path d="M18.6966 10.94c0-4.47-3.658-8.129-8.129-8.129S2.439 6.47 2.439 10.94c0 4.471 3.658 8.129 8.129 8.129 4.471 0 8.129-3.658 8.129-8.129zm1.728 6.556 6.808 6.808a1.15 1.15 0 0 1-1.628 1.628l-6.808-6.808"/>
-      </svg>
-      <input type="search" placeholder="Hledej dle názvu"
-             x-model.debounce.300ms="search" class="grow min-w-0" />
+           <i class="fa-solid fa-magnifying-glass text-max-gray-600"></i>
+      <input type="search" placeholder="Filtruj dle názvu"
+             x-model.debounce.300ms="search" />
     </label>
+  </div>
   </div>
 
 
 <!-- Heading row -->
 <div class="lg:w-10/12 sm:w-11/12 mx-auto px-4 pt-6 flex flex-wrap items-center gap-2">
   <h2 id="filters-heading" class="text-lg font-semibold">Výpis produktů: <span class="ml-1 font-semibold" x-text="filteredCount()"></span></h2>
-
-  <button class="btn btn-sm btn-outline ml-2" @click="clearFilters()">
+  <button class="btn btn-sm btn-outline ml-2 border-max-blue-500 text-max-blue-600" @click="clearFilters()" x-show="hasActiveFilters()" x-cloak x-transition.opacity.scale>
     Vymazat filtry
   </button>
 </div>
