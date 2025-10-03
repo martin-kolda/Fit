@@ -32,7 +32,7 @@
   </style>
 </head>
 
-<body class="bg-base-200 overflow-x-hidden" x-data="storeApp">
+<body class="bg-base-200 overflow-x-hidden" x-data="storeApp()">
   <!-- TOP-BAR LOGO + SEARCH -->
 <div class="navbar md:p-6 p-2 pt-4 pb-2 bg-base-100 overflow-x-hidden">
   <!-- left: menu + logo + (desktop) search -->
@@ -42,23 +42,162 @@
       <img alt="Menu" class="relative h-[26px] w-[27px]" src="./icons/Bars.svg" />
     </button>
 
-    <svg viewBox="0 0 137 46" fill="none" xmlns="http://www.w3.org/2000/svg"
-         class="h-[46px] md:h-[56px] w-auto shrink-0">
+    <a href="#/products">
          <svg viewBox="0 0 137 46" fill="none" xmlns="http://www.w3.org/2000/svg" class="h-[46px] md:h-[56px] shrink-0">
           <path fill-rule="evenodd" clip-rule="evenodd" d="M23.2836 45.2917C10.8401 45.2917 0.716797 35.2915 0.716797 23C0.716797 10.7082 10.8401 0.708008 23.2836 0.708008H113.716C126.16 0.708008 136.283 10.7082 136.283 23C136.283 35.2915 126.16 45.2917 113.716 45.2917H23.2836Z" fill="white"/>
           <path fill-rule="evenodd" clip-rule="evenodd" d="M113.716 0H23.284C10.4451 0 0 10.3177 0 22.9999C0 35.682 10.4451 46 23.284 46H113.716C126.555 46 137 35.682 137 22.9999C137 10.3177 126.555 0 113.716 0M113.716 1.41634C125.765 1.41634 135.566 11.0987 135.566 22.9999C135.566 34.901 125.765 44.5837 113.716 44.5837H23.284C11.2357 44.5837 1.43382 34.901 1.43382 22.9999C1.43382 11.0987 11.2357 1.41634 23.284 1.41634H113.716" fill="#A7A8AA"/>
           <path fill-rule="evenodd" clip-rule="evenodd" d="M120.794 11.6358H117.464V8.34591C117.464 7.1797 116.503 6.23047 115.322 6.23047C114.141 6.23047 113.18 7.1797 113.18 8.34591V11.6358H109.85C108.669 11.6358 107.708 12.5847 107.708 13.7512C107.708 14.9177 108.669 15.8669 109.85 15.8669H113.18V19.1565C113.18 20.3233 114.141 21.2722 115.322 21.2722C116.503 21.2722 117.464 20.3233 117.464 19.1565V15.8669H120.794C121.975 15.8669 122.936 14.9177 122.936 13.7512C122.936 12.5847 121.975 11.6358 120.794 11.6358Z" fill="#78BE20"/>
           <path d="M85.4546 17.7158C89.5262 17.7158 93.0472 19.4528 93.0474 24.2979V33.2529C93.0473 33.6425 92.7276 33.9578 92.3335 33.958H88.9282C88.5144 33.958 88.1792 33.6269 88.1792 33.2188V31.46H88.1177C86.8629 33.4403 85.3324 34.3242 83.0669 34.3242C79.9134 34.3242 77.0962 32.7696 77.0962 29.3262C77.0964 24.4812 82.3933 23.9023 85.3325 23.9023C86.2199 23.9024 87.1996 23.9932 87.9038 24.1152C87.873 21.9519 86.2503 21.373 84.2603 21.373C82.6326 21.3731 81.0676 21.6288 79.6284 22.333C79.4478 22.4213 79.1721 22.2252 79.1675 22.0264L79.0972 19.2578C79.0909 19.0095 79.2418 18.7797 79.4771 18.6924C81.3186 18.0086 83.2532 17.7158 85.4546 17.7158ZM47.1782 29.4854C48.4415 29.4856 49.4653 30.5441 49.4653 31.8486C49.4653 33.1535 48.4415 34.2117 47.1782 34.2119C45.9147 34.2119 44.8901 33.1536 44.8901 31.8486C44.8901 30.5439 45.9148 29.4854 47.1782 29.4854ZM24.3267 12.6641C30.8944 12.6641 35.4896 14.9892 35.4897 23.2168C35.4897 31.1702 30.7595 33.9433 24.3267 33.9434H18.2173C17.8497 33.9434 17.5513 33.6068 17.5513 33.1924V13.415C17.5513 13.0003 17.8497 12.6641 18.2173 12.6641H24.3267ZM41.9097 20.1387C43.7154 17.3021 46.6765 17.5948 48.2319 18.1738C48.4727 18.2637 48.6008 18.5224 48.519 18.7637L47.5317 21.6865C47.4225 22.0103 47.0734 22.18 46.7407 22.0879C44.3565 21.4305 41.9097 22.7076 41.9097 26.7285V33.1924C41.9097 33.6067 41.6122 33.9433 41.2446 33.9434H37.8833C37.5157 33.9433 37.2173 33.6068 37.2173 33.1924V18.8701C37.2175 18.4559 37.5158 18.1201 37.8833 18.1201H41.2446C41.6121 18.1202 41.9095 18.4559 41.9097 18.8701V20.1387ZM59.356 12.6787C59.7235 12.6787 60.1161 13.0144 60.2329 13.4287L63.772 26.0264L67.312 13.4287C67.4286 13.0145 67.8214 12.6787 68.189 12.6787H73.1606C73.528 12.679 73.8571 13.0146 73.896 13.4287L75.731 33.2949C75.7694 33.7095 75.5027 33.9432 75.1353 33.9434H71.5171C71.1493 33.9432 70.8204 33.7095 70.7817 33.2949L69.5894 20.3486L65.98 33.2949C65.8851 33.6328 65.7294 33.9432 65.3315 33.9434H62.2134C61.8363 33.9434 61.6599 33.6329 61.5649 33.2949L57.9556 20.3486L56.5542 33.2949C56.5158 33.7095 56.1873 33.9432 55.8198 33.9434H52.4097C52.0421 33.9433 51.7753 33.7096 51.814 33.2949L53.6489 13.4287C53.6875 13.0145 54.0165 12.6788 54.3843 12.6787H59.356ZM98.8892 18.1201C99.3107 18.1199 99.5588 18.18 99.8657 18.5938L102.433 22.0898L105 18.5938C105.307 18.1798 105.555 18.1198 105.977 18.1201H109.941C110.362 18.1206 110.513 18.4106 110.303 18.7119L105.075 25.8076L110.512 33.1992C110.777 33.5263 110.627 33.9432 110.218 33.9434H106.217C105.799 33.9414 105.523 33.7421 105.278 33.4072L102.433 29.5254L99.5884 33.4072C99.343 33.7422 99.0674 33.9413 98.6489 33.9434H94.6479C94.2389 33.9433 94.0884 33.5263 94.353 33.1992L99.7915 25.8076L94.563 18.7119C94.3531 18.4106 94.5034 18.1205 94.9253 18.1201H98.8892ZM85.5776 26.8271C83.7099 26.8271 82.2397 27.407 82.2397 28.9307C82.24 30.0275 83.22 30.667 84.5054 30.667C86.5872 30.667 87.9038 28.7777 87.9038 26.9189C87.1997 26.8886 86.4039 26.8272 85.5776 26.8271ZM22.7231 16.8789V29.7383H24.4341C28.9445 29.7383 30.1958 27.5444 30.1958 23.3086C30.1958 19.0729 28.9804 16.8789 24.4341 16.8789H22.7231Z" fill="#E72234"/>
         </svg>
-    </svg>
+      </a>
 
-    <!-- desktop search only -->
-    <label
-      class="input p-4 input-bordered rounded-full max-w-2xl items-center gap-2 w-full h-[46px] md:h-[56px] hidden md:flex max-input-gradient"
-      aria-label="Vyhledávání">
-      <i class="fa-classic fa-xl fa-regular fa-search text-max-gray-600"></i>
-      <input type="search" placeholder="Hledej dle názvu" x-model.debounce.300ms="search" class="grow text-lg min-w-0" />
-    </label>
+    <!-- DESKTOP TOPBAR SEARCH -->
+    <div class="relative hidden md:block w-full">
+        <div
+        x-data="searchBox({
+          getProducts:   () => products,
+          getCategories: () => navCategories,
+          getLinks:      () => infoLinks,
+          goTo: (id) => go(`product/${id}`)
+        })"
+        @keydown="onKeydown($event)"
+        @click.outside="open = false"
+        @resize.window="onWindowResize()"
+        @scroll.window.passive="onWindowResize()"
+        class="w-full"
+      >
+        <label
+          x-ref="anchor"
+          class="input p-4 input-bordered rounded-full max-w-2xl items-center gap-2 w-full h-[46px] md:h-[56px] max-input-gradient"
+          aria-label="Vyhledávání"
+        >
+          <i class="fa-classic fa-xl fa-regular fa-search text-max-gray-600"></i>
+    
+          <input
+            x-ref="input"
+            type="search"
+            class="grow text-lg min-w-0"
+            placeholder="Hledej dle názvu"
+            x-model.debounce.150ms="q"
+            @focus="onFocus()"
+            @input="onInput()"
+            role="combobox"
+            aria-autocomplete="list"
+            :aria-expanded="open"
+            :aria-controls="listId"
+            :aria-activedescendant="activeDesc()"
+          />
+        </label>
+    
+        <!-- Dropdown  -->
+        <div
+        x-show="open"
+        x-transition.opacity
+        class="fixed z-[9999]"
+        :style="dropdownStyle"
+      >
+        <div class="bg-base-100 rounded-2xl shadow-xl border border-base-200 w-full box-border">
+          <!-- RECENT -->
+          <template x-if="q.trim().length < minChars">
+            <ul
+              class="p-2 max-h-80 overflow-y-auto w-full flex flex-col space-y-0"
+              :id="listId" role="listbox"
+            >
+              <li class="px-2 py-1 text-xs font-semibold text-base-content/60">Naposledy hledané</li>
+
+              <template x-if="!recentItems().length">
+                <li class="w-full px-2 py-2 text-sm text-base-content/60">Začněte psát psát váš dotaz…</li>
+              </template>
+
+              <template x-for="(item, i) in recentItems()" :key="`${item.t}-${item.k}`">
+                <li
+                  :id="itemId(i)"
+                  class="w-full"
+                  role="option"
+                  @mouseenter="highlighted = i"
+                >
+                <a :href="item.href || '#'"
+                  @click.prevent="onSelect(item)" 
+                  class="flex w-full items-center gap-3 min-h-12 px-2 rounded-lg"
+                  :class="i===highlighted ? 'bg-base-200' : 'hover:bg-base-200'">
+              
+                    <!-- thumb for product/category -->
+                    <template x-if="item.img">
+                      <img :src="item.img" alt="" class="w-14 h-14 object-contain rounded bg-base-200/40" />
+                    </template>
+              
+                    <!-- FA icon bubble for info -->
+                    <template x-if="!item.img">
+                      <span class="w-14 h-14 rounded-full bg-base-200 grid place-items-center">
+                        <i :class="item.icon || 'fa-regular fa-circle-info'"></i>
+                      </span>
+                    </template>
+              
+                    <div class="min-w-0 flex-1">
+                      <div class="font-medium text-base truncate" x-text="item.name"></div>
+                      <div class="text-sm font-medium text-base-content/60 truncate" x-text="item.sub"></div>
+                    </div>
+              
+                    <!-- small type badge (optional) -->
+                    <span class="badge badge-ghost badge-sm shrink-0" x-text="item.t === 'product' ? 'Produkt' : (item.t==='category' ? 'Kategorie' : 'Info')"></span>
+                  </a>
+                </li>
+              </template>
+            </ul>
+          </template>
+    
+            <!-- SUGGESTIONS -->
+            <template x-if="q.trim().length >= minChars">
+              <ul
+                class="p-2 max-h-80 overflow-y-auto w-full flex flex-col space-y-1"
+                :id="listId" role="listbox"
+              >
+                <template x-if="!suggestions().length">
+                  <li class="w-full px-2 py-3 font-medium text-base text-center text-max-gray-400">
+                    Žádné výsledky
+                  </li>
+                </template>
+
+                <template x-for="(item, i) in suggestions()" :key="`${item.t}-${item.k}`">
+                  <li
+                    :id="itemId(i)"
+                    class="w-full"
+                    role="option"
+                    @mouseenter="highlighted = i"
+                  >
+                    <a :href="item.href || '#'"
+                       @click.prevent="onSelect(item)" 
+                       class="flex w-full items-center gap-3 min-h-12 px-2 rounded-lg"
+                       :class="i===highlighted ? 'bg-base-200' : 'hover:bg-base-200'">
+                
+                      <!-- thumb for product/category -->
+                      <template x-if="item.img">
+                        <img :src="item.img" alt="" class="w-14 h-14 object-contain rounded bg-base-200/40" />
+                      </template>
+                
+                      <!-- FA icon bubble for info -->
+                      <template x-if="!item.img">
+                        <span class="w-14 h-14 rounded-full bg-base-200 grid place-items-center">
+                          <i :class="item.icon || 'fa-regular fa-circle-info'"></i>
+                        </span>
+                      </template>
+                
+                      <div class="min-w-0 flex-1">
+                        <div class="font-medium text-base truncate" x-text="item.name"></div>
+                        <div class="text-sm font-medium text-base-content/60 truncate" x-text="item.sub"></div>
+                      </div>
+                
+                      <!-- small type badge (optional) -->
+                      <span class="badge badge-ghost badge-sm shrink-0" x-text="item.t === 'product' ? 'Produkt' : (item.t==='category' ? 'Kategorie' : 'Info')"></span>
+                    </a>
+                  </li>
+                </template>
+              </ul>
+            </template>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- TOP-BAR QUICK ACTIONS (desktop only) -->
@@ -125,16 +264,151 @@
   </div>
 </div>
 
-  <!-- MOBILE ONLY SEARCH -->
-  <div class="navbar flex md:hidden h-12 p-2 pt-0 bg-white mb-6 text-base-content">
-    <label class="input input-bordered rounded-full flex items-center gap-2 w-full max-input-gradient"
-           aria-label="Vyhledávání">
-      <i class="fa-solid fa-magnifying-glass text-max-gray-600"></i>
-      <input type="search" placeholder="Hledej dle názvu"
-             x-model.debounce.300ms="search"
-             class="grow min-w-0 placeholder:opacity-60" />
+<!-- MOBILE TOPBAR SEARCH -->
+  <div class="navbar md:hidden h-12 p-2 pt-0 bg-white mb-6 text-base-content relative">
+    <div
+    x-data="searchBox({
+      getProducts:   () => products,
+      getCategories: () => navCategories,
+      getLinks:      () => infoLinks,
+      goTo: (id) => go(`product/${id}`)
+    })"
+    @keydown="onKeydown($event)"
+    @click.outside="open = false"
+    @resize.window="onWindowResize()"
+    @scroll.window.passive="onWindowResize()"
+    class="w-full"
+  >
+    <label
+      x-ref="anchor"
+      class="input p-4 input-bordered rounded-full max-w-2xl items-center gap-2 w-full h-[46px] md:h-[56px] max-input-gradient"
+      aria-label="Vyhledávání"
+    >
+      <i class="fa-classic fa-xl fa-regular fa-search text-max-gray-600"></i>
+
+      <input
+        x-ref="input"
+        type="search"
+        class="grow text-lg min-w-0"
+        placeholder="Hledej dle názvu"
+        x-model.debounce.150ms="q"
+        @focus="onFocus()"
+        @input="onInput()"
+        role="combobox"
+        aria-autocomplete="list"
+        :aria-expanded="open"
+        :aria-controls="listId"
+        :aria-activedescendant="activeDesc()"
+      />
     </label>
+
+    <!-- Dropdown  -->
+    <div
+    x-show="open"
+    x-transition.opacity
+    class="fixed z-[9999]"
+    :style="dropdownStyle"
+  >
+    <div class="bg-base-100 rounded-2xl shadow-xl border border-base-200 w-full box-border">
+      <!-- RECENT -->
+      <template x-if="q.trim().length < minChars">
+        <ul
+          class="p-2 max-h-80 overflow-y-auto w-full flex flex-col space-y-0"
+          :id="listId" role="listbox"
+        >
+          <li class="px-2 py-1 text-xs font-semibold text-base-content/60">Naposledy hledané</li>
+
+          <template x-if="!recentItems().length">
+            <li class="w-full px-2 py-2 text-sm text-base-content/60">Začněte psát váš dotaz…</li>
+          </template>
+
+          <template x-for="(item, i) in recentItems()" :key="`${item.t}-${item.k}`">
+            <li
+              :id="itemId(i)"
+              class="w-full"
+              role="option"
+              @mouseenter="highlighted = i"
+            >
+            <a :href="item.href || '#'"
+              @click.prevent="onSelect(item)" 
+              class="flex w-full items-center gap-3 min-h-12 px-2 rounded-lg"
+              :class="i===highlighted ? 'bg-base-200' : 'hover:bg-base-200'">
+          
+                <!-- thumb for product/category -->
+                <template x-if="item.img">
+                  <img :src="item.img" alt="" class="w-14 h-14 object-contain rounded bg-base-200/40" />
+                </template>
+          
+                <!-- FA icon bubble for info -->
+                <template x-if="!item.img">
+                  <span class="w-14 h-14 rounded-full bg-base-200 grid place-items-center">
+                    <i :class="item.icon || 'fa-regular fa-circle-info'"></i>
+                  </span>
+                </template>
+          
+                <div class="min-w-0 flex-1">
+                  <div class="font-medium text-base truncate" x-text="item.name"></div>
+                  <div class="text-sm font-medium text-base-content/60 truncate" x-text="item.sub"></div>
+                </div>
+          
+              </a>
+            </li>
+          </template>
+        </ul>
+      </template>
+
+        <!-- SUGGESTIONS -->
+        <template x-if="q.trim().length >= minChars">
+          <ul
+            class="p-2 max-h-80 overflow-y-auto w-full flex flex-col space-y-1"
+            :id="listId" role="listbox"
+          >
+            <template x-if="!suggestions().length">
+              <li class="w-full px-2 py-3 font-medium text-base text-center text-max-gray-400">
+                Žádné výsledky
+              </li>
+            </template>
+
+            <template x-for="(item, i) in suggestions()" :key="`${item.t}-${item.k}`">
+              <li
+                :id="itemId(i)"
+                class="w-full"
+                role="option"
+                @mouseenter="highlighted = i"
+              >
+                <a :href="item.href || '#'"
+                   @click.prevent="onSelect(item)" 
+                   class="flex w-full items-center gap-3 min-h-12 px-2 rounded-lg"
+                   :class="i===highlighted ? 'bg-base-200' : 'hover:bg-base-200'">
+            
+                  <!-- thumb for product/category -->
+                  <template x-if="item.img">
+                    <img :src="item.img" alt="" class="w-14 h-14 object-contain rounded bg-base-200/40" />
+                  </template>
+            
+                  <!-- FA icon bubble for info -->
+                  <template x-if="!item.img">
+                    <span class="w-14 h-14 rounded-full bg-base-200 grid place-items-center">
+                      <i :class="item.icon || 'fa-regular fa-circle-info'"></i>
+                    </span>
+                  </template>
+            
+                  <div class="min-w-0 flex-1">
+                    <div class="font-medium text-base truncate" x-text="item.name"></div>
+                    <div class="text-sm font-medium text-base-content/60 truncate" x-text="item.sub"></div>
+                  </div>
+            
+                  <!-- small type badge (optional) -->
+                  <span class="badge badge-ghost badge-sm shrink-0" x-text="item.t === 'product' ? 'Produkt' : (item.t==='category' ? 'Kategorie' : 'Info')"></span>
+                </a>
+              </li>
+            </template>
+          </ul>
+        </template>
+      </div>
+    </div>
   </div>
+</div>
 
   <!-- NAVBAR PRODUCT NAVIGATION -->
   <div class="navbar hidden md:flex bg-primary max-gradient-v text-primary-content h-12 p-1 pl-4 pr-4">
@@ -170,7 +444,7 @@
 
 
 <!-- ROUTER SHELL -->
-<div x-data="storeApp()" x-init="init()">
+<div id="app">
 
 <!-- ROUTE == PRODUCTS -->
 <section x-show="is('products')" x-cloak>
@@ -578,9 +852,11 @@
 <!-- ROUTE == PRODUCT DETAIL -->
 <section x-show="is('product')" x-cloak>
   <template x-if="is('product')">
-  <div :key="params.id"
-  x-data="productDetail({ fetchUrl: `data/product-details/${params.id}.json` })"
-  class="mx-auto w-auto md:w-11/12 lg:w-8/12 p-4 py-6">
+    <div
+      x-data="productDetail({ fetchUrl: `data/product-details/${params.id}.json` })"
+      x-effect="load(`data/product-details/${params.id}.json`)"
+      class="mx-auto w-auto md:w-11/12 lg:w-8/12 p-4 py-6"
+    >
 
     <!-- gallery -->
     <div class="grid md:grid-cols-2 gap-6 items-start">
@@ -1209,88 +1485,160 @@
   });
     // PRODUCT DETAIL
     Alpine.data('productDetail', (opts = {}) => ({
-      // options / inputs
-      id: opts.id ?? null,
-      fetchUrl: opts.fetchUrl ?? 'data/product.json',
-      initialProduct: opts.product ?? null,
-      // botto-bar
-      ctaVisible: false,
-      _scrollY: 0,
-      _scrollThreshold: 1300,   // px from top before CTA can appear
-      _scrollJitter: 2,        // ignore tiny scroll jitter
-      _onScroll: null,
-      // state
-      product: { badges: [], reviews: null, description: '' },
-      images: [],
-      variants: [],
-      selectedVariant: null,
-      currentImage: 0,
-      activeTab: 'desc',
+    // ---- inputs ----
+    id: opts.id ?? null,
+    fetchUrl: opts.fetchUrl ?? null,      // e.g. `data/product-details/${params.id}.json`
+    initialProduct: opts.product ?? null, // optional preloaded data
 
-      // lifecycle — Alpine auto-calls init(), so x-init="init()" is NOT needed
-     async init() {
-        try {
-          // Either use provided product or fetch
-          this.product = this.initialProduct || await (await fetch(this.fetchUrl)).json();
+    // ---- state ----
+    product: { badges: [], description: '', parameters: [] },
+    images: [],
+    variants: [],
+    selectedVariant: null,
+    currentImage: 0,
+    ctaVisible: false,
 
-          this.images = this.product.images || [];
-          this.variants = this.product.variants || [];
-          this.selectedVariant = this.variants[0] || null;
-        } catch (e) {
-          console.error('product.json load failed', e);
+    // ---- internal fetch guards ----
+    _currentUrl: null,
+    _abort: null,
+
+    // ================================
+    // Lifecycle
+    // ================================
+    async init() {
+      // initial load
+      if (this.fetchUrl) await this.load(this.fetchUrl);
+
+      // simple sticky CTA visibility on scroll
+      this._onScrollBound = () => { this.ctaVisible = (window.scrollY || 0) > 240; };
+      window.addEventListener('scroll', this._onScrollBound, { passive: true });
+    },
+
+    // ================================
+    // Data loading (re-usable)
+    // ================================
+    async load(url) {
+      if (!url) return;
+      if (url === this._currentUrl && !this.initialProduct) return; // nothing to do
+      this._currentUrl = url;
+
+      // cancel previous request if any
+      if (this._abort) try { this._abort.abort(); } catch {}
+
+      try {
+        let data;
+        if (this.initialProduct) {
+          data = this.initialProduct;
+        } else {
+          const ctrl = new AbortController();
+          this._abort = ctrl;
+          const res = await fetch(url, { signal: ctrl.signal });
+          if (!res.ok) throw new Error(`Fetch failed ${res.status}`);
+          data = await res.json();
         }
-        // bottom-bar
-        this._scrollY = window.scrollY;
-        this._onScroll = () => {
-        const y = window.scrollY;
-        const down = y > this._scrollY + this._scrollJitter;
-        const up   = y < this._scrollY - this._scrollJitter;
-        this._scrollY = y;
 
-        if (y < this._scrollThreshold) { this.ctaVisible = false; return; }
-        if (down) this.ctaVisible = true;
-        if (up)   this.ctaVisible = false;
-      };
-      window.addEventListener('scroll', this._onScroll, { passive: true });
- 
-      },
-
-
-
-      // variants
-      selectVariant(id) {
-        const v = this.variants.find(x => x.id === id);
-        if (v) this.selectedVariant = v;
-      },
-
-      // pricing helpers
-      basePrice() {
-        const p = this.selectedVariant || this.product || {};
-        return Number(p.price ?? 0);
-      },
-      baseDiscounted() {
-        const p = this.selectedVariant || this.product || {};
-        const d = Number(p.discounted_price ?? 0);
-        return d > 0 ? d : null;
-      },
-      priceOriginal() { return this.basePrice(); },
-      priceNow()      { return this.baseDiscounted() ?? this.basePrice(); },
-      hasDiscount()   { return this.baseDiscounted() != null && this.baseDiscounted() < this.basePrice(); },
-      discountPercent() {
-        if (!this.hasDiscount()) return 0;
-        return Math.round(100 - (this.baseDiscounted() / this.basePrice()) * 100);
-      },
-      formatPrice(v) {
-        return new Intl.NumberFormat('cs-CZ', { style: 'currency', currency: 'CZK', maximumFractionDigits: 0 }).format(v);
-      },
-
-      // add to cart toast (hook into your existing toast store)
-      addToCartClick() {
-        const name = this.product?.name || 'Produkt';
-        Alpine.store('toast')?.push(`Přidáno do košíku: ${name}`, 'success');
-        // If you also want to add to your global cart, call your store method here.
+        this._applyData(data);
+      } catch (e) {
+        console.error('productDetail.load error:', e);
+      } finally {
+        this._abort = null;
       }
-    })); 
+    },
+
+    _applyData(data) {
+      const d = data || {};
+      this.product = d;
+
+      // images: prefer array; fallback to single image
+      const imgs = Array.isArray(d.images) ? d.images.slice() : (d.image ? [d.image] : []);
+      this.images = imgs;
+      this.currentImage = 0;
+
+      // variants + default selection
+      this.variants = Array.isArray(d.variants) ? d.variants.slice() : [];
+      const def = this.variants.find(v => v.default) || this.variants[0] || null;
+      this.selectedVariant = def;
+    },
+
+    // ================================
+    // Price helpers (use selected variant if any)
+    // ================================
+    _n(v) { const n = Number(v); return Number.isFinite(n) ? n : 0; },
+
+    _activeItem() {
+      // what the UI considers the "current purchasable item"
+      return this.selectedVariant || this.product || {};
+    },
+
+    priceOriginal(item = null) {
+      const it = item || this._activeItem();
+      return this._n(it.price ?? this.product.price);
+    },
+
+    priceNow(item = null) {
+      const it = item || this._activeItem();
+      const d = this._n(it.discounted_price ?? this.product.discounted_price);
+      const p = this.priceOriginal(it);
+      return (d > 0 && d < p) ? d : p;
+    },
+
+    hasDiscount(item = null) {
+      const it = item || this._activeItem();
+      const p = this.priceOriginal(it);
+      const d = this._n(it.discounted_price ?? this.product.discounted_price);
+      return d > 0 && d < p;
+    },
+
+    discountPercent(item = null) {
+      const it = item || this._activeItem();
+      const p = this.priceOriginal(it);
+      const n = this.priceNow(it);
+      if (!p) return 0;
+      return Math.round(100 - (n / p) * 100);
+    },
+
+    formatPrice(v) {
+      const n = this._n(v);
+      return new Intl.NumberFormat('cs-CZ').format(n) + ' Kč';
+    },
+
+    // ================================
+    // Variants / gallery
+    // ================================
+    selectVariant(id) {
+      const v = this.variants.find(x => String(x.id) === String(id));
+      this.selectedVariant = v || null;
+    },
+
+    // ================================
+    // Cart CTA
+    // ================================
+    addToCartClick() {
+      // Build a cart item compatible with your grid/cart store
+      let item = { ...this.product };
+
+      if (this.selectedVariant) {
+        item = {
+          ...item,
+          // give variants unique ids to allow multiple variants in cart (string ids are fine)
+          id: `${this.product.id}:${this.selectedVariant.id}`,
+          name: `${this.product.name} – ${this.selectedVariant.name}`,
+          price: this.priceOriginal(),
+          discounted_price: this.hasDiscount() ? this.priceNow() : null
+        };
+      } else {
+        // ensure prices are consistent even if product.json lacks them
+        item.price = this.priceOriginal();
+        item.discounted_price = this.hasDiscount() ? this.priceNow() : null;
+      }
+
+      try {
+        if (this.$store?.cart?.add) this.$store.cart.add(item);
+      } catch (e) {
+        console.warn('Cart add failed (no $store.cart?)', e);
+      }
+    },
+  })); 
 
     // USER REVIEWS LIS
     Alpine.data('reviewsSection', (opts = {}) => ({
@@ -1356,6 +1704,203 @@
     },
 
     count(){ return this.items.length; }
+  })),
+
+  // SEARCH AUTOCOMPLETE
+  Alpine.data('searchBox', (opts = {}) => ({
+    // --- config ---
+    maxResults: 7,
+    minChars: 2,
+    storageKey: 'recentAny',   // now stores typed recents
+
+    // --- state ---
+    q: '',
+    open: false,
+    highlighted: -1,
+    recent: [],
+    listId: `ac-${Math.random().toString(36).slice(2)}`,
+    dropdownStyle: '',
+
+    // sources
+    get products()   { return (opts.getProducts && opts.getProducts())   || []; },
+    get categories() { return (opts.getCategories && opts.getCategories()) || []; },
+    get links()      { return (opts.getLinks && opts.getLinks())         || []; },
+    goTo(id)         { if (opts.goTo) opts.goTo(id); else location.hash = `#/product/${id}`; },
+
+    // --- lifecycle ---
+    init() {
+      this.loadRecent();
+      this.$watch('open', v => { if (v) this.$nextTick(() => this.reposition()); });
+      this.$watch('q',    () => { this.$nextTick(() => this.reposition()); });
+    },
+
+    // --- positioning (desktop) ---
+    reposition() {
+      const a = this.$refs.anchor; if (!a) return;
+      const r = a.getBoundingClientRect();
+      const left  = Math.round(r.left), top = Math.round(r.bottom) + 8, width = Math.round(r.width);
+      this.dropdownStyle =
+        `position:fixed;left:${left}px;top:${top}px;` +
+        `width:${width}px;min-width:${width}px;max-width:${width}px;box-sizing:border-box`;
+    },
+    onWindowResize() { if (this.open) this.reposition(); },
+    onFocus() { this.open = true; this.reposition(); },
+    onInput() { this.open = true; this.highlighted = -1; this.reposition(); },
+
+    // --- recent (now typed) ---
+    loadRecent() {
+      try { this.recent = JSON.parse(localStorage.getItem(this.storageKey) || '[]'); }
+      catch { this.recent = []; }
+    },
+    saveRecent(item) {
+      const key = JSON.stringify({ t: item.t, k: item.k }); // type + key
+      const arr = [key, ...this.recent.filter(x => x !== key)].slice(0, 5);
+      this.recent = arr;
+      localStorage.setItem(this.storageKey, JSON.stringify(arr));
+    },
+    recentItems() {
+      // resolve to current objects; cap at 3
+      const resolve = (rk) => {
+        let obj; try { obj = JSON.parse(rk); } catch { return null; }
+        if (!obj || !obj.t) return null;
+        if (obj.t === 'product') {
+          const p = this.products.find(p => String(p.id) === String(obj.k));
+          return p ? this.asProduct(p) : null;
+        }
+        if (obj.t === 'category') {
+          const c = this.categories.find(c => (c.name || '').toLowerCase() === String(obj.k).toLowerCase());
+          return c ? this.asCategory(c) : null;
+        }
+        if (obj.t === 'info') {
+          const l = this.links.find(l => (l.name || '').toLowerCase() === String(obj.k).toLowerCase());
+          return l ? this.asInfo(l) : null;
+        }
+        return null;
+      };
+      return this.recent.map(resolve).filter(Boolean).slice(0, 3);
+    },
+
+    // --- normalization to a single row shape ---
+    // type codes: product|category|info; key k = unique key for recent storage
+    asProduct(p) {
+      return {
+        t: 'product',
+        k: String(p.id),
+        id: p.id,
+        name: p.name,
+        sub: `${p.stock || ''}${p.category ? ` • ${p.category}` : ''}`,
+        img: p.image || null,
+        icon: null,
+        href: `#/product/${p.id}`,   // ← add this
+        raw: p
+      };
+    },
+    asCategory(c) {
+      return { t:'category', k:String(c.name || ''), id:null,
+               name:c.name, sub:`Kategorie • ${c.products ?? 0} produktů`,
+               img:c.image || null, icon:null, raw:c };
+    },
+    asInfo(l) {
+      // build FA classes from file (iconSet + icon)
+      const set = (l.iconSet || 'fa-regular').trim();
+      const name = (l.icon || 'circle-info').trim();
+      return { t:'info', k:String(l.name || ''), id:null,
+               name:l.name, sub:l.description || '',
+               img:null, icon:`${set} fa-${name}`, raw:l };
+    },
+
+    // --- scoring & suggestions ---
+    suggestions() {
+      const s = this.q.trim().toLowerCase();
+      if (s.length < this.minChars) return [];
+
+      const scoreText = (txt) => {
+        const t = (txt || '').toLowerCase();
+        if (!t) return 0;
+        if (t.startsWith(s)) return 100;
+        if (t.includes(s))  return 60;
+        return 0;
+      };
+
+      // products
+      const prod = this.products.map(p => {
+        const a = this.asProduct(p);
+        let sc = scoreText(p.name);
+        sc += Math.min(20, scoreText(p.category)); // small boost if category matches
+        return { a, sc };
+      });
+
+      // categories (match by name)
+      const cats = this.categories.map(c => {
+      const base = scoreText(c.name);      // 0, 60, or 100
+      const sc = base ? base + 10 : 0;     // add small boost only when matched
+      return { a: this.asCategory(c), sc };
+    });
+
+      // info links (match name + description)
+      const inf = this.links.map(l => {
+        const a = this.asInfo(l);
+        const sc = Math.max(scoreText(l.name), Math.floor(scoreText(l.description) / 2));
+        return { a, sc };
+      });
+
+      // merge, filter, sort
+      const all = [...prod, ...cats, ...inf]
+        .filter(x => x.sc > 0)
+        .sort((x, y) => y.sc - x.sc || String(x.a.name).localeCompare(String(y.a.name), 'cs'))
+        .map(x => x.a)
+        .slice(0, this.maxResults);
+
+      return all;
+    },
+
+    visibleItems() {
+      return (this.q.trim().length >= this.minChars) ? this.suggestions() : this.recentItems();
+    },
+
+    // --- actions ---
+    selectByIndex(i) { const it = this.visibleItems()[i]; if (it) this.onSelect(it); },
+    onSelect(item) {
+      this.saveRecent(item);
+      this.open = false;
+      this.highlighted = -1;
+
+      if (item.t === 'product' && item.id != null) {
+        // Prefer parent hook if you passed it, otherwise do hash nav directly
+        if (opts.goTo) opts.goTo(item.id);
+        else location.hash = `#/product/${item.id}`;
+      }
+      // (categories/info: no route yet; just close for now)
+    },
+
+    clear() { this.q = ''; this.highlighted = -1; },
+
+    // --- keyboard ---
+    onKeydown(e) {
+      if (!this.open && (e.key === 'ArrowDown' || e.key === 'ArrowUp')) this.open = true;
+      const items = this.visibleItems();
+      switch (e.key) {
+        case 'ArrowDown':
+          e.preventDefault(); if (!items.length) return;
+          this.highlighted = (this.highlighted + 1) % items.length;
+          this.$nextTick(() => document.getElementById(this.itemId(this.highlighted))?.scrollIntoView({ block:'nearest' }));
+          break;
+        case 'ArrowUp':
+          e.preventDefault(); if (!items.length) return;
+          this.highlighted = (this.highlighted <= 0 ? items.length - 1 : this.highlighted - 1);
+          this.$nextTick(() => document.getElementById(this.itemId(this.highlighted))?.scrollIntoView({ block:'nearest' }));
+          break;
+        case 'Enter':
+          if (this.open) { e.preventDefault(); if (items.length) this.selectByIndex(this.highlighted >= 0 ? this.highlighted : 0); }
+          break;
+        case 'Escape':
+          this.open = false; this.highlighted = -1; break;
+      }
+    },
+
+    // --- ARIA ---
+    itemId(i){ return `${this.listId}-opt-${i}`; },
+    activeDesc(){ return this.highlighted >= 0 ? this.itemId(this.highlighted) : null; },
   })),
 
     //PRODUCT COMPARISON
@@ -1438,6 +1983,8 @@ products: [],
 categories: [],
 forms: [],
 consumersList: [],
+navCategories: [],   
+infoLinks: [],       
 
 search: '',
 selectedCategory: '',
@@ -1495,6 +2042,8 @@ async loadData() {
   try {
     const res = await fetch('data/products.json');
     this.products = await res.json();
+
+    // facets (unchanged)
     this.categories = [...new Set(this.products.map(p => p.category).filter(Boolean))]
       .sort((a,b)=>a.localeCompare(b,'cs'));
     this.forms = [...new Set(this.products.map(p => (p.form || '').trim()).filter(Boolean))]
@@ -1503,8 +2052,25 @@ async loadData() {
     this.products.forEach(p => (Array.isArray(p.consumers) ? p.consumers : []).forEach(c => cons.add(c)));
     this.consumersList = [...cons].sort((a,b)=>a.localeCompare(b,'cs'));
 
+    // 👉 NEW: optional data for search (categories + info links)
+    const [cats, links] = await Promise.allSettled([
+      fetch('data/categories.json').then(r => r.ok ? r.json() : []),
+      fetch('data/links.json').then(r => r.ok ? r.json() : []),
+    ]);
+    this.navCategories = (cats.status === 'fulfilled'  && Array.isArray(cats.value))  ? cats.value  : [];
+    this.infoLinks     = (links.status === 'fulfilled' && Array.isArray(links.value)) ? links.value : [];
+
   } catch (e) {
     console.error('Failed to load products.json', e);
+    // optional: still try to load the auxiliary files even if products fail
+    try {
+      const [cats, links] = await Promise.allSettled([
+        fetch('data/categories.json').then(r => r.ok ? r.json() : []),
+        fetch('data/links.json').then(r => r.ok ? r.json() : []),
+      ]);
+      this.navCategories = (cats.status === 'fulfilled'  && Array.isArray(cats.value))  ? cats.value  : [];
+      this.infoLinks     = (links.status === 'fulfilled' && Array.isArray(links.value)) ? links.value : [];
+    } catch {}
   } finally {
     this.isLoading = false;
   }
@@ -1560,8 +2126,12 @@ link(name, params = {}) {
 },
 
 go(to) {
-  location.hash = to.startsWith('#') ? to : ('#' + to.replace(/^#/, ''));
+  const newHash = to.startsWith('#') ? to : ('#' + to.replace(/^#/, ''));
+  if (location.hash === newHash) { this._onRoute(); return; }
+  location.hash = newHash; // native hashchange will trigger _onRoute()
 },
+
+
 is(nameOrArr) {
   return Array.isArray(nameOrArr)
     ? nameOrArr.includes(this.route)
@@ -1614,6 +2184,7 @@ _onRoute() {
       this.params = {};
       this._restoreScroll('products');
   }
+  console.log('ROUTE ->', location.hash);
 },
 
 // ---- detail loading with single source of truth for price ----

@@ -1,0 +1,14 @@
+[
+    { "name": "eRecept",                     "iconSet":"fa-solid","icon":"file-medical",     "description":"Zjistěte dostupnost a rezervujte eRecept online",          "route":"info" },
+    { "name": "Kontaktní linka: 516 710 100","iconSet":"fa-solid","icon":"phone-volume",     "description":"Zákaznické linka je tu každý všední den 8–17:00",          "route":"info" },
+    { "name": "Karta výhod",                 "iconSet":"fa-solid","icon":"id-card",          "description":"Jaké benefity má Karta výhod a jak ji získat",            "route":"info" },
+    { "name": "Dárkové poukázky",            "iconSet":"fa-solid","icon":"gift",             "description":"Darujte peněžní poukázku na nákup u Dr. Max",             "route":"info" },
+    { "name": "Doprava a platba",            "iconSet":"fa-solid","icon":"truck-fast",       "description":"Vše o dopravních a platebních metodách",                   "route":"info" },
+    { "name": "Stav objednávky a zásilka",   "iconSet":"fa-solid","icon":"box-open",         "description":"Zjistěte kde je váš balíček a kdy Vám ho doručíme",        "route":"info" },
+    { "name": "Lékárny a výdejní boxy",      "iconSet":"fa-solid","icon":"store",            "description":"Mapa více než 500 lékáren a dalších výdejních míst",       "route":"info" },
+    { "name": "Můj účet",                    "iconSet":"fa-solid","icon":"user",             "description":"Spravujte své údaje, historii objednávek a uložené produkty","route":"info" },
+    { "name": "Vše o nákupu",                "iconSet":"fa-solid","icon":"circle-info",      "description":"Obchodní a rezervační podmínky a další",                   "route":"info" },
+    { "name": "Reklamace a vrácení zboží",   "iconSet":"fa-solid","icon":"arrow-rotate-left","description":"Potřebujete něco reklamovat? Žádný problém",               "route":"info" },
+    { "name": "Zeptat se lékárníka",         "iconSet":"fa-solid","icon":"comments",         "description":"Odborné dotazy odpovíme obvykle do 48 hodin",              "route":"info" },
+    { "name": "E-mail",                      "iconSet":"fa-solid","icon":"envelope",         "description":"Napište nám na info@drmax.cz",                             "route":"info" }
+  ]
