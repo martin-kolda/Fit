@@ -1,0 +1,61 @@
+{
+  "id": "smecta-10-s-k",
+  "name": "Smecta 10 sáčků",
+  "registeredMedicament": true,
+  "brand": "Smecta",
+  "productLine": "",
+  "reviews": {
+    "average": null,
+    "count": 0
+  },
+  "perex": "Přírodní čištěný jíl k léčbě akutního i chronického průjmu. Chrání střevní sliznici a váže toxiny.",
+  "category": "Průjem",
+  "stock": "Skladem",
+  "pharmacyStock": "",
+  "SKU": "",
+  "badges": [],
+  "images": [
+    "./images/smecta.webp"
+  ],
+  "price": 175,
+  "discounted_price": null,
+  "comparison_id": 9,
+  "variants": [
+    {
+      "id": "default",
+      "name": "Smecta 10 sáčků",
+      "price": 175,
+      "discounted_price": null
+    }
+  ],
+  "description": "<div class='text-md'>\n  <h3 class='text-lg font-bold pb-4'>Úvod</h3>\n  <div><p>Smecta obsahuje přírodní jíl (diosmektit), který chrání sliznici trávicího traktu a pomáhá při průjmu.</p></div>\n</div>\n<div class='text'>\n  <h3 class='text-lg font-bold pb-4 pt-6'>Dávkování</h3>\n  <div><p>Dospělí: obvykle 3 sáčky denně; obsah rozmíchejte ve vodě. U dětí dle doporučení lékaře.</p></div>\n</div>\n<div class='text'>\n  <h3 class='text-lg font-bold pb-4 pt-6'>Složení</h3>\n  <div><p>Účinná látka: diosmectit.</p></div>\n</div>",
+  "parameters": [
+    {
+      "name": "Léková forma",
+      "value": "Prášek pro perorální suspenzi"
+    },
+    {
+      "name": "Počet sáčků",
+      "value": "10"
+    },
+    {
+      "name": "Účinná látka",
+      "value": "diosmektit"
+    }
+  ],
+  "availability": [],
+  "payment": [
+    {
+      "method": "Online kartou",
+      "note": "Zdarma"
+    },
+    {
+      "method": "Dobírka",
+      "note": "+39 Kč"
+    },
+    {
+      "method": "Hotově na pobočce",
+      "note": "Zdarma"
+    }
+  ]
+}

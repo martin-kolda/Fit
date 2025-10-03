@@ -1,0 +1,61 @@
+{
+  "id": "acc-long-600-mg-20-umiv-ch-tablet",
+  "name": "ACC Long 600 mg 20 šumivých tablet",
+  "registeredMedicament": true,
+  "brand": "ACC",
+  "productLine": "",
+  "reviews": {
+    "average": null,
+    "count": 0
+  },
+  "perex": "Na vlhký kašel – rozpouští hlen, usnadňuje vykašlávání a chrání plicní buňky. Jedna tableta denně.",
+  "category": "Kašel",
+  "stock": "Skladem",
+  "pharmacyStock": "",
+  "SKU": "",
+  "badges": [],
+  "images": [
+    "./images/acc.webp"
+  ],
+  "price": 229,
+  "discounted_price": null,
+  "comparison_id": 11,
+  "variants": [
+    {
+      "id": "default",
+      "name": "ACC Long 600 mg 20 šumivých tablet",
+      "price": 229,
+      "discounted_price": null
+    }
+  ],
+  "description": "<div class='text-md'>\n  <h3 class='text-lg font-bold pb-4'>Úvod</h3>\n  <div><p>ACC Long 600 mg má <strong>trojí účinek</strong>: rozpouští hlen, usnadňuje vykašlávání a má antioxidační efekt.</p></div>\n</div>\n<div class='text'>\n  <h3 class='text-lg font-bold pb-4 pt-6'>Dávkování</h3>\n  <div><p>Dospělí a dospívající od 14 let: 1 šumivá tableta denně rozpuštěná ve vodě.</p></div>\n</div>\n<div class='text'>\n  <h3 class='text-lg font-bold pb-4 pt-6'>Složení</h3>\n  <div><p>Účinná látka: acetylcystein 600&nbsp;mg v 1 tabletě.</p></div>\n</div>",
+  "parameters": [
+    {
+      "name": "Léková forma",
+      "value": "Šumivé tablety"
+    },
+    {
+      "name": "Počet tablet",
+      "value": "20"
+    },
+    {
+      "name": "Účinná látka",
+      "value": "acetylcystein 600 mg"
+    }
+  ],
+  "availability": [],
+  "payment": [
+    {
+      "method": "Online kartou",
+      "note": "Zdarma"
+    },
+    {
+      "method": "Dobírka",
+      "note": "+39 Kč"
+    },
+    {
+      "method": "Hotově na pobočce",
+      "note": "Zdarma"
+    }
+  ]
+}

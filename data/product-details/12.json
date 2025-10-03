@@ -1,0 +1,61 @@
+{
+  "id": "imodium-2-mg-12-tobolek",
+  "name": "Imodium 2 mg 12 tobolek",
+  "registeredMedicament": true,
+  "brand": "Imodium",
+  "productLine": "",
+  "reviews": {
+    "average": null,
+    "count": 0
+  },
+  "perex": "Léčba akutního průjmu. Účinek nastupuje obvykle do 1 hodiny.",
+  "category": "Průjem",
+  "stock": "Skladem",
+  "pharmacyStock": "",
+  "SKU": "",
+  "badges": [],
+  "images": [
+    "./images/imodium.webp"
+  ],
+  "price": 119,
+  "discounted_price": null,
+  "comparison_id": 12,
+  "variants": [
+    {
+      "id": "default",
+      "name": "Imodium 2 mg 12 tobolek",
+      "price": 119,
+      "discounted_price": null
+    }
+  ],
+  "description": "<div class='text-md'>\n  <h3 class='text-lg font-bold pb-4'>Úvod</h3>\n  <div><p>Imodium 2 mg tvrdé tobolky obsahují loperamid a pomáhají zkrátit trvání průjmu a zpevnit stolici.</p></div>\n</div>\n<div class='text'>\n  <h3 class='text-lg font-bold pb-4 pt-6'>Dávkování</h3>\n  <div><p>Dospělí: zahajovací dávka 2 tobolky (4&nbsp;mg), poté 1 tobolka po každé řídké stolici, max. 8 tobolek/24 h.</p></div>\n</div>\n<div class='text'>\n  <h3 class='text-lg font-bold pb-4 pt-6'>Složení</h3>\n  <div><p>Účinná látka: loperamid-hydrochlorid 2&nbsp;mg v 1 tobolce.</p></div>\n</div>",
+  "parameters": [
+    {
+      "name": "Léková forma",
+      "value": "Tvrdé tobolky"
+    },
+    {
+      "name": "Počet tobolek",
+      "value": "12"
+    },
+    {
+      "name": "Účinná látka",
+      "value": "loperamid-hydrochlorid 2 mg"
+    }
+  ],
+  "availability": [],
+  "payment": [
+    {
+      "method": "Online kartou",
+      "note": "Zdarma"
+    },
+    {
+      "method": "Dobírka",
+      "note": "+39 Kč"
+    },
+    {
+      "method": "Hotově na pobočce",
+      "note": "Zdarma"
+    }
+  ]
+}

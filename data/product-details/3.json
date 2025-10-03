@@ -1,0 +1,65 @@
+{
+  "id": "ibalgin-400-mg-48-tablet",
+  "name": "Ibalgin 400 mg 48 tablet",
+  "registeredMedicament": true,
+  "brand": "Ibalgin",
+  "productLine": "",
+  "reviews": {
+    "average": null,
+    "count": 0
+  },
+  "perex": "Zmírňuje bolest a zánět různého původu a snižuje horečku. Pro dospělé a dospívající od 12 let.",
+  "category": "Bolest hlavy a migréna",
+  "stock": "Skladem",
+  "pharmacyStock": "",
+  "SKU": "",
+  "badges": [],
+  "images": [
+    "./images/ibalgin.webp"
+  ],
+  "price": 125,
+  "discounted_price": null,
+  "comparison_id": 3,
+  "variants": [
+    {
+      "id": "default",
+      "name": "Ibalgin 400 mg 48 tablet",
+      "price": 125,
+      "discounted_price": null
+    }
+  ],
+  "description": "<div class='text-md'>\n  <h3 class='text-lg font-bold pb-4'>Úvod</h3>\n  <div><p>Ibalgin 400 mg tlumí <strong>bolest, zánět a horečku</strong>. Vhodný při bolesti hlavy, zubů, zad, při menstruaci a při nachlazení.</p></div>\n</div>\n<div class='text'>\n  <h3 class='text-lg font-bold pb-4 pt-6'>Dávkování</h3>\n  <div><p>Dospělí a dospívající od 12 let: obvykle 1 tableta (400&nbsp;mg) dle potřeby v min. 4–6hod. odstupu, max. 3 tablety denně.</p></div>\n</div>\n<div class='text'>\n  <h3 class='text-lg font-bold pb-4 pt-6'>Složení</h3>\n  <div><p>Účinná látka: ibuprofenum 400&nbsp;mg v 1 tabletě. Pomocné látky dle příbalové informace.</p></div>\n</div>",
+  "parameters": [
+    {
+      "name": "Léková forma",
+      "value": "Potahované tablety"
+    },
+    {
+      "name": "Síla",
+      "value": "400 mg"
+    },
+    {
+      "name": "Počet tablet",
+      "value": "48"
+    },
+    {
+      "name": "Účinná látka",
+      "value": "ibuprofenum"
+    }
+  ],
+  "availability": [],
+  "payment": [
+    {
+      "method": "Online kartou",
+      "note": "Zdarma"
+    },
+    {
+      "method": "Dobírka",
+      "note": "+39 Kč"
+    },
+    {
+      "method": "Hotově na pobočce",
+      "note": "Zdarma"
+    }
+  ]
+}

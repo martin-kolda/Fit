@@ -87,7 +87,7 @@
         {
           "name": "Kategorie",
           "items": [
-            { "name": "Procházet vše" },
+            { "name": "Procházet vše", "route": "products/zdravi-a-leky" },
             { "name": "Bolest" },
             { "name": "Dutina ústní" },
             { "name": "Gynekologické obtíže, antikoncepce" },
