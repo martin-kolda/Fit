@@ -19,6 +19,13 @@
   <link rel="stylesheet" href="./theme/max.css" type="text/css">
   <script defer src="https://unpkg.com/@alpinejs/persist@3.x.x/dist/cdn.min.js"></script>
   <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>  
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css">
+  <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+
   <style>
   [x-cloak]{display:none}
   @keyframes slideInLeft  { from { transform: translateX(-6%); opacity: .01 } to { transform: translateX(0); opacity: 1 } }
@@ -93,7 +100,7 @@
         <div
         x-show="open"
         x-transition.opacity
-        class="fixed z-[9999]"
+        class="fixed z-[33]"
         :style="dropdownStyle"
       >
         <div class="bg-base-100 rounded-2xl shadow-xl border border-base-200 w-full box-border">
@@ -205,7 +212,7 @@
     <button type="button" class="btn btn-link hidden lg:flex items-center gap-2 p-2 md:p-4 group no-underline hover:!no-underline focus-visible:!no-underline">
       <i class="fa-classic fa-xl fa-regular fa-map-location-dot"></i>
       <span class="hidden lg:block underline-offset-2 decoration-1 decoration-current group-hover:underline group-focus-visible:underline text-secondary">
-        Mapa lékáren a boxů
+        <a href="#/map">Mapa lékáren a boxů</a>
       </span>
     </button>
 
@@ -255,12 +262,24 @@
       </ul>
     </div>
 
-    <button class="btn btn-primary w-12 h-12 btn-lg btn-square max-gradient indicator"
-            aria-label="Otevřít košík" title="Košík"
-            @click="location.hash='/cart'">
-      <i class="fa-classic fa-xl fa-regular fa-basket-shopping text-white max-embos-v"></i>
-      <span class="badge badge-error badge-sm indicator-item"></span>
-    </button>
+    <button
+    class="btn btn-primary w-12 h-12 btn-lg btn-square max-gradient indicator"
+    aria-label="Otevřít košík" title="Košík"
+    @click="location.hash='/cart'"
+    x-data
+  >
+    <i class="fa-classic fa-xl fa-regular fa-basket-shopping text-white max-embos-v"></i>
+  
+    <!-- Badge (distinct items). Empty badge if 1 item, show number if >1 -->
+    <template x-if="$store.cart.distinctCount() > 0">
+      <span
+        class="badge badge-error badge-sm indicator-item"
+        :class="{ 'scale-110': $store.cart._badgePulse }"
+        x-text="$store.cart.distinctCount() > 1 ? $store.cart.distinctCount() : ''"
+        x-transition.scale.origin-center
+      ></span>
+    </template>
+  </button>
   </div>
 </div>
 
@@ -289,7 +308,7 @@
       <input
         x-ref="input"
         type="search"
-        class="grow text-lg min-w-0"
+        class="grow text-base min-w-0"
         placeholder="Hledej dle názvu"
         x-model.debounce.150ms="q"
         @focus="onFocus()"
@@ -306,7 +325,7 @@
     <div
     x-show="open"
     x-transition.opacity
-    class="fixed z-[9999]"
+    class="fixed z-[33]"
     :style="dropdownStyle"
   >
     <div class="bg-base-100 rounded-2xl shadow-xl border border-base-200 w-full box-border">
@@ -434,13 +453,7 @@
     </ul>
   </div>
 
-  <!-- BREADCRUMBS -->
-  <div class="breadcrumbs hidden md:block lg:w-10/12 sm:w-11/12 p-4 text-sm mx-auto">
-    <ul>
-      <li>Domů</li>
-      <li><a href="#/products">Zdraví a léky</a></li>
-    </ul>
-  </div>
+
 
 
 <!-- ROUTER SHELL -->
@@ -448,11 +461,18 @@
 
 <!-- ROUTE == PRODUCTS -->
 <section x-show="is('products')" x-cloak>
-<!-- PAGE CONTENT -->  
-<h1 class="text-3xl w-11/12 lg:w-10/12 pl-0 md:pl-4 mx-auto mt-4">Zdraví a léky</h1>
 
 <!-- CATEGORIES GRID -->
 <div x-data="categoriesList" x-cloak class="sm:w-11/12 lg:w-10/12 mx-auto">
+  <!-- BREADCRUMBS -->
+  <div class="breadcrumbs hidden md:block text-sm mx-auto px-4 pt-6">
+    <ul>
+      <li>Domů</li>
+      <li><a href="#/products">Zdraví a léky</a></li>
+    </ul>
+  </div>
+  <h1 class="text-3xl mx-auto mt-4 px-4 pb-4">Zdraví a léky</h1>
+
   <div class="grid gap-2 md:gap-4 sm:grid-cols-2 lg:grid-cols-3 p-4">
     
     <template x-for="cat in categories" :key="cat.name">
@@ -785,13 +805,13 @@
                         aria-label="Odebrat kus">−</button>
 
                 <input type="number" min="1"
-                      class="input input-bordered input-sm w-14 text-center join-item"
+                      class="input input-bordered input-md w-10 text-center join-item"
                       :value="$store.cart.qty(product.id)"
                       @input="$store.cart.setQty(product.id, $event.target.value)"
                       @keydown.enter.prevent
                       aria-label="Počet kusů" />
 
-                <button class="btn btn-square btn-sm join-item"
+                <button class="btn btn-square btn-md join-item"
                         @click="$store.cart.increment(product.id)"
                         aria-label="Přidat kus">+</button>
               </div>
@@ -852,12 +872,19 @@
 <!-- ROUTE == PRODUCT DETAIL -->
 <section x-show="is('product')" x-cloak>
   <template x-if="is('product')">
+      <!-- BREADCRUMBS -->
+
     <div
       x-data="productDetail({ fetchUrl: `data/product-details/${params.id}.json` })"
       x-effect="load(`data/product-details/${params.id}.json`)"
       class="mx-auto w-auto md:w-11/12 lg:w-8/12 p-4 py-6"
     >
-
+    <div class="breadcrumbs hidden md:block text-sm mx-auto py-4">
+      <ul>
+        <li>Domů</li>
+        <li><a href="#/products">Zdraví a léky</a></li>
+      </ul>
+    </div>
     <!-- gallery -->
     <div class="grid md:grid-cols-2 gap-6 items-start">
       <section class="relative">
@@ -944,7 +971,39 @@
             </div>
   
             <div class="pt-2">
-              <button class="btn btn-primary btn-xl" @click="addToCartClick()">Do košíku</button>
+              <!-- ADD / STEPPER -->
+              <template x-if="!$store.cart.inCart(product.id)">
+                <button class="btn btn-primary btn-lg font-medium" @click="$store.cart.add(product)">
+                  Do košíku
+                </button>
+              </template>
+
+              <template x-if="$store.cart.inCart(product.id)">
+                <div class="flex items-center gap-4" x-data="qtyBlinker(product.id)">
+                  <div class="join">
+                    <button class="btn btn-square btn-lg join-item"
+                            @click="$store.cart.decrement(product.id)"
+                            aria-label="Odebrat kus">−</button>
+
+                    <input type="number" min="1"
+                          class="input input-bordered input-lg w-12 text-center join-item"
+                          :value="$store.cart.qty(product.id)"
+                          @input="$store.cart.setQty(product.id, $event.target.value)"
+                          @keydown.enter.prevent aria-label="Počet kusů" />
+
+                    <button class="btn btn-square btn-lg join-item"
+                            @click="$store.cart.increment(product.id)"
+                            aria-label="Přidat kus">+</button>
+                  </div>
+
+                  <div class="flex items-center gap-2">
+                    <span>ks v košíku</span>
+                    <i class="fa-classic fa-md fa-solid fa-check-circle text-success transition-opacity duration-200"
+                    :style="`opacity:${alpha}`"
+                    aria-hidden="true"></i>
+                  </div>
+                </div>
+              </template>
             </div>
 
       </section>
@@ -989,7 +1048,7 @@
         <div class="collapse-content">
 
             <div class="overflow-x-auto">
-              <table class="table table-zebra text-base">
+              <table class="table table-zebra text-sm md:text-base">
                 <tbody>
                   <template x-for="(row,i) in product?.parameters || []" :key="i">
                     <tr>
@@ -1183,22 +1242,30 @@
  
      <!-- Table -->
      <div x-show="!loading && !error" class="overflow-x-auto">
-       <table class="table table-zebra min-w-[420px]">
+       <table class="table table-zebra text-sm md:text-base">
          <thead>
            <tr>
-             <th class="w-14 text-center">Dostupné</th>
-             <th>Název benefitu</th>
+            <th class="font-medium w-auto md:w-1/3">Název benefitu</th>
+            <th class="w-14 text-center font-medium">V e-shopu</th>
+            <th class="w-14 text-center font-medium">V lékárně</th>
+            <th class="hidden md:block w-auto"></th>
            </tr>
          </thead>
          <tbody>
            <template x-for="(b, i) in items" :key="i">
              <tr>
+              <td class="font-medium" x-text="b.name"></td>
+              <td class="text-center">
+                 <i :class="b.eshop_payment
+                           ? 'fa-solid fa-circle-check text-success fa-lg'
+                           : 'fa-solid fa-circle-xmark text-error fa-lg'"></i>
+               </td>               
                <td class="text-center">
-                 <i :class="b.available
-                           ? 'fa-solid fa-circle-check text-success'
-                           : 'fa-solid fa-circle-xmark text-error'"></i>
-               </td>
-               <td class="font-medium" x-text="b.name"></td>
+                <i :class="b.pharmacy_payment
+                          ? 'fa-solid fa-circle-check text-success fa-lg'
+                          : 'fa-solid fa-circle-xmark text-error fa-lg'"></i>
+              </td>
+              <td class="hidden md:block w-auto"></td>
              </tr>
            </template>
          </tbody>
@@ -1326,10 +1393,35 @@
           </div>
 
           <!-- CTA -->
-          <button class="btn btn-primary btn-sm min-w-28"
-                  @click="addToCartClick()">
-            Do košíku
-          </button>
+          <div class="pt-2">
+            <!-- ADD / STEPPER -->
+            <template x-if="!$store.cart.inCart(product.id)">
+              <button class="btn btn-primary btn-md font-medium" @click="$store.cart.add(product)">
+                Do košíku
+              </button>
+            </template>
+
+            <template x-if="$store.cart.inCart(product.id)">
+              <div class="flex items-center gap-4" x-data="qtyBlinker(product.id)">
+                <div class="join">
+                  <button class="btn btn-square btn-md join-item"
+                          @click="$store.cart.decrement(product.id)"
+                          aria-label="Odebrat kus">−</button>
+
+                  <input type="number" min="1"
+                        class="input input-bordered input-md w-12 text-center join-item"
+                        :value="$store.cart.qty(product.id)"
+                        @input="$store.cart.setQty(product.id, $event.target.value)"
+                        @keydown.enter.prevent aria-label="Počet kusů" />
+
+                  <button class="btn btn-square btn-md join-item"
+                          @click="$store.cart.increment(product.id)"
+                          aria-label="Přidat kus">+</button>
+                </div>
+
+              </div>
+            </template>
+          </div>
         </div>
       </div>
     </div>
@@ -1340,14 +1432,616 @@
 
 <!-- ROUTE == CART -->
 <section x-show="is('cart')" x-cloak>
-  <h1 class="text-3xl lg:w-10/12 sm:w-11/12 pl-4 mx-auto text-[var(--max-gray-100)] text-max-blue-100">Nákupní košík</h1>
-  <div class="lg:w-10/12 sm:w-11/12 p-4  mx-auto">
 
-<a href="#/products" class="font-medium text-max-blue-600 hover:underline">Zpět</a>
+
+    <section x-data="cartPage()" class="w-auto md:w-11/12 xl:w-8/12 mx-auto px-4 pt-12 pb-32">
+      <h1 class="text-3xl mx-auto mb-6">Nákupní košík</h1>
+  <!-- EMPTY STATE -->
+  <template x-if="$store.cart.distinctCount() === 0">
+    <div class="grid place-items-center py-16">
+      <div class="text-7xl select-none animate-bounce"><i class="fa-classic fa-3xl fa-solid fa-shopping-bag text-max-gray-200"></i></div>
+      <p class="mt-4 text-max-gray-200">Váš košík je prázdný. Pojďme to napravit!</p>
+      <button class="btn btn-outline mt-6" @click="location.hash='/products'">Pokračovat v nákupu</button>
+    </div>
+  </template>
+
+  <!-- CART TABLE -->
+  <template x-if="$store.cart.distinctCount() > 0">
+    <div class="space-y-6">
+
+      <!-- CART LIST: MOBILE TILES (no horizontal scroll) -->
+<div class="md:hidden space-y-3">
+  <template x-for="it in $store.cart.list()" :key="it.id">
+    <article class="card bg-white border border-base-200 shadow-sm">
+      <div class="card-body p-3">
+        <!-- Header: image + title + price -->
+        <div class="flex gap-3 items-center">
+          <div class="h-18 w-18 rounded bg-base-200 overflow-hidden shrink-0 grid place-content-center">
+            <img :src="it.image" :alt="it.name" class="h-full w-full object-contain" loading="lazy">
+          </div>
+
+          <div class="min-w-0 flex-1">
+            <h3 class="font-medium text-base" :title="it.name" x-text="it.name"></h3>
+            <div class="flex flex-wrap gap-1 mt-1">
+              <template x-for="b in (it.badges || [])">
+                <span class="badge badge-ghost badge-sm" x-text="b"></span>
+              </template>
+            </div>
+          </div>
+        </div>
+
+        <!-- Controls: stepper + subtotal + remove -->
+        <div class="mt-3 flex items-center justify-between gap-3">
+          <div class="join">
+            <button class="btn btn-square btn-md join-item" @click="$store.cart.decrement(it.id)" aria-label="Odebrat kus">−</button>
+            <input type="number" min="1"
+              class="input input-bordered input-md w-9 text-left join-item"
+              :value="$store.cart.qty(it.id)"
+              @input="$store.cart.setQty(it.id, $event.target.value)"
+              @keydown.enter.prevent aria-label="Počet kusů" />
+            <button class="btn btn-square btn-md join-item" @click="$store.cart.increment(it.id)" aria-label="Přidat kus">+</button>
+          </div>
+
+          <div class="text-right">
+            <template x-if="it.priceBefore && it.priceBefore > it.price">
+              <span class="text-sm line-through text-base-content/50 ml-2" x-text="koruny(it.priceBefore)"></span>
+            </template>
+            <span class="font-semibold text-base" x-text="koruny(it.price)"></span>
+          </div>
+        </div>
+
+      </div>
+    </article>
+  </template>
+</div>
+
+<!-- CART TABLE: DESKTOP/MD+ -->
+<div class="hidden md:block overflow-x-auto rounded-xl border border-base-200 bg-white p-10">
+  <table class="table text-base">
+    <thead>
+      <tr>
+        <th class="font-medium">Produkt</th>
+        <th class="text-center font-medium">Cena za kus</th>
+        <th class="text-center font-medium">Množství</th>
+        <th class="text-right font-medium">Mezisoučet</th>
+      </tr>
+    </thead>
+    <tbody>
+      <template x-for="it in $store.cart.list()" :key="it.id">
+        <tr>
+          <td>
+            <div class="flex gap-3 items-center">
+              <div class="h-20 w-20 rounded bg-base-200 overflow-hidden grid place-content-center mr-2 flex-shrink-0">
+                <img :src="it.image" :alt="it.name" class="h-full w-full object-contain" loading="lazy">
+              </div>
+              <div class="min-w-0">
+                <div class="font-medium" :title="it.name" x-text="it.name"></div>
+                <div class="flex gap-1 mt-1">
+                  <template x-for="b in (it.badges || [])">
+                    <span class="badge badge-ghost badge-sm" x-text="b"></span>
+                  </template>
+                </div>
+                <template x-if="it.priceBefore && it.priceBefore > it.price">
+                  <div class="text-sm text-success mt-1" x-text="`Sleva ${Math.round((1 - it.price/it.priceBefore)*100)} %`"></div>
+                </template>
+              </div>
+            </div>
+          </td>
+
+          <td class="text-center align-center">
+            <div>
+              <div class="font-medium" x-text="koruny(it.price)"></div>
+              <template x-if="it.priceBefore && it.priceBefore > it.price">
+                <div class="text-sm line-through text-base-content/50" x-text="koruny(it.priceBefore)"></div>
+              </template>
+            </div>
+          </td>r
+
+          <td class="text-center">
+            <div class="join justify-end">
+              <button class="btn btn-square btn-md join-item" @click="$store.cart.decrement(it.id)">−</button>
+              <input type="number" min="1"
+                class="input input-bordered input-md w-12 text-center join-item"
+                :value="$store.cart.qty(it.id)"
+                @input="$store.cart.setQty(it.id, $event.target.value)"
+                @keydown.enter.prevent />
+              <button class="btn btn-square btn-md join-item" @click="$store.cart.increment(it.id)">+</button>
+            </div>
+          </td>
+
+          <td class="text-right align-center">
+            <div class="font-semibold" x-text="koruny($store.cart.linePrice(it))"></div>
+            <template x-if="(it.priceBefore ?? it.price) > it.price">
+              <div class="text-xs text-success">
+                − <span x-text="koruny($store.cart.lineDiscount(it))"></span>
+              </div>
+            </template>
+          </td>
+
+
+        </tr>
+      </template>
+    </tbody>
+  </table>
+</div>
+
+
+
+
+      <!-- Totals -->
+      <div class="grid md:grid-cols-2 gap-4">
+        
+      <!-- Free shipping bar -->
+      <div class="rounded-xl border border-base-200 bg-white p-10">
+        <div class="flex items-center justify-between mb-2">
+          <span class="font-medium">Doprava zdarma</span>
+          <span class="text-sm text-base-content/70" x-show="$store.cart.totalToPay() < $store.cart.freeShipThreshold">
+            Chybí <strong x-text="koruny($store.cart.freeShipMissing())"></strong> do <strong x-text="koruny($store.cart.freeShipThreshold)"></strong>
+          </span>
+          <span class="text-sm text-success" x-show="$store.cart.totalToPay() >= $store.cart.freeShipThreshold">Splněno 🎉</span>
+        </div>
+        <div class="h-6 rounded-full bg-base-200 overflow-hidden">
+          <div class="h-full bg-primary transition-all duration-500"
+               :style="`width: ${$store.cart.freeShipProgress()}%`"></div>
+        </div>
+      
+<!-- COUPONS / GIFTCARDS ACTIONS (inline buttons) -->
+<div class="flex flex-wrap gap-3 items-stretch mt-12">
+  <!-- Coupon button + modal -->
+  <div x-data="{ open:false, code:'', error:'' }" class="indicator">
+    <button
+      class="btn btn-outline md:btn-md btn-sm px-4 indicator"
+      @click="open = true"
+      type="button"
+    >
+      Uplatnit slevový kupón
+      <!-- indicator with count -->
+      <template x-if="$store.cart.couponCount() > 0">
+        <span class="badge badge-error badge-sm indicator-item"
+              x-text="$store.cart.couponCount()"></span>
+      </template>
+    </button>
+
+    <!-- DaisyUI modal -->
+    <dialog class="modal" :open="open" @close="open=false">
+      <div class="modal-box lg:px-8 lg:py-10">
+        <form method="dialog">
+          <button class="btn btn-md btn-circle btn-ghost absolute right-2 top-2"><i class="fa-solid fa-xmark fa-lg" aria-hidden="true"></i></button>
+        </form>
+        
+        <h3 class="font-semibold text-xl">Slevové kupóny</h3>
+
+        <!-- Input row -->
+        <div class="mt-4 flex gap-2">
+          <input class="input input-bordered w-full"
+                 placeholder="Zadejte kód (např. SLEVA10)"
+                 x-model="code"
+                 @keydown.enter.prevent="$refs.apply.click()">
+                 <button class="btn btn-primary" x-ref="apply" @click="
+                 error='';
+                 const r = $store.cart.applyCoupon(code);
+                 if (!r.ok) { error = r.message }
+                 else {
+                   code='';
+                   $store.toast.push('Kupón uplatněn', 'success');
+                   $fx.confetti('coupon', $el)
+                 }
+               ">Uplatnit</button>
+        </div>
+        <p class="text-error text-sm mt-2" x-text="error" x-show="error"></p>
+
+        <!-- Applied list -->
+        <div class="mt-4">
+          <div class="flex flex-wrap gap-2">
+            <template x-if="$store.cart.couponCount() === 0">
+              <div class="text-sm mb-2 text-base-content/70">Zatím žádné uplatněné kupóny</div>
+            </template>
+            <template x-for="c in $store.cart.listCoupons()" :key="c.code">
+              <div class="gap-2">
+                <div class="text-sm mb-2 w-auto text-base-content/70">Uplatněné kupóny</div>             
+                <span class="badge badge-lg badge-outline badge-success pr-1 gap-1">
+                  <span class="font-mono" x-text="c.code"></span>
+                  <button class="btn btn-link no-underline hover:!no-underline btn-xs px-1"
+                          type="button"
+                          aria-label="Zrušit"
+                          @click="$store.cart.removeCoupon(c.code)">
+                      <i class="fa-solid fa-xmark fa-lg" aria-hidden="true"></i>
+                  </button>
+                </span>
+              </div>
+            </template>
+          </div>
+        </div>
+
+      </div>
+      <form method="dialog" class="modal-backdrop">
+        <button>close</button>
+      </form>
+    </dialog>
+  </div>
+
+    <!-- Gift card button + modal -->
+    <div x-data="{ open:false, code:'', error:'' }" class="indicator">
+      <button
+        class="btn btn-outline md:btn-md btn-sm px-4 indicator"
+        @click="open = true"
+        type="button"
+      >
+        Vložit dárkovou kartu
+        <!-- indicator with count -->
+        <template x-if="$store.cart.giftCardCount() > 0">
+          <span class="badge badge-error badge-sm indicator-item"
+                x-text="$store.cart.giftCardCount()"></span>
+        </template>
+      </button>
+
+      <!-- DaisyUI modal -->
+      <dialog class="modal" :open="open" @close="open=false">
+        <div class="modal-box  lg:px-8 lg:py-10">
+          <form method="dialog">
+            <button class="btn btn-md btn-circle btn-ghost absolute right-2 top-2"><i class="fa-solid fa-xmark fa-lg" aria-hidden="true"></i></button>
+          </form>
+          <h3 class="font-semibold text-xl">Dárkové karty</h3>
+
+          <!-- Input row -->
+          <div class="mt-4 flex gap-2">
+            <input class="input input-bordered w-full"
+                  placeholder="Zadejte kód (např. DAR100)"
+                  x-model="code"
+                  @keydown.enter.prevent="$refs.apply2.click()">
+            <button class="btn btn-primary" x-ref="apply2" @click="
+              error='';
+              const r = $store.cart.applyGiftCard(code);
+              if (!r.ok) { error = r.message; }
+              else {
+                code='';
+                $store.toast.push('Dárková karta uplatněna', 'success');
+                $fx.confetti('coupon', $el)
+              }
+            ">Vložit</button>
+          </div>
+          <p class="text-error text-sm mt-2" x-text="error" x-show="error"></p>
+
+          <!-- Applied list -->
+          <div class="mt-4">
+            <div class="flex flex-wrap gap-2">
+              <template x-if="$store.cart.giftCardCount() === 0">
+                <span class="text-sm text-base-content/70">Zatím žádné uplatňené karty</span>
+              </template>
+              <template x-for="g in $store.cart.listGiftCards()" :key="g.code">
+                  <div class="gap-2">
+                    <div class="text-sm mb-2 w-auto text-base-content/70">Uplatněné karty</div>
+                  <span class="badge badge-lg badge-outline badge-success pr-1 gap-1">
+                    <span class="font-mono" x-text="g.code"></span>
+                    <button class="btn btn-link no-underline hover:!no-underline btn-xs px-1"
+                            type="button"
+                            aria-label="Zrušit"
+                            @click="$store.cart.removeGiftCard(g.code)">
+                        <i class="fa-solid fa-xmark fa-lg" aria-hidden="true"></i>
+                    </button>
+                  </span>
+                </div>
+              </template>
+            </div>
+          </div>
+
+        </div>
+        <form method="dialog" class="modal-backdrop">
+          <button>close</button>
+        </form>
+      </dialog>
+    </div>
+
+    </div>
+      </div>
+        
+        
+        <div class="p-10 rounded-xl border border-base-200 bg-white">
+          <div class="flex flex-col gap-2">
+            <div class="flex justify-between">
+              <span>Mezisoučet (bez kupónů)</span>
+              <span x-text="koruny($store.cart.subtotal())"></span>
+            </div>
+
+            <div class="flex justify-between text-success" x-show="$store.cart.totalDiscountsRaw() > 0">
+              <span>Slevy z produktů</span>
+              <span>− <span x-text="koruny($store.cart.totalDiscountsRaw())"></span></span>
+            </div>
+
+            <template x-if="$store.cart.coupon">
+              <div class="flex justify-between text-success">
+                <span>Slevový kupón <span class="font-mono" x-text="$store.cart.coupon.code"></span></span>
+                <span>− <span x-text="koruny(calcCouponValue($store.cart))"></span></span>
+              </div>
+            </template>
+
+            <template x-if="$store.cart.giftCard">
+              <div class="flex justify-between text-success">
+                <span>Dárková karta <span class="font-mono" x-text="$store.cart.giftCard.code"></span></span>
+                <span>− <span x-text="koruny(calcGiftCardValue($store.cart))"></span></span>
+              </div>
+            </template>
+
+            <div class="divider my-2"></div>
+
+            <div class="flex justify-between text-lg font-semibold">
+              <span>Celkem k úhradě</span>
+              <span x-text="koruny($store.cart.totalToPay())"></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </template>
+
+  <!-- Sticky bottom bar -->
+  <div class="fixed bottom-0 left-0 right-0 border-t border-base-200 bg-white py-6 z-10">
+    <div class="sm:w-11/12 lg:w-10/12 mx-auto px-4 flex items-center justify-between gap-3">
+      <button class="btn btn-outline" @click="location.hash='/products'">Zpět do eshopu</button>
+
+      <button class="btn btn-primary btn-lg"
+        :disabled="$store.cart.distinctCount() === 0"
+        @click="location.hash='/checkout/delivery'">
+        Pokračovat <i class="fa-solid fa-arrow-right fa-sm" aria-hidden="true"></i>
+      </button>
+    </div>
   </div>
 </section>
 
-</div>
+<script>
+  // Helpers for the cart page only
+  function cartPage() {
+    return {
+      koruny(v) {
+        try { return (Math.round(Number(v)) || 0).toLocaleString('cs-CZ') + ' Kč'; }
+        catch { return v + ' Kč'; }
+      },
+      calcCouponValue(store) {
+        const sub = store.subtotal();
+        if (!store.coupon) return 0;
+        return store.coupon.type === 'percent'
+          ? Math.floor(sub * (store.coupon.value / 100))
+          : store.coupon.value;
+      },
+      calcGiftCardValue(store) {
+        if (!store.giftCard) return 0;
+        return store.giftCard.value;
+      }
+    }
+  }
+</script>
+<script>
+  // Simple singleton for pharmacies search
+  const PharmacyIndex = (() => {
+    let _data = null; // cached array
+    let _loading = null;
+  
+    const load = async () => {
+      if (_data) return _data;
+      if (_loading) return _loading;
+      _loading = fetch('./data/map-points.json')
+        .then(r => r.json())
+        .then(arr => {
+          _data = arr.map(p => ({
+            ...p,
+            // normalize + index
+            id: p.id,
+            name: p.name,
+            type: p.type, // 'pharmacy' | 'box'
+            address: p.address || {},
+            coords: { lat: +p.coords.lat, lng: +p.coords.lng },
+            searchIndex: [
+              p.name,
+              p.type,
+              p.address?.street,
+              p.address?.city,
+              p.address?.district,
+              p.address?.zip
+            ].filter(Boolean).join(' ').toLowerCase()
+          }));
+          return _data;
+        })
+        .finally(() => { _loading = null; });
+      return _loading;
+    };
+  
+    const search = async (q) => {
+      const list = await load();
+      if (!q) return [];
+      const s = q.toLowerCase().trim();
+      return list
+        .filter(p => p.searchIndex.includes(s))
+        .slice(0, 10) // cap like other sections
+        .map(p => ({
+          kind: 'pharmacy', // tag for rendering
+          id: p.id,
+          title: p.name,
+          subtitle: `${p.address.street || ''} • ${p.address.city || ''}`.trim(),
+          icon: p.type === 'box' ? 'fa-box' : 'fa-location-dot',
+          raw: p // keep the full record for click
+        }));
+    };
+  
+    return { load, search };
+  })();
+  </script>
+</section>
+
+<!-- ROUTE == DELIVERY AND PAYMENt -->
+<section x-show="is('delivery-payment')" x-cloak>
+  Delivery and payment
+</section>
+
+<!-- ROUTE == MAP -->
+<section x-show="is('map')" x-cloak
+         x-data="pickupMapUI({
+           jsonUrl: './data/map-points.json',
+           enableClustering: true
+         })"
+         x-init="init()" class="relative">
+  <div class="bg-base-200" :class="mode === 'list' ? 'pb-0' : ''">
+    <div class="px-4 py-0 md:py-6">
+      <div class="grid grid-cols-1 md:grid-cols-12 gap-4 items-stretch md:min-h-[60vh] lg:h-[70vh]">
+
+        <!-- Mobile tabs -->
+        <div class="md:hidden col-span-12">
+          <div class="join w-full">
+            <input class="join-item btn btn-block flex-1"
+                   type="radio" name="maplist" aria-label="Mapa"
+                   :checked="mode==='map'" @click="mode='map'"/>
+            <input class="join-item btn btn-block flex-1"
+                   type="radio" name="maplist" aria-label="Výpis"
+                   :checked="mode==='list'" @click="mode='list'"/>
+          </div>
+        </div>
+
+        <!-- LEFT COLUMN (hidden on <lg unless 'list' tab is selected on mobile) -->
+          <aside class="min-h-0 col-span-12 lg:col-span-3"
+          x-show="isLg || mode==='list'">
+          <div class="bg-white border border-base-300 rounded-xl xl:p-8 p-4 h-full overflow-y-auto">
+            <h1 class="text-3xl mx-auto mt-4 pb-4">Lékárny a boxy</h1>
+
+            <!-- Search -->
+            <div class="pb-4">
+              <label class="input input-bordered items-center gap-2 w-full"
+                     aria-label="Vyhledávání">
+                <i class="fa-solid fa-magnifying-glass text-max-gray-600"></i>
+                <input type="search" placeholder="Filtruj dle adresy"
+                       x-model.debounce.250ms="search"
+                       @input="applyFilters()" />
+              </label>
+            </div>
+
+            <!-- “Městská část” (simple chips) -->
+            <div class="items-center mt-1 mb-2 gap-2 flex flex-wrap">
+
+              <!-- Vše (show all) -->
+              <button type="button"
+                      class="btn btn-sm"
+                      :class="district==='' ? 'btn-primary' : 'btn-outline'"
+                      @click="district=''; applyFilters()">
+                Vše
+              </button>
+
+              <!-- District chips -->
+              <template x-for="d in districts" :key="d">
+                <button type="button"
+                        class="btn btn-sm"
+                        :class="district===d ? 'btn-primary' : 'btn-outline'"
+                        @click="district = (district===d ? '' : d); applyFilters()"
+                        x-text="d">
+                </button>
+              </template>
+            </div>
+
+            <!-- Filter summary -->
+            <p class="text-sm opacity-70 mt-3"
+            x-text="`Zobrazuji ${filtered.length} z ${all.length}`"></p>
+
+            <!-- List -->
+            <div class="overflow-x-auto">
+              <table class="table">
+                <tbody>
+                  <template x-for="p in filtered" :key="p.id">
+                    <tr class="cursor-pointer"
+                        :class="selected && selected.id===p.id ? 'bg-max-blue-50' : 'hover:bg-max-gray-50'"
+                        :data-pickup-id="p.id"
+                        @click="selectFromList(p)">
+                      <td>
+                        <div class="flex items-center gap-3">
+                          <div class="h-20 w-20 rounded bg-base-200 overflow-hidden mr-2 shrink-0">
+                            <img :src="p.photo || placeholderImg" alt=""
+                                 class="h-full w-full object-cover object-center" loading="lazy">
+                          </div>
+                          <div class="min-w-0">
+                            <div class="font-medium text-base truncate" x-text="p.name"></div>
+                            <div class="text-base opacity-70 truncate"
+                                 x-text="`${p.address.street} • ${p.address.city}`"></div>
+                          </div>
+                        </div>
+                      </td>
+                    </tr>
+                  </template>
+                  <template x-if="!filtered.length">
+                    <tr><td class="py-8 text-center text-sm opacity-70">Žádné výsledky.</td></tr>
+                  </template>
+                </tbody>
+              </table>
+            </div>
+            
+          </div>
+        </aside>
+
+        <!-- RIGHT: MAP -->
+        <main class="min-h-0 col-span-12 lg:col-span-9" x-show="isLg || mode==='map'">
+          <div class="relative rounded-xl border border-base-300 h-full min-h-[600px] overflow-hidden shrink-0">
+
+            <!-- Overlay (desktop / tablet) -->
+            <div x-show="selected"
+                 class="rounded-xl border border-base-300 px-4 py-6 lg:px-8 lg:py-10 w-80 sm:w-96 bg-white absolute m-2 z-10">
+              <button class="btn btn-md btn-circle btn-ghost absolute right-2 top-2"
+                      @click="selected=null; updateMarkerIcons()">
+                <i class="fa-solid fa-xmark fa-lg" aria-hidden="true"></i>
+              </button>
+
+              <div class="mb-2">
+                <div class="font-medium text-base" x-text="selected?.name"></div>
+                <div class="text-base opacity-70"
+                     x-text="`${selected?.address?.street} • ${selected?.address?.city}`"></div>
+              </div>
+
+              <div class="overflow-x-auto max-h-40 lg:max-h-max">
+                <table class="table table-zebra">
+                  <tbody>
+                    <template x-if="selected && selected.opening_hours">
+                      <template x-for="(val, day) in selected.opening_hours" :key="day">
+                        <tr>
+                          <th x-text="dayCZ(day)"></th>
+                          <td x-text="val"></td>
+                        </tr>
+                      </template>
+                    </template>
+                    <template x-if="selected && !selected.opening_hours">
+                      <tr><td class="py-3 text-sm opacity-70">Bez zveřejněné provozní doby.</td></tr>
+                    </template>
+                  </tbody>
+                </table>
+              </div>
+
+              <button class="btn btn-active btn-primary w-full mt-4"
+                      @click="confirmSelection()">Potvrdit výběr</button>
+
+              <p class="text-sm my-4" x-text="selected?.note"></p>
+
+              <div class="flex flex-wrap gap-1 mt-4">
+                <template x-for="t in (selected?.tags||[])" :key="t">
+                  <div class="badge badge-soft badge-neutral" x-text="t"></div>
+                </template>
+              </div>
+
+              <address class="not-italic mt-6">
+                <p class="flex flex-wrap items-center gap-y-2 gap-x-6">
+                  <a :href="selected?.phone ? `tel:${selected.phone}` : '#'"
+                     class="group inline-flex items-center gap-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 rounded"
+                     :class="selected?.phone ? '' : 'pointer-events-none opacity-50'">
+                    <i class="fa-solid fa-phone fa-sm" aria-hidden="true"></i>
+                    <span class="group-hover:underline group-focus-visible:underline underline-offset-2"
+                          x-text="selected?.phone || '—'"></span>
+                  </a>
+                </p>
+              </address>
+            </div>
+
+            <!-- The map element -->
+            <div id="map" class="w-full h-full z-0"></div>
+
+          </div>
+        </main>
+
+      </div>
+    </div>
+  </div>
+</section>
 
 
 <!-- FOOTER -->
@@ -1418,48 +2112,292 @@
   <script>
     document.addEventListener('alpine:init', () => {
       // CART
-      Alpine.store('cart', {
-    items: {},
+  Alpine.store('cart', {
+    // --- state ---
+    items: {}, // { [id]: { qty, product } }
 
+    // legacy single fields (kept for compatibility with existing UI)
+    coupon: null,    // { code, type:'percent'|'amount', value }
+    giftCard: null,  // { code, type:'amount', value }
+
+    // new multi support
+    coupons: [],     // [{ code, type, value }, ...]
+    giftCards: [],   // [{ code, type, value }, ...]
+
+    freeShipThreshold: 600, // Kč
+    _badgePulse: false,
+
+    // --- lifecycle / persistence ---
+    init() {
+      try {
+        const raw = localStorage.getItem('cart.v1');
+        if (raw) {
+          const parsed = JSON.parse(raw) || {};
+          this.items     = parsed.items     || {};
+          this.coupon    = parsed.coupon    || null;
+          this.giftCard  = parsed.giftCard  || null;
+          this.coupons   = Array.isArray(parsed.coupons)   ? parsed.coupons   : [];
+          this.giftCards = Array.isArray(parsed.giftCards) ? parsed.giftCards : [];
+
+          // migrate legacy single fields into arrays if needed
+          if (this.coupon && !this.coupons.find(c => c.code === this.coupon.code)) {
+            this.coupons.push(this.coupon);
+          }
+          if (this.giftCard && !this.giftCards.find(g => g.code === this.giftCard.code)) {
+            this.giftCards.push(this.giftCard);
+          }
+        }
+      } catch (e) {
+        console.warn('cart load failed', e);
+      }
+      this._persist();
+    },
+    _persist() {
+      try {
+        localStorage.setItem('cart.v1', JSON.stringify({
+          items: this.items,
+          // keep legacy mirrors for old UI bits
+          coupon: this.coupon,
+          giftCard: this.giftCard,
+          // store new arrays
+          coupons: this.coupons,
+          giftCards: this.giftCards
+        }));
+      } catch (e) {
+        console.warn('cart persist failed', e);
+      }
+    },
+    _pingBadge() {
+      this._badgePulse = false;
+      requestAnimationFrame(() => { this._badgePulse = true; });
+      setTimeout(() => { this._badgePulse = false; }, 200);
+    },
+
+    // --- queries / helpers ---
     inCart(id) { id = String(id); return Object.prototype.hasOwnProperty.call(this.items, id); },
     qty(id)    { id = String(id); return this.items[id]?.qty ?? 0; },
+    distinctCount() { return Object.keys(this.items).length; },
+    countAll() { return Object.values(this.items).reduce((s, it) => s + (it?.qty || 0), 0); },
+    list() {
+      // normalize a flat view for table: { id, qty, product, price, priceBefore, image, name, badges }
+      return Object.entries(this.items).map(([id, rec]) => {
+        const p = rec.product || {};
+        const price = Number(p.discounted_price || p.price || 0);
+        const priceBefore = Number(p.price || price);
+        return {
+          id,
+          qty: rec.qty,
+          product: p,
+          name: p.name || p.title || `Produkt #${id}`,
+          image: p.image || p.thumbnail || p.img || '',
+          badges: p.badges || p.labels || p.tags || [],
+          price,
+          priceBefore
+        };
+      });
+    },
 
+    // public wrappers used by templates
+    linePrice(itOrId) {
+      let it = itOrId;
+      if (typeof itOrId !== 'object') {
+        const id = String(itOrId);
+        it = this.list().find(x => String(x.id) === id);
+      }
+      return it ? this._linePrice(it) : 0;
+    },
+    lineBefore(itOrId) {
+      let it = itOrId;
+      if (typeof itOrId !== 'object') {
+        const id = String(itOrId);
+        it = this.list().find(x => String(x.id) === id);
+      }
+      return it ? this._lineBefore(it) : 0;
+    },
+
+    // --- mutations (your behavior preserved; now with persist + pulse) ---
     add(product) {
-      const id = String(product.id);
+      let id = String(product.id);
       if (this.inCart(id)) { this.increment(id); return; }
       this.items = { ...this.items, [id]: { qty: 1, product } };
+      this._persist(); this._pingBadge();
       Alpine.store('toast')?.push(`Přidáno do košíku: ${product.name}`, 'success');
     },
     increment(id) {
       id = String(id);
       if (!this.inCart(id)) return;
       this.items[id].qty++;
+      this._persist(); this._pingBadge();
     },
     decrement(id) {
       id = String(id);
       if (!this.inCart(id)) return;
       const next = this.items[id].qty - 1;
       if (next <= 0) {
+        const removedName = this.items[id].product?.name || `Produkt #${id}`;
         const copy = { ...this.items };
         delete copy[id];
         this.items = copy;
+        Alpine.store('toast')?.push(`Odebrán produkt: ${removedName}`, 'warning');
       } else {
         this.items[id].qty = next;
       }
+      this._persist(); this._pingBadge();
     },
     setQty(id, raw) {
       id = String(id);
       let n = parseInt(raw, 10);
       if (!Number.isFinite(n) || n <= 0) {
+        if (!this.inCart(id)) return;
+        const removedName = this.items[id].product?.name || `Produkt #${id}`;
         const copy = { ...this.items };
         delete copy[id];
         this.items = copy;
+        this._persist(); this._pingBadge();
+        Alpine.store('toast')?.push(`Odebrán produkt: ${removedName}`, 'warning');
         return;
       }
       if (!this.inCart(id)) return;
       this.items[id].qty = n;
+      this._persist(); this._pingBadge();
+    },
+    remove(id) {
+      id = String(id);
+      if (!this.inCart(id)) return;
+      const removedName = this.items[id].product?.name || `Produkt #${id}`;
+      const copy = { ...this.items };
+      delete copy[id];
+      this.items = copy;
+      this._persist(); this._pingBadge();
+      Alpine.store('toast')?.push(`Odebrán produkt: ${removedName}`, 'warning');
+    },
+    clear() {
+      this.items = {};
+      this.coupon = null;
+      this.giftCard = null;
+      this.coupons = [];
+      this.giftCards = [];
+      this._persist(); this._pingBadge();
+    },
+
+    // --- line & totals (Kč numbers, no formatting) ---
+    _linePrice(it) { return Math.max(0, Number(it.price) * it.qty); },
+    _lineBefore(it) { return Math.max(0, Number(it.priceBefore ?? it.price) * it.qty); },
+    linePriceById(id) {
+      const rec = this.list().find(x => String(x.id) === String(id));
+      return rec ? this._linePrice(rec) : 0;
+    },
+    subtotal() {
+      return this.list().reduce((s, it) => s + this._linePrice(it), 0);
+    },
+    totalBefore() {
+      return this.list().reduce((s, it) => s + this._lineBefore(it), 0);
+    },
+    lineDiscount(it) {
+      const per = Math.max(0, (it.priceBefore ?? it.price) - it.price);
+      return per * it.qty;
+    },
+    totalDiscountsRaw() {
+      return this.list().reduce((s, it) => s + this.lineDiscount(it), 0);
+    },
+
+    // --- promos (multi + legacy mirrors; capped at subtotal) ---
+    // Apply coupon by code (adds to array, mirrors to single field)
+    applyCoupon(code) {
+      const c = String(code || '').trim().toUpperCase();
+      if (!c) return { ok:false, message:'Zadejte kód.' };
+
+      // Demo catalog
+      const catalog = {
+        'SLEVA10': { code:'SLEVA10', type:'percent', value:10 },
+        'SLEVA50': { code:'SLEVA50', type:'amount',  value:50 }
+      };
+      const found = catalog[c];
+      if (!found) return { ok:false, message:'Neplatný kód kupónu.' };
+      if (this.coupons.find(x => x.code === c)) return { ok:false, message:'Kupón již uplatněn.' };
+
+      this.coupons = [...this.coupons, found];
+      this.coupon = found; // legacy mirror (last applied)
+      this._persist();
+      return { ok:true };
+    },
+    // remove by code; if no code passed, clear all (keeps old templates happy)
+    removeCoupon(code) {
+      if (typeof code === 'string' && code.trim()) {
+        const c = code.trim().toUpperCase();
+        this.coupons = this.coupons.filter(x => x.code !== c);
+      } else {
+        this.coupons = [];
+      }
+      this.coupon = this.coupons[this.coupons.length - 1] || null; // mirror
+      this._persist();
+    },
+
+    applyGiftCard(code) {
+      const c = String(code || '').trim().toUpperCase();
+      if (!c) return { ok:false, message:'Zadejte kód.' };
+
+      const catalog = {
+        'DAR100': { code:'DAR100', type:'amount', value:100 }
+      };
+      const found = catalog[c];
+      if (!found) return { ok:false, message:'Neplatná dárková karta.' };
+      if (this.giftCards.find(x => x.code === c)) return { ok:false, message:'Karta již uplatněna.' };
+
+      this.giftCards = [...this.giftCards, found];
+      this.giftCard = found; // legacy mirror
+      this._persist();
+      return { ok:true };
+    },
+    removeGiftCard(code) {
+      if (typeof code === 'string' && code.trim()) {
+        const c = code.trim().toUpperCase();
+        this.giftCards = this.giftCards.filter(x => x.code !== c);
+      } else {
+        this.giftCards = [];
+      }
+      this.giftCard = this.giftCards[this.giftCards.length - 1] || null; // mirror
+      this._persist();
+    },
+
+    // counts/lists for UI indicators & modals
+    couponCount() { return this.coupons.length; },
+    giftCardCount() { return this.giftCards.length; },
+    listCoupons() { return this.coupons.slice(); },
+    listGiftCards() { return this.giftCards.slice(); },
+
+    promoDiscount() {
+      const sub = this.subtotal();
+      let d = 0;
+
+      // coupons: percent + amount
+      for (const c of (this.coupons || [])) {
+        if (c.type === 'percent') d += Math.floor(sub * (c.value / 100));
+        else if (c.type === 'amount') d += c.value;
+      }
+      // gift cards: amount
+      for (const g of (this.giftCards || [])) {
+        if (g.type === 'amount') d += g.value;
+      }
+      return Math.min(d, sub);
+    },
+    totalToPay() {
+      return Math.max(0, this.subtotal() - this.promoDiscount());
+    },
+
+    // --- free shipping helpers ---
+    freeShipProgress() {
+      const t = Number(this.freeShipThreshold || 0);
+      if (t <= 0) return 100;
+      return Math.max(0, Math.min(100, Math.round((this.totalToPay() / t) * 100)));
+    },
+    freeShipMissing() {
+      const missing = Number(this.freeShipThreshold || 0) - this.totalToPay();
+      return Math.max(0, Math.ceil(missing));
     }
   });
+
+
 
       // TOASTS
       Alpine.store('toast', {
@@ -1708,200 +2646,242 @@
 
   // SEARCH AUTOCOMPLETE
   Alpine.data('searchBox', (opts = {}) => ({
-    // --- config ---
-    maxResults: 7,
-    minChars: 2,
-    storageKey: 'recentAny',   // now stores typed recents
+  // --- config ---
+  maxResults: 7,
+  minChars: 2,
+  storageKey: 'recentAny',   // stores typed recents
 
-    // --- state ---
-    q: '',
-    open: false,
-    highlighted: -1,
-    recent: [],
-    listId: `ac-${Math.random().toString(36).slice(2)}`,
-    dropdownStyle: '',
+  // --- state ---
+  q: '',
+  open: false,
+  highlighted: -1,
+  recent: [],
+  listId: `ac-${Math.random().toString(36).slice(2)}`,
+  dropdownStyle: '',
 
-    // sources
-    get products()   { return (opts.getProducts && opts.getProducts())   || []; },
-    get categories() { return (opts.getCategories && opts.getCategories()) || []; },
-    get links()      { return (opts.getLinks && opts.getLinks())         || []; },
-    goTo(id)         { if (opts.goTo) opts.goTo(id); else location.hash = `#/product/${id}`; },
+  results: { products: [], categories: [], links: [], pharmacies: [] },
+  isLoading: false,
+  pharmacies: [], // preloaded for fast suggestions
 
-    // --- lifecycle ---
-    init() {
-      this.loadRecent();
-      this.$watch('open', v => { if (v) this.$nextTick(() => this.reposition()); });
-      this.$watch('q',    () => { this.$nextTick(() => this.reposition()); });
-    },
+  // --- lifecycle ---
+  init() {
+    this.loadRecent();
+    this.$watch('open', v => { if (v) this.$nextTick(() => this.reposition()); });
+    this.$watch('q',    () => { this.$nextTick(() => this.reposition()); });
+    // preload pharmacies (uses your PharmacyIndex singleton)
+    PharmacyIndex.load().then(data => { this.pharmacies = data || []; });
+  },
 
-    // --- positioning (desktop) ---
-    reposition() {
-      const a = this.$refs.anchor; if (!a) return;
-      const r = a.getBoundingClientRect();
-      const left  = Math.round(r.left), top = Math.round(r.bottom) + 8, width = Math.round(r.width);
-      this.dropdownStyle =
-        `position:fixed;left:${left}px;top:${top}px;` +
-        `width:${width}px;min-width:${width}px;max-width:${width}px;box-sizing:border-box`;
-    },
-    onWindowResize() { if (this.open) this.reposition(); },
-    onFocus() { this.open = true; this.reposition(); },
-    onInput() { this.open = true; this.highlighted = -1; this.reposition(); },
+  // --- positioning (desktop) ---
+  reposition() {
+    const a = this.$refs.anchor; if (!a) return;
+    const r = a.getBoundingClientRect();
+    const left  = Math.round(r.left), top = Math.round(r.bottom) + 8, width = Math.round(r.width);
+    this.dropdownStyle =
+      `position:fixed;left:${left}px;top:${top}px;` +
+      `width:${width}px;min-width:${width}px;max-width:${width}px;box-sizing:border-box`;
+  },
+  onWindowResize() { if (this.open) this.reposition(); },
+  onFocus() { this.open = true; this.reposition(); },
+  onInput() { this.open = true; this.highlighted = -1; this.reposition(); },
 
-    // --- recent (now typed) ---
-    loadRecent() {
-      try { this.recent = JSON.parse(localStorage.getItem(this.storageKey) || '[]'); }
-      catch { this.recent = []; }
-    },
-    saveRecent(item) {
-      const key = JSON.stringify({ t: item.t, k: item.k }); // type + key
-      const arr = [key, ...this.recent.filter(x => x !== key)].slice(0, 5);
-      this.recent = arr;
-      localStorage.setItem(this.storageKey, JSON.stringify(arr));
-    },
-    recentItems() {
-      // resolve to current objects; cap at 3
-      const resolve = (rk) => {
-        let obj; try { obj = JSON.parse(rk); } catch { return null; }
-        if (!obj || !obj.t) return null;
-        if (obj.t === 'product') {
-          const p = this.products.find(p => String(p.id) === String(obj.k));
-          return p ? this.asProduct(p) : null;
-        }
-        if (obj.t === 'category') {
-          const c = this.categories.find(c => (c.name || '').toLowerCase() === String(obj.k).toLowerCase());
-          return c ? this.asCategory(c) : null;
-        }
-        if (obj.t === 'info') {
-          const l = this.links.find(l => (l.name || '').toLowerCase() === String(obj.k).toLowerCase());
-          return l ? this.asInfo(l) : null;
-        }
-        return null;
-      };
-      return this.recent.map(resolve).filter(Boolean).slice(0, 3);
-    },
+  // --- recent (typed) ---
+  loadRecent() {
+    try { this.recent = JSON.parse(localStorage.getItem(this.storageKey) || '[]'); }
+    catch { this.recent = []; }
+  },
+  saveRecent(item) {
+    const key = JSON.stringify({ t: item.t, k: item.k }); // type + key
+    const arr = [key, ...this.recent.filter(x => x !== key)].slice(0, 5);
+    this.recent = arr;
+    localStorage.setItem(this.storageKey, JSON.stringify(arr));
+  },
+  recentItems() {
+    const resolve = (rk) => {
+      let obj; try { obj = JSON.parse(rk); } catch { return null; }
+      if (!obj || !obj.t) return null;
+      if (obj.t === 'product') {
+        const p = this.products.find(p => String(p.id) === String(obj.k));
+        return p ? this.asProduct(p) : null;
+      }
+      if (obj.t === 'category') {
+        const c = this.categories.find(c => (c.name || '').toLowerCase() === String(obj.k).toLowerCase());
+        return c ? this.asCategory(c) : null;
+      }
+      if (obj.t === 'info') {
+        const l = this.links.find(l => (l.name || '').toLowerCase() === String(obj.k).toLowerCase());
+        return l ? this.asInfo(l) : null;
+      }
+      if (obj.t === 'pharmacy') {
+        const p = this.pharmacies.find(x => String(x.id) === String(obj.k));
+        return p ? this.asPharmacy(p) : null;
+      }
+      return null;
+    };
+    return this.recent.map(resolve).filter(Boolean).slice(0, 3);
+  },
 
-    // --- normalization to a single row shape ---
-    // type codes: product|category|info; key k = unique key for recent storage
-    asProduct(p) {
-      return {
-        t: 'product',
-        k: String(p.id),
-        id: p.id,
-        name: p.name,
-        sub: `${p.stock || ''}${p.category ? ` • ${p.category}` : ''}`,
-        img: p.image || null,
-        icon: null,
-        href: `#/product/${p.id}`,   // ← add this
-        raw: p
-      };
-    },
-    asCategory(c) {
-      return { t:'category', k:String(c.name || ''), id:null,
-               name:c.name, sub:`Kategorie • ${c.products ?? 0} produktů`,
-               img:c.image || null, icon:null, raw:c };
-    },
-    asInfo(l) {
-      // build FA classes from file (iconSet + icon)
-      const set = (l.iconSet || 'fa-regular').trim();
-      const name = (l.icon || 'circle-info').trim();
-      return { t:'info', k:String(l.name || ''), id:null,
-               name:l.name, sub:l.description || '',
-               img:null, icon:`${set} fa-${name}`, raw:l };
-    },
+  // --- getters from opts (unchanged pattern) ---
+  get products()   { return (opts.getProducts && opts.getProducts())   || []; },
+  get categories() { return (opts.getCategories && opts.getCategories()) || []; },
+  get links()      { return (opts.getLinks && opts.getLinks())         || []; },
 
-    // --- scoring & suggestions ---
-    suggestions() {
-      const s = this.q.trim().toLowerCase();
-      if (s.length < this.minChars) return [];
+  // --- normalization to a single row shape ---
+  asProduct(p) {
+    return {
+      t: 'product',
+      k: String(p.id),
+      id: p.id,
+      name: p.name,
+      sub: `${p.stock || ''}${p.category ? ` • ${p.category}` : ''}`,
+      img: p.image || null,
+      icon: null,
+      href: `#/product/${p.id}`,
+      raw: p
+    };
+  },
+  asCategory(c) {
+    return {
+      t:'category', k:String(c.name || ''), id:null,
+      name:c.name, sub:`Kategorie • ${c.products ?? 0} produktů`,
+      img:c.image || null, icon:null, raw:c
+    };
+  },
+  asInfo(l) {
+    const set = (l.iconSet || 'fa-regular').trim();
+    const name = (l.icon || 'circle-info').trim();
+    return {
+      t:'info', k:String(l.name || ''), id:null,
+      name:l.name, sub:l.description || '',
+      img:null, icon:`${set} fa-${name}`, raw:l
+    };
+  },
+  asPharmacy(p) {
+    return {
+      t: 'pharmacy',
+      k: String(p.id),
+      id: p.id,
+      name: p.name,
+      sub: `${p.address?.street || ''}${p.address?.city ? ` • ${p.address.city}` : ''}`,
+      img: null,
+      icon: p.type === 'box' ? 'fa-solid fa-box' : 'fa-solid fa-location-dot',
+      href: '#/map',
+      raw: p
+    };
+  },
 
-      const scoreText = (txt) => {
-        const t = (txt || '').toLowerCase();
-        if (!t) return 0;
-        if (t.startsWith(s)) return 100;
-        if (t.includes(s))  return 60;
-        return 0;
-      };
+  // --- scoring & suggestions (sync, includes pharmacies) ---
+  suggestions() {
+    const s = this.q.trim().toLowerCase();
+    if (s.length < this.minChars) return [];
 
-      // products
-      const prod = this.products.map(p => {
-        const a = this.asProduct(p);
-        let sc = scoreText(p.name);
-        sc += Math.min(20, scoreText(p.category)); // small boost if category matches
-        return { a, sc };
-      });
+    const scoreText = (txt) => {
+      const t = (txt || '').toLowerCase();
+      if (!t) return 0;
+      if (t.startsWith(s)) return 100;
+      if (t.includes(s))  return 60;
+      return 0;
+    };
 
-      // categories (match by name)
-      const cats = this.categories.map(c => {
-      const base = scoreText(c.name);      // 0, 60, or 100
-      const sc = base ? base + 10 : 0;     // add small boost only when matched
+    // products
+    const prod = this.products.map(p => {
+      const a = this.asProduct(p);
+      let sc = scoreText(p.name);
+      sc += Math.min(20, scoreText(p.category));
+      return { a, sc };
+    });
+
+    // categories
+    const cats = this.categories.map(c => {
+      const base = scoreText(c.name);
+      const sc = base ? base + 10 : 0;
       return { a: this.asCategory(c), sc };
     });
 
-      // info links (match name + description)
-      const inf = this.links.map(l => {
-        const a = this.asInfo(l);
-        const sc = Math.max(scoreText(l.name), Math.floor(scoreText(l.description) / 2));
-        return { a, sc };
-      });
+    // info links
+    const inf = this.links.map(l => {
+      const a = this.asInfo(l);
+      const sc = Math.max(scoreText(l.name), Math.floor(scoreText(l.description) / 2));
+      return { a, sc };
+    });
 
-      // merge, filter, sort
-      const all = [...prod, ...cats, ...inf]
-        .filter(x => x.sc > 0)
-        .sort((x, y) => y.sc - x.sc || String(x.a.name).localeCompare(String(y.a.name), 'cs'))
-        .map(x => x.a)
-        .slice(0, this.maxResults);
+    // pharmacies (name + address bits)
+    const ph = (this.pharmacies || []).map(p => {
+      const a = this.asPharmacy(p);
+      let sc = scoreText(p.name);
+      sc = Math.max(sc, scoreText(p.address?.street));
+      sc = Math.max(sc, scoreText(p.address?.city));
+      sc = Math.max(sc, scoreText(p.address?.district));
+      sc = Math.max(sc, scoreText(p.address?.zip));
+      if (sc) sc += 5; // tiny boost to surface alongside others
+      return { a, sc };
+    });
 
-      return all;
-    },
+    return [...prod, ...cats, ...inf, ...ph]
+      .filter(x => x.sc > 0)
+      .sort((x, y) => y.sc - x.sc || String(x.a.name).localeCompare(String(y.a.name), 'cs'))
+      .map(x => x.a)
+      .slice(0, this.maxResults);
+  },
 
-    visibleItems() {
-      return (this.q.trim().length >= this.minChars) ? this.suggestions() : this.recentItems();
-    },
+  visibleItems() {
+    return (this.q.trim().length >= this.minChars) ? this.suggestions() : this.recentItems();
+  },
 
-    // --- actions ---
-    selectByIndex(i) { const it = this.visibleItems()[i]; if (it) this.onSelect(it); },
-    onSelect(item) {
-      this.saveRecent(item);
-      this.open = false;
-      this.highlighted = -1;
+  // --- actions ---
+  selectByIndex(i) { const it = this.visibleItems()[i]; if (it) this.onSelect(it); },
+  onSelect(item) {
+    this.saveRecent(item);
+    this.open = false;
+    this.highlighted = -1;
 
-      if (item.t === 'product' && item.id != null) {
-        // Prefer parent hook if you passed it, otherwise do hash nav directly
-        if (opts.goTo) opts.goTo(item.id);
-        else location.hash = `#/product/${item.id}`;
-      }
-      // (categories/info: no route yet; just close for now)
-    },
+    if (item.t === 'product' && item.id != null) {
+      if (opts.goTo) opts.goTo(item.id);
+      else location.hash = `#/product/${item.id}`;
+      return;
+    }
 
-    clear() { this.q = ''; this.highlighted = -1; },
+    if (item.t === 'pharmacy' && item.id != null) {
+      location.hash = '#/map';
+      setTimeout(() => {
+        window.dispatchEvent(new CustomEvent('pharmacy:open', { detail: { id: item.id } }));
+      }, 0);
+      return;
+    }
 
-    // --- keyboard ---
-    onKeydown(e) {
-      if (!this.open && (e.key === 'ArrowDown' || e.key === 'ArrowUp')) this.open = true;
-      const items = this.visibleItems();
-      switch (e.key) {
-        case 'ArrowDown':
-          e.preventDefault(); if (!items.length) return;
-          this.highlighted = (this.highlighted + 1) % items.length;
-          this.$nextTick(() => document.getElementById(this.itemId(this.highlighted))?.scrollIntoView({ block:'nearest' }));
-          break;
-        case 'ArrowUp':
-          e.preventDefault(); if (!items.length) return;
-          this.highlighted = (this.highlighted <= 0 ? items.length - 1 : this.highlighted - 1);
-          this.$nextTick(() => document.getElementById(this.itemId(this.highlighted))?.scrollIntoView({ block:'nearest' }));
-          break;
-        case 'Enter':
-          if (this.open) { e.preventDefault(); if (items.length) this.selectByIndex(this.highlighted >= 0 ? this.highlighted : 0); }
-          break;
-        case 'Escape':
-          this.open = false; this.highlighted = -1; break;
-      }
-    },
+    // categories/info: wire routes if/when needed
+  },
 
-    // --- ARIA ---
-    itemId(i){ return `${this.listId}-opt-${i}`; },
-    activeDesc(){ return this.highlighted >= 0 ? this.itemId(this.highlighted) : null; },
-  })),
+  clear() { this.q = ''; this.highlighted = -1; },
+
+  // --- keyboard ---
+  onKeydown(e) {
+    if (!this.open && (e.key === 'ArrowDown' || e.key === 'ArrowUp')) this.open = true;
+    const items = this.visibleItems();
+    switch (e.key) {
+      case 'ArrowDown':
+        e.preventDefault(); if (!items.length) return;
+        this.highlighted = (this.highlighted + 1) % items.length;
+        this.$nextTick(() => document.getElementById(this.itemId(this.highlighted))?.scrollIntoView({ block:'nearest' }));
+        break;
+      case 'ArrowUp':
+        e.preventDefault(); if (!items.length) return;
+        this.highlighted = (this.highlighted <= 0 ? items.length - 1 : this.highlighted - 1);
+        this.$nextTick(() => document.getElementById(this.itemId(this.highlighted))?.scrollIntoView({ block:'nearest' }));
+        break;
+      case 'Enter':
+        if (this.open) { e.preventDefault(); if (items.length) this.selectByIndex(this.highlighted >= 0 ? this.highlighted : 0); }
+        break;
+      case 'Escape':
+        this.open = false; this.highlighted = -1; break;
+    }
+  },
+
+  // --- ARIA ---
+  itemId(i){ return `${this.listId}-opt-${i}`; },
+  activeDesc(){ return this.highlighted >= 0 ? this.itemId(this.highlighted) : null; },
+})),
+
 
     //PRODUCT COMPARISON
     Alpine.data('comparisonSection', (opts = {}) => ({
@@ -2036,6 +3016,8 @@ init() {
 
   // 3) Load data
   this.loadData();
+
+  Alpine.store('cart').init?.();
 },
 
 async loadData() {
@@ -2122,6 +3104,8 @@ clearOptions() {
 link(name, params = {}) {
   if (name === 'product') return `#/product/${params.id}${params.tab ? '/' + params.tab : ''}`;
   if (name === 'cart')    return '#/cart';
+  if (name === 'delivery-payment')    return '#/delivery-payment';
+  if (name === 'map')    return '#/map';
   return '#/products';
 },
 
@@ -2164,6 +3148,20 @@ _onRoute() {
       this._scrollToTopSoon();
       break;
 
+      case 'delivery-payment':
+      if (prevRoute === 'products') this._saveScroll('products');
+      this.route = 'delivery-payment';
+      this.params = {};
+      this._scrollToTopSoon();
+      break;
+
+      case 'map':
+      if (prevRoute === 'products') this._saveScroll('products');
+      this.route = 'map';
+      this.params = {};
+      this._scrollToTopSoon();
+      break;      
+
       case 'product':
       if (prevRoute === 'products') this._saveScroll('products');
       if (id) {
@@ -2184,7 +3182,6 @@ _onRoute() {
       this.params = {};
       this._restoreScroll('products');
   }
-  console.log('ROUTE ->', location.hash);
 },
 
 // ---- detail loading with single source of truth for price ----
@@ -2568,12 +3565,420 @@ rangeLabel() {
       },
     }))
     })
+    // other helpers
+      
+    
+    function qtyBlinker(id){
+    return {
+      alpha: 0,           // 0..1 opacity
+      _phaseTimer: null,  // timer for fade-out
+      init(){
+        this.$watch(
+          () => (Alpine.store('cart')?.qty(String(id)) ?? 0),
+          (next, prev) => { if (next !== prev) this.blink(); }
+        );
+      },
+      blink(ms = 1000){
+        // Clear any ongoing fade-out
+        clearTimeout(this._phaseTimer);
+        this.alpha = 0;
+        requestAnimationFrame(() => { this.alpha = 1; });
+        const hold = Math.max(200, ms - 200);
+        this._phaseTimer = setTimeout(() => { this.alpha = 0; }, hold);
+      }
+    }
+  }
   </script>
+<script>
+  // MAP LOGIC
+  function pickupMapUI(cfg) {
+    const pngs = {
+      pharmacy: {
+        normal: './images/map/pharmacy.png',
+        selected: './images/map/pharmacy_selected.png'
+      },
+      box: {
+        normal: './images/map/box.png',
+        selected: './images/map/box_selected.png'
+      },
+      shadow: './images/map/shadow.png'
+    };
+  
+    const prague = [50.0755, 14.4378];
+    const placeholderImg = './images/pup-photos/placeholder.webp';
+  
+    return {
+  // CONFIG
+  jsonUrl: cfg?.jsonUrl || './data/map-points.json',
+  tracestrackKey: cfg?.tracestrackKey || '',
+  enableClustering: !!cfg?.enableClustering,
+
+  // STATE
+  map: null,
+  cluster: null,
+  all: [],
+  filtered: [],
+  markers: new Map(),   // id -> marker
+  selected: null,
+  mode: 'map',          // 'map' | 'list' (mobile tabs)
+  search: '',
+  district: '',         // e.g. 'Praha 1'
+  districts: ['Praha 1','Praha 2','Praha 3','Praha 4','Praha 5','Praha 6','Praha 7','Praha 8','Praha 9','Praha 10'],
+  placeholderImg,
+
+  // RESPONSIVE FLAGS (replace $screen)
+  isMd: false, // >= 768px
+  isLg: false, // >= 1024px
+
+  // COMPUTED
+  get filterActive(){ return !!(this.search || this.district); },
+  get filterSummary(){
+  return `Zobrazuji ${this.filtered.length} z ${this.all.length}`;
+},
+
+  // HELPERS
+  updateBreakpoints() {
+    this.isMd = window.matchMedia('(min-width: 768px)').matches;
+    this.isLg = window.matchMedia('(min-width: 1024px)').matches;
+  },
+
+  async init() {
+  if (this._inited) return;
+  this._inited = true;
+
+  this.updateBreakpoints();
+  this._onResize = () => this.updateBreakpoints();
+  window.addEventListener('resize', this._onResize);
+
+  await this.loadData();
+  this.initMap();
+  this.renderMarkers();
+
+  // Listen for global open requests from the top bar search
+  this._onOpenPharmacy = (e) => {
+    const id = e.detail?.id;
+    if (!id) return;
+    const p = this.all.find(x => x.id === id);
+    if (!p) return;
+    this.selected = p;
+    this.updateMarkerIcons();
+
+    const m = this.markers.get(p.id);
+    const latlng = [p.coords.lat, p.coords.lng];
+
+    // Ensure map is visible (mobile)
+    if (!this.isLg) {
+      this.mode = 'map';
+      this.$nextTick(() => {
+        this.map.invalidateSize();
+        this.map.setView(latlng, Math.max(this.map.getZoom(), 15), { animate: true });
+        if (m && this.cluster && this.cluster.hasLayer(m)) {
+          this.cluster.zoomToShowLayer(m, () => m.setZIndexOffset(1000));
+        }
+      });
+    } else {
+      this.map.setView(latlng, Math.max(this.map.getZoom(), 15), { animate: true });
+      if (m && this.cluster && this.cluster.hasLayer(m)) {
+        this.cluster.zoomToShowLayer(m, () => m.setZIndexOffset(1000));
+      }
+    }
+  };
+  window.addEventListener('pharmacy:open', this._onOpenPharmacy);
+
+  this.map.setView([50.0755, 14.4378], 12);
+  setTimeout(()=> this.map.invalidateSize(), 150);
+
+  // optional cleanup
+  window.addEventListener('beforeunload', () => {
+    if (this._onResize) window.removeEventListener('resize', this._onResize);
+    if (this._onOpenPharmacy) window.removeEventListener('pharmacy:open', this._onOpenPharmacy);
+  });
+},
+
+
+
+    initMap() {
+      // prefer the component-scoped ref over a global id
+      const el = this.$refs.mapEl;
+      if (!el) return;
+
+      // If this element already has a Leaflet map attached (e.g., after hot swap or prior demo),
+      // nuke its internal state so a fresh map can mount cleanly.
+      if (el._leaflet_id) {
+        try {
+          // If we can find a previous instance, remove it first
+          if (window.__pickupMap && window.__pickupMap._container === el) {
+            try { window.__pickupMap.remove(); } catch(_) {}
+            window.__pickupMap = null;
+          }
+        } catch(_) {}
+        // Clear orphaned panes/HTML
+        el.innerHTML = '';
+        // Reset Leaflet’s element flag so L.map() won’t throw
+        try { el._leaflet_id = null; } catch(_) {}
+      }
+
+      // Extra global singleton guard: if another map exists elsewhere, remove it
+      if (window.__pickupMap && window.__pickupMap.remove) {
+        try { window.__pickupMap.remove(); } catch(_) {}
+        window.__pickupMap = null;
+      }
+
+      // Create the map exactly once
+      this.map = L.map(el, { zoomControl: true, attributionControl: true });
+
+      // Tile layer (Tracestrack if key present, else OSM)
+      if (this.tracestrackKey) {
+        L.tileLayer(
+          'https://tile.tracestrack.com/topo/{z}/{x}/{y}.png?key=' + this.tracestrackKey,
+          { maxZoom: 19, attribution: '&copy; Tracestrack, &copy; OpenStreetMap contributors' }
+        ).addTo(this.map);
+      } else {
+        L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          maxZoom: 19, attribution: '&copy; OpenStreetMap přispěvatelé'
+        }).addTo(this.map);
+      }
+
+      // Marker clustering (optional)
+      if (this.enableClustering && window.L && L.markerClusterGroup) {
+        this.cluster = L.markerClusterGroup({
+          showCoverageOnHover:false, spiderfyOnMaxZoom:true, disableClusteringAtZoom:16
+        }).addTo(this.map);
+      }
+
+      // Keep a global handle to prevent double-inits on route toggles
+      window.__pickupMap = this.map;
+    },
+  
+      async loadData() {
+        const res = await fetch(this.jsonUrl);
+        const json = await res.json();
+        // normalize + add searchIndex
+        this.all = json.map(p => ({
+          ...p,
+          coords: { lat: +p.coords.lat, lng: +p.coords.lng },
+          searchIndex: [
+            p.name, p.type, p.address?.street, p.address?.city,
+            p.address?.district, p.address?.zip
+          ].filter(Boolean).join(' ').toLowerCase()
+        }));
+        this.filtered = this.all.slice();
+      },
+  
+      initMap() {
+        const el = document.getElementById('map');
+        this.map = L.map(el, { zoomControl: true, attributionControl: true });
+  
+        // Tile layer: Tracestrack Topo (if you have a key), else OSM
+        if (this.tracestrackKey) {
+          L.tileLayer(
+            'https://tile.tracestrack.com/topo/{z}/{x}/{y}.png?key=' + this.tracestrackKey,
+            { maxZoom: 19, attribution: '&copy; Tracestrack, &copy; OpenStreetMap contributors' }
+          ).addTo(this.map);
+        } else {
+          // Fallback (less cluttered alternative could be CARTO Voyager; keeping OSM classic for neutrality)
+          L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '&copy; OpenStreetMap přispěvatelé'
+          }).addTo(this.map);
+        }
+  
+        // Clustering
+        if (this.enableClustering && window.L && L.markerClusterGroup) {
+          this.cluster = L.markerClusterGroup({
+            showCoverageOnHover:false, spiderfyOnMaxZoom:true, disableClusteringAtZoom:16
+          }).addTo(this.map);
+        }
+      },
+  
+      iconFor(p, isSelected=false) {
+        const typeIcons = pngs[p.type] || pngs.pharmacy;
+        const url = isSelected ? typeIcons.selected : typeIcons.normal;
+        return L.icon({
+          iconUrl: url,
+          iconSize: [32, 42],
+          iconAnchor: [16, 40],
+          popupAnchor: [0, -38],
+          shadowUrl: pngs.shadow,
+          shadowSize: [36, 20],
+          shadowAnchor: [10, 20]
+        });
+      },
+  
+      renderMarkers() {
+        // Clear old
+        if (this.cluster) this.cluster.clearLayers();
+        this.markers.forEach(m => m.remove());
+        this.markers.clear();
+  
+        // Add
+        (this.filtered.length ? this.filtered : this.all).forEach(p => {
+          const m = L.marker([p.coords.lat, p.coords.lng], { icon: this.iconFor(p) })
+            .on('click', () => this.selectFromMap(p));
+          this.markers.set(p.id, m);
+          this.cluster ? this.cluster.addLayer(m) : m.addTo(this.map);
+        });
+  
+        // Fit bounds to filtered (or all if none)
+        if (this.filtered.length) {
+          const b = L.latLngBounds(this.filtered.map(p => [p.coords.lat, p.coords.lng]));
+          this.map.fitBounds(b.pad(0.2));
+        }
+      },
+  
+      updateMarkerIcons() {
+        // swap icons to reflect selection
+        this.all.forEach(p => {
+          const m = this.markers.get(p.id);
+          if (!m) return;
+          m.setIcon(this.iconFor(p, this.selected && this.selected.id===p.id));
+        });
+      },
+  
+      selectFromMap(p) {
+        this.selected = p;
+        this.updateMarkerIcons();
+        const m = this.markers.get(p.id);
+        if (m) {
+          this.map.setView([p.coords.lat, p.coords.lng], Math.max(this.map.getZoom(), 15), { animate: true });
+        }
+        // highlight list row & scroll into view
+        this.scrollListTo(p.id);
+      },
+  
+      selectFromList(p) {
+      this.selected = p;
+      this.updateMarkerIcons();
+
+      const goto = () => {
+        const m = this.markers.get(p.id);
+        const latlng = [p.coords.lat, p.coords.lng];
+        this.map.setView(latlng, Math.max(this.map.getZoom(), 15), { animate: true });
+        if (m && this.cluster && this.cluster.hasLayer(m)) {
+          this.cluster.zoomToShowLayer(m, () => m.setZIndexOffset(1000));
+        }
+      };
+
+      if (!this.isLg) {
+        // On mobile: jump to map tab, then center + open overlay
+        this.mode = 'map';
+        this.$nextTick(() => {
+          // map might have been hidden; fix size, then move
+          this.map.invalidateSize();
+          goto();
+          // optional: bring the map into view
+          const host = this.$refs?.mapEl || document.getElementById('map');
+          if (host) host.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+      } else {
+        // Desktop/tablet: stay in split view and just center
+        goto();
+      }
+    },
+  
+      scrollListTo(id) {
+      // Use a safe attribute selector
+      const safeId = (window.CSS && CSS.escape) ? CSS.escape(id) : id;
+      const sel = `[data-pickup-id="${safeId}"]`;
+      const row = document.querySelector(sel);
+      if (!row) return;
+
+      // Smooth scroll into view
+      row.scrollIntoView({ block: 'center', behavior: 'smooth' });
+
+      // Brief visual highlight (ring) to draw attention
+      const pulseClasses = ['ring', 'ring-primary', 'ring-offset-1'];
+      row.classList.add(...pulseClasses);
+      setTimeout(() => row.classList.remove(...pulseClasses), 900);
+    },
+  
+      confirmSelection() {
+        if (!this.selected) return;
+        try { localStorage.setItem('selectedPickupPoint', JSON.stringify(this.selected)); } catch(e){}
+        window.dispatchEvent(new CustomEvent('pickup:selected', { detail: this.selected }));
+        this.toast(`Vybráno: ${this.selected.name}`);
+      },
+  
+      toast(msg) {
+        const t = document.createElement('div');
+        t.className = 'fixed bottom-4 left-1/2 -translate-x-1/2 z-[1000]';
+        t.innerHTML = `<div class="alert alert-success shadow">${msg}</div>`;
+        document.body.appendChild(t);
+        setTimeout(()=> t.remove(), 1600);
+      },
+  
+      // FILTERING
+      applyFilters() {
+        const q = (this.search || '').toLowerCase().trim();
+        const d = this.district;
+        this.filtered = this.all.filter(p => {
+          const okQ = q ? p.searchIndex.includes(q) : true;
+          const okD = d ? (p.address?.city||'').toLowerCase().includes(d.toLowerCase()) : true;
+          return okQ && okD;
+        });
+        this.renderMarkers();
+        // When filters active, clear selection to avoid mismatch
+        if (this.selected && !this.filtered.some(pp => pp.id===this.selected.id)) {
+          this.selected = null;
+          this.updateMarkerIcons();
+        }
+      },
+      clearAllFilters() { this.search=''; this.district=''; this.applyFilters(); },
+  
+      dayCZ(d) {
+        const m = { Mon:'Pondělí', Tue:'Úterý', Wed:'Středa', Thu:'Čtvrtek', Fri:'Pátek', Sat:'Sobota', Sun:'Neděle' };
+        return m[d] || d;
+      },
+    };
+  }
+  </script>
+  
+  <script defer>
+    (() => {
+      const register = () => {
+        Alpine.magic('fx', () => {
+          const prefersReduced = window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches;
+          return {
+            confetti(type = 'celebrate', el = null) {
+              if (prefersReduced || typeof window.confetti !== 'function') return;
+    
+              // compute origin near element (if provided)
+              let origin = { x: 0.5, y: 0.6 };
+              if (el?.getBoundingClientRect) {
+                const r = el.getBoundingClientRect();
+                const cx = (r.left + r.width / 2) / window.innerWidth;
+                const cy = (r.top + r.height / 2 + window.scrollY) /
+                           (document.documentElement.scrollHeight || window.innerHeight);
+                origin = { x: Math.min(0.98, Math.max(0.02, cx)),
+                           y: Math.min(0.98, Math.max(0.02, cy)) };
+              }
+    
+              const base  = { ticks: 200, gravity: 0.9, scalar: 1, spread: 60, origin };
+              const burst = (opts) => window.confetti({ ...base, ...opts });
+    
+              if (type === 'coupon')       burst({ particleCount: 40, spread: 75, scalar: 0.9 });
+              else if (type === 'success') burst({ particleCount: 25, spread: 45, scalar: 0.8 });
+              else {
+                burst({ particleCount: 80, angle:  60, origin: { x: 0, y: 0.6 } });
+                burst({ particleCount: 80, angle: 120, origin: { x: 1, y: 0.6 } });
+                burst({ particleCount: 60, spread: 100, scalar: 1.1 });
+              }
+            }
+          };
+        });
+      };
+    
+      if (window.Alpine) register();
+      window.addEventListener('alpine:init', register);
+    })();
+    </script>
 
 <!-- TOAST OUTLET -->
 <div x-data x-cloak class="fixed inset-0 z-50 pointer-events-none">
-  <div class="toast toast-end toast-bottom">
-    
+  <div
+    class="toast toast-end toast-bottom gap-2 p-4"
+    style="padding-bottom: calc(env(safe-area-inset-bottom, 0) + 1rem);"
+  >
     <template x-for="t in $store.toast.items" :key="t.id">
       <div
         x-show="t.show"
@@ -2583,182 +3988,232 @@ rangeLabel() {
         x-transition:leave="transform ease-in duration-300"
         x-transition:leave-start="translate-y-0 opacity-100"
         x-transition:leave-end="translate-y-4 opacity-0"
-        class="alert alert-success pointer-events-auto cursor-pointer"
-        role="status" aria-live="polite"
-        @click="$store.toast.hide(t.id)">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 shrink-0 stroke-current" fill="none" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-        </svg>
-        <span x-text="t.text"></span>
+        class="alert pointer-events-auto cursor-pointer min-w-[240px] max-w-[92vw] sm:max-w-sm shadow"
+        :class="{
+          'alert-success': t.type === 'success',
+          'alert-warning': t.type === 'warning',
+          'alert-error'  : t.type === 'error',
+          'alert-info'   : !t.type || t.type === 'info'
+        }"
+        :role="t.type === 'error' ? 'alert' : 'status'"
+        aria-live="polite"
+        @click="$store.toast.hide(t.id)"
+        @mouseenter="clearTimeout(t._lifeTimer)"
+        @mouseleave="t._lifeTimer = setTimeout(() => $store.toast.hide(t.id), 1200)"
+      >
+        <!-- Icon per type -->
+        <template x-if="t.type === 'success'">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 shrink-0 stroke-current" fill="none" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+        </template>
+        <template x-if="t.type === 'warning'">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 shrink-0 stroke-current" fill="none" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+          </svg>
+        </template>
+        <template x-if="t.type === 'error'">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 shrink-0 stroke-current" fill="none" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M4.93 4.93l14.14 14.14M19.07 4.93L4.93 19.07"/>
+          </svg>
+        </template>
+        <template x-if="!t.type || t.type === 'info'">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 shrink-0 stroke-current" fill="none" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M12 2a10 10 0 100 20 10 10 0 000-20z"/>
+          </svg>
+        </template>
+
+        <span class="pr-6" x-text="t.text"></span>
+
+        <!-- Close (optional; still clickable anywhere) -->
+        <button
+          class="btn btn-xs btn-ghost absolute right-2 top-2"
+          type="button"
+          aria-label="Zavřít"
+          @click.stop="$store.toast.hide(t.id)"
+        >✕</button>
       </div>
     </template>
-  
   </div>
-</div>
 
-<!-- MENU OVERLAY -->
-<div x-data x-cloak x-show="$store.menu.open"
-     x-transition.opacity.duration.150ms
-     class="fixed inset-0 z-[70] bg-black/50"
-     @click="$store.menu.close()"
-     @keydown.escape.window="$store.menu.close()"
-     aria-hidden="true"></div>
+<!-- MENU PORTAL (place near end of <body>) -->
+  <div x-data x-cloak class="fixed inset-0 z-[11000] pointer-events-none">
 
-<!-- Panel -->
-<div x-data x-cloak
-     class="fixed inset-y-0 left-0 z-[80] w-[100dvw] max-w-full lg:max-w-md bg-base-100 shadow-2xl
-     -translate-x-full transform transition-transform duration-200 ease-out"
-     :class="{'translate-x-0': $store.menu.open}">
-
-<!-- Top bar -->
-<div class="sticky top-0 z-10 bg-base-100 border-b border-base-200 h-18 px-3 relative">
-  <!-- row: left + spacer + right -->
-  <div class="h-full flex items-center gap-2">
-    <!-- Left: Back OR Account -->
-    <div class="shrink-0">
-      <template x-if="$store.menu.canGoBack()">
-        <button class="btn btn-ghost btn-sm" @click.stop="$store.menu.back()" aria-label="Zpět">
-          <i class="fa-solid fa-chevron-left fa-xl"></i>
-        </button>
-      </template>
-      <template x-if="!$store.menu.canGoBack()">
-        <button class="btn btn-ghost btn-sm" @click.stop="$store.menu.goToMenu(9)" aria-label="Můj účet">
-          <i class="fa-regular fa-user-circle fa-xl"></i>
-        </button>
-      </template>
+    <!-- BACKDROP -->
+    <div
+      x-show="$store.menu.open"
+      x-transition.opacity.duration.150ms
+      class="absolute inset-0 bg-black/50 pointer-events-auto"
+      @click="$store.menu.close()"
+      @keydown.escape.window="$store.menu.close()"
+      aria-hidden="true">
     </div>
-
-    <div class="flex-1"></div>
-
-    <!-- Right: Close -->
-    <button class="btn btn-ghost btn-sm shrink-0" @click.stop="$store.menu.close()" aria-label="Zavřít">
-      <i class="fa-solid fa-xmark fa-xl"></i>
-    </button>
-  </div>
-
-  <div class="absolute inset-x-14 top-1/2 -translate-y-1/2 text-center font-semibold">
-    <span class="block truncate" x-text="$store.menu.current?.name || 'Menu'"></span>
-  </div>
-</div>
-
-  <!-- Content (slides on menu change) -->
-  <div class="h-[calc(100vh-3.5rem)] overflow-y-auto p-2"
-       :class="$store.menu.slideDir === 1 ? 'slide-in-right' : 'slide-in-left'"
-       :key="$store.menu.viewKey">
-
-    <!-- Loading / Error -->
-    <template x-if="$store.menu.loading">
-      <div class="p-4 space-y-2">
-        <div class="skeleton h-6 w-48"></div>
-        <div class="skeleton h-4 w-64"></div>
-        <div class="skeleton h-4 w-56"></div>
-      </div>
-    </template>
-
-    <template x-if="$store.menu.error">
-      <div class="alert alert-error m-2" x-text="$store.menu.error"></div>
-    </template>
-
-    <!-- Current menu -->
-    <template x-if="$store.menu.current && !$store.menu.loading && !$store.menu.error">
-      <div>
-        <!-- root items (optional) -->
-        <div class="divide-y divide-base-200">
-          <template x-for="(it, i) in ($store.menu.current.items || [])" :key="'root-'+i">
-            <button class="w-full text-left py-3 px-3 flex items-center gap-3 hover:bg-base-200/60 rounded-lg transition cursor-pointer"
-                    @click.stop="$store.menu.onItemClick(it)">
-              <!-- left icon (only if present) -->
-              <template x-if="it.icon || it.iconSet">
-                <i :class="[
-                      it.iconSet === 'custom' && it.icon === 'check' ? 'fa-solid fa-circle-check' :
-                      it.iconSet === 'custom' && it.icon === 'empty' ? 'fa-regular fa-circle' :
-                      (it.iconSet || 'fa-regular') + ' fa-' + (it.icon || ''),
-                      it.rowType === 'bold' ? 'text-error' : 'text-base-content/70'
-                    ]"></i>
-              </template>
-        
-              <div class="flex-1">
-                <div :class="it.rowType === 'bold' ? 'text-error font-semibold' : 'font-medium'">
-                  <span x-text="it.name"></span>
-                </div>
-                <div x-show="it.description" class="text-xs opacity-70 mt-0.5" x-text="it.description"></div>
-              </div>
-        
-              <i x-show="it.linkMenuId" class="fa-solid fa-chevron-right text-base-content/40 self-center"></i>
-            </button>
-          </template>
+  
+    <!-- PANEL -->
+    <aside
+      class="absolute inset-y-0 left-0 w-[100dvw] max-w-full lg:max-w-md bg-base-100 shadow-2xl
+             transform transition-transform duration-200 ease-out
+             -translate-x-full pointer-events-auto flex flex-col"
+      :class="{ 'translate-x-0': $store.menu.open }"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Menu"
+    >
+      <!-- Top bar -->
+      <div class="sticky top-0 z-10 bg-base-100 border-b border-base-200 h-18 px-3">
+        <div class="h-full flex items-center gap-2">
+          <!-- Left: Back OR Account -->
+          <div class="shrink-0">
+            <template x-if="$store.menu.canGoBack()">
+              <button class="btn btn-ghost btn-sm" @click.stop="$store.menu.back()" aria-label="Zpět">
+                <i class="fa-solid fa-chevron-left fa-xl"></i>
+              </button>
+            </template>
+            <template x-if="!$store.menu.canGoBack()">
+              <button class="btn btn-ghost btn-sm" @click.stop="$store.menu.goToMenu(9)" aria-label="Můj účet">
+                <i class="fa-regular fa-user-circle fa-xl"></i>
+              </button>
+            </template>
+          </div>
+  
+          <div class="flex-1"></div>
+  
+          <!-- Right: Close -->
+          <button class="btn btn-ghost btn-sm shrink-0" @click.stop="$store.menu.close()" aria-label="Zavřít">
+            <i class="fa-solid fa-xmark fa-xl"></i>
+          </button>
         </div>
-
-        <!-- sections -->
-        <div class="mt-2 space-y-3 mb-12">
-          <template x-for="(sec, si) in ($store.menu.current.sections || [])" :key="'sec-'+si">
-            <section>
-              <h3 class="px-3 pt-3 pb-2 text-xs font-semibold tracking-wide uppercase text-base-content/50" x-text="sec.name"></h3>
-
-              <!-- special: loyalty card -->
-              <template x-if="sec.type === 'loyalty'">
-                <div class="px-3 pb-2">
-                  <div class="rounded-xl border border-base-300 p-3 bg-gradient-to-br from-base-100 to-base-200">
-                    <div class="flex items-center justify-between">
-                      <img src="./images/logoDrmax.svg" alt="Dr. Max" class="h-6">
-                      <span class="text-xs font-semibold text-success">Celková úspora: 123 Kč</span>
+  
+        <div class="absolute inset-x-14 top-1/2 -translate-y-1/2 text-center font-semibold">
+          <span class="block truncate" x-text="$store.menu.current?.name || 'Menu'"></span>
+        </div>
+      </div>
+  
+      <!-- Content (slides on menu change) -->
+      <div
+        class="flex-1 min-h-0 overflow-y-auto p-2"
+        :class="$store.menu.slideDir === 1 ? 'slide-in-right' : 'slide-in-left'"
+        :key="$store.menu.viewKey"
+      >
+        <!-- Loading / Error -->
+        <template x-if="$store.menu.loading">
+          <div class="p-4 space-y-2">
+            <div class="skeleton h-6 w-48"></div>
+            <div class="skeleton h-4 w-64"></div>
+            <div class="skeleton h-4 w-56"></div>
+          </div>
+        </template>
+  
+        <template x-if="$store.menu.error">
+          <div class="alert alert-error m-2" x-text="$store.menu.error"></div>
+        </template>
+  
+        <!-- Current menu -->
+        <template x-if="$store.menu.current && !$store.menu.loading && !$store.menu.error">
+          <div>
+            <!-- root items (optional) -->
+            <div class="divide-y divide-base-200">
+              <template x-for="(it, i) in ($store.menu.current.items || [])" :key="'root-'+i">
+                <button
+                  class="w-full text-left py-3 px-3 flex items-center gap-3 hover:bg-base-200/60 rounded-lg transition cursor-pointer"
+                  @click.stop="$store.menu.onItemClick(it)"
+                >
+                  <!-- left icon (only if present) -->
+                  <template x-if="it.icon || it.iconSet">
+                    <i :class="[
+                          it.iconSet === 'custom' && it.icon === 'check' ? 'fa-solid fa-circle-check' :
+                          it.iconSet === 'custom' && it.icon === 'empty' ? 'fa-regular fa-circle' :
+                          (it.iconSet || 'fa-regular') + ' fa-' + (it.icon || ''),
+                          it.rowType === 'bold' ? 'text-error' : 'text-base-content/70'
+                        ]"></i>
+                  </template>
+  
+                  <div class="flex-1">
+                    <div :class="it.rowType === 'bold' ? 'text-error font-semibold' : 'font-medium'">
+                      <span x-text="it.name"></span>
                     </div>
-                    <div class="mt-3 text-center">
-                      <div class="font-mono text-lg tracking-widest">1234 5678 9012</div>
-                      <div class="mt-2 bg-white h-14 rounded-sm flex items-center justify-center">
-                        <img src="./images/barcode.png" alt="Čárový kód" class="h-16 w-auto">
-                      </div>
-                    </div>
+                    <div x-show="it.description" class="text-xs opacity-70 mt-0.5" x-text="it.description"></div>
                   </div>
-                </div>
+  
+                  <i x-show="it.linkMenuId" class="fa-solid fa-chevron-right text-base-content/40 self-center"></i>
+                </button>
               </template>
-
-              <!-- special: language list (radio-like) -->
-              <template x-if="sec.type === 'language'">
-                <div class="divide-y divide-base-200 bg-base-100 rounded-lg mx-2">
-                  <template x-for="(it, i) in (sec.items || [])" :key="'lang-'+i">
-                    <button class="w-full text-left py-3 px-3 flex items-center gap-3 hover:bg-base-200/60 transition">
-                      <i :class="it.icon === 'check' ? 'fa-solid fa-circle-check text-success' : 'fa-regular fa-circle text-base-content/40'"></i>
-                      <span class="font-medium" x-text="it.name"></span>
-                    </button>
-                  </template>
-                </div>
-              </template>
-
-              <!-- default: list -->
-              <template x-if="!sec.type || sec.type === 'list'">
-                <div class="divide-y divide-base-200 bg-base-100 rounded-lg mx-2">
-                  <template x-for="(it, i) in (sec.items || [])" :key="'item-'+i">
-                    <button class="w-full text-left py-4 px-3 flex items-center gap-3 hover:bg-max-gray-50 border-0 transition cursor-pointer"
-                            @click.stop="$store.menu.onItemClick(it)">
-                      <template x-if="it.icon || it.iconSet">
-                        <i :class="[
-                              it.iconSet === 'custom' && it.icon === 'check' ? 'fa-solid fa-circle-check fa-xl ' :
-                              it.iconSet === 'custom' && it.icon === 'empty' ? 'fa-regular fa-circle fa-xl ' :
-                              (it.iconSet || 'fa-regular') + ' fa-xl fa-' + (it.icon || ''),
-                              it.rowType === 'bold' ? 'text-error' : 'fa-light text-max-green-500 fa-xl'
-                            ]"></i>
-                      </template>
-              
-                      <div class="flex-1">
-                        <div :class="it.rowType === 'bold' ? 'text-error font-semibold' : 'font-normal'">
-                          <span x-text="it.name"></span>
+            </div>
+  
+            <!-- sections -->
+            <div class="mt-2 space-y-3 mb-12">
+              <template x-for="(sec, si) in ($store.menu.current.sections || [])" :key="'sec-'+si">
+                <section>
+                  <h3 class="px-3 pt-3 pb-2 text-xs font-semibold tracking-wide uppercase text-base-content/50" x-text="sec.name"></h3>
+  
+                  <!-- special: loyalty card -->
+                  <template x-if="sec.type === 'loyalty'">
+                    <div class="px-3 pb-2">
+                      <div class="rounded-xl border border-base-300 p-3 bg-gradient-to-br from-base-100 to-base-200">
+                        <div class="flex items-center justify-between">
+                          <img src="./images/logoDrmax.svg" alt="Dr. Max" class="h-6">
+                          <span class="text-xs font-semibold text-success">Celková úspora: 123 Kč</span>
                         </div>
-                        <div x-show="it.description" class="text-xs opacity-70 mt-0.5" x-text="it.description"></div>
+                        <div class="mt-3 text-center">
+                          <div class="font-mono text-lg tracking-widest">1234 5678 9012</div>
+                          <div class="mt-2 bg-white h-14 rounded-sm flex items-center justify-center">
+                            <img src="./images/barcode.png" alt="Čárový kód" class="h-16 w-auto">
+                          </div>
+                        </div>
                       </div>
-              
-                      <i x-show="it.linkMenuId" class="fa-regular fa-chevron-right text-base-content/40 self-center"></i>
-                    </button>
+                    </div>
                   </template>
-                </div>
+  
+                  <!-- special: language list (radio-like) -->
+                  <template x-if="sec.type === 'language'">
+                    <div class="divide-y divide-base-200 bg-base-100 rounded-lg mx-2">
+                      <template x-for="(it, i) in (sec.items || [])" :key="'lang-'+i">
+                        <button class="w-full text-left py-3 px-3 flex items-center gap-3 hover:bg-base-200/60 transition">
+                          <i :class="it.icon === 'check' ? 'fa-solid fa-circle-check text-success' : 'fa-regular fa-circle text-base-content/40'"></i>
+                          <span class="font-medium" x-text="it.name"></span>
+                        </button>
+                      </template>
+                    </div>
+                  </template>
+  
+                  <!-- default: list -->
+                  <template x-if="!sec.type || sec.type === 'list'">
+                    <div class="divide-y divide-base-200 bg-base-100 rounded-lg mx-2">
+                      <template x-for="(it, i) in (sec.items || [])" :key="'item-'+i">
+                        <button
+                          class="w-full text-left py-4 px-3 flex items-center gap-3 hover:bg-max-gray-50 border-0 transition cursor-pointer"
+                          @click.stop="$store.menu.onItemClick(it)"
+                        >
+                          <template x-if="it.icon || it.iconSet">
+                            <i :class="[
+                                  it.iconSet === 'custom' && it.icon === 'check' ? 'fa-solid fa-circle-check fa-xl ' :
+                                  it.iconSet === 'custom' && it.icon === 'empty' ? 'fa-regular fa-circle fa-xl ' :
+                                  (it.iconSet || 'fa-regular') + ' fa-xl fa-' + (it.icon || ''),
+                                  it.rowType === 'bold' ? 'text-error' : 'fa-light text-max-green-500 fa-xl'
+                                ]"></i>
+                          </template>
+  
+                          <div class="flex-1">
+                            <div :class="it.rowType === 'bold' ? 'text-error font-semibold' : 'font-normal'">
+                              <span x-text="it.name"></span>
+                            </div>
+                            <div x-show="it.description" class="text-xs opacity-70 mt-0.5" x-text="it.description"></div>
+                          </div>
+  
+                          <i x-show="it.linkMenuId" class="fa-regular fa-chevron-right text-base-content/40 self-center"></i>
+                        </button>
+                      </template>
+                    </div>
+                  </template>
+                </section>
               </template>
-            </section>
-          </template>
-        </div>
+            </div>
+          </div>
+        </template>
       </div>
-    </template>
+    </aside>
   </div>
-</div>
+  
 
 
 </body>

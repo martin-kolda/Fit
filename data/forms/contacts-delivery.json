@@ -1,0 +1,151 @@
+[
+    {
+        "filedset_id": 1,
+        "fieldset_name": "Kontaktní informace",
+        "items": 
+            [
+                {
+                    "id": 1,
+                    "type": "text",
+                    "label": "E-mail",
+                    "placeholder": null,
+                    "prefix": null,
+                    "note": null,
+                    "validations": [
+                        {"type": "required", "fails": "Tato položka je povinná"},
+                        {"type": "email", "fails": "Nesprávný formát e-mailu"}
+                    ]
+                },
+                {
+                    "id": 2,
+                    "type": "text",
+                    "label": "Jméno",
+                    "placeholder": null,
+                    "prefix": null,
+                    "note": null,
+                    "validations": [
+                        {"type": "required", "fails": "Tato položka je povinná"}
+                    ]
+                },
+                {
+                    "id": 3,
+                    "type": "text",
+                    "label": "Příjmení",
+                    "placeholder": null,
+                    "prefix": null,
+                    "note": null,
+                    "validations": [
+                        {"type": "required", "fails": "Tato položka je povinná"}
+                    ]
+                },
+                {
+                    "id": 4,
+                    "type": "text",
+                    "label": "Telefonní číslo",
+                    "placeholder": null,
+                    "prefix": "+420",
+                    "note": "Pro případ kontaktování",
+                    "validations": [
+                        {"type": "required", "fails": "Tato položka je povinná"},
+                        {"type": "phone", "fails": "Nesprávný formát telefonu"}
+                    ]
+                },
+                {
+                    "id": 5,
+                    "type": "text",
+                    "label": "Poznámka k objednávce",
+                    "placeholder": "Doplňující informace",
+                    "prefix": null,
+                    "note": null,
+                    "validations": null
+                }
+            ]
+
+      },
+      {
+        "filedset_id": 2,
+        "fieldset_name": "Doručovací a fakturační adresa",
+        "items": 
+            [
+                {
+                    "id": 1,
+                    "type": "address",
+                    "label": "Ulice a číslo popisné",
+                    "placeholder": null,
+                    "prefix": null,
+                    "note": null,
+                    "validations": [
+                        {"type": "required", "fails": "Tato položka je povinná"},
+                        {"type": "address", "fails": "Nesprávný formát adresy"}
+                    ]
+                },
+                {
+                    "id": 2,
+                    "type": "checkbox",
+                    "default": "!checked",
+                    "label": "Firemní údaje",
+                    "placeholder": null,
+                    "prefix": null,
+                    "note": null,
+                    "validations": null,
+                    "hides_id": [3,4,5,6]
+                    
+                },
+                {
+                    "id": 3,
+                    "type": "text",
+                    "label": "IČO",
+                    "placeholder": null,
+                    "prefix": null,
+                    "note": null,
+                    "validations": [
+                        {"type": "required", "fails": "Tato položka je povinná"}
+                    ]
+                },
+                {
+                    "id": 4,
+                    "type": "text",
+                    "label": "DIČ",
+                    "placeholder": null,
+                    "note": null,
+                    "validations": null
+                },
+                {
+                    "id": 5,
+                    "type": "text",
+                    "label": "Společnost",
+                    "placeholder": "Doplňující informace",
+                    "prefix": null,
+                    "note": null,
+                    "validations": [
+                        {"type": "required", "fails": "Tato položka je povinná"}
+                    ]
+                },
+                {
+                    "id": 6,
+                    "type": "checkbox",
+                    "default": "!checked",
+                    "label": "Jiná adresa doručení",
+                    "placeholder": null,
+                    "prefix": null,
+                    "note": null,
+                    "validations": null,
+                    "hides_id": [7]
+                    
+                },
+                {
+                    "id": 7,
+                    "type": "address",
+                    "label": "Ulice a číslo popisné",
+                    "placeholder": null,
+                    "prefix": null,
+                    "note": null,
+                    "validations": [
+                        {"type": "required", "fails": "Tato položka je povinná"},
+                        {"type": "address", "fails": "Nesprávný formát adresy"}
+                    ]
+                }
+            ]
+
+      }      
+    ]
