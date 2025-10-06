@@ -32,10 +32,8 @@
   @keyframes slideInRight { from { transform: translateX( 6%); opacity: .01 } to { transform: translateX(0); opacity: 1 } }
   .slide-in-left  { animation: slideInLeft  .18s ease-out; }
   .slide-in-right { animation: slideInRight .18s ease-out; }    
-  body {
-      font-family: 'Figtree', sans-serif;
-     
-    }
+  body {font-family: 'Figtree', sans-serif;}
+  .leaflet-container img { max-width: none !important; }
   </style>
 </head>
 
@@ -299,27 +297,27 @@
     class="w-full"
   >
     <label
-      x-ref="anchor"
-      class="input p-4 input-bordered rounded-full max-w-2xl items-center gap-2 w-full h-[46px] md:h-[56px] max-input-gradient"
-      aria-label="Vyhledávání"
-    >
-      <i class="fa-classic fa-xl fa-regular fa-search text-max-gray-600"></i>
+    x-ref="anchor"
+    class="input input-lg px-4 input-bordered rounded-full max-w-2xl items-center gap-2 w-full max-input-gradient"
+    aria-label="Vyhledávání"
+  >
+    <i class="fa-classic fa-regular fa-search text-max-gray-600"></i>
 
-      <input
-        x-ref="input"
-        type="search"
-        class="grow text-base min-w-0"
-        placeholder="Hledej dle názvu"
-        x-model.debounce.150ms="q"
-        @focus="onFocus()"
-        @input="onInput()"
-        role="combobox"
-        aria-autocomplete="list"
-        :aria-expanded="open"
-        :aria-controls="listId"
-        :aria-activedescendant="activeDesc()"
-      />
-    </label>
+    <input
+      x-ref="input"
+      type="search"
+      class="grow min-w-0 bg-transparent outline-none"
+      placeholder="Hledej dle názvu"
+      x-model.debounce.150ms="q"
+      @focus="onFocus()"
+      @input="onInput()"
+      role="combobox"
+      aria-autocomplete="list"
+      :aria-expanded="open"
+      :aria-controls="listId"
+      :aria-activedescendant="activeDesc()"
+    />
+  </label>
 
     <!-- Dropdown  -->
     <div
@@ -332,7 +330,7 @@
       <!-- RECENT -->
       <template x-if="q.trim().length < minChars">
         <ul
-          class="p-2 max-h-80 overflow-y-auto w-full flex flex-col space-y-0"
+          class="p-2 pb-6 max-h-80 overflow-y-auto w-full flex flex-col space-y-4"
           :id="listId" role="listbox"
         >
           <li class="px-2 py-1 text-xs font-semibold text-base-content/60">Naposledy hledané</li>
@@ -355,12 +353,12 @@
           
                 <!-- thumb for product/category -->
                 <template x-if="item.img">
-                  <img :src="item.img" alt="" class="w-14 h-14 object-contain rounded bg-base-200/40" />
+                  <img :src="item.img" alt="" class="w-10 h-10 object-contain rounded bg-base-200/40" />
                 </template>
           
                 <!-- FA icon bubble for info -->
                 <template x-if="!item.img">
-                  <span class="w-14 h-14 rounded-full bg-base-200 grid place-items-center">
+                  <span class="w-10 h-10 rounded-full bg-base-200 grid place-items-center">
                     <i :class="item.icon || 'fa-regular fa-circle-info'"></i>
                   </span>
                 </template>
@@ -379,7 +377,7 @@
         <!-- SUGGESTIONS -->
         <template x-if="q.trim().length >= minChars">
           <ul
-            class="p-2 max-h-80 overflow-y-auto w-full flex flex-col space-y-1"
+            class="p-2 py-6 max-h-160 md:max-h-80 overflow-y-auto w-full flex flex-col space-y-4"
             :id="listId" role="listbox"
           >
             <template x-if="!suggestions().length">
@@ -402,12 +400,12 @@
             
                   <!-- thumb for product/category -->
                   <template x-if="item.img">
-                    <img :src="item.img" alt="" class="w-14 h-14 object-contain rounded bg-base-200/40" />
+                    <img :src="item.img" alt="" class="w-10 h-10 object-contain rounded bg-base-200/40" />
                   </template>
             
                   <!-- FA icon bubble for info -->
                   <template x-if="!item.img">
-                    <span class="w-14 h-14 rounded-full bg-base-200 grid place-items-center">
+                    <span class="w-10 h-10 rounded-full bg-base-200 grid place-items-center">
                       <i :class="item.icon || 'fa-regular fa-circle-info'"></i>
                     </span>
                   </template>
@@ -804,7 +802,7 @@
                         @click="$store.cart.decrement(product.id)"
                         aria-label="Odebrat kus">−</button>
 
-                <input type="number" min="1"
+                <input type="text" inputmode="numeric" pattern="[0-9]*"
                       class="input input-bordered input-md w-10 text-center join-item"
                       :value="$store.cart.qty(product.id)"
                       @input="$store.cart.setQty(product.id, $event.target.value)"
@@ -985,7 +983,7 @@
                             @click="$store.cart.decrement(product.id)"
                             aria-label="Odebrat kus">−</button>
 
-                    <input type="number" min="1"
+                    <input type="text" inputmode="numeric" pattern="[0-9]*"
                           class="input input-bordered input-lg w-12 text-center join-item"
                           :value="$store.cart.qty(product.id)"
                           @input="$store.cart.setQty(product.id, $event.target.value)"
@@ -1408,7 +1406,7 @@
                           @click="$store.cart.decrement(product.id)"
                           aria-label="Odebrat kus">−</button>
 
-                  <input type="number" min="1"
+                  <input type="text" inputmode="numeric" pattern="[0-9]*"
                         class="input input-bordered input-md w-12 text-center join-item"
                         :value="$store.cart.qty(product.id)"
                         @input="$store.cart.setQty(product.id, $event.target.value)"
@@ -1434,7 +1432,7 @@
 <section x-show="is('cart')" x-cloak>
 
 
-    <section x-data="cartPage()" class="w-auto md:w-11/12 xl:w-8/12 mx-auto px-4 pt-12 pb-32">
+    <section x-data="cartPage()" class="w-auto md:w-11/12 xl:w-8/12 mx-auto px-4 pt-2 md:pt-12 pb-32">
       <h1 class="text-3xl mx-auto mb-6">Nákupní košík</h1>
   <!-- EMPTY STATE -->
   <template x-if="$store.cart.distinctCount() === 0">
@@ -1447,7 +1445,7 @@
 
   <!-- CART TABLE -->
   <template x-if="$store.cart.distinctCount() > 0">
-    <div class="space-y-6">
+    <div class="space-y-2">
 
       <!-- CART LIST: MOBILE TILES (no horizontal scroll) -->
 <div class="md:hidden space-y-3">
@@ -1474,11 +1472,13 @@
         <div class="mt-3 flex items-center justify-between gap-3">
           <div class="join">
             <button class="btn btn-square btn-md join-item" @click="$store.cart.decrement(it.id)" aria-label="Odebrat kus">−</button>
-            <input type="number" min="1"
-              class="input input-bordered input-md w-9 text-left join-item"
-              :value="$store.cart.qty(it.id)"
-              @input="$store.cart.setQty(it.id, $event.target.value)"
-              @keydown.enter.prevent aria-label="Počet kusů" />
+            <input
+            type="text" inputmode="numeric" pattern="[0-9]*"
+            class="input input-bordered input-md w-12 text-center join-item px-0 tabular-nums"
+            :value="$store.cart.qty(it.id)"
+            @input="$store.cart.setQty(it.id, $event.target.value.replace(/[^0-9]/g,''))"
+            @keydown.enter.prevent
+            />
             <button class="btn btn-square btn-md join-item" @click="$store.cart.increment(it.id)" aria-label="Přidat kus">+</button>
           </div>
 
@@ -1486,7 +1486,7 @@
             <template x-if="it.priceBefore && it.priceBefore > it.price">
               <span class="text-sm line-through text-base-content/50 ml-2" x-text="koruny(it.priceBefore)"></span>
             </template>
-            <span class="font-semibold text-base" x-text="koruny(it.price)"></span>
+            <span class="font-medium text-base" x-text="koruny(it.price)"></span>
           </div>
         </div>
 
@@ -1540,17 +1540,19 @@
           <td class="text-center">
             <div class="join justify-end">
               <button class="btn btn-square btn-md join-item" @click="$store.cart.decrement(it.id)">−</button>
-              <input type="number" min="1"
-                class="input input-bordered input-md w-12 text-center join-item"
-                :value="$store.cart.qty(it.id)"
-                @input="$store.cart.setQty(it.id, $event.target.value)"
-                @keydown.enter.prevent />
+              <input
+              type="text" inputmode="numeric" pattern="[0-9]*"
+              class="input input-bordered input-md w-12 text-center join-item px-0 tabular-nums"
+              :value="$store.cart.qty(it.id)"
+              @input="$store.cart.setQty(it.id, $event.target.value.replace(/[^0-9]/g,''))"
+              @keydown.enter.prevent
+              />
               <button class="btn btn-square btn-md join-item" @click="$store.cart.increment(it.id)">+</button>
             </div>
           </td>
 
           <td class="text-right align-center">
-            <div class="font-semibold" x-text="koruny($store.cart.linePrice(it))"></div>
+            <div class="font-medium" x-text="koruny($store.cart.linePrice(it))"></div>
             <template x-if="(it.priceBefore ?? it.price) > it.price">
               <div class="text-xs text-success">
                 − <span x-text="koruny($store.cart.lineDiscount(it))"></span>
@@ -1572,7 +1574,7 @@
       <div class="grid md:grid-cols-2 gap-4">
         
       <!-- Free shipping bar -->
-      <div class="rounded-xl border border-base-200 bg-white p-10">
+      <div class="rounded-xl border border-base-200 bg-white p-4 md:p-10">
         <div class="flex items-center justify-between mb-2">
           <span class="font-medium">Doprava zdarma</span>
           <span class="text-sm text-base-content/70" x-show="$store.cart.totalToPay() < $store.cart.freeShipThreshold">
@@ -1590,11 +1592,11 @@
   <!-- Coupon button + modal -->
   <div x-data="{ open:false, code:'', error:'' }" class="indicator">
     <button
-      class="btn btn-outline md:btn-md btn-sm px-4 indicator"
+      class="btn btn-outline btn-md px-4 indicator"
       @click="open = true"
       type="button"
     >
-      Uplatnit slevový kupón
+      Mám slevový kupón
       <!-- indicator with count -->
       <template x-if="$store.cart.couponCount() > 0">
         <span class="badge badge-error badge-sm indicator-item"
@@ -1663,11 +1665,11 @@
     <!-- Gift card button + modal -->
     <div x-data="{ open:false, code:'', error:'' }" class="indicator">
       <button
-        class="btn btn-outline md:btn-md btn-sm px-4 indicator"
+        class="btn btn-outline btn-md px-4 indicator"
         @click="open = true"
         type="button"
       >
-        Vložit dárkovou kartu
+        Mám dárkovou kartu
         <!-- indicator with count -->
         <template x-if="$store.cart.giftCardCount() > 0">
           <span class="badge badge-error badge-sm indicator-item"
@@ -1736,7 +1738,7 @@
       </div>
         
         
-        <div class="p-10 rounded-xl border border-base-200 bg-white">
+        <div class="p-4 md:p-10 rounded-xl border border-base-200 bg-white">
           <div class="flex flex-col gap-2">
             <div class="flex justify-between">
               <span>Mezisoučet (bez kupónů)</span>
@@ -1776,8 +1778,9 @@
 
   <!-- Sticky bottom bar -->
   <div class="fixed bottom-0 left-0 right-0 border-t border-base-200 bg-white py-6 z-10">
-    <div class="sm:w-11/12 lg:w-10/12 mx-auto px-4 flex items-center justify-between gap-3">
-      <button class="btn btn-outline" @click="location.hash='/products'">Zpět do eshopu</button>
+    <div class="w-12/12 lg:w-8/12 mx-auto px-4 flex items-center justify-between gap-3">
+      <button class="btn btn-outline btn-lg" @click="location.hash='/products'">
+        Zpět</button>
 
       <button class="btn btn-primary btn-lg"
         :disabled="$store.cart.distinctCount() === 0"
@@ -1973,8 +1976,9 @@
         </aside>
 
         <!-- RIGHT: MAP -->
-        <main class="min-h-0 col-span-12 lg:col-span-9" x-show="isLg || mode==='map'">
-          <div class="relative rounded-xl border border-base-300 h-full min-h-[600px] overflow-hidden shrink-0">
+        <main class="min-h-0 col-span-12 lg:col-span-9" x-data="mapPane()" x-init="boot()" x-effect="onVisibilityChange(isLg || mode==='map')" x-show="isLg || mode==='map'">
+  
+          <div x-ref="wrap" class="relative rounded-xl border border-base-300 h-full min-h-[600px] overflow-hidden">
 
             <!-- Overlay (desktop / tablet) -->
             <div x-show="selected"
@@ -2033,7 +2037,7 @@
             </div>
 
             <!-- The map element -->
-            <div id="map" class="w-full h-full z-0"></div>
+            <div x-ref="mapEl" id="map" class="w-full h-full z-0"></div>
 
           </div>
         </main>
@@ -2111,6 +2115,43 @@
 
   <script>
     document.addEventListener('alpine:init', () => {
+    //MAP  
+    Alpine.data('mapPane', () => ({
+
+    resizeObserver: null,
+
+    boot() {
+      this.$nextTick(() => {
+        this._afterTransitionInvalidate();
+
+        // Keep it healthy on container resizes
+        const wrap = this.$refs.wrap || this.$refs.mapEl;
+        if (wrap && !this.resizeObserver) {
+          this.resizeObserver = new ResizeObserver(() => this._invalidate());
+          this.resizeObserver.observe(wrap);
+        }
+
+        // Orientation
+        window.addEventListener('orientationchange', () => this._afterTransitionInvalidate());
+      });
+    },
+
+    onVisibilityChange(visible) {
+      if (visible) this._afterTransitionInvalidate();
+    },
+
+    _invalidate() {
+      window.dispatchEvent(new CustomEvent('map:invalidate'));
+    },
+
+    _afterTransitionInvalidate() {
+      // Wait for x-show + Tailwind transition (~200ms)
+      requestAnimationFrame(() => {
+        setTimeout(() => this._invalidate(), 220);
+      });
+    }
+  }));
+  
       // CART
   Alpine.store('cart', {
     // --- state ---
@@ -3590,307 +3631,310 @@ rangeLabel() {
   }
   </script>
 <script>
-  // MAP LOGIC
+  //MAP LOGIC
   function pickupMapUI(cfg) {
     const pngs = {
-      pharmacy: {
-        normal: './images/map/pharmacy.png',
-        selected: './images/map/pharmacy_selected.png'
-      },
-      box: {
-        normal: './images/map/box.png',
-        selected: './images/map/box_selected.png'
-      },
+      pharmacy: { normal: './images/map/pharmacy.png', selected: './images/map/pharmacy_selected.png' },
+      box: { normal: './images/map/box.png', selected: './images/map/box_selected.png' },
       shadow: './images/map/shadow.png'
     };
-  
     const prague = [50.0755, 14.4378];
     const placeholderImg = './images/pup-photos/placeholder.webp';
   
     return {
-  // CONFIG
-  jsonUrl: cfg?.jsonUrl || './data/map-points.json',
-  tracestrackKey: cfg?.tracestrackKey || '',
-  enableClustering: !!cfg?.enableClustering,
+      // CONFIG
+      jsonUrl: cfg?.jsonUrl || './data/map-points.json',
+      tracestrackKey: cfg?.tracestrackKey || '',
+      enableClustering: !!cfg?.enableClustering,
+  
+      // STATE
+      map: null,
+      cluster: null,
+      all: [],
+      filtered: [],
+      markers: new Map(),
+      selected: null,
+      mode: 'map',
+      search: '',
+      district: '',
+      districts: ['Praha 1','Praha 2','Praha 3','Praha 4','Praha 5','Praha 6','Praha 7','Praha 8','Praha 9','Praha 10'],
+      placeholderImg,
+  
+      // RESPONSIVE FLAGS
+      isMd: false,
+      isLg: false,
+  
+      // COMPUTED
+      get filterActive(){ return !!(this.search || this.district); },
+      get filterSummary(){ return `Zobrazuji ${this.filtered.length} z ${this.all.length}`; },
+  
+      // HELPERS
+      updateBreakpoints() {
+        this.isMd = window.matchMedia('(min-width: 768px)').matches;
+        this.isLg = window.matchMedia('(min-width: 1024px)').matches;
+      },
+      hasCluster() { return !!(this.cluster && typeof this.cluster.addLayer === 'function'); },
+      withMap(cb) {
+        if (this.map) { cb(this.map); return true; }
+        this.$nextTick(() => { if (this.map) cb(this.map); });
+        return false;
+      },
+  
+      async init() {
+        if (this._inited) return; this._inited = true;
+  
+        this.updateBreakpoints();
+        this._onResize = () => this.updateBreakpoints();
+        window.addEventListener('resize', this._onResize);
+  
+        await this.loadData();
 
-  // STATE
-  map: null,
-  cluster: null,
-  all: [],
-  filtered: [],
-  markers: new Map(),   // id -> marker
-  selected: null,
-  mode: 'map',          // 'map' | 'list' (mobile tabs)
-  search: '',
-  district: '',         // e.g. 'Praha 1'
-  districts: ['Praha 1','Praha 2','Praha 3','Praha 4','Praha 5','Praha 6','Praha 7','Praha 8','Praha 9','Praha 10'],
-  placeholderImg,
+this.$nextTick(async () => {
+  await this.ensureVisibleSize();
 
-  // RESPONSIVE FLAGS (replace $screen)
-  isMd: false, // >= 768px
-  isLg: false, // >= 1024px
-
-  // COMPUTED
-  get filterActive(){ return !!(this.search || this.district); },
-  get filterSummary(){
-  return `Zobrazuji ${this.filtered.length} z ${this.all.length}`;
-},
-
-  // HELPERS
-  updateBreakpoints() {
-    this.isMd = window.matchMedia('(min-width: 768px)').matches;
-    this.isLg = window.matchMedia('(min-width: 1024px)').matches;
-  },
-
-  async init() {
-  if (this._inited) return;
-  this._inited = true;
-
-  this.updateBreakpoints();
-  this._onResize = () => this.updateBreakpoints();
-  window.addEventListener('resize', this._onResize);
-
-  await this.loadData();
   this.initMap();
   this.renderMarkers();
 
-  // Listen for global open requests from the top bar search
-  this._onOpenPharmacy = (e) => {
-    const id = e.detail?.id;
-    if (!id) return;
-    const p = this.all.find(x => x.id === id);
-    if (!p) return;
-    this.selected = p;
-    this.updateMarkerIcons();
-
-    const m = this.markers.get(p.id);
-    const latlng = [p.coords.lat, p.coords.lng];
-
-    // Ensure map is visible (mobile)
-    if (!this.isLg) {
-      this.mode = 'map';
-      this.$nextTick(() => {
-        this.map.invalidateSize();
-        this.map.setView(latlng, Math.max(this.map.getZoom(), 15), { animate: true });
-        if (m && this.cluster && this.cluster.hasLayer(m)) {
-          this.cluster.zoomToShowLayer(m, () => m.setZIndexOffset(1000));
-        }
-      });
-    } else {
-      this.map.setView(latlng, Math.max(this.map.getZoom(), 15), { animate: true });
-      if (m && this.cluster && this.cluster.hasLayer(m)) {
-        this.cluster.zoomToShowLayer(m, () => m.setZIndexOffset(1000));
-      }
-    }
-  };
-  window.addEventListener('pharmacy:open', this._onOpenPharmacy);
-
-  this.map.setView([50.0755, 14.4378], 12);
-  setTimeout(()=> this.map.invalidateSize(), 150);
-
-  // optional cleanup
-  window.addEventListener('beforeunload', () => {
-    if (this._onResize) window.removeEventListener('resize', this._onResize);
-    if (this._onOpenPharmacy) window.removeEventListener('pharmacy:open', this._onOpenPharmacy);
+  this.withMap(m => {
+    m.setView([50.0755, 14.4378], 12);
+    setTimeout(() => m.invalidateSize(false), 0);
   });
-},
+  
+            // Observe container size changes
+            const host = this.$refs?.mapEl || document.getElementById('map');
+            if (host && !this._ro) {
+              const target = host.parentElement || host;
+              this._ro = new ResizeObserver(() => this.withMap(m => m.invalidateSize(false)));
+              this._ro.observe(target);
+            }
+  
+            // Listen for external invalidate requests (from mapPane)
+            if (host) {
+              this._onInvalidate = () => this.withMap(m => m.invalidateSize(false));
+              window.addEventListener('map:invalidate', this._onInvalidate);
+            }
+          });
 
-
-
-    initMap() {
-      // prefer the component-scoped ref over a global id
-      const el = this.$refs.mapEl;
+  
+        // Global open-from-search
+        this._onOpenPharmacy = (e) => {
+          const id = e.detail?.id; if (!id) return;
+          const p = this.all.find(x => x.id === id); if (!p) return;
+          this.selected = p; this.updateMarkerIcons();
+          const latlng = [p.coords.lat, p.coords.lng];
+          const marker = this.markers.get(p.id);
+  
+          const goto = () => {
+            this.withMap(m => {
+              m.setView(latlng, Math.max(m.getZoom(), 15), { animate: true });
+            });
+            if (marker && this.hasCluster() && this.cluster.hasLayer(marker)) {
+              this.cluster.zoomToShowLayer(marker, () => marker.setZIndexOffset(1000));
+            }
+          };
+  
+          if (!this.isLg) {
+            this.mode = 'map';
+            this.$nextTick(() => {
+              this.withMap(m => m.invalidateSize(false));
+              goto();
+            });
+          } else {
+            goto();
+          }
+        };
+        window.addEventListener('pharmacy:open', this._onOpenPharmacy);
+  
+        // Cleanup
+        window.addEventListener('beforeunload', () => this.teardown());
+      },
+  
+      async ensureVisibleSize(el) {
+        el = el
+        || this.$refs?.mapEl?.parentElement
+        || this.$refs?.mapEl
+        || document.getElementById('map')?.parentElement
+        || document.getElementById('map');
       if (!el) return;
 
-      // If this element already has a Leaflet map attached (e.g., after hot swap or prior demo),
-      // nuke its internal state so a fresh map can mount cleanly.
-      if (el._leaflet_id) {
-        try {
-          // If we can find a previous instance, remove it first
-          if (window.__pickupMap && window.__pickupMap._container === el) {
-            try { window.__pickupMap.remove(); } catch(_) {}
-            window.__pickupMap = null;
+      const hasSize = () => el.offsetWidth > 0 && el.offsetHeight > 0;
+      if (hasSize()) {
+        // double-check next frame to avoid mid-transition
+        await new Promise(r => requestAnimationFrame(r));
+        if (hasSize()) return;
+      }
+
+      await new Promise(resolve => {
+        let readyFrames = 0;
+        const tick = () => {
+          if (hasSize()) {
+            readyFrames++;
+            if (readyFrames >= 2) { cleanup(); resolve(); return; }
+          } else {
+            readyFrames = 0;
           }
-        } catch(_) {}
-        // Clear orphaned panes/HTML
-        el.innerHTML = '';
-        // Reset Leaflet’s element flag so L.map() won’t throw
-        try { el._leaflet_id = null; } catch(_) {}
-      }
+          raf = requestAnimationFrame(tick);
+        };
 
-      // Extra global singleton guard: if another map exists elsewhere, remove it
-      if (window.__pickupMap && window.__pickupMap.remove) {
-        try { window.__pickupMap.remove(); } catch(_) {}
-        window.__pickupMap = null;
-      }
+        const ro = new ResizeObserver(() => { /* just trigger next raf tick */ });
+        ro.observe(el);
 
-      // Create the map exactly once
-      this.map = L.map(el, { zoomControl: true, attributionControl: true });
-
-      // Tile layer (Tracestrack if key present, else OSM)
-      if (this.tracestrackKey) {
-        L.tileLayer(
-          'https://tile.tracestrack.com/topo/{z}/{x}/{y}.png?key=' + this.tracestrackKey,
-          { maxZoom: 19, attribution: '&copy; Tracestrack, &copy; OpenStreetMap contributors' }
-        ).addTo(this.map);
-      } else {
-        L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-          maxZoom: 19, attribution: '&copy; OpenStreetMap přispěvatelé'
-        }).addTo(this.map);
-      }
-
-      // Marker clustering (optional)
-      if (this.enableClustering && window.L && L.markerClusterGroup) {
-        this.cluster = L.markerClusterGroup({
-          showCoverageOnHover:false, spiderfyOnMaxZoom:true, disableClusteringAtZoom:16
-        }).addTo(this.map);
-      }
-
-      // Keep a global handle to prevent double-inits on route toggles
-      window.__pickupMap = this.map;
+        let raf = requestAnimationFrame(tick);
+        const cleanup = () => { try { ro.disconnect(); } catch(_){} cancelAnimationFrame(raf); };
+        // safety timeout (in case no resize ever fires)
+        setTimeout(() => { cleanup(); resolve(); }, 1500);
+      });
     },
+
+      teardown() {
+        if (this._onResize) window.removeEventListener('resize', this._onResize), this._onResize = null;
+        if (this._onOpenPharmacy) window.removeEventListener('pharmacy:open', this._onOpenPharmacy), this._onOpenPharmacy = null;
+        if (this._ro) { try { this._ro.disconnect(); } catch(_) {} this._ro = null; }
+        const host = this.$refs?.mapEl || document.getElementById('map');
+        if (this._onInvalidate) { window.removeEventListener('map:invalidate', this._onInvalidate); this._onInvalidate = null; }
+        if (this.cluster) { try { this.cluster.clearLayers(); } catch(_) {} }
+        if (this.map) { try { this.map.remove(); } catch(_) {} this.map = null; }
+        if (host && host._leaflet_id) try { host._leaflet_id = null; } catch(_) {}
+        window.__pickupMap = null;
+      },
   
       async loadData() {
         const res = await fetch(this.jsonUrl);
         const json = await res.json();
-        // normalize + add searchIndex
         this.all = json.map(p => ({
           ...p,
           coords: { lat: +p.coords.lat, lng: +p.coords.lng },
-          searchIndex: [
-            p.name, p.type, p.address?.street, p.address?.city,
-            p.address?.district, p.address?.zip
-          ].filter(Boolean).join(' ').toLowerCase()
+          searchIndex: [p.name, p.type, p.address?.street, p.address?.city, p.address?.district, p.address?.zip]
+            .filter(Boolean).join(' ').toLowerCase()
         }));
         this.filtered = this.all.slice();
       },
   
       initMap() {
-        const el = document.getElementById('map');
+        const el = this.$refs.mapEl || document.getElementById('map');
+        if (!el) return;
+  
+        // Clean reused node / previous instance
+        if (el._leaflet_id) {
+          try { if (window.__pickupMap && window.__pickupMap._container === el) window.__pickupMap.remove(); } catch(_) {}
+          el.innerHTML = '';
+          try { el._leaflet_id = null; } catch(_) {}
+        }
+        if (window.__pickupMap && window.__pickupMap.remove) {
+          try { window.__pickupMap.remove(); } catch(_) {}
+          window.__pickupMap = null;
+        }
+  
+        // Create map
         this.map = L.map(el, { zoomControl: true, attributionControl: true });
   
-        // Tile layer: Tracestrack Topo (if you have a key), else OSM
+        // Tiles
         if (this.tracestrackKey) {
           L.tileLayer(
             'https://tile.tracestrack.com/topo/{z}/{x}/{y}.png?key=' + this.tracestrackKey,
             { maxZoom: 19, attribution: '&copy; Tracestrack, &copy; OpenStreetMap contributors' }
           ).addTo(this.map);
         } else {
-          // Fallback (less cluttered alternative could be CARTO Voyager; keeping OSM classic for neutrality)
           L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            maxZoom: 19,
-            attribution: '&copy; OpenStreetMap přispěvatelé'
+            maxZoom: 19, attribution: '&copy; OpenStreetMap přispěvatelé'
           }).addTo(this.map);
         }
   
-        // Clustering
-        if (this.enableClustering && window.L && L.markerClusterGroup) {
+        // Clustering (optional)
+        this.cluster = null;
+        if (this.enableClustering && L && typeof L.markerClusterGroup === 'function') {
           this.cluster = L.markerClusterGroup({
             showCoverageOnHover:false, spiderfyOnMaxZoom:true, disableClusteringAtZoom:16
           }).addTo(this.map);
         }
+  
+        window.__pickupMap = this.map;
       },
   
       iconFor(p, isSelected=false) {
         const typeIcons = pngs[p.type] || pngs.pharmacy;
         const url = isSelected ? typeIcons.selected : typeIcons.normal;
         return L.icon({
-          iconUrl: url,
-          iconSize: [32, 42],
-          iconAnchor: [16, 40],
-          popupAnchor: [0, -38],
-          shadowUrl: pngs.shadow,
-          shadowSize: [36, 20],
-          shadowAnchor: [10, 20]
+          iconUrl: url, iconSize: [32, 42], iconAnchor: [16, 40],
+          popupAnchor: [0, -38], shadowUrl: pngs.shadow, shadowSize: [36, 20], shadowAnchor: [10, 20]
         });
       },
   
       renderMarkers() {
-        // Clear old
-        if (this.cluster) this.cluster.clearLayers();
-        this.markers.forEach(m => m.remove());
+        const clustered = this.hasCluster();
+  
+        if (clustered) this.cluster.clearLayers();
+        this.markers.forEach(m => { try { m.remove(); } catch(_) {} });
         this.markers.clear();
   
-        // Add
-        (this.filtered.length ? this.filtered : this.all).forEach(p => {
+        const list = this.filtered.length ? this.filtered : this.all;
+  
+        list.forEach(p => {
           const m = L.marker([p.coords.lat, p.coords.lng], { icon: this.iconFor(p) })
             .on('click', () => this.selectFromMap(p));
           this.markers.set(p.id, m);
-          this.cluster ? this.cluster.addLayer(m) : m.addTo(this.map);
+          if (clustered) this.cluster.addLayer(m);
+          else this.withMap(mm => m.addTo(mm));
         });
   
-        // Fit bounds to filtered (or all if none)
-        if (this.filtered.length) {
-          const b = L.latLngBounds(this.filtered.map(p => [p.coords.lat, p.coords.lng]));
-          this.map.fitBounds(b.pad(0.2));
+        if (list.length) {
+          const b = L.latLngBounds(list.map(p => [p.coords.lat, p.coords.lng]));
+          this.withMap(mm => mm.fitBounds(b.pad(0.2)));
         }
+
       },
   
       updateMarkerIcons() {
-        // swap icons to reflect selection
         this.all.forEach(p => {
           const m = this.markers.get(p.id);
-          if (!m) return;
-          m.setIcon(this.iconFor(p, this.selected && this.selected.id===p.id));
+          if (m) m.setIcon(this.iconFor(p, !!(this.selected && this.selected.id===p.id)));
         });
       },
   
       selectFromMap(p) {
-        this.selected = p;
-        this.updateMarkerIcons();
+        this.selected = p; this.updateMarkerIcons();
         const m = this.markers.get(p.id);
         if (m) {
-          this.map.setView([p.coords.lat, p.coords.lng], Math.max(this.map.getZoom(), 15), { animate: true });
+          const latlng = [p.coords.lat, p.coords.lng];
+          this.withMap(mm => mm.setView(latlng, Math.max(mm.getZoom(), 15), { animate: true }));
         }
-        // highlight list row & scroll into view
         this.scrollListTo(p.id);
       },
   
       selectFromList(p) {
-      this.selected = p;
-      this.updateMarkerIcons();
-
-      const goto = () => {
-        const m = this.markers.get(p.id);
-        const latlng = [p.coords.lat, p.coords.lng];
-        this.map.setView(latlng, Math.max(this.map.getZoom(), 15), { animate: true });
-        if (m && this.cluster && this.cluster.hasLayer(m)) {
-          this.cluster.zoomToShowLayer(m, () => m.setZIndexOffset(1000));
+        this.selected = p; this.updateMarkerIcons();
+  
+        const go = () => {
+          const marker = this.markers.get(p.id);
+          const latlng = [p.coords.lat, p.coords.lng];
+          this.withMap(mm => mm.setView(latlng, Math.max(mm.getZoom(), 15), { animate: true }));
+          if (marker && this.hasCluster() && this.cluster.hasLayer(marker)) {
+            this.cluster.zoomToShowLayer(marker, () => marker.setZIndexOffset(1000));
+          }
+        };
+  
+        if (!this.isLg) {
+          this.mode = 'map';
+          this.$nextTick(() => {
+            this.withMap(mm => mm.invalidateSize(false));
+            go();
+            const host = this.$refs?.mapEl || document.getElementById('map');
+            if (host) host.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          });
+        } else {
+          go();
         }
-      };
-
-      if (!this.isLg) {
-        // On mobile: jump to map tab, then center + open overlay
-        this.mode = 'map';
-        this.$nextTick(() => {
-          // map might have been hidden; fix size, then move
-          this.map.invalidateSize();
-          goto();
-          // optional: bring the map into view
-          const host = this.$refs?.mapEl || document.getElementById('map');
-          if (host) host.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        });
-      } else {
-        // Desktop/tablet: stay in split view and just center
-        goto();
-      }
-    },
+      },
   
       scrollListTo(id) {
-      // Use a safe attribute selector
-      const safeId = (window.CSS && CSS.escape) ? CSS.escape(id) : id;
-      const sel = `[data-pickup-id="${safeId}"]`;
-      const row = document.querySelector(sel);
-      if (!row) return;
-
-      // Smooth scroll into view
-      row.scrollIntoView({ block: 'center', behavior: 'smooth' });
-
-      // Brief visual highlight (ring) to draw attention
-      const pulseClasses = ['ring', 'ring-primary', 'ring-offset-1'];
-      row.classList.add(...pulseClasses);
-      setTimeout(() => row.classList.remove(...pulseClasses), 900);
-    },
+        const safeId = (window.CSS && CSS.escape) ? CSS.escape(id) : id;
+        const row = document.querySelector(`[data-pickup-id="${safeId}"]`);
+        if (!row) return;
+        row.scrollIntoView({ block: 'center', behavior: 'smooth' });
+        const pulse = ['ring', 'ring-primary', 'ring-offset-1'];
+        row.classList.add(...pulse);
+        setTimeout(() => row.classList.remove(...pulse), 900);
+      },
   
       confirmSelection() {
         if (!this.selected) return;
@@ -3917,7 +3961,6 @@ rangeLabel() {
           return okQ && okD;
         });
         this.renderMarkers();
-        // When filters active, clear selection to avoid mismatch
         if (this.selected && !this.filtered.some(pp => pp.id===this.selected.id)) {
           this.selected = null;
           this.updateMarkerIcons();
@@ -3932,6 +3975,18 @@ rangeLabel() {
     };
   }
   </script>
+
+<script>
+  // Recompute map size right after the route settles
+  window.addEventListener('hashchange', () => {
+    requestAnimationFrame(() => {
+      setTimeout(() => {
+        const el = document.getElementById('map');
+        if (el) el.dispatchEvent(new CustomEvent('map:invalidate', { bubbles: true }));
+      }, 220); 
+    });
+  });
+</script>
   
   <script defer>
     (() => {

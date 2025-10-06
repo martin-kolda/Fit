@@ -27,7 +27,7 @@
           "items": [
             { "name": "Můj účet", "iconSet": "fa-regular", "icon": "user-circle", "linkMenuId": 9 },
             { "name": "Věrnostní program", "iconSet": "fa-regular", "icon": "hand-holding-star", "linkMenuId": 10 },
-            { "name": "Mapa lékáren a boxů", "iconSet": "fa-regular", "icon": "map-location" },
+            { "name": "Mapa lékáren a boxů", "iconSet": "fa-regular", "icon": "map-location", "route": "map" },
             { "name": "Poradenství a články", "iconSet": "fa-regular", "icon": "messages", "linkMenuId": 8 },
             { "name": "Kontakty", "iconSet": "fa-regular", "icon": "phone", "linkMenuId": 4 }
           ]
