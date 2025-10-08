@@ -282,16 +282,31 @@
 </div>
 
 <!-- MOBILE TOPBAR SEARCH (trigger only) -->
-<div class="navbar md:hidden h-12 p-2 pt-0 bg-white mb-6 text-base-content relative">
-  <button
+<div class="navbar md:hidden h-12 p-2 pt-0 bg-white mb-6 text-base-content relative" x-data>
+    <button
     type="button"
     class="input input-lg px-4 input-bordered rounded-full max-w-2xl items-center gap-2 w-full text-left max-input-gradient"
     aria-label="Vyhledávání"
-    @click="$dispatch('open-mobile-search')"
+    @pointerdown="
+      window.__msGhost = $refs.msGhost;                // stash a reference
+      $refs.msGhost && $refs.msGhost.focus({ preventScroll:true }); // pop keyboard
+      $dispatch('open-mobile-search', { from: 'tap' }) // open overlay in same gesture
+    "
   >
     <i class="fa-classic fa-regular fa-search text-max-gray-600"></i>
     <span class="grow min-w-0 text-base-content/60">Hledej dle názvu</span>
   </button>
+
+  <!-- Invisible but focusable 'ghost' input to trigger the keyboard -->
+  <input
+    x-ref="msGhost"
+    type="text"
+    autocomplete="off"
+    autocapitalize="none"
+    spellcheck="false"
+    inputmode="search"
+    style="position:fixed; top:0; left:0; width:1px; height:1px; opacity:0; z-index:1;"
+  />
 </div>
 
   <!-- NAVBAR PRODUCT NAVIGATION -->
@@ -1991,22 +2006,46 @@
     get panelStyle(){ return `height:${this.viewportH}px;max-height:${this.viewportH}px;`; },
 
     openOverlay(){
-      if (this.isOpen) return;
-      this.isOpen = true;
-      this.lockPageScroll(true);
-      this.attachViewportListener();
+  if (this.isOpen) return;
+  this.isOpen = true;
+  this.lockPageScroll(true);
+  this.attachViewportListener();
 
-      history.pushState({ mobileSearch: true }, '');
-      this.pushedState = true;
+  // history stuff unchanged...
+  history.pushState({ mobileSearch: true }, '');
+  this.pushedState = true;
+  this._onPop = () => { if (this.isOpen) this.closeOverlay({ fromPop:true }); };
+  window.addEventListener('popstate', this._onPop);
 
-      this._onPop = () => { if (this.isOpen) this.closeOverlay({ fromPop:true }); };
-      window.addEventListener('popstate', this._onPop);
+  const focusRealInput = () => {
+  const el = this.$root.querySelector('[data-mobile-search-input]');
+  if (!el) return;
 
-      this.$nextTick(() => {
-        const el = this.$root.querySelector('[data-mobile-search-input]');
-        if (el) el.focus({ preventScroll:true });
-      });
-    },
+  el.focus({ preventScroll: true });
+  try {
+    const n = el.value?.length ?? 0;
+    el.setSelectionRange(n, n); // place caret; helps iOS show cursor
+  } catch {}
+
+  // now blur the ghost (after the real input owns focus)
+  try { if (window.__msGhost) window.__msGhost.blur(); } catch {}
+  window.__msGhost = null;
+
+  // If something stole focus, retry once
+  setTimeout(() => {
+    if (document.activeElement !== el) {
+      el.focus({ preventScroll: true });
+      try {
+        const n2 = el.value?.length ?? 0;
+        el.setSelectionRange(n2, n2);
+      } catch {}
+    }
+  }, 50);
+};
+
+this.$nextTick(() => requestAnimationFrame(focusRealInput));
+
+},
 
     // Pass an optional reason: 'ui' | 'navigate' | 'pop'
     closeOverlay({fromPop=false, reason='ui'} = {}){
@@ -4274,20 +4313,24 @@ this.$nextTick(async () => {
           >
             <i class="fa-classic fa-regular fa-search"></i>
             <input
-              data-mobile-search-input
-              x-ref="input"
-              type="text"
-              class="grow min-w-0 bg-transparent outline-none"
-              placeholder="Hledej dle názvu"
-              x-model.debounce.150ms="q"
-              @input="onInput()"
-              @keydown="(e) => { onKeydown(e); if(e.key==='Enter'){ $dispatch('mobile-search-close', { reason:'navigate' }) } }"
-              role="combobox"
-              aria-autocomplete="list"
-              :aria-expanded="true"
-              :aria-controls="listId"
-              :aria-activedescendant="activeDesc()"
-            />
+            data-mobile-search-input
+            x-ref="input"
+            type="text"
+            inputmode="search"
+            enterkeyhint="search"
+            autocapitalize="none"
+            autocorrect="off"
+            class="grow min-w-0 bg-transparent outline-none"
+            placeholder="Hledej dle názvu"
+            x-model.debounce.150ms="q"
+            @input="onInput()"
+            @keydown="(e) => { onKeydown(e); if(e.key==='Enter'){ $dispatch('mobile-search-close', { reason:'navigate' }) } }"
+            role="combobox"
+            aria-autocomplete="list"
+            :aria-expanded="true"
+            :aria-controls="listId"
+            :aria-activedescendant="activeDesc()"
+          />
             <span
             role="button"
             tabindex="0"
