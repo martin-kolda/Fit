@@ -114,7 +114,7 @@
                 <li class="w-full px-2 py-2 text-sm text-base-content/60">Začněte psát psát váš dotaz…</li>
               </template>
 
-              <template x-for="(item, i) in recentItems()" :key="`${item.t}-${item.k}`">
+              <template x-for="(item, i) in recentItems()" :key="`${item.t}-${item.k ?? i}`">
                 <li
                   :id="itemId(i)"
                   class="w-full"
@@ -163,7 +163,7 @@
                   </li>
                 </template>
 
-                <template x-for="(item, i) in suggestions()" :key="`${item.t}-${item.k}`">
+                <template x-for="(item, i) in suggestions()" :key="`${item.t}-${item.k ?? i}`">
                   <li
                     :id="itemId(i)"
                     class="w-full"
@@ -281,150 +281,17 @@
   </div>
 </div>
 
-<!-- MOBILE TOPBAR SEARCH -->
-  <div class="navbar md:hidden h-12 p-2 pt-0 bg-white mb-6 text-base-content relative">
-    <div
-    x-data="searchBox({
-      getProducts:   () => products,
-      getCategories: () => navCategories,
-      getLinks:      () => infoLinks,
-      goTo: (id) => go(`product/${id}`)
-    })"
-    @keydown="onKeydown($event)"
-    @click.outside="open = false"
-    @resize.window="onWindowResize()"
-    @scroll.window.passive="onWindowResize()"
-    class="w-full"
-  >
-    <label
-    x-ref="anchor"
-    class="input input-lg px-4 input-bordered rounded-full max-w-2xl items-center gap-2 w-full max-input-gradient"
+<!-- MOBILE TOPBAR SEARCH (trigger only) -->
+<div class="navbar md:hidden h-12 p-2 pt-0 bg-white mb-6 text-base-content relative">
+  <button
+    type="button"
+    class="input input-lg px-4 input-bordered rounded-full max-w-2xl items-center gap-2 w-full text-left max-input-gradient"
     aria-label="Vyhledávání"
+    @click="$dispatch('open-mobile-search')"
   >
     <i class="fa-classic fa-regular fa-search text-max-gray-600"></i>
-
-    <input
-      x-ref="input"
-      type="search"
-      class="grow min-w-0 bg-transparent outline-none"
-      placeholder="Hledej dle názvu"
-      x-model.debounce.150ms="q"
-      @focus="onFocus()"
-      @input="onInput()"
-      role="combobox"
-      aria-autocomplete="list"
-      :aria-expanded="open"
-      :aria-controls="listId"
-      :aria-activedescendant="activeDesc()"
-    />
-  </label>
-
-    <!-- Dropdown  -->
-    <div
-    x-show="open"
-    x-transition.opacity
-    class="fixed z-[33]"
-    :style="dropdownStyle"
-  >
-    <div class="bg-base-100 rounded-2xl shadow-xl border border-base-200 w-full box-border">
-      <!-- RECENT -->
-      <template x-if="q.trim().length < minChars">
-        <ul
-          class="p-2 pb-6 max-h-80 overflow-y-auto w-full flex flex-col space-y-4"
-          :id="listId" role="listbox"
-        >
-          <li class="px-2 py-1 text-xs font-semibold text-base-content/60">Naposledy hledané</li>
-
-          <template x-if="!recentItems().length">
-            <li class="w-full px-2 py-2 text-sm text-base-content/60">Začněte psát váš dotaz…</li>
-          </template>
-
-          <template x-for="(item, i) in recentItems()" :key="`${item.t}-${item.k}`">
-            <li
-              :id="itemId(i)"
-              class="w-full"
-              role="option"
-              @mouseenter="highlighted = i"
-            >
-            <a :href="item.href || '#'"
-              @click.prevent="onSelect(item)" 
-              class="flex w-full items-center gap-3 min-h-12 px-2 rounded-lg"
-              :class="i===highlighted ? 'bg-base-200' : 'hover:bg-base-200'">
-          
-                <!-- thumb for product/category -->
-                <template x-if="item.img">
-                  <img :src="item.img" alt="" class="w-10 h-10 object-contain rounded bg-base-200/40" />
-                </template>
-          
-                <!-- FA icon bubble for info -->
-                <template x-if="!item.img">
-                  <span class="w-10 h-10 rounded-full bg-base-200 grid place-items-center">
-                    <i :class="item.icon || 'fa-regular fa-circle-info'"></i>
-                  </span>
-                </template>
-          
-                <div class="min-w-0 flex-1">
-                  <div class="font-medium text-base truncate" x-text="item.name"></div>
-                  <div class="text-sm font-medium text-base-content/60 truncate" x-text="item.sub"></div>
-                </div>
-          
-              </a>
-            </li>
-          </template>
-        </ul>
-      </template>
-
-        <!-- SUGGESTIONS -->
-        <template x-if="q.trim().length >= minChars">
-          <ul
-            class="p-2 py-6 max-h-160 md:max-h-80 overflow-y-auto w-full flex flex-col space-y-4"
-            :id="listId" role="listbox"
-          >
-            <template x-if="!suggestions().length">
-              <li class="w-full px-2 py-3 font-medium text-base text-center text-max-gray-400">
-                Žádné výsledky
-              </li>
-            </template>
-
-            <template x-for="(item, i) in suggestions()" :key="`${item.t}-${item.k}`">
-              <li
-                :id="itemId(i)"
-                class="w-full"
-                role="option"
-                @mouseenter="highlighted = i"
-              >
-                <a :href="item.href || '#'"
-                   @click.prevent="onSelect(item)" 
-                   class="flex w-full items-center gap-3 min-h-12 px-2 rounded-lg"
-                   :class="i===highlighted ? 'bg-base-200' : 'hover:bg-base-200'">
-            
-                  <!-- thumb for product/category -->
-                  <template x-if="item.img">
-                    <img :src="item.img" alt="" class="w-10 h-10 object-contain rounded bg-base-200/40" />
-                  </template>
-            
-                  <!-- FA icon bubble for info -->
-                  <template x-if="!item.img">
-                    <span class="w-10 h-10 rounded-full bg-base-200 grid place-items-center">
-                      <i :class="item.icon || 'fa-regular fa-circle-info'"></i>
-                    </span>
-                  </template>
-            
-                  <div class="min-w-0 flex-1">
-                    <div class="font-medium text-base truncate" x-text="item.name"></div>
-                    <div class="text-sm font-medium text-base-content/60 truncate" x-text="item.sub"></div>
-                  </div>
-            
-                  <!-- small type badge (optional) -->
-                  <span class="badge badge-ghost badge-sm shrink-0" x-text="item.t === 'product' ? 'Produkt' : (item.t==='category' ? 'Kategorie' : 'Info')"></span>
-                </a>
-              </li>
-            </template>
-          </ul>
-        </template>
-      </div>
-    </div>
-  </div>
+    <span class="grow min-w-0 text-base-content/60">Hledej dle názvu</span>
+  </button>
 </div>
 
   <!-- NAVBAR PRODUCT NAVIGATION -->
@@ -1535,7 +1402,7 @@
                 <div class="text-sm line-through text-base-content/50" x-text="koruny(it.priceBefore)"></div>
               </template>
             </div>
-          </td>r
+          </td>
 
           <td class="text-center">
             <div class="join justify-end">
@@ -2115,7 +1982,92 @@
 
   <script>
     document.addEventListener('alpine:init', () => {
-    //MAP  
+    //MOBILE "GOOGLE" SEARCH
+    Alpine.data('mobileSearchOverlayShell', () => ({
+    isOpen: false,
+    viewportH: window.visualViewport ? window.visualViewport.height : window.innerHeight,
+    pushedState: false,
+
+    get panelStyle(){ return `height:${this.viewportH}px;max-height:${this.viewportH}px;`; },
+
+    openOverlay(){
+      if (this.isOpen) return;
+      this.isOpen = true;
+      this.lockPageScroll(true);
+      this.attachViewportListener();
+
+      history.pushState({ mobileSearch: true }, '');
+      this.pushedState = true;
+
+      this._onPop = () => { if (this.isOpen) this.closeOverlay({ fromPop:true }); };
+      window.addEventListener('popstate', this._onPop);
+
+      this.$nextTick(() => {
+        const el = this.$root.querySelector('[data-mobile-search-input]');
+        if (el) el.focus({ preventScroll:true });
+      });
+    },
+
+    // Pass an optional reason: 'ui' | 'navigate' | 'pop'
+    closeOverlay({fromPop=false, reason='ui'} = {}){
+      if (!this.isOpen) return;
+      this.isOpen = false;
+      this.detachViewportListener();
+      this.lockPageScroll(false);
+
+      if (this._onPop) {
+        window.removeEventListener('popstate', this._onPop);
+        this._onPop = null;
+      }
+
+      // Only "go back" when user is closing without navigating.
+      if (this.pushedState && !fromPop && reason !== 'navigate') {
+        this.pushedState = false;
+        history.back();
+      } else {
+        this.pushedState = false;
+      }
+    },
+
+    // Fixed-body scroll lock (keeps focus/caret stable on iOS)
+    lockPageScroll(lock){
+      const body = document.body;
+      if (lock){
+        this._scrollY = window.scrollY || window.pageYOffset;
+        body.style.position = 'fixed';
+        body.style.top = `-${this._scrollY}px`;
+        body.style.left = '0';
+        body.style.right = '0';
+        body.style.width = '100%';
+      } else {
+        const y = this._scrollY || 0;
+        body.style.position = '';
+        body.style.top = '';
+        body.style.left = '';
+        body.style.right = '';
+        body.style.width = '';
+        window.scrollTo(0, y);
+      }
+    },
+
+    attachViewportListener(){
+      if (window.visualViewport){
+        this._vv = () => { this.viewportH = window.visualViewport.height; };
+        window.visualViewport.addEventListener('resize', this._vv);
+      } else {
+        this._wr = () => { this.viewportH = window.innerHeight; };
+        window.addEventListener('resize', this._wr);
+      }
+    },
+    detachViewportListener(){
+      if (this._vv && window.visualViewport) window.visualViewport.removeEventListener('resize', this._vv);
+      if (this._wr) window.removeEventListener('resize', this._wr);
+      this._vv = this._wr = null;
+    },
+  }));
+
+
+      //MAP  
     Alpine.data('mapPane', () => ({
 
     resizeObserver: null,
@@ -4268,7 +4220,164 @@ this.$nextTick(async () => {
       </div>
     </aside>
   </div>
-  
+<!-- MOBILE SEARCH OVERLAY -->
+<template x-teleport="body">
+  <div
+    data-mobile-search-overlay
+    x-data="mobileSearchOverlayShell()"
+    x-show="isOpen"
+    x-transition.opacity
+    class="fixed inset-0 z-[12050] pointer-events-auto" 
+    role="dialog" aria-modal="true"
+
+    @open-mobile-search.window="openOverlay()"
+    @mobile-search-close.window="closeOverlay($event?.detail || { reason:'ui' })"
+
+    @pointerdown.stop
+    @click.stop
+  >
+    <!-- Backdrop -->
+    <div class="absolute inset-0 bg-black/40 z-[12050]" @click="closeOverlay()"></div>
+
+    <!-- Panel -->
+    <section
+      class="absolute inset-x-0 top-0 bg-base-100 z-[12051] flex flex-col"
+      :style="panelStyle"
+      @click.stop
+      @keydown.escape.stop.prevent="closeOverlay()"
+    >
+      <!-- Reuse your existing searchBox -->
+      <div
+        x-data="searchBox({
+          getProducts:   () => products,
+          getCategories: () => navCategories,
+          getLinks:      () => infoLinks,
+          goTo:          (id) => go(`product/${id}`)
+        })"
+        x-init="open = true"
+        class="flex flex-col h-full pt-4"
+      >
+        <!-- Top bar -->
+        <div class="flex items-center gap-2 p-3 pb-2 sticky top-0 bg-base-100 z-[12052]" style="padding-top: env(safe-area-inset-top)">
+          <button
+          type="button"
+          class="btn btn-ghost btn-square"
+          @click.stop="$dispatch('mobile-search-close', { reason:'ui' })"
+          aria-label="Zavřít vyhledávání">
+            <i class="fa-regular fa-arrow-left"></i>
+          </button>
+
+          <!-- type=text to avoid native clear '×' -->
+          <label
+            class="relative input input-lg pl-4 pr-10 input-bordered rounded-full items-center gap-2 w-full max-input-gradient"
+            @pointerdown.capture.stop
+          >
+            <i class="fa-classic fa-regular fa-search"></i>
+            <input
+              data-mobile-search-input
+              x-ref="input"
+              type="text"
+              class="grow min-w-0 bg-transparent outline-none"
+              placeholder="Hledej dle názvu"
+              x-model.debounce.150ms="q"
+              @input="onInput()"
+              @keydown="(e) => { onKeydown(e); if(e.key==='Enter'){ $dispatch('mobile-search-close', { reason:'navigate' }) } }"
+              role="combobox"
+              aria-autocomplete="list"
+              :aria-expanded="true"
+              :aria-controls="listId"
+              :aria-activedescendant="activeDesc()"
+            />
+            <span
+            role="button"
+            tabindex="0"
+            class="absolute right-2 top-1/2 -translate-y-1/2 p-1"
+            x-show="q.length"
+            @mousedown.prevent.stop="q=''; onInput(); $nextTick(()=> $refs.input.focus())"
+            aria-label="Smazat dotaz">
+            <i class="fa-regular fa-xmark"></i>
+          </span>
+          </label>
+        </div>
+
+        <!-- Results (same as you have, with safe keys and pointerdown) -->
+        <div class="flex-1 overflow-y-auto overscroll-contain" style="padding-bottom: env(safe-area-inset-bottom)">
+          <template x-if="q.trim().length < minChars">
+            <ul class="p-3 pb-8 w-full flex flex-col space-y-3" :id="listId" role="listbox">
+              <li class="px-2 py-1 text-xs font-semibold text-base-content/60">Naposledy hledané</li>
+              <template x-if="!recentItems().length">
+                <li class="w-full px-2 py-3 text-sm text-base-content/60">Začněte psát váš dotaz…</li>
+              </template>
+              <template x-for="(item, i) in recentItems()" :key="`${item.t}-${item.k ?? i}`">
+                <li :id="itemId(i)" role="option" @mouseenter="highlighted = i">
+                  <a href="#"
+                  @click.prevent.stop="onSelect(item); $dispatch('mobile-search-close', { reason:'navigate' })"
+                  class="flex w-full items-center gap-3 min-h-12 px-2 rounded-lg"
+                  :class="i===highlighted ? 'bg-base-200' : 'hover:bg-base-200'">
+                    <!-- thumbs/icons same as your code -->
+                    <template x-if="item.img">
+                      <img :src="item.img" alt="" class="w-10 h-10 object-contain rounded bg-base-200/40" />
+                    </template>
+                    <template x-if="!item.img">
+                      <span class="w-10 h-10 rounded-full bg-base-200 grid place-items-center">
+                        <i :class="item.icon || 'fa-regular fa-circle-info'"></i>
+                      </span>
+                    </template>
+                    <div class="min-w-0 flex-1">
+                      <div class="font-medium text-base truncate" x-text="item.name"></div>
+                      <div class="text-sm font-medium text-base-content/60 truncate" x-text="item.sub"></div>
+                    </div>
+                  </a>
+                </li>
+              </template>
+            </ul>
+          </template>
+
+          <template x-if="q.trim().length >= minChars">
+            <ul class="p-3 pb-8 w-full flex flex-col space-y-3" :id="listId" role="listbox">
+              <template x-if="!suggestions().length">
+                <li class="w-full px-2 py-6 font-medium text-base text-center text-max-gray-400">Žádné výsledky</li>
+              </template>
+
+              <template x-for="(item, i) in suggestions()" :key="`${item.t}-${item.k ?? i}`">
+                <li :id="itemId(i)" role="option" @mouseenter="highlighted = i">
+                  <a href="#"
+                  @click.prevent.stop="onSelect(item); $dispatch('mobile-search-close', { reason:'navigate' })"
+                  class="flex w-full items-center gap-3 min-h-12 px-2 rounded-lg"
+                  :class="i===highlighted ? 'bg-base-200' : 'hover:bg-base-200'">
+                    <template x-if="item.img">
+                      <img :src="item.img" alt="" class="w-10 h-10 object-contain rounded bg-base-200/40" />
+                    </template>
+                    <template x-if="!item.img">
+                      <span class="w-10 h-10 rounded-full bg-base-200 grid place-items-center">
+                        <i :class="item.icon || 'fa-regular fa-circle-info'"></i>
+                      </span>
+                    </template>
+                    <div class="min-w-0 flex-1">
+                      <div class="font-medium text-base truncate" x-text="item.name"></div>
+                      <div class="text-sm font-medium text-base-content/60 truncate" x-text="item.sub"></div>
+                    </div>
+                    <span class="badge badge-ghost badge-sm shrink-0"
+                          x-text="item.t === 'product' ? 'Produkt' : (item.t==='category' ? 'Kategorie' : 'Info')"></span>
+                  </a>
+                </li>
+              </template>
+
+              <li class="pt-4">
+                <button class="btn btn-block btn-outline"
+                        @pointerdown.prevent.stop="$dispatch('mobile-search-close', { reason:'navigate' }); $dispatch('see-all', { q })">
+                  Zobrazit všechny výsledky
+                </button>
+              </li>
+            </ul>
+          </template>
+        </div>
+      </div>
+    </section>
+  </div>
+</template>
+
+
 
 
 </body>
