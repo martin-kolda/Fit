@@ -44,108 +44,130 @@
                     "label": "Telefonní číslo",
                     "placeholder": null,
                     "prefix": "+420",
-                    "note": "Pro případ kontaktování",
+                    "note": "Pro kontakt Dr. Max",
                     "validations": [
                         {"type": "required", "fails": "Tato položka je povinná"},
                         {"type": "phone", "fails": "Nesprávný formát telefonu"}
                     ]
-                },
-                {
-                    "id": 5,
-                    "type": "text",
-                    "label": "Poznámka k objednávce",
-                    "placeholder": "Doplňující informace",
-                    "prefix": null,
-                    "note": null,
-                    "validations": null
                 }
             ]
 
       },
       {
         "filedset_id": 2,
-        "fieldset_name": "Doručovací a fakturační adresa",
+        "fieldset_name": "Doručovací adresa",
         "items": 
             [
                 {
                     "id": 1,
-                    "type": "address",
-                    "label": "Ulice a číslo popisné",
-                    "placeholder": null,
-                    "prefix": null,
-                    "note": null,
-                    "validations": [
-                        {"type": "required", "fails": "Tato položka je povinná"},
-                        {"type": "address", "fails": "Nesprávný formát adresy"}
-                    ]
-                },
-                {
-                    "id": 2,
-                    "type": "checkbox",
+                    "type": "checkbox_fieldset",
                     "default": "!checked",
-                    "label": "Firemní údaje",
-                    "placeholder": null,
-                    "prefix": null,
-                    "note": null,
+                    "label": "Zadat podrobnosti k doručení a informace pro kurýra",
                     "validations": null,
-                    "hides_id": [3,4,5,6]
+                    "items":[
+                                {
+                                    "id": 2,
+                                    "type": "address",
+                                    "label": "Adresa pro doručení",
+                                    "placeholder": null,
+                                    "prefix": null,
+                                    "note": "Na tuto adresu Vám zboží doručíme. Na faktuře bude kontaktní adresa.",
+                                    "validations": [
+                                        {"type": "address", "fails": "Nesprávný formát adresy"}
+                                    ]
+                                },
+                                {
+                                    "id": 3,
+                                    "type": "text",
+                                    "label": "Doručit do firmy:",
+                                    "placeholder": null,
+                                    "prefix": null,
+                                    "note": "Nesouvisí s fakturací",
+                                    "validations": null
+                                },                
+                                {
+                                    "id": 4,
+                                    "type": "text",
+                                    "label": "Zásilku převezme - Jméno:",
+                                    "placeholder": null,
+                                    "prefix": null,
+                                    "note": null,
+                                    "validations": null
+                                },
+                                {
+                                    "id": 5,
+                                    "type": "text",
+                                    "label": "Zásilku převezme - Příjmení:",
+                                    "placeholder": null,
+                                    "prefix": null,
+                                    "note": null,
+                                    "validations": null
+                                },
+                                {
+                                    "id": 6,
+                                    "type": "text",
+                                    "label": "Zásilku převezme - Telefonní číslo",
+                                    "placeholder": null,
+                                    "prefix": "+420",
+                                    "note": "Neslouží pro kontakty od Dr. Max",
+                                    "validations": [
+                                        {"type": "phone", "fails": "Nesprávný formát telefonu"}
+                                    ]
+                                },
+                                {
+                                    "id": 7,
+                                    "type": "textarea",
+                                    "label": "Poznámka k objednávce",
+                                    "placeholder": "Doplňující informace",
+                                    "prefix": null,
+                                    "note": null,
+                                    "validations": null
+                                }
+
+                            ]
                     
-                },
+                },             
                 {
-                    "id": 3,
-                    "type": "text",
-                    "label": "IČO",
-                    "placeholder": null,
-                    "prefix": null,
-                    "note": null,
-                    "validations": [
-                        {"type": "required", "fails": "Tato položka je povinná"}
-                    ]
-                },
-                {
-                    "id": 4,
-                    "type": "text",
-                    "label": "DIČ",
-                    "placeholder": null,
-                    "note": null,
-                    "validations": null
-                },
-                {
-                    "id": 5,
-                    "type": "text",
-                    "label": "Společnost",
-                    "placeholder": "Doplňující informace",
-                    "prefix": null,
-                    "note": null,
-                    "validations": [
-                        {"type": "required", "fails": "Tato položka je povinná"}
-                    ]
-                },
-                {
-                    "id": 6,
-                    "type": "checkbox",
+                    "id": 8,
+                    "type": "checkbox_fieldset",
                     "default": "!checked",
-                    "label": "Jiná adresa doručení",
-                    "placeholder": null,
-                    "prefix": null,
-                    "note": null,
+                    "label": "Zadat podrobnosti k doručení a informace pro kurýra",
                     "validations": null,
-                    "hides_id": [7]
-                    
-                },
-                {
-                    "id": 7,
-                    "type": "address",
-                    "label": "Ulice a číslo popisné",
-                    "placeholder": null,
-                    "prefix": null,
-                    "note": null,
-                    "validations": [
-                        {"type": "required", "fails": "Tato položka je povinná"},
-                        {"type": "address", "fails": "Nesprávný formát adresy"}
-                    ]
-                }
+                    "items":[  
+                                {
+                                    "id": 9,
+                                    "type": "text",
+                                    "label": "IČO",
+                                    "placeholder": null,
+                                    "prefix": null,
+                                    "note": null,
+                                    "validations": [
+                                        {"type": "required", "fails": "Tato položka je povinná"}
+                                    ]
+                                },
+                                {
+                                    "id": 10,
+                                    "type": "text",
+                                    "label": "DIČ",
+                                    "placeholder": null,
+                                    "note": null,
+                                    "validations": null
+                                },
+                                {
+                                    "id": 11,
+                                    "type": "text",
+                                    "label": "Společnost",
+                                    "placeholder": "Doplňující informace",
+                                    "prefix": null,
+                                    "note": null,
+                                    "validations": [
+                                        {"type": "required", "fails": "Tato položka je povinná"}
+                                    ]
+                                }
+                            ]
+                            
+                }              
             ]
 
-      }      
+      }
     ]

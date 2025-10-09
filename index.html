@@ -211,8 +211,8 @@
   <!-- TOP-BAR QUICK ACTIONS (desktop only) -->
   <div class="hidden md:flex md:px-4">
     <button type="button" class="btn btn-link hidden lg:flex items-center gap-2 p-2 md:p-4 group no-underline hover:!no-underline focus-visible:!no-underline">
-      <i class="fa-classic fa-xl fa-regular fa-map-location-dot"></i>
-      <span class="hidden lg:block underline-offset-2 decoration-1 decoration-current group-hover:underline group-focus-visible:underline text-secondary">
+      <i class="fa-classic fa-xl fa-solid fa-map-location-dot"></i>
+      <span class="hidden xl:block underline-offset-2 decoration-1 decoration-current group-hover:underline group-focus-visible:underline text-secondary">
         <a href="#/map">Mapa lékáren a boxů</a>
       </span>
     </button>
@@ -220,7 +220,7 @@
     <div class="dropdown dropdown-start">
       <button type="button" class="btn btn-link hidden md:flex items-center gap-2 p-2 md:p-4 group no-underline hover:!no-underline focus-visible:!no-underline">
         <img alt="Language" class="relative h-[26px] w-[27px]" src="./icons/languages/En.svg" />
-        <span class="hidden xl:block underline-offset-2 decoration-1 decoration-current group-hover:underline group-focus-visible:underline text-secondary">
+        <span class="hidden 2xl:block underline-offset-2 decoration-1 decoration-current group-hover:underline group-focus-visible:underline text-secondary">
           English
         </span>
         <i class="fa-classic fa-md fa-solid fa-chevron-down"></i>
@@ -1914,13 +1914,13 @@
 
   <!-- Sticky bottom bar -->
   <div class="fixed bottom-0 left-0 right-0 border-t border-base-200 bg-white py-6 z-10">
-    <div class="w-12/12 lg:w-8/12 mx-auto px-4 flex items-center justify-between gap-3">
+    <div class="w-12/12 md:w-11/12 xl:w-8/12 mx-auto px-4 flex items-center justify-between gap-3">
       <button class="btn btn-outline btn-lg" @click="location.hash='/products'">
         Zpět</button>
 
       <button class="btn btn-primary btn-lg"
         :disabled="$store.cart.distinctCount() === 0"
-        @click="location.hash='/checkout/delivery'">
+        @click="location.hash='/delivery-payment'">
         Pokračovat <i class="fa-solid fa-arrow-right fa-sm" aria-hidden="true"></i>
       </button>
     </div>
@@ -2008,7 +2008,395 @@
 
 <!-- ROUTE == DELIVERY AND PAYMENt -->
 <section x-show="is('delivery-payment')" x-cloak>
-  Delivery and payment
+
+
+    <section x-data="" class="w-auto md:w-11/12 xl:w-8/12 mx-auto px-4 pt-2 md:pt-12 pb-32">
+      <h1 class="text-3xl mx-auto mb-6">Nákup od Dr. Max</h1>
+
+<!-- Delivery & Payment (Alpine component) -->
+<div x-data="deliveryPaymentUI()" x-init="init()" class="grid grid-cols-1 lg:grid-cols-2 gap-12">
+
+  <!-- DOPRAVA -->
+  <fieldset class="border border-base-300 rounded-xl bg-white shadow-sm p-4 py-8 md:p-10">
+    <h2 class="text-xl font-medium mb-4 ml-3">Doprava</h2>
+
+    <template x-if="loading">
+      <div class="p-3 text-sm text-base-content/70">Načítám možnosti…</div>
+    </template>
+
+    <template x-for="opt in delivery" :key="opt.id">
+      <!-- Only select after confirm if followup exists, else select immediately -->
+      <label :class="rowClasses('delivery', opt)"
+             @click.prevent="handleDeliveryClick(opt)">
+        <div class="flex items-center gap-3 min-w-0">
+          <!-- Radio reflects state (we set it in JS) -->
+          <input type="radio"
+                 name="shipping"
+                 class="radio radio-secondary shrink-0"
+                 :checked="selectedDeliveryId === opt.id"
+                 tabindex="-1" />
+          <img :src="opt.icon" :alt="opt.name"
+               class="size-13 rounded bg-base-200 object-contain shrink-0"
+               @error="$event.target.style.opacity=0.3" />
+          <div class="min-w-0">
+            <div class="font-medium leading-tight">
+              <!-- keep text truncation on the text only, not the container -->
+              <div class="flex items-center gap-1 min-w-0">
+                <span class="truncate max-w-full" x-text="opt.name"></span>
+            
+                <!-- DaisyUI tooltip (works on hover/focus; forced open on tap) -->
+                <div
+                  x-show="opt.tooltip"
+                  x-data="{ open:false }"
+                  class="tooltip tooltip-left md:tooltip-top shrink-0 z-10"
+                  :class="{ 'tooltip-open': open }"
+                  :data-tip="opt.tooltip"
+                  tabindex="0"
+                  @keydown.escape.window="open=false"
+                  @blur="open=false"
+                >
+                  <button
+                    type="button"
+                    class="ml-1 inline-flex h-5 w-5 items-center justify-center rounded-full text-[10px] bg-base-200"
+                    aria-label="Více informací"
+                    @click.stop="open = !open"
+                  ><i class="fa-regular fa-question-circle fa-lg text-max-gray-600" aria-hidden="true"></i></button>
+                </div>
+              </div>
+            </div>
+            <template x-if="opt.description">
+              <p class="text-sm font-medium text-base-content/70 leading-snug line-clamp-2" x-text="opt.description"></p>
+            </template>
+          </div>
+        </div>
+
+        <!-- Price (free shipping overrides everything in this column) -->
+        <div class="text-right shrink-0">
+          <template x-if="freeShippingActive || opt.price === 0">
+            <div class="font-semibold">Zdarma</div>
+          </template>
+          <template x-if="!freeShippingActive && opt.price > 0">
+            <div>
+              <div class="text-xs tracking-wide font-medium text-base-content/60" x-show="opt.price_from">Od</div>
+              <div class="font-semibold" x-text="formatCZK(opt.price)"></div>
+            </div>
+          </template>
+        </div>
+      </label>
+    </template>
+  </fieldset>
+
+  <!-- PLATBA -->
+  <fieldset class="border border-base-300 rounded-xl bg-white shadow-sm p-4 py-8 md:p-10">
+    <h2 class="text-xl font-medium mb-4 ml-3">Platba</h2>
+
+    <template x-if="loading">
+      <div class="p-3 text-sm text-base-content/70">Načítám možnosti…</div>
+    </template>
+
+    <template x-for="opt in payment" :key="opt.id">
+      <label :class="rowClasses('payment', opt)"
+             :aria-disabled="isPaymentDisabled(opt.id)"
+             @click.prevent="handlePaymentClick(opt)">
+        <div class="flex items-center gap-3 min-w-0">
+          <input type="radio"
+                 name="payment"
+                 class="radio radio-secondary shrink-0"
+                 :checked="selectedPaymentId === opt.id"
+                 :disabled="isPaymentDisabled(opt.id)"
+                 tabindex="-1" />
+          <img :src="opt.icon" :alt="opt.name"
+               class="size-13 rounded bg-base-200 object-contain shrink-0"
+               @error="$event.target.style.opacity=0.3" />
+          <div class="min-w-0">
+            <div class="font-medium leading-tight">
+              <span x-text="opt.name"></span>
+              <!-- Tooltip #1: option’s own tooltip (DaisyUI) -->
+              <span x-show="opt.tooltip" class="inline-block" x-data="{ open:false }" @keydown.escape.window="open=false">
+                <div
+                  class="tooltip tooltip-left md:tooltip-top"
+                  :class="{ 'tooltip-open': open }"
+                  :data-tip="opt.tooltip"
+                  tabindex="0"
+                  @blur="open=false"
+                >
+                  <button
+                    type="button"
+                    class="ml-1 inline-flex size-5 items-center justify-center rounded-full text-xs bg-base-200"
+                    aria-label="Více informací"
+                    @click.stop="open=!open"
+                  ><i class="fa-regular fa-question-circle fa-lg text-max-gray-600" aria-hidden="true"></i></button>
+                </div>
+              </span>
+            </div>
+            <template x-if="opt.description">
+              <p class="text-sm font-medium text-base-content/70 leading-snug" x-text="opt.description"></p>
+            </template>
+          </div>
+        </div>
+
+        <!-- Price area -->
+        <div class="text-right shrink-0">
+          <!-- When disabled by the selected delivery, show “Neumožňuje” with tooltip -->
+          <template x-if="isPaymentDisabled(opt.id)">
+            <div class="tooltip tooltip-left" :data-tip="disabledReason()">
+              <div class="tracking-wide font-semibold">Nelze</div>
+            </div>
+          </template>
+
+          <template x-if="!isPaymentDisabled(opt.id)">
+            <template x-if="opt.price === 0">
+              <div class="font-semibold">Zdarma</div>
+            </template>
+            <template x-if="opt.price > 0">
+              <div>
+                <div class="text-xs tracking-wide font-medium text-base-content/60" x-show="opt.price_from">Od</div>
+                <div class="font-semibold" x-text="formatCZK(opt.price)"></div>
+              </div>
+            </template>
+          </template>
+        </div>
+      </label>
+    </template>
+  </fieldset>
+
+
+
+  <!-- Follow-up modal (placeholder content) -->
+  <dialog x-ref="modal" class="modal">
+    <div class="modal-box">
+      <h3 class="font-bold text-lg" x-text="followupTitle()"></h3>
+      <div class="py-3 text-base-content/70">
+        <template x-if="currentFollowup?.type === 'map'">
+          <p>Zde bude mapa pro výběr výdejního místa.</p>
+        </template>
+        <template x-if="currentFollowup?.type === 'timeslot'">
+          <p>Zde bude výběr časového okna doručení.</p>
+        </template>
+        <template x-if="currentFollowup?.type === 'benefits'">
+          <p>Zde bude výběr benefitní platby (Pluxee, Benefit Plus, Edenred…).</p>
+        </template>
+      </div>
+      <div class="modal-action">
+        <button class="btn btn-ghost" @click="cancelFollowup()">Zrušit</button>
+        <button class="btn btn-primary" @click="confirmFollowup()">Potvrdit</button>
+      </div>
+    </div>
+  </dialog>
+</div>
+
+<p class="mt-18 text-sm space-y-3 sm:space-y-0 sm:flex sm:flex-wrap sm:items-center sm:gap-x-6 sm:gap-y-2">
+  <a href="#"
+     class="block w-full py-2 rounded hover:underline focus-visible:underline underline-offset-2
+            focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50
+            sm:inline-flex sm:w-auto sm:items-center sm:gap-1 sm:py-0">
+    Všeobecné obchodní podmínky
+  </a>
+
+  <a href="#"
+     class="block w-full py-2 rounded hover:underline focus-visible:underline underline-offset-2
+            focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50
+            sm:inline-flex sm:w-auto sm:items-center sm:gap-1 sm:py-0">
+    Rezervační podmínky
+  </a>
+
+  <a href="#"
+     class="block w-full py-2 rounded hover:underline focus-visible:underline underline-offset-2
+            focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50
+            sm:inline-flex sm:w-auto sm:items-center sm:gap-1 sm:py-0">
+    Ochrana osobních údajů v e-shopu
+  </a>
+
+  <a href="#"
+     class="block w-full py-2 rounded hover:underline focus-visible:underline underline-offset-2
+            focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50
+            sm:inline-flex sm:w-auto sm:items-center sm:gap-1 sm:py-0">
+    Co je rezervace, co objednávka a jak to funguje?
+  </a>
+</p>
+
+
+<script>
+function deliveryPaymentUI() {
+  return {
+    loading: true,
+    items: [],
+    delivery: [],
+    payment: [],
+
+    // current selections
+    selectedDeliveryId: null,
+    selectedPaymentId: null,
+
+    // follow-up handling
+    currentFollowup: null,   // { type: 'map'|'timeslot'|'benefits', option, kind }
+    pending: null,           // { kind: 'delivery'|'payment', id, opt }
+    freeShippingActive: false,
+
+    async init() {
+      try {
+        const res = await fetch('./data/delivery-payment.json', { cache: 'no-store' });
+        this.items = await res.json();
+
+        // split groups
+        this.delivery = this.items.filter(i => i.type === 'delivery' || i.type === 'pickup');
+        this.payment  = this.items.filter(i => i.type === 'payment');
+
+        // restore selections
+        const sd = Number(localStorage.getItem('selectedDeliveryId')) || null;
+        const sp = Number(localStorage.getItem('selectedPaymentId')) || null;
+        if (sd && this.delivery.some(d => d.id === sd)) this.selectedDeliveryId = sd;
+        if (sp && this.payment.some(p => p.id === sp)) this.selectedPaymentId = sp;
+
+        // validate existing combination after restore
+        if (this.selectedPaymentId && this.isPaymentDisabled(this.selectedPaymentId)) {
+          this.clearPaymentSelection();
+        }
+      } catch (e) {
+        console.error('Failed to load delivery-payment.json', e);
+      } finally {
+        this.loading = false;
+      }
+
+      this.freeShippingActive = this.computeFreeShipping();
+      this.$watch(() => Alpine.store('cart')?.totalToPay?.(), () => {
+        this.freeShippingActive = this.computeFreeShipping();
+      });
+      this.$watch(() => Alpine.store('cart')?.freeShipThreshold, () => {
+        this.freeShippingActive = this.computeFreeShipping();
+      });
+    },
+
+    // ---------- helpers ----------
+    computeFreeShipping() {
+      const cart = Alpine.store('cart');
+      if (!cart) return false;
+      if (typeof cart.hasFreeShipping === 'function') return !!cart.hasFreeShipping();
+      const t = Number(cart.freeShipThreshold || 0);
+      if (t <= 0) return true;
+      return cart.totalToPay() >= t;
+    },
+    getSelectedDelivery() {
+      return this.delivery.find(d => d.id === this.selectedDeliveryId) || null;
+    },
+    isPaymentDisabled(paymentId) {
+      if (!paymentId) return false;
+      const d = this.getSelectedDelivery();
+      if (!d) return false;
+      return Array.isArray(d.disables_id) && d.disables_id.includes(paymentId);
+    },
+    disabledReason() {
+      const d = this.getSelectedDelivery();
+      return d ? `„${d.name}“ tuto platbu neumožňuje.` : 'Tato platba není dostupná pro vybranou dopravu.';
+    },
+    formatCZK(value) {
+      return new Intl.NumberFormat('cs-CZ', { maximumFractionDigits: 0 }).format(value) + '\u00A0Kč';
+    },
+
+    rowClasses(kind, opt) {
+      const selected = (kind === 'delivery' ? this.selectedDeliveryId : this.selectedPaymentId) === opt.id;
+      const disabled = (kind === 'payment') && this.isPaymentDisabled(opt.id);
+      return [
+        'flex items-center justify-between gap-4 p-3 rounded-lg transition select-none',
+        disabled ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer hover:bg-base-100',
+        // No borders by default; only selected rows get border (Ask #6)
+        selected ? 'border-2 border-secondary bg-max-blue-25' : ''
+      ].join(' ');
+    },
+
+    // ---------- click handlers (Ask #5 behavior) ----------
+    handleDeliveryClick(opt) {
+      // If followup is required, show modal first and set pending, not the selection
+      if (opt.followup) {
+        this.pending = { kind: 'delivery', id: opt.id, opt };
+        this.currentFollowup = { type: opt.followup, option: opt, kind: 'delivery' };
+        this.$refs.modal?.showModal();
+        return;
+      }
+      // Immediate select when no follow-up
+      this.applyDeliverySelection(opt.id);
+    },
+
+    handlePaymentClick(opt) {
+      if (this.isPaymentDisabled(opt.id)) {
+        // do nothing, and the tooltip on price explains why
+        return;
+      }
+      if (opt.followup) {
+        this.pending = { kind: 'payment', id: opt.id, opt };
+        this.currentFollowup = { type: opt.followup, option: opt, kind: 'payment' };
+        this.$refs.modal?.showModal();
+        return;
+      }
+      this.applyPaymentSelection(opt.id);
+    },
+
+    confirmFollowup() {
+      if (!this.pending) return this.$refs.modal?.close();
+      if (this.pending.kind === 'delivery') this.applyDeliverySelection(this.pending.id);
+      if (this.pending.kind === 'payment') this.applyPaymentSelection(this.pending.id);
+      this.pending = null;
+      this.currentFollowup = null;
+      this.$refs.modal?.close();
+    },
+    cancelFollowup() {
+      this.pending = null;
+      this.currentFollowup = null;
+      this.$refs.modal?.close();
+    },
+
+    // ---------- selection application ----------
+    applyDeliverySelection(id) {
+      const prev = this.selectedDeliveryId;
+      this.selectedDeliveryId = id;
+      localStorage.setItem('selectedDeliveryId', String(id));
+
+      // Ask #1: if existing payment is now invalid, clear it
+      if (this.selectedPaymentId && this.isPaymentDisabled(this.selectedPaymentId)) {
+        this.clearPaymentSelection();
+      }
+
+      // If the delivery actually changed and has its own followup, we already handled via confirm
+      // (nothing else needed here).
+    },
+    applyPaymentSelection(id) {
+      this.selectedPaymentId = id;
+      localStorage.setItem('selectedPaymentId', String(id));
+    },
+    clearPaymentSelection() {
+      this.selectedPaymentId = null;
+      localStorage.removeItem('selectedPaymentId');
+    },
+
+    // ---------- follow-up labels ----------
+    followupTitle() {
+      switch (this.currentFollowup?.type) {
+        case 'map': return 'Výběr výdejního místa';
+        case 'timeslot': return 'Výběr časového okna';
+        case 'benefits': return 'Výběr benefitní platby';
+        default: return 'Akce';
+      }
+    },
+  };
+}
+</script>
+
+
+      <!-- Sticky bottom bar -->
+      <div class="fixed bottom-0 left-0 right-0 border-t border-base-200 bg-white py-6 z-10">
+        <div class="w-12/12 md:w-11/12 xl:w-8/12 mx-auto px-4 flex items-center justify-between gap-3">
+          <button class="btn btn-outline btn-lg" @click="location.hash='/cart'">
+            Zpět</button>
+
+          <button class="btn btn-primary btn-lg"
+            :disabled="$store.cart.distinctCount() === 0"
+            @click="location.hash='/delivery-payment'">
+            Pokračovat <i class="fa-solid fa-arrow-right fa-sm" aria-hidden="true"></i>
+          </button>
+        </div>
+      </div>
+</section>
+
 </section>
 
 <!-- ROUTE == MAP -->
@@ -2680,7 +3068,12 @@ this.$nextTick(() => requestAnimationFrame(focusRealInput));
     freeShipMissing() {
       const missing = Number(this.freeShipThreshold || 0) - this.totalToPay();
       return Math.max(0, Math.ceil(missing));
-    }
+    },
+    hasFreeShipping() {
+    const t = Number(this.freeShipThreshold || 0);
+    if (t <= 0) return true;                
+    return this.totalToPay() >= t;          // threshold reached?
+  }
   });
 
 
