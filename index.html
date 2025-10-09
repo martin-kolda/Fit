@@ -31,9 +31,12 @@
   @keyframes slideInLeft  { from { transform: translateX(-6%); opacity: .01 } to { transform: translateX(0); opacity: 1 } }
   @keyframes slideInRight { from { transform: translateX( 6%); opacity: .01 } to { transform: translateX(0); opacity: 1 } }
   .slide-in-left  { animation: slideInLeft  .18s ease-out; }
-  .slide-in-right { animation: slideInRight .18s ease-out; }    
+  .slide-in-right { animation: slideInRight .18s ease-out; }
   body {font-family: 'Figtree', sans-serif;}
   .leaflet-container img { max-width: none !important; }
+  .ms-overlay-panel {height: 100vh; max-height: 100vh;}
+  @supports (height: 100lvh) { .ms-overlay-panel { height: 100lvh; max-height: 100lvh;}}
+  .reflection {-webkit-box-reflect: below -80px linear-gradient(transparent 60%, rgba(0, 0, 0, .5) 100%);}
   </style>
 </head>
 
@@ -47,7 +50,7 @@
       <img alt="Menu" class="relative h-[26px] w-[27px]" src="./icons/Bars.svg" />
     </button>
 
-    <a href="#/products">
+    <a href="/" @click.prevent="go('home')">
          <svg viewBox="0 0 137 46" fill="none" xmlns="http://www.w3.org/2000/svg" class="h-[46px] md:h-[56px] shrink-0">
           <path fill-rule="evenodd" clip-rule="evenodd" d="M23.2836 45.2917C10.8401 45.2917 0.716797 35.2915 0.716797 23C0.716797 10.7082 10.8401 0.708008 23.2836 0.708008H113.716C126.16 0.708008 136.283 10.7082 136.283 23C136.283 35.2915 126.16 45.2917 113.716 45.2917H23.2836Z" fill="white"/>
           <path fill-rule="evenodd" clip-rule="evenodd" d="M113.716 0H23.284C10.4451 0 0 10.3177 0 22.9999C0 35.682 10.4451 46 23.284 46H113.716C126.555 46 137 35.682 137 22.9999C137 10.3177 126.555 0 113.716 0M113.716 1.41634C125.765 1.41634 135.566 11.0987 135.566 22.9999C135.566 34.901 125.765 44.5837 113.716 44.5837H23.284C11.2357 44.5837 1.43382 34.901 1.43382 22.9999C1.43382 11.0987 11.2357 1.41634 23.284 1.41634H113.716" fill="#A7A8AA"/>
@@ -217,7 +220,7 @@
     <div class="dropdown dropdown-start">
       <button type="button" class="btn btn-link hidden md:flex items-center gap-2 p-2 md:p-4 group no-underline hover:!no-underline focus-visible:!no-underline">
         <img alt="Language" class="relative h-[26px] w-[27px]" src="./icons/languages/En.svg" />
-        <span class="hidden lg:block underline-offset-2 decoration-1 decoration-current group-hover:underline group-focus-visible:underline text-secondary">
+        <span class="hidden xl:block underline-offset-2 decoration-1 decoration-current group-hover:underline group-focus-visible:underline text-secondary">
           English
         </span>
         <i class="fa-classic fa-md fa-solid fa-chevron-down"></i>
@@ -338,6 +341,257 @@
 
 <!-- ROUTER SHELL -->
 <div id="app">
+
+<!-- ROUTE == HOMEPAGE -->
+<template x-if="is('home')">
+  <div class="sm:w-11/12 lg:w-10/12 mx-auto p-4 pb-12 pt-1 md:pt-6">
+    
+
+    <!-- Banner example -->
+    <section>
+      <div class="relative rounded-2xl overflow-hidden shadow-md">
+        <!-- track -->
+
+              <div class="h-100 relative bg-base-200 border-max-blue-500">
+                <!-- background image -->
+                <img src="./images/banners/default-bg.jpg" class="absolute inset-0 w-full h-full object-cover">
+                <!-- content -->
+                <div class="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent"></div>
+
+                    <h2 class="w-1/3 md:w-full text-4xl sm:text-5xl font-bold absolute top-16 md:top-24 left-10 lg:left-14 xl:left-20 text-white">Podzimní výprodej</h2>
+                    <p class="opacity-90 text-2xl md:text-3xl absolute top-44 lg:top-40 left-10 lg:left-14 xl:left-20 text-white w-2/5 md:w-3/5 lg:w-2/5">Slevy až 30 % na doplňky stravy Dr. Max</p>
+                    <span class="btn btn-lg 2xl:btn-xl absolute top-72 2xl:top-68 left-10 lg:left-14 xl:left-20">Nakoupit <i class="fa-solid fa-arrow-right"></i></span>
+                    <span class="btn btn-link btn-sm absolute bottom-4 right-4 text-white" onclick="my_modal_3.showModal()">Podmínky akce</span>
+
+                <!-- layers -->
+                <img src="./images/banners/losange.webp" class="absolute z-0 -bottom-64 opacity-10 left-128 w-28 sm:w-16 lg:w-164 rotate-90">
+                <img src="./images/banners/sleva.png" class="absolute z-6 top-6 lg:top-12 right-6 lg:right-12 w-22 md:w-28 2xl:w-32 slide-in-right">
+                <img src="./images/banners/pharmacist.webp" class="absolute z-1 hidden xl:block lg:-bottom-2 xl:-bottom-1 2xl:-bottom-24 xl:right-94 2xl:right-126 w-20 md:w-36 lg:w-48 xl:w-60 2xl:w-82">
+                <img src="./images/banners/magnesium.webp" class="absolute z-3 top-12 2xl:top-4 -right-40 sm:-right-20 lg:right-20 2xl:right-40 w-80 2xl:w-90 reflection">
+                <img src="./images/banners/lutein.webp" class="absolute z-1 top-30 2xl:top-20 -right-24 sm:-right-4 2xl:-right-8 w-80 2xl:w-90 reflection">
+              </div>
+
+  
+      </div>
+      <dialog id="my_modal_3" class="modal">
+        <div class="modal-box">
+          <form method="dialog">
+            <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
+          </form>
+          <h3 class="text-lg font-bold">Podzimní výprodej</h3>
+          <p class="py-4">Doplňky stravy. Nabídka platí na vybrané produkty z e-shopu drmax.cz do 30.10. nebo do vyprodání zásob. Slevu nelze kombinovat s jinými akčními nabídkami. Kompletní podmínky akce na www.drmax.cz/podminky-akce</p>
+        </div>
+      </dialog>
+    </section>
+       <!-- dots -->
+       <div class="mt-3 flex items-center justify-center gap-2">
+          <button class="btn btn-circle w-3 h-3 bg-base-300"></button>
+          <button class="btn btn-circle btn-primary h-4"></button>
+          <button class="btn btn-circle w-3 h-3 bg-base-300"></button>
+          <button class="btn btn-circle w-3 h-3 bg-base-300"></button>
+      </div>
+
+    <!-- 1) Billboard Carousel (HTML banner, mobile-first) -->
+    <section x-data="homeCarousel()" class="mt-4">
+      <div class="relative rounded-2xl overflow-hidden shadow-md">
+        <!-- track -->
+        <div class="flex transition-transform duration-500 ease-out"
+             :style="`transform: translateX(-${index * 100}%);`">
+          <template x-for="(slide,i) in slides" :key="i">
+            <a :href="slide.href || '#/products'" class="min-w-full block">
+              <div class="aspect-[2/1] sm:aspect-[3/1] lg:aspect-[4/1] relative bg-base-200">
+                <!-- background image -->
+                <img :src="slide.img" :alt="slide.title"
+                     class="absolute inset-0 w-full h-full object-cover">
+                <!-- content -->
+                <div class="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent"></div>
+                <div class="relative h-full flex items-end p-4 sm:p-6">
+                  <div class="text-white">
+                    <h2 class="text-xl sm:text-2xl font-semibold" x-text="slide.title"></h2>
+                    <p class="opacity-90 mt-1" x-text="slide.text"></p>
+                    <span class="btn btn-sm mt-3">Nakoupit</span>
+                  </div>
+                </div>
+                <!-- subtle hero float (decor layer) -->
+                <img :src="slide.hero"
+                     class="absolute right-2 bottom-2 w-28 sm:w-40 lg:w-52 transition-transform duration-500 will-change-transform"
+                     :class="{'translate-y-0': index===i, 'translate-y-2': index!==i}">
+              </div>
+            </a>
+          </template>
+        </div>
+
+        <!-- dots -->
+        <div class="absolute inset-x-0 bottom-2 flex justify-center gap-2">
+          <template x-for="(s,i) in slides" :key="i">
+            <button class="btn btn-xs rounded-full"
+                    :class="index===i ? 'btn-primary' : 'btn-ghost'"
+                    @click="go(i)"></button>
+          </template>
+        </div>
+
+        <!-- arrows -->
+        <button class="btn btn-circle btn-ghost absolute left-2 top-1/2 -translate-y-1/2"
+                @click="prev()"><i class="fa-solid fa-chevron-left"></i></button>
+        <button class="btn btn-circle btn-ghost absolute right-2 top-1/2 -translate-y-1/2"
+                @click="next()"><i class="fa-solid fa-chevron-right"></i></button>
+      </div>
+    </section>
+
+
+
+
+
+
+    <!-- 2) Top categories -->
+    <section class="mt-8">
+      <div class="flex items-center justify-between mb-3">
+        <h3 class="text-lg font-semibold">Nejlepší kategorie</h3>
+        <a href="#/products" class="link link-primary">Zobrazit vše</a>
+      </div>
+      <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
+        <template x-for="c in topCats" :key="c.name">
+          <a href="#/products" @click.prevent="selectedCategory=c.name; go('#/products')"
+             class="card bg-white hover:shadow-md transition p-3 items-center text-center">
+            <div class="w-full aspect-square rounded-xl bg-base-200 overflow-hidden grid place-items-center">
+              <img :src="c.image" :alt="c.name" class="w-4/5 h-4/5 object-contain">
+            </div>
+            <div class="mt-2 text-sm font-medium truncate" x-text="c.name"></div>
+          </a>
+        </template>
+      </div>
+    </section>
+
+    <!-- 3) Product carousels -->
+    <section class="mt-8">
+      <div class="flex items-center justify-between mb-3">
+        <h3 class="text-lg font-semibold">Doporučené produkty</h3>
+        <a href="#/products" class="link link-primary">Do katalogu</a>
+      </div>
+
+      <!-- horizontal scroll / snap -->
+      <div class="relative group">
+        <div class="overflow-x-auto scrollbar-thin">
+          <div class="flex gap-3 snap-x snap-mandatory px-0">
+            <template x-for="p in topProducts(12)" :key="p.id">
+              <a :href="link('product',{id:p.id})"
+                 class="snap-start shrink-0 w-48 sm:w-56 card bg-white hover:shadow-md transition">
+                <figure class="p-3 h-40">
+                  <img :src="p.image || './images/placeholder.webp'" :alt="p.name"
+                       class="w-full h-full object-contain">
+                </figure>
+                <div class="card-body pt-0">
+                  <div class="text-sm font-medium line-clamp-2" x-text="p.name"></div>
+                  <div class="mt-1 text-base font-semibold">
+                    <span x-text="(p.price || 0).toLocaleString('cs-CZ') + ' Kč'"></span>
+                    <span class="ml-2 line-through text-xs opacity-60" x-show="p.oldPrice"
+                          x-text="(p.oldPrice || 0).toLocaleString('cs-CZ') + ' Kč'"></span>
+                  </div>
+                  <div class="mt-1">
+                    <span class="badge" :class="p.inStock ? 'badge-success' : 'badge-ghost'">
+                      <span x-text="p.inStock ? 'Skladem' : 'Na dotaz'"></span>
+                    </span>
+                  </div>
+                </div>
+              </a>
+            </template>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Optional: category-focused carousel -->
+    <template x-if="topCats.length">
+      <section class="mt-8">
+        <div class="flex items-center justify-between mb-3">
+          <h3 class="text-lg font-semibold" x-text="'Top v kategorii: ' + topCats[0].name"></h3>
+          <a href="#/products" class="link link-primary">Více</a>
+        </div>
+        <div class="overflow-x-auto">
+          <div class="flex gap-3 snap-x snap-mandatory">
+            <template x-for="p in productsByCategory(topCats[0].name, 10)" :key="p.id">
+              <a :href="link('product',{id:p.id})"
+                 class="snap-start shrink-0 w-48 sm:w-56 card bg-white hover:shadow-md transition">
+                <figure class="p-3 h-40">
+                  <img :src="p.image || './images/placeholder.webp'" :alt="p.name"
+                       class="w-full h-full object-contain">
+                </figure>
+                <div class="card-body pt-0">
+                  <div class="text-sm font-medium line-clamp-2" x-text="p.name"></div>
+                  <div class="mt-1 text-base font-semibold">
+                    <span x-text="(p.price || 0).toLocaleString('cs-CZ') + ' Kč'"></span>
+                  </div>
+                </div>
+              </a>
+            </template>
+          </div>
+        </div>
+      </section>
+    </template>
+
+    <!-- 4) Top brands -->
+    <section class="mt-10">
+      <h3 class="text-lg font-semibold mb-3">Top značky</h3>
+      <div class="grid grid-cols-3 sm:grid-cols-5 md:grid-cols-10 gap-4 items-center">
+        <template x-for="b in topBrands" :key="b.name">
+          <a href="#/products" class="rounded-xl border bg-white p-3 grid place-items-center hover:shadow-sm">
+            <img :src="b.logo" :alt="b.name" class="h-8 object-contain opacity-80">
+          </a>
+        </template>
+      </div>
+    </section>
+
+    <!-- 5) Benefits -->
+    <section class="mt-10">
+      <h3 class="text-lg font-semibold mb-3">Proč u nás nakoupit</h3>
+      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3">
+        <template x-for="(b, i) in benefits.slice(0,5)" :key="i">
+          <div class="card bg-white shadow-sm p-4">
+            <div class="flex items-start gap-3">
+              <div class="text-primary text-xl"><i class="fa-solid" :class="b.icon"></i></div>
+              <div>
+                <div class="font-semibold" x-text="b.title"></div>
+                <div class="text-sm opacity-70" x-text="b.text"></div>
+              </div>
+            </div>
+          </div>
+        </template>
+      </div>
+    </section>
+
+    <!-- 6) Blog / Magazine -->
+    <section class="mt-10">
+      <div class="flex items-center justify-between mb-3">
+        <h3 class="text-lg font-semibold">Magazín</h3>
+        <a :href="(infoLinks?.[0]?.href)||'#/products'" class="link link-primary">Další články</a>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <!-- Use infoLinks if available; otherwise placeholders -->
+        <template x-for="(post, i) in (infoLinks?.slice(0,3) || [])" :key="i">
+          <a :href="post.href" class="card bg-white hover:shadow-md transition overflow-hidden">
+            <figure class="h-40 bg-base-200">
+              <img :src="post.image || './images/blog/placeholder.webp'" :alt="post.title"
+                   class="w-full h-full object-cover">
+            </figure>
+            <div class="card-body">
+              <div class="text-sm opacity-60" x-text="post.category || 'Magazín'"></div>
+              <h4 class="font-semibold line-clamp-2" x-text="post.title"></h4>
+            </div>
+          </a>
+        </template>
+
+        <template x-if="!(infoLinks && infoLinks.length)">
+          <div class="md:col-span-3 text-sm opacity-70">
+            Připravujeme obsah — tipy, recenze a inspiraci pro výběr.
+          </div>
+        </template>
+      </div>
+    </section>
+
+  </div>
+</template>
+
+
 
 <!-- ROUTE == PRODUCTS -->
 <section x-show="is('products')" x-cloak>
@@ -3022,8 +3276,9 @@ detail: null,
 
 // ---- lifecycle ----
 init() {
-  // 1) Router
+  // 1) Router: support BOTH hash routes & path (no-hash) homepage
   window.addEventListener('hashchange', () => this._onRoute());
+  window.addEventListener('popstate',   () => this._onRoute()); // for back/forward when at "/"
   this._onRoute();
 
   // 2) Watchers -> reset paging + loader delay when anything changes
@@ -3066,7 +3321,7 @@ async loadData() {
     this.products.forEach(p => (Array.isArray(p.consumers) ? p.consumers : []).forEach(c => cons.add(c)));
     this.consumersList = [...cons].sort((a,b)=>a.localeCompare(b,'cs'));
 
-    // 👉 NEW: optional data for search (categories + info links)
+    // 👉 optional data
     const [cats, links] = await Promise.allSettled([
       fetch('data/categories.json').then(r => r.ok ? r.json() : []),
       fetch('data/links.json').then(r => r.ok ? r.json() : []),
@@ -3074,9 +3329,30 @@ async loadData() {
     this.navCategories = (cats.status === 'fulfilled'  && Array.isArray(cats.value))  ? cats.value  : [];
     this.infoLinks     = (links.status === 'fulfilled' && Array.isArray(links.value)) ? links.value : [];
 
+    // ---- HOMEPAGE derived data (lightweight heuristics) ----
+    // pick top categories by product count
+    const counts = {};
+    this.products.forEach(p => { if (p.category) counts[p.category] = (counts[p.category] || 0) + 1; });
+    this.topCats = Object.entries(counts)
+      .sort((a,b)=>b[1]-a[1])
+      .slice(0, 6)
+      .map(([name]) => ({ name, image: this.categoryImage(name) }));
+
+    // Top brands (from product.brand if present)
+    const brandSet = new Set(this.products.map(p => (p.brand || '').trim()).filter(Boolean));
+    this.topBrands = Array.from(brandSet).slice(0, 10).map(name => ({ name, logo: this.brandLogo(name) }));
+
+    // Benefits (use what you want, or pull from config later)
+    this.benefits = [
+      { icon: 'fa-truck', title: 'Doprava zdarma', text: 'od 999 Kč' },
+      { icon: 'fa-box', title: 'Síť výdejních míst', text: 'po celé ČR & SR' },
+      { icon: 'fa-rotate-left', title: 'Snadné vrácení', text: 'do 30 dní' },
+      { icon: 'fa-bolt', title: 'Rychlé doručení', text: 'již zítra' },
+      { icon: 'fa-shield', title: 'Bezpečný nákup', text: 'ověření zákazníci' },
+    ];
+
   } catch (e) {
     console.error('Failed to load products.json', e);
-    // optional: still try to load the auxiliary files even if products fail
     try {
       const [cats, links] = await Promise.allSettled([
         fetch('data/categories.json').then(r => r.ok ? r.json() : []),
@@ -3091,17 +3367,14 @@ async loadData() {
 },
 
 // ---- scroll manager ----
-_scrollStore: { products: 0 },
-_saveScroll(key = 'products') {
+_scrollStore: { home: 0, products: 0 },
+_saveScroll(key = this.route) {
   this._scrollStore[key] = window.scrollY || window.pageYOffset || 0;
 },
-_restoreScroll(key = 'products') {
+_restoreScroll(key = this.route) {
   const y = this._scrollStore[key] ?? 0;
-
-  // Wait until the list is actually rendered (no loader) before restoring.
   const restore = () => {
     if (this.isLoading) { requestAnimationFrame(restore); return; }
-    // extra tick so images/layout settle
     setTimeout(() => { window.scrollTo({ top: y, left: 0, behavior: 'auto' }); }, 0);
   };
   requestAnimationFrame(restore);
@@ -3132,21 +3405,57 @@ clearOptions() {
   this.onlyDiscounted = false;
 },
 
-// link helper (so templates can do :href="link('product',{id:item.id})")
+// ---- homepage helpers (images/logos; adapt paths as needed) ----
+categoryImage(name) {
+  // prefer categories.json image if present
+  const c = (this.navCategories || []).find(c => (c.name || c.title) === name);
+  return c?.image || `./images/categories/${encodeURIComponent(name)}.webp`;
+},
+brandLogo(name) {
+  // try local logo by brand name
+  return `./images/brands/${encodeURIComponent(name)}.svg`;
+},
+
+// ---- product picks for home ----
+topProducts(limit = 12) {
+  // naive "featured": in stock & discounted first
+  const list = [...this.products];
+  list.sort((a,b)=>{
+    const ad = (b.discount || 0) - (a.discount || 0);
+    if (ad !== 0) return ad;
+    return (b.inStock ? 1:0) - (a.inStock ? 1:0);
+  });
+  return list.slice(0, limit);
+},
+productsByCategory(cat, limit = 10) {
+  return this.products.filter(p => p.category === cat).slice(0, limit);
+},
+
+// link helper
 link(name, params = {}) {
+  if (name === 'home')    return '/';
   if (name === 'product') return `#/product/${params.id}${params.tab ? '/' + params.tab : ''}`;
   if (name === 'cart')    return '#/cart';
-  if (name === 'delivery-payment')    return '#/delivery-payment';
-  if (name === 'map')    return '#/map';
+  if (name === 'delivery-payment') return '#/delivery-payment';
+  if (name === 'map')     return '#/map';
   return '#/products';
 },
 
 go(to) {
+  // special case: go to homepage WITHOUT hash
+  if (to === 'home' || to === '/' || to === '') {
+    // save scroll position of leaving route
+    if (this.route === 'products') this._saveScroll('products');
+    if (this.route !== 'home') this._saveScroll(this.route);
+    window.history.pushState({}, '', window.location.pathname); // no hash
+    this._onRoute(); // manually trigger since no 'hashchange'
+    return;
+  }
+
   const newHash = to.startsWith('#') ? to : ('#' + to.replace(/^#/, ''));
   if (location.hash === newHash) { this._onRoute(); return; }
-  location.hash = newHash; // native hashchange will trigger _onRoute()
+  location.hash = newHash;
 },
-
 
 is(nameOrArr) {
   return Array.isArray(nameOrArr)
@@ -3156,20 +3465,30 @@ is(nameOrArr) {
 
 // ---- router ----
 _onRoute() {
-  // remember where we were
   const prevRoute = this.route;
 
-  const raw = (location.hash || '#/products').replace(/^#\/?/, '');
-  const [pathPart] = raw.split('?');
-  const seg = pathPart.split('/').map(s => decodeURIComponent(s || ''));
+  // if there's no hash (or just "#") -> HOME
+  const emptyOrHome = !location.hash || location.hash === '#';
+
+  // Keep existing hash router when present
+  const raw = emptyOrHome ? '' : (location.hash).replace(/^#\/?/, '');
+  const [pathPart] = (raw || '').split('?');
+  const seg = (pathPart || '').split('/').map(s => decodeURIComponent(s || ''));
   const [path, id, sub] = seg;
 
+  if (emptyOrHome || path === '') {
+    // default + fallback = HOME
+    if (prevRoute === 'products') this._saveScroll('products');
+    this.route = 'home';
+    this.params = {};
+    this._restoreScroll('home');
+    return;
+  }
+
   switch (path) {
-    case '':
     case 'products':
       this.route = 'products';
       this.params = {};
-      // restore AFTER switching route so list renders
       this._restoreScroll('products');
       break;
 
@@ -3180,27 +3499,27 @@ _onRoute() {
       this._scrollToTopSoon();
       break;
 
-      case 'delivery-payment':
+    case 'delivery-payment':
       if (prevRoute === 'products') this._saveScroll('products');
       this.route = 'delivery-payment';
       this.params = {};
       this._scrollToTopSoon();
       break;
 
-      case 'map':
+    case 'map':
       if (prevRoute === 'products') this._saveScroll('products');
       this.route = 'map';
       this.params = {};
       this._scrollToTopSoon();
-      break;      
+      break;
 
-      case 'product':
+    case 'product':
       if (prevRoute === 'products') this._saveScroll('products');
       if (id) {
         this.route = 'product';
         this.params = { id, tab: sub || 'desc' };
         this._scrollToTopSoon();
-        this.loadDetail(id);     // ✅ single source of truth
+        this.loadDetail(id);
       } else {
         this.route = 'product';
         this.params = {};
@@ -3209,12 +3528,15 @@ _onRoute() {
       break;
 
     default:
+      // 🌟 Fallback to HOME (no hash)
       if (prevRoute === 'products') this._saveScroll('products');
-      this.route = 'products';
+      window.history.replaceState({}, '', window.location.pathname);
+      this.route = 'home';
       this.params = {};
-      this._restoreScroll('products');
+      this._restoreScroll('home');
   }
 },
+
 
 // ---- detail loading with single source of truth for price ----
 async getDetailById(id) {
@@ -3650,6 +3972,10 @@ rangeLabel() {
       district: '',
       districts: ['Praha 1','Praha 2','Praha 3','Praha 4','Praha 5','Praha 6','Praha 7','Praha 8','Praha 9','Praha 10'],
       placeholderImg,
+      enableGeolocateOnLoad: true,   
+      geolocateOncePerSession: true, 
+      userMarker: null,
+      userAccuracy: null,
   
       // RESPONSIVE FLAGS
       isMd: false,
@@ -3680,17 +4006,26 @@ rangeLabel() {
   
         await this.loadData();
 
-this.$nextTick(async () => {
-  await this.ensureVisibleSize();
+        this.$nextTick(async () => {
+          await this.ensureVisibleSize();
 
-  this.initMap();
-  this.renderMarkers();
+          this.initMap();
+          this.renderMarkers();
 
-  this.withMap(m => {
-    m.setView([50.0755, 14.4378], 12);
-    setTimeout(() => m.invalidateSize(false), 0);
-  });
+          this.withMap(m => {
+            m.setView([50.0755, 14.4378], 12);
+            setTimeout(() => m.invalidateSize(false), 0);
+          });
   
+          if (this.enableGeolocateOnLoad) {
+            const key = 'geoPrompted';
+            const already = this.geolocateOncePerSession && sessionStorage.getItem(key);
+            if (!already) {
+              this.locateUser();              
+              if (this.geolocateOncePerSession) sessionStorage.setItem(key, '1');
+            }
+          }
+
             // Observe container size changes
             const host = this.$refs?.mapEl || document.getElementById('map');
             if (host && !this._ro) {
@@ -3826,9 +4161,12 @@ this.$nextTick(async () => {
             { maxZoom: 19, attribution: '&copy; Tracestrack, &copy; OpenStreetMap contributors' }
           ).addTo(this.map);
         } else {
-          L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            maxZoom: 19, attribution: '&copy; OpenStreetMap přispěvatelé'
-          }).addTo(this.map);
+
+
+          L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+          subdomains: 'abcd', maxZoom: 19,
+          attribution: '© OpenStreetMap contributors, © CARTO'
+        }).addTo(this.map);
         }
   
         // Clustering (optional)
@@ -3838,7 +4176,22 @@ this.$nextTick(async () => {
             showCoverageOnHover:false, spiderfyOnMaxZoom:true, disableClusteringAtZoom:16
           }).addTo(this.map);
         }
-  
+    // Simple custom control: "Locate me"
+    const LocateControl = L.Control.extend({
+      onAdd: () => {
+        const btn = L.DomUtil.create('button', 'leaflet-bar');
+        btn.setAttribute('type','button');
+        btn.style.cssText = 'background:#fff;border:2px solid rgba(0, 0, 0, 0.2);width:34px;height:34px;display:flex;align-items:center;justify-content:center;cursor:pointer';
+        btn.innerHTML = '<i class="fa-solid fa-location-crosshairs fa-xl"></i>';
+        btn.title = 'Najít moji polohu';
+        L.DomEvent.on(btn, 'click', (e) => { L.DomEvent.stopPropagation(e); this.locateUser(); });
+        return btn;
+      },
+      onRemove: () => {}
+    });
+    this.map.addControl(new LocateControl({ position: 'topleft' }));
+
+
         window.__pickupMap = this.map;
       },
   
@@ -3958,7 +4311,52 @@ this.$nextTick(async () => {
         }
       },
       clearAllFilters() { this.search=''; this.district=''; this.applyFilters(); },
-  
+      
+      locateUser() {
+      if (!navigator.geolocation) {
+        this.toast('Geolokace není podporována v tomto prohlížeči.');
+        return;
+      }
+
+      // Leaflet convenience: fires 'locationfound' / 'locationerror'
+      this.map.once('locationfound', (e) => {
+        const { latlng, accuracy } = e;
+
+        // remove previous
+        if (this.userMarker) this.userMarker.remove();
+        if (this.userAccuracy) this.userAccuracy.remove();
+
+        // a small blue dot marker
+        const youIcon = L.divIcon({
+          className: 'you-are-here',
+          html: `<div style="width:10px;height:10px;border-radius:50%;background:#2563eb;box-shadow:0 0 0 3px rgba(37,99,235,.25)"></div>`,
+          iconSize: [10,10], iconAnchor: [5,5]
+        });
+
+        this.userMarker = L.marker(latlng, { icon: youIcon }).addTo(this.map);
+        this.userAccuracy = L.circle(latlng, { radius: accuracy, color: '#2563eb', fillColor: '#2563eb', fillOpacity: 0.08, weight: 1 })
+          .addTo(this.map);
+
+        // center/zoom nicely
+        const targetZoom = Math.max(this.map.getZoom(), 15);
+        this.map.setView(latlng, targetZoom, { animate: true });
+      });
+
+      this.map.once('locationerror', (err) => {
+        // Common: blocked by user, insecure (needs HTTPS), or timeout
+        this.toast('Nepodařilo se zjistit polohu. Zkontrolujte oprávnění/HTTPS.');
+        console.warn('Geolocation error:', err);
+      });
+
+      // Start locate (will show browser prompt)
+      this.map.locate({
+        setView: false,             // we’ll setView after drawing marker
+        enableHighAccuracy: true,
+        maximumAge: 0,
+        timeout: 10000
+      });
+    },
+
       dayCZ(d) {
         const m = { Mon:'Pondělí', Tue:'Úterý', Wed:'Středa', Thu:'Čtvrtek', Fri:'Pátek', Sat:'Sobota', Sun:'Neděle' };
         return m[d] || d;
@@ -4017,6 +4415,56 @@ this.$nextTick(async () => {
       if (window.Alpine) register();
       window.addEventListener('alpine:init', register);
     })();
+    // Billboard carousel
+    function homeCarousel() {
+    return {
+      index: 0,
+      timer: null,
+      slides: [
+        {
+          title: 'Podzimní výprodej',
+          text: 'Slevy až 30 %',
+          img: './images/banners/default-bg.jpg',
+          hero: './images/banners/psyllium.png',
+          href: '#/products'
+        },
+        {
+          title: 'Novinky týdne',
+          text: 'Doručení do 24 h',
+          img: './images/banners/newin-wide.webp',
+          hero: './images/banners/hero2.webp',
+          href: '#/products'
+        },
+        {
+          title: 'Doporučujeme',
+          text: 'Oblíbené u zákazníků',
+          img: './images/banners/picks-wide.webp',
+          hero: './images/banners/hero3.webp',
+          href: '#/products'
+        },
+      ],
+      go(i){ this.index = (i + this.slides.length) % this.slides.length; this.restart(); },
+      next(){ this.go(this.index + 1); },
+      prev(){ this.go(this.index - 1); },
+      start(){ this.timer = setInterval(()=>this.next(), 5000); },
+      stop(){ if (this.timer) clearInterval(this.timer); this.timer = null; },
+      restart(){ this.stop(); this.start(); },
+      init(){
+        this.start();
+        // pause on hover
+        this.$root.addEventListener('mouseenter', ()=>this.stop());
+        this.$root.addEventListener('mouseleave', ()=>this.start());
+        // basic swipe
+        let sx=0;
+        this.$root.addEventListener('touchstart', e=>{ sx = e.touches?.[0]?.clientX || 0; });
+        this.$root.addEventListener('touchend', e=>{
+          const ex = e.changedTouches?.[0]?.clientX || 0;
+          if (Math.abs(ex - sx) > 40) (ex < sx) ? this.next() : this.prev();
+        });
+      }
+    }
+  }
+
     </script>
 
 <!-- TOAST OUTLET -->

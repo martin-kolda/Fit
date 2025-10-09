@@ -1,0 +1,15 @@
+[
+    {
+      "id": 1,
+      "banner_template_id": 1,
+      "title": "Podzimní výprodej",
+      "text": { "long": "Slevy až 30 % na doplňky stravy Dr. Max", "short": "Slevy až 30 %" },
+      "legal_text": "Doplňky stravy. Nabídka platí na vybrané produkty z e-shopu drmax.cz do 30.10. nebo do vyprodání zásob. Slevu nelze kombinovat s jinými akčními nabídkami. Kompletní podmínky akce na www.drmax.cz/podminky-akce",
+      "badge": "./images/banners/darek.png",
+      "background": "./images/banners/default-bg.jpg",
+      "layer_1": "./images/banners/psyllium.webp",
+      "cta": { "button": "Nakoupit", "link": "#/products"},
+      "legal": { "button": "Podmínky akce", "text": "Doplňky stravy. Nabídka platí na vybrané produkty z e-shopu drmax.cz do 30.10. nebo do vyprodání zásob. Slevu nelze kombinovat s jinými akčními nabídkami. Kompletní podmínky akce na www.drmax.cz/podminky-akce"}
+    }
+
+]
