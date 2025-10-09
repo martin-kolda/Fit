@@ -1585,13 +1585,19 @@
 
       <!-- CART LIST: MOBILE TILES (no horizontal scroll) -->
 <div class="md:hidden space-y-3">
-  <template x-for="it in $store.cart.list()" :key="it.id">
+  <template x-for="it in $store.cart.list()" :key="it.id + '-' + it.image">
     <article class="card bg-white border border-base-200 shadow-sm">
       <div class="card-body p-3">
         <!-- Header: image + title + price -->
         <div class="flex gap-3 items-center">
           <div class="h-18 w-18 rounded bg-base-200 overflow-hidden shrink-0 grid place-content-center">
-            <img :src="it.image" :alt="it.name" class="h-full w-full object-contain" loading="lazy">
+            <img
+              :src="it.image"
+              :alt="it.name"
+              class="h-full w-full object-contain"
+              loading="lazy"
+              @error="$event.target.closest('.grid')?.classList.add('opacity-50')"
+            >
           </div>
 
           <div class="min-w-0 flex-1">
@@ -1643,12 +1649,18 @@
       </tr>
     </thead>
     <tbody>
-      <template x-for="it in $store.cart.list()" :key="it.id">
+      <template x-for="it in $store.cart.list()" :key="it.id + '-' + it.image">
         <tr>
           <td>
             <div class="flex gap-3 items-center">
               <div class="h-20 w-20 rounded bg-base-200 overflow-hidden grid place-content-center mr-2 flex-shrink-0">
-                <img :src="it.image" :alt="it.name" class="h-full w-full object-contain" loading="lazy">
+                <img
+                :src="it.image"
+                :alt="it.name"
+                class="h-full w-full object-contain"
+                loading="lazy"
+                @error="$event.target.closest('.grid')?.classList.add('opacity-50')"
+              >
               </div>
               <div class="min-w-0">
                 <div class="font-medium" :title="it.name" x-text="it.name"></div>
@@ -2011,7 +2023,105 @@
 
 
     <section x-data="" class="w-auto md:w-11/12 xl:w-8/12 mx-auto px-4 pt-2 md:pt-12 pb-32">
-      <h1 class="text-3xl mx-auto mb-6">Nákup od Dr. Max</h1>
+<!-- DELIVERY/PAYMENT: Cart Avatars (from localStorage 'cart.v1') -->
+<div x-data="cartAvatars({ key: 'cart.v1', max: 4 })" x-init="init()" class="flex items-center gap-4 pb-4">
+  <h1 class="text-3xl">Nákup od Dr. Max</h1>
+
+  <!-- Only render the group after items are ready -->
+  <template x-if="items.length">
+    <div class="avatar-group -space-x-6 overflow-visible" aria-label="Produkty v košíku">
+      <template x-for="it in visible()" :key="it.id + '-' + it.img">
+        <div class="avatar" :title="it.name">
+          <div class="w-12">
+            <img
+              :src="it.img"
+              :alt="it.name || 'Produkt v košíku'"
+              loading="lazy"
+              @load="$event.target.style.opacity = 1"
+              @error="$event.target.style.opacity = 0.3"
+            />
+          </div>
+        </div>
+      </template>
+  
+      <div class="avatar avatar-placeholder" x-show="overflow() > 0">
+        <div class="bg-neutral text-neutral-content w-12">
+          <span x-text="'+' + overflow()"></span>
+        </div>
+      </div>
+    </div>
+  </template>
+</div>
+
+<script>
+  document.addEventListener('alpine:init', () => {
+    Alpine.data('cartAvatars', (opts = {}) => ({
+      items: [],
+      key: opts.key ?? 'cart',
+      max: opts.max ?? 4,
+  
+      init() {
+        this.refresh();
+        window.addEventListener('storage', (e) => {
+          if (e.key === this.key) this.refresh();
+        });
+      },
+  
+      // Pick the first usable image across multiple shapes
+      primaryImage(p) {
+        const candidates = [];
+  
+        // Strings
+        if (typeof p?.image === 'string') candidates.push(p.image);
+        if (Array.isArray(p?.images) && p.images.length) {
+          // strings or objects with url/src
+          const first = p.images[0];
+          if (typeof first === 'string') candidates.push(first);
+          else if (first && typeof first === 'object') {
+            if (typeof first.url === 'string') candidates.push(first.url);
+            if (typeof first.src === 'string') candidates.push(first.src);
+          }
+        }
+  
+        // Other possible fields, just in case
+        ['thumbnail','img','photo','picture'].forEach(k => {
+          if (typeof p?.[k] === 'string') candidates.push(p[k]);
+        });
+  
+        const chosen = candidates.find(v => typeof v === 'string' && v.trim().length > 0);
+        return chosen ? new URL(chosen, window.location.href).href : '';
+      },
+  
+      refresh() {
+        this.items = [];
+        try {
+          const raw = localStorage.getItem(this.key);
+          if (!raw) return;
+  
+          const data = JSON.parse(raw);
+          const obj = data?.items || {};
+  
+          const list = Object.values(obj).map(e => e?.product).filter(Boolean);
+  
+          this.items = list.map(p => ({
+            id: p.id,
+            name: p.name || 'Produkt v košíku',
+            img: this.primaryImage(p),
+          }))
+          // keep only those with an image
+          .filter(it => !!it.img)
+          // de-dupe by id+img (ids may be numbers or slugs)
+          .filter((v, i, self) => self.findIndex(x => x.id === v.id && x.img === v.img) === i);
+        } catch (_) {}
+      },
+  
+      visible() { return this.items.slice(0, this.max); },
+      overflow() { return Math.max(0, this.items.length - this.max); },
+    }));
+  });
+  </script>
+  
+
 
 <!-- Delivery & Payment (Alpine component) -->
 <div x-data="deliveryPaymentUI()" x-init="init()" class="grid grid-cols-1 lg:grid-cols-2 gap-12">
@@ -2852,24 +2962,50 @@ this.$nextTick(() => requestAnimationFrame(focusRealInput));
     qty(id)    { id = String(id); return this.items[id]?.qty ?? 0; },
     distinctCount() { return Object.keys(this.items).length; },
     countAll() { return Object.values(this.items).reduce((s, it) => s + (it?.qty || 0), 0); },
-    list() {
-      // normalize a flat view for table: { id, qty, product, price, priceBefore, image, name, badges }
-      return Object.entries(this.items).map(([id, rec]) => {
-        const p = rec.product || {};
-        const price = Number(p.discounted_price || p.price || 0);
-        const priceBefore = Number(p.price || price);
-        return {
-          id,
-          qty: rec.qty,
-          product: p,
-          name: p.name || p.title || `Produkt #${id}`,
-          image: p.image || p.thumbnail || p.img || '',
-          badges: p.badges || p.labels || p.tags || [],
-          price,
-          priceBefore
-        };
-      });
-    },
+    imgFor(p = {}) {
+    const candidates = [];
+
+    // simple string field
+    if (typeof p.image === 'string') candidates.push(p.image);
+
+    // array of strings or objects
+    if (Array.isArray(p.images) && p.images.length) {
+      const first = p.images[0];
+      if (typeof first === 'string') candidates.push(first);
+      else if (first && typeof first === 'object') {
+        if (typeof first.url === 'string') candidates.push(first.url);
+        if (typeof first.src === 'string') candidates.push(first.src);
+      }
+    }
+
+    // other common fallbacks
+    ['thumbnail', 'img', 'photo', 'picture'].forEach(k => {
+      if (typeof p[k] === 'string') candidates.push(p[k]);
+    });
+
+    const chosen = candidates.find(v => typeof v === 'string' && v.trim().length > 0);
+    return chosen ? new URL(chosen, window.location.href).href : '';
+  },
+
+  list() {
+    // normalize a flat view for table: { id, qty, product, price, priceBefore, image, name, badges }
+    return Object.entries(this.items).map(([id, rec]) => {
+      const p = rec.product || {};
+      const price = Number(p.discounted_price ?? p.price ?? 0);
+      const priceBefore = Number(p.price ?? price);
+
+      return {
+        id,
+        qty: rec.qty,
+        product: p,
+        name: p.name || p.title || `Produkt #${id}`,
+        image: this.imgFor(p),                 // <- use normalized primary image
+        badges: p.badges || p.labels || p.tags || [],
+        price,
+        priceBefore
+      };
+    });
+  },
 
     // public wrappers used by templates
     linePrice(itOrId) {
