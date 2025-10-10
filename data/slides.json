@@ -3,13 +3,30 @@
       "id": 1,
       "banner_template_id": 1,
       "title": "Podzimní výprodej",
-      "text": { "long": "Slevy až 30 % na doplňky stravy Dr. Max", "short": "Slevy až 30 %" },
-      "legal_text": "Doplňky stravy. Nabídka platí na vybrané produkty z e-shopu drmax.cz do 30.10. nebo do vyprodání zásob. Slevu nelze kombinovat s jinými akčními nabídkami. Kompletní podmínky akce na www.drmax.cz/podminky-akce",
-      "badge": "./images/banners/darek.png",
+      "text": { "long": "Slevy až 30 % na doplňky stravy Dr. Max", "short": "Slevy až 30 %" },
       "background": "./images/banners/default-bg.jpg",
-      "layer_1": "./images/banners/psyllium.webp",
-      "cta": { "button": "Nakoupit", "link": "#/products"},
+      "layer_1": "./images/banners/losange.webp",
+      "layer_2": "./images/banners/pharmacist.webp",
+      "layer_3": "./images/banners/lutein.webp",
+      "layer_4": "./images/banners/magnesium.webp",
+      "layer_5": "./images/banners/sleva.png",
+      "layer_6": null,
+      "cta": { "button": "Nakoupit", "link": "#/products", "icon": "fa-solid fa-arrow-right"},
       "legal": { "button": "Podmínky akce", "text": "Doplňky stravy. Nabídka platí na vybrané produkty z e-shopu drmax.cz do 30.10. nebo do vyprodání zásob. Slevu nelze kombinovat s jinými akčními nabídkami. Kompletní podmínky akce na www.drmax.cz/podminky-akce"}
+    },
+    {
+      "id": 2,
+      "banner_template_id": 2,
+      "title": "Dárek před Vánoci",
+      "text": { "long": "ke všem nákupům", "short": "Dárek pro Vás" },
+      "background": "./images/banners/white-bg.jpg",
+      "layer_1": "./images/banners/losange.webp",
+      "layer_2": "./images/banners/pharmacist.webp",
+      "layer_3": "./images/banners/lutein.webp",
+      "layer_4": "./images/banners/magnesium.webp",
+      "layer_5": "./images/banners/darek.png",
+      "layer_6": null,
+      "cta": { "button": "To chceš!", "link": "#/products", "icon": "fa-solid fa-stars"},
+      "legal": { "button": "Podmínky akce", "text": "Nabídka platí na celý sortiment z e-shopu drmax.cz platí do do 31.12. nebo do vyprodání zásob. Slevu nelze kombinovat s jinými akčními nabídkami. Kompletní podmínky akce na www.drmax.cz/podminky-akce"}
     }
-
 ]

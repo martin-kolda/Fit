@@ -37,6 +37,57 @@
   .ms-overlay-panel {height: 100vh; max-height: 100vh;}
   @supports (height: 100lvh) { .ms-overlay-panel { height: 100lvh; max-height: 100lvh;}}
   .reflection {-webkit-box-reflect: below -80px linear-gradient(transparent 60%, rgba(0, 0, 0, .5) 100%);}
+  .free-ship-bar .fill { position: relative; }
+  .free-ship-bar .fill.shimmer::after {content: "";position: absolute;inset: 0; background-image: linear-gradient(120deg,rgba(255,255,255,0) 0%,rgba(255,255,255,0.35) 18%,rgba(255,255,255,0) 36%);background-size: 200% 100%;animation: bar-shimmer 2.6s linear infinite;pointer-events: none;}
+  @keyframes bar-shimmer {0%   { background-position: 50% 0; } 30%  { background-position: -100% 0; } 100% { background-position: -100% 0; }}
+  @media (prefers-reduced-motion: reduce) {.free-ship-bar .fill.shimmer::after { animation: none; }}  
+ 
+
+/* Base: set your normal button radius once */
+.btn-squish {
+  --br: 0.75rem;          /* change if your theme uses a different radius */
+  border-radius: var(--br);
+  will-change: transform, border-radius;
+}
+
+/* Trigger class; adjust duration freely (0.28s ... 1s) */
+.btn-squish.is-squishing {
+  animation: br-bounce var(--squish-dur, 1s) both;
+}
+
+/* Smoother, long-duration friendly bounce */
+@keyframes br-bounce {
+  /* press in */
+  0% {
+    transform: scale(1);
+    border-radius: var(--br);
+    animation-timing-function: cubic-bezier(.2,.7,.2,1); /* ease-in-ish */
+  }
+  35% {
+    transform: scale(.985, .96);
+    border-radius: calc(var(--br) - 0.20rem);
+  }
+
+  /* rebound */
+  65% {
+    transform: scale(1.018, 1.035);
+    border-radius: calc(var(--br) + 0.10rem);
+    animation-timing-function: cubic-bezier(.16,.84,.38,1); /* smooth ease-out */
+  }
+
+  /* settle */
+  100% {
+    transform: scale(1);
+    border-radius: var(--br);
+  }
+}
+
+/* Respect reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .btn-squish.is-squishing { animation: none; }
+}
+
+
   </style>
 </head>
 
@@ -263,10 +314,14 @@
       </ul>
     </div>
 
+
+
     <button
-    class="btn btn-primary w-12 h-12 btn-lg btn-square max-gradient indicator"
+    class="btn btn-primary btn-squish w-12 h-12 btn-lg btn-square max-gradient indicator"
     aria-label="Otevřít košík" title="Košík"
     @click="location.hash='/cart'"
+    @pointerdown="$el.classList.add('is-squishing')"
+    @animationend="requestAnimationFrame(()=> $el.classList.remove('is-squishing'))"
     x-data
   >
     <i class="fa-classic fa-xl fa-regular fa-basket-shopping text-white max-embos-v"></i>
@@ -347,96 +402,120 @@
   <div class="sm:w-11/12 lg:w-10/12 mx-auto p-4 pb-12 pt-1 md:pt-6">
     
 
-    <!-- Banner example -->
-    <section>
-      <div class="relative rounded-2xl overflow-hidden shadow-md">
-        <!-- track -->
 
-              <div class="h-100 relative bg-base-200 border-max-blue-500">
-                <!-- background image -->
-                <img src="./images/banners/default-bg.jpg" class="absolute inset-0 w-full h-full object-cover">
-                <!-- content -->
-                <div class="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent"></div>
+<!-- Billboard Carousel -->
 
-                    <h2 class="w-1/3 md:w-full text-4xl sm:text-5xl font-bold absolute top-16 md:top-24 left-10 lg:left-14 xl:left-20 text-white">Podzimní výprodej</h2>
-                    <p class="opacity-90 text-2xl md:text-3xl absolute top-44 lg:top-40 left-10 lg:left-14 xl:left-20 text-white w-2/5 md:w-3/5 lg:w-2/5">Slevy až 30 % na doplňky stravy Dr. Max</p>
-                    <span class="btn btn-lg 2xl:btn-xl absolute top-72 2xl:top-68 left-10 lg:left-14 xl:left-20">Nakoupit <i class="fa-solid fa-arrow-right"></i></span>
-                    <span class="btn btn-link btn-sm absolute bottom-4 right-4 text-white" onclick="my_modal_3.showModal()">Podmínky akce</span>
+<section x-data="homeCarousel()" class="mt-4">
+  <div class="group relative rounded-2xl overflow-hidden shadow-md select-none h-100"
+       tabindex="0" x-ref="viewport">
 
-                <!-- layers -->
-                <img src="./images/banners/losange.webp" class="absolute z-0 -bottom-64 opacity-10 left-128 w-28 sm:w-16 lg:w-164 rotate-90">
-                <img src="./images/banners/sleva.png" class="absolute z-6 top-6 lg:top-12 right-6 lg:right-12 w-22 md:w-28 2xl:w-32 slide-in-right">
-                <img src="./images/banners/pharmacist.webp" class="absolute z-1 hidden xl:block lg:-bottom-2 xl:-bottom-1 2xl:-bottom-24 xl:right-94 2xl:right-126 w-20 md:w-36 lg:w-48 xl:w-60 2xl:w-82">
-                <img src="./images/banners/magnesium.webp" class="absolute z-3 top-12 2xl:top-4 -right-40 sm:-right-20 lg:right-20 2xl:right-40 w-80 2xl:w-90 reflection">
-                <img src="./images/banners/lutein.webp" class="absolute z-1 top-30 2xl:top-20 -right-24 sm:-right-4 2xl:-right-8 w-80 2xl:w-90 reflection">
-              </div>
+    <!-- track -->
+    <div x-ref="track" class="flex will-change-transform h-full" :style="trackStyle()">
 
-  
+      <template x-for="(slide,i) in slides" :key="slide.id || i">
+        <a :href="ctaHref(slide)" class="min-w-full block h-full overflow-hidden" @click="onSlideClick($event)">
+          <!-- FIXED HEIGHT (no responsive changes) -->
+          <div class="relative bg-base-200 h-100"
+               :class="cls(slide,'wrapper')"
+               :style="style(slide,'background_color')">
+
+            <!-- background -->
+            <img :src="slide.background || './images/banners/default-bg.jpg'"
+                 :alt="slide.title"
+                 class="absolute inset-0 w-full h-full object-cover z-0"
+                 :class="cls(slide,'background')">
+
+            <!-- texts & CTA -->
+            <h2 class="absolute"
+                :class="cls(slide,'title')"
+                x-text="slide.title"></h2>
+
+            <p class="absolute opacity-90"
+               :class="cls(slide,'text')"
+               x-text="txt(slide)"></p>
+
+            <span class="btn absolute btn-squish"
+               @pointerdown="$el.classList.add('is-squishing')"
+               @animationend="requestAnimationFrame(()=> $el.classList.remove('is-squishing'))"
+               :class="cls(slide,'cta')">
+               <span x-text="ctaLabel(slide)"></span>
+               <i :class="ctaIcon(slide)" class="ml-2"></i>
+            </span>
+
+            <button type="button"
+                    class="btn btn-link btn-sm absolute"
+                    :class="cls(slide,'legal_link')"
+                    @click.stop.prevent="openModal(slide)">
+              <span x-text="slide.legal?.linkLabel || 'Podmínky akce'"></span>
+            </button>
+
+            <!-- layers -->
+            <template x-for="n in 6" :key="`layer-${i}-${n}-${isActive(i)?animNonce:'off'}`">
+              <img :src="slide[`layer_${n}_src`] || slide[`layer_${n}`] || (slide.layers?.[n]?.src)"
+                   x-show="slide[`layer_${n}`] || slide[`layer_${n}_src`] || (slide.layers && slide.layers[n])"
+                   class="absolute pointer-events-none"
+                   :class="[cls(slide, `layer_${n}`), anim(slide, `layer_${n}`, i)].filter(Boolean).join(' ')">
+            </template>
+          </div>
+        </a>
+      </template>
+    </div>
+
+    <!-- chevrons (hover-only, as before) -->
+    <button
+      class="hidden md:flex absolute left-2 top-1/2 -translate-y-1/2
+             h-10 w-10 items-center justify-center rounded-full
+             bg-white/70 shadow-sm backdrop-blur leading-none
+             transition duration-200
+             opacity-0 group-hover:opacity-100
+             pointer-events-none group-hover:pointer-events-auto
+             outline-none focus:outline-none focus:ring-0"
+      @click.stop.prevent="prev()" aria-label="Předchozí banner">
+      <i class="fa-solid fa-chevron-left"></i>
+    </button>
+
+    <button
+      class="hidden md:flex absolute right-2 top-1/2 -translate-y-1/2
+             h-10 w-10 items-center justify-center rounded-full
+             bg-white/70 shadow-sm backdrop-blur leading-none
+             transition duration-200
+             opacity-0 group-hover:opacity-100
+             pointer-events-none group-hover:pointer-events-auto
+             outline-none focus:outline-none focus:ring-0"
+      @click.stop.prevent="next()" aria-label="Další banner">
+      <i class="fa-solid fa-chevron-right"></i>
+    </button>
+ 
+    
+    
+    
+
+  </div>
+
+  <!-- dots outside -->
+  <div class="mt-3 flex items-center justify-center gap-2">
+    <template x-for="(s,i) in slides" :key="s.id || i">
+      <button class="btn btn-circle border-none w-3 h-3 min-h-0 p-0"
+              :class="isActive(i) ? 'btn-primary h-4 w-4' : 'bg-base-300'"
+              @click="go(i)"
+              :aria-label="`Slide ${i+1}`"></button>
+    </template>
+  </div>
+
+  <!-- per-slide legal modals -->
+  <template x-for="(slide,i) in slides" :key="'m'+(slide.id||i)">
+    <dialog :id="modalId(slide)" class="modal">
+      <div class="modal-box">
+        <form method="dialog">
+          <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2" aria-label="Zavřít">✕</button>
+        </form>
+        <h3 class="text-lg font-bold" x-text="slide.legal?.title || slide.title"></h3>
+        <p class="py-4 whitespace-pre-line" x-text="slide.legal?.text || ''"></p>
       </div>
-      <dialog id="my_modal_3" class="modal">
-        <div class="modal-box">
-          <form method="dialog">
-            <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
-          </form>
-          <h3 class="text-lg font-bold">Podzimní výprodej</h3>
-          <p class="py-4">Doplňky stravy. Nabídka platí na vybrané produkty z e-shopu drmax.cz do 30.10. nebo do vyprodání zásob. Slevu nelze kombinovat s jinými akčními nabídkami. Kompletní podmínky akce na www.drmax.cz/podminky-akce</p>
-        </div>
-      </dialog>
-    </section>
-       <!-- dots -->
-       <div class="mt-3 flex items-center justify-center gap-2">
-          <button class="btn btn-circle w-3 h-3 bg-base-300"></button>
-          <button class="btn btn-circle btn-primary h-4"></button>
-          <button class="btn btn-circle w-3 h-3 bg-base-300"></button>
-          <button class="btn btn-circle w-3 h-3 bg-base-300"></button>
-      </div>
+    </dialog>
+  </template>
+</section>
 
-    <!-- 1) Billboard Carousel (HTML banner, mobile-first) -->
-    <section x-data="homeCarousel()" class="mt-4">
-      <div class="relative rounded-2xl overflow-hidden shadow-md">
-        <!-- track -->
-        <div class="flex transition-transform duration-500 ease-out"
-             :style="`transform: translateX(-${index * 100}%);`">
-          <template x-for="(slide,i) in slides" :key="i">
-            <a :href="slide.href || '#/products'" class="min-w-full block">
-              <div class="aspect-[2/1] sm:aspect-[3/1] lg:aspect-[4/1] relative bg-base-200">
-                <!-- background image -->
-                <img :src="slide.img" :alt="slide.title"
-                     class="absolute inset-0 w-full h-full object-cover">
-                <!-- content -->
-                <div class="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent"></div>
-                <div class="relative h-full flex items-end p-4 sm:p-6">
-                  <div class="text-white">
-                    <h2 class="text-xl sm:text-2xl font-semibold" x-text="slide.title"></h2>
-                    <p class="opacity-90 mt-1" x-text="slide.text"></p>
-                    <span class="btn btn-sm mt-3">Nakoupit</span>
-                  </div>
-                </div>
-                <!-- subtle hero float (decor layer) -->
-                <img :src="slide.hero"
-                     class="absolute right-2 bottom-2 w-28 sm:w-40 lg:w-52 transition-transform duration-500 will-change-transform"
-                     :class="{'translate-y-0': index===i, 'translate-y-2': index!==i}">
-              </div>
-            </a>
-          </template>
-        </div>
-
-        <!-- dots -->
-        <div class="absolute inset-x-0 bottom-2 flex justify-center gap-2">
-          <template x-for="(s,i) in slides" :key="i">
-            <button class="btn btn-xs rounded-full"
-                    :class="index===i ? 'btn-primary' : 'btn-ghost'"
-                    @click="go(i)"></button>
-          </template>
-        </div>
-
-        <!-- arrows -->
-        <button class="btn btn-circle btn-ghost absolute left-2 top-1/2 -translate-y-1/2"
-                @click="prev()"><i class="fa-solid fa-chevron-left"></i></button>
-        <button class="btn btn-circle btn-ghost absolute right-2 top-1/2 -translate-y-1/2"
-                @click="next()"><i class="fa-solid fa-chevron-right"></i></button>
-      </div>
-    </section>
 
 
 
@@ -1721,19 +1800,37 @@
       <!-- Totals -->
       <div class="grid md:grid-cols-2 gap-4">
         
-      <!-- Free shipping bar -->
-      <div class="rounded-xl border border-base-200 bg-white p-4 md:p-10">
-        <div class="flex items-center justify-between mb-2">
-          <span class="font-medium">Doprava zdarma</span>
-          <span class="text-sm text-base-content/70" x-show="$store.cart.totalToPay() < $store.cart.freeShipThreshold">
-            Chybí <strong x-text="koruny($store.cart.freeShipMissing())"></strong> do <strong x-text="koruny($store.cart.freeShipThreshold)"></strong>
-          </span>
-          <span class="text-sm text-success" x-show="$store.cart.totalToPay() >= $store.cart.freeShipThreshold">Splněno 🎉</span>
+    <!-- Free shipping bar -->
+    <div class="rounded-xl border border-base-200 bg-white p-4 md:p-10 free-ship-bar select-none">
+      <div class="flex items-center justify-between mb-2">
+        <span class="font-medium">Doprava zdarma</span>
+
+        <span class="text-sm text-base-content/70" x-show="$store.cart.totalToPay() < $store.cart.freeShipThreshold">
+          Chybí <strong x-text="koruny($store.cart.freeShipMissing())"></strong> do
+          <strong x-text="koruny($store.cart.freeShipThreshold)"></strong>
+        </span>
+
+        <span class="text-sm text-success" x-show="$store.cart.totalToPay() >= $store.cart.freeShipThreshold">
+          Splněno 🎉
+        </span>
+      </div>
+
+      <!-- Track -->
+      <div class="relative h-6 rounded-full bg-base-200 overflow-hidden"
+          role="progressbar"
+          :aria-valuemin="0" :aria-valuemax="100"
+          :aria-valuenow="$store.cart.freeShipProgress()">
+
+        <!-- Fill -->
+        <div class="fill h-full rounded-full transition-[width] duration-500"
+            :class="{
+              'bg-success' : $store.cart.hasFreeShipping(),
+              'bg-primary/80 shimmer' : !$store.cart.hasFreeShipping()
+            }"
+            :style="`width: ${$store.cart.freeShipProgress()}%`">
         </div>
-        <div class="h-6 rounded-full bg-base-200 overflow-hidden">
-          <div class="h-full bg-primary transition-all duration-500"
-               :style="`width: ${$store.cart.freeShipProgress()}%`"></div>
-        </div>
+      </div>
+
       
 <!-- COUPONS / GIFTCARDS ACTIONS (inline buttons) -->
 <div class="flex flex-wrap gap-3 items-stretch mt-12">
@@ -2178,7 +2275,7 @@ document.addEventListener('alpine:init', () => {
                  :checked="selectedDeliveryId === opt.id"
                  tabindex="-1" />
           <img :src="opt.icon" :alt="opt.name"
-               class="size-13 rounded bg-base-200 object-contain shrink-0"
+               class="size-11 rounded-full bg-base-200 object-contain shrink-0"
                @error="$event.target.style.opacity=0.3" />
           <div class="min-w-0">
             <div class="font-medium leading-tight">
@@ -2248,7 +2345,7 @@ document.addEventListener('alpine:init', () => {
                  :disabled="isPaymentDisabled(opt.id)"
                  tabindex="-1" />
           <img :src="opt.icon" :alt="opt.name"
-               class="size-13 rounded bg-base-200 object-contain shrink-0"
+               class="size-11 rounded-full bg-base-200 object-contain shrink-0"
                @error="$event.target.style.opacity=0.3" />
           <div class="min-w-0">
             <div class="font-medium leading-tight">
@@ -3870,6 +3967,9 @@ showCount: 8,
 // router
 route: 'products',
 params: {},
+topCats: [],
+topBrands: [],
+benefits: [],
 
 // product detail state
 detail: null,
@@ -5016,54 +5116,245 @@ rangeLabel() {
       window.addEventListener('alpine:init', register);
     })();
     // Billboard carousel
+    // HOME BILLBOARD CAROUSEL (Alpine component)
     function homeCarousel() {
-    return {
-      index: 0,
-      timer: null,
-      slides: [
-        {
-          title: 'Podzimní výprodej',
-          text: 'Slevy až 30 %',
-          img: './images/banners/default-bg.jpg',
-          hero: './images/banners/psyllium.png',
-          href: '#/products'
-        },
-        {
-          title: 'Novinky týdne',
-          text: 'Doručení do 24 h',
-          img: './images/banners/newin-wide.webp',
-          hero: './images/banners/hero2.webp',
-          href: '#/products'
-        },
-        {
-          title: 'Doporučujeme',
-          text: 'Oblíbené u zákazníků',
-          img: './images/banners/picks-wide.webp',
-          hero: './images/banners/hero3.webp',
-          href: '#/products'
-        },
-      ],
-      go(i){ this.index = (i + this.slides.length) % this.slides.length; this.restart(); },
-      next(){ this.go(this.index + 1); },
-      prev(){ this.go(this.index - 1); },
-      start(){ this.timer = setInterval(()=>this.next(), 5000); },
-      stop(){ if (this.timer) clearInterval(this.timer); this.timer = null; },
-      restart(){ this.stop(); this.start(); },
-      init(){
-        this.start();
-        // pause on hover
-        this.$root.addEventListener('mouseenter', ()=>this.stop());
-        this.$root.addEventListener('mouseleave', ()=>this.start());
-        // basic swipe
-        let sx=0;
-        this.$root.addEventListener('touchstart', e=>{ sx = e.touches?.[0]?.clientX || 0; });
-        this.$root.addEventListener('touchend', e=>{
-          const ex = e.changedTouches?.[0]?.clientX || 0;
-          if (Math.abs(ex - sx) > 40) (ex < sx) ? this.next() : this.prev();
-        });
+  const AUTOPLAY_MS = 6000;
+  const DRAG_THRESHOLD_PX = 50;
+  const CLICK_TAP_MAX_MS = 220;
+  const CLICK_MOVE_MAX_PX = 8;
+  const RESISTANCE_K = 0.0025;
+
+  return {
+
+
+    index: 0,
+    slides: [],
+    templates: {},     // { [id]: { id, classes:{...}, styles:{...}, anim:{...} } }
+    timer: null,
+    trackEl: null,
+    viewportEl: null,
+    width: 0,
+
+    // drag / click guard
+    dragging: false,
+    startX: 0,
+    currX: 0,
+    lastDX: 0,
+    pressT: 0,
+    pressX: 0,
+
+    // animation restart nonce (changes when active slide changes)
+    animNonce: 0,
+
+    count() { return this.slides.length; },
+    isActive(i) { return this.index === i; },
+
+    go(i) {
+      if (!this.count()) return;
+      const n = this.count();
+      const nextIndex = ((i % n) + n) % n;
+      if (nextIndex !== this.index) {
+        this.index = nextIndex;
+        this.bumpAnimNonce();  // 🔁 restart entry animations for the newly active slide
       }
-    }
-  }
+      this.resetAutoplay();
+    },
+    next() { this.go(this.index + 1); },
+    prev() { this.go(this.index - 1); },
+
+    startAutoplay() { this.stopAutoplay(); this.timer = setInterval(()=>this.next(), AUTOPLAY_MS); },
+    stopAutoplay()  { if (this.timer) clearInterval(this.timer); this.timer = null; },
+    resetAutoplay() { this.stopAutoplay(); this.startAutoplay(); },
+
+    modalId(slide) { return `banner-legal-${slide.id ?? this.slides.indexOf(slide)}`; },
+    openModal(slide) { document.getElementById(this.modalId(slide))?.showModal?.(); },
+
+    // ---- TEMPLATE HANDLING ----
+    normalizeTemplate(raw) {
+      const id = String(raw?.id ?? '');
+      if (!id) return null;
+      const pick = (obj, paths) => {
+        for (const p of paths) {
+          const v = p.split('.').reduce((o, k) => (o && o[k] != null) ? o[k] : undefined, obj);
+          if (typeof v === 'string' && v.trim()) return v.trim();
+        }
+        return '';
+      };
+      const layer = (n) => ({
+        cls:  pick(raw, [`layer_${n}.image`, `layer${n}.image`]),
+        anim: pick(raw, [`layer_${n}.entry_animation`, `layer${n}.entry_animation`]),
+      });
+      const L = {}; for (let n=1;n<=6;n++) L[`layer_${n}`] = layer(n);
+
+      return {
+        id,
+        classes: {
+          wrapper:    pick(raw, ['wrapper','container']),
+          background: pick(raw, ['background']),
+          title:      pick(raw, ['title']),
+          text:       pick(raw, ['text.long','text.short','text']), // prefer long → short
+          cta:        pick(raw, ['cta.button','cta','button']),
+          legal_link: pick(raw, ['legal.button','legal_link']),
+          layer_1: L.layer_1.cls, layer_2: L.layer_2.cls, layer_3: L.layer_3.cls,
+          layer_4: L.layer_4.cls, layer_5: L.layer_5.cls, layer_6: L.layer_6.cls,
+        },
+        styles: { background_color: pick(raw, ['background_color']) },
+        anim: {
+          layer_1: L.layer_1.anim, layer_2: L.layer_2.anim, layer_3: L.layer_3.anim,
+          layer_4: L.layer_4.anim, layer_5: L.layer_5.anim, layer_6: L.layer_6.anim,
+        }
+      };
+    },
+
+    // Class / style / animation lookups
+    cls(slide, key) {
+      const sVal = slide?.classes?.[key];
+      if (typeof sVal === 'string' && sVal.trim()) return sVal.trim();
+      const tid = String(slide?.banner_template_id ?? '');
+      const t = this.templates[tid];
+      const c = t?.classes?.[key];
+      return (typeof c === 'string' && c.trim()) ? c.trim() : '';
+    },
+    // keep legacy alias if you used tcls() in HTML
+    tcls(slide, key) { return this.cls(slide, key); },
+
+    style(slide, key) {
+      const sVal = slide?.styles?.[key];
+      if (typeof sVal === 'string' && sVal.trim()) return sVal.trim();
+      const tid = String(slide?.banner_template_id ?? '');
+      const t = this.templates[tid];
+      const v = t?.styles?.[key];
+      return (typeof v === 'string' && v.trim()) ? v.trim() : '';
+    },
+
+    // return text content from slide (fix for [object Object] when slide.text is object)
+    txt(slide) {
+      const t = slide?.text;
+      if (typeof t === 'string') return t;
+      if (t && typeof t === 'object') return t.long || t.short || '';
+      return slide?.subtitle || '';
+    },
+    ctaHref(slide)  { return slide?.cta?.link   || slide?.href || '#/products'; },
+    ctaLabel(slide) { return slide?.cta?.label  || slide?.cta?.button || 'Nakoupit'; },
+    ctaIcon(slide)  { return slide?.cta?.icon   || 'fa-solid fa-arrow-right'; },
+
+    // Only apply animation class when this slide is active; changing animNonce replays it
+    anim(slide, key, i) {
+      if (!this.isActive(i)) return '';
+      const sVal = slide?.animations?.[key];
+      if (typeof sVal === 'string' && sVal.trim()) return sVal.trim() + ` anim-${this.animNonce}`;
+      const tid = String(slide?.banner_template_id ?? '');
+      const t   = this.templates[tid];
+      const v   = t?.anim?.[key];
+      return (typeof v === 'string' && v.trim()) ? v.trim() + ` anim-${this.animNonce}` : '';
+    },
+    bumpAnimNonce() { this.animNonce = (this.animNonce + 1) % 1e9; },
+
+    // ---- RENDER / INTERACTION ----
+    trackStyle() {
+      const baseX = -(this.index * this.width);
+      let dragOffset = 0;
+      if (this.dragging) {
+        const dx = this.currX - this.startX;
+        dragOffset = dx * (1 - Math.min(Math.abs(dx) * RESISTANCE_K, 0.35));
+      }
+      const x = baseX + dragOffset;
+      return `transform: translate3d(${x}px,0,0); transition: ${this.dragging ? 'none' : 'transform 500ms ease'};`;
+    },
+
+    measure() {
+      if (!this.viewportEl) return;
+      this.width = this.viewportEl.clientWidth;
+    },
+
+    onSlideClick(e) {
+      const dt = performance.now() - this.pressT;
+      const moved = Math.abs(this.currX - this.pressX);
+      const isTap = dt <= CLICK_TAP_MAX_MS && moved <= CLICK_MOVE_MAX_PX && !this.dragging;
+      if (!isTap) { e.preventDefault(); e.stopPropagation(); this.resetAutoplay(); }
+    },
+
+    onPointerDown(e) {
+      this.stopAutoplay();
+      this.measure();
+      this.dragging = true;
+
+      const x = (e.touches?.[0]?.clientX) ?? e.clientX ?? 0;
+      this.startX = x; this.currX = x; this.lastDX = 0;
+      this.pressT = performance.now(); this.pressX = x;
+      e.preventDefault?.(); // prevent image ghost-drag
+    },
+    onPointerMove(e) {
+      if (!this.dragging) return;
+      const x = (e.touches?.[0]?.clientX) ?? e.clientX ?? 0;
+      this.currX = x; this.lastDX = this.currX - this.startX;
+    },
+    onPointerUp() {
+      if (!this.dragging) return;
+      const moved = this.lastDX;
+      this.dragging = false;
+      if (Math.abs(moved) > DRAG_THRESHOLD_PX) (moved < 0) ? this.next() : this.prev();
+      else this.go(this.index); // snap back
+      this.resetAutoplay();
+    },
+
+    onKeydown(e) { if (e.key === 'ArrowLeft') this.prev(); if (e.key === 'ArrowRight') this.next(); },
+
+    async loadData() {
+      const [slides, tpls] = await Promise.all([
+        fetch('data/slides.json').then(r => r.json()).catch(() => []),
+        fetch('data/banner_templates.json').then(r => r.json()).catch(() => []),
+      ]);
+
+      const map = {};
+      (Array.isArray(tpls) ? tpls : []).forEach(t => {
+        const norm = this.normalizeTemplate(t);
+        if (norm) map[norm.id] = norm;
+      });
+      this.templates = map;
+
+      this.slides = (Array.isArray(slides) ? slides : []).map(s => ({
+        ...s,
+        banner_template_id: s.banner_template_id != null ? String(s.banner_template_id) : '',
+        classes: (s.classes && typeof s.classes === 'object') ? s.classes : null,
+        styles:  (s.styles  && typeof s.styles  === 'object') ? s.styles  : null,
+        animations: (s.animations && typeof s.animations === 'object') ? s.animations : null,
+      }));
+    },
+
+    async init() {
+      this.trackEl = this.$refs.track;
+      this.viewportEl = this.$refs.viewport;
+
+      await this.loadData();
+      this.startAutoplay();
+
+      // Hover pause (desktop)
+      this.$root.addEventListener('mouseenter', () => this.stopAutoplay(), { passive: true });
+      this.$root.addEventListener('mouseleave', () => this.startAutoplay(), { passive: true });
+
+      // Mouse / touch
+      this.$root.addEventListener('mousedown', (e)=>this.onPointerDown(e));
+      window.addEventListener('mousemove', (e)=>this.onPointerMove(e));
+      window.addEventListener('mouseup', ()=>this.onPointerUp());
+      this.$root.addEventListener('touchstart', (e)=>this.onPointerDown(e), { passive: false });
+      this.$root.addEventListener('touchmove',  (e)=>this.onPointerMove(e),  { passive: false });
+      this.$root.addEventListener('touchend',   ()=>this.onPointerUp(),      { passive: true  });
+      this.$root.addEventListener('touchcancel',()=>this.onPointerUp(),      { passive: true  });
+
+      // Keyboard
+      this.$root.addEventListener('keydown', (e)=>this.onKeydown(e));
+
+      // Keep height stable by sizing the viewport wrapper too
+      const ro = new ResizeObserver(()=>this.measure());
+      ro.observe(this.$root);
+      ro.observe(this.viewportEl);
+      this.measure();
+
+      window.__homeCarousel = this;
+    },
+  };
+}
 
     </script>
 
