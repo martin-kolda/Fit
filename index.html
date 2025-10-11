@@ -41,6 +41,26 @@
   .free-ship-bar .fill.shimmer::after {content: "";position: absolute;inset: 0; background-image: linear-gradient(120deg,rgba(255,255,255,0) 0%,rgba(255,255,255,0.35) 18%,rgba(255,255,255,0) 36%);background-size: 200% 100%;animation: bar-shimmer 2.6s linear infinite;pointer-events: none;}
   @keyframes bar-shimmer {0%   { background-position: 50% 0; } 30%  { background-position: -100% 0; } 100% { background-position: -100% 0; }}
   @media (prefers-reduced-motion: reduce) {.free-ship-bar .fill.shimmer::after { animation: none; }}  
+/* isolate each slide's painting & stacking on iOS to stop z-index flicker */
+.banner-slide{
+  isolation: isolate;          /* new stacking context */
+  contain: paint;              /* confine repaints */
+  -webkit-transform: translateZ(0); /* force its own layer on Safari */
+  transform: translateZ(0);
+  backface-visibility: hidden; /* reduce flicker */
+}
+
+/* make the moving track a GPU layer too */
+.banner-track{
+  will-change: transform;
+  transform: translateZ(0);
+}
+
+/* optional: on very small screens, avoid backdrop compositing cost on chevrons */
+@media (max-width: 640px){
+  .banner-chevron{ -webkit-backdrop-filter: none; backdrop-filter: none; }
+}
+
 
 
 /* Base: set your normal button radius once */
@@ -415,7 +435,8 @@
       <template x-for="(slide,i) in slides" :key="slide.id || i">
         <a :href="ctaHref(slide)" class="min-w-full block h-full overflow-hidden" @click="onSlideClick($event)">
           <!-- FIXED HEIGHT (no responsive changes) -->
-          <div class="relative bg-base-200 h-100"
+          
+          <div class="relative bg-base-200 h-100 banner-slide"
                :class="cls(slide,'wrapper')"
                :style="style(slide,'background_color')">
 
@@ -450,12 +471,14 @@
             </button>
 
             <!-- layers -->
+            <div x-ref="track" class="flex will-change-transform h-full banner-track" :style="trackStyle()">
             <template x-for="n in 6" :key="`layer-${i}-${n}-${isActive(i)?animNonce:'off'}`">
               <img :src="slide[`layer_${n}_src`] || slide[`layer_${n}`] || (slide.layers?.[n]?.src)"
                    x-show="slide[`layer_${n}`] || slide[`layer_${n}_src`] || (slide.layers && slide.layers[n])"
                    class="absolute pointer-events-none"
                    :class="[cls(slide, `layer_${n}`), anim(slide, `layer_${n}`, i)].filter(Boolean).join(' ')">
             </template>
+          </div>
           </div>
         </a>
       </template>

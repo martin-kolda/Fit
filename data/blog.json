@@ -1,0 +1,14 @@
+[
+    {
+      "id": 1,
+      "title": "Bolest chodidla – příčiny, léčba a tipy na úlevu",
+      "img": "./images/banners/default-bg.jpg",
+      "date": "",
+      "category": "./images/banners/losange.webp",
+      "perex": "./images/banners/pharmacist.webp",
+      "likes": 132,
+      "minutes_to_read": 4,
+      "link": "./images/banners/sleva.png",
+      "author": { "name": "Nakoupit", "photo": "#/products"}
+    }
+]

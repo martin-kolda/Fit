@@ -1,0 +1,9 @@
+[
+    { "name": "Centrum", "logo": "./images/brands/centrum.webp"},
+    { "name": "Eucerin", "logo": "./images/brands/eucerin.webp"},
+    { "name": "La Roche-Posay", "logo": "./images/brands/laroche.webp"},
+    { "name": "Nizoral", "logo": "./images/brands/nizoral.webp"},
+    { "name": "Nuance", "logo": "./images/brands/nuance.webp"},
+    { "name": "Physicians Formula", "logo": "./images/brands/physicians.webp"},
+    { "name": "Vichy", "logo": "./images/brands/vichy.webp"}
+]
