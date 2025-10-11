@@ -41,7 +41,7 @@
   .free-ship-bar .fill.shimmer::after {content: "";position: absolute;inset: 0; background-image: linear-gradient(120deg,rgba(255,255,255,0) 0%,rgba(255,255,255,0.35) 18%,rgba(255,255,255,0) 36%);background-size: 200% 100%;animation: bar-shimmer 2.6s linear infinite;pointer-events: none;}
   @keyframes bar-shimmer {0%   { background-position: 50% 0; } 30%  { background-position: -100% 0; } 100% { background-position: -100% 0; }}
   @media (prefers-reduced-motion: reduce) {.free-ship-bar .fill.shimmer::after { animation: none; }}  
- 
+
 
 /* Base: set your normal button radius once */
 .btn-squish {
@@ -405,9 +405,9 @@
 
 <!-- Billboard Carousel -->
 
-<section x-data="homeCarousel()" class="mt-4">
+<section x-data="homeCarousel()" class="mt-0 lg:mt-4">
   <div class="group relative rounded-2xl overflow-hidden shadow-md select-none h-100"
-       tabindex="0" x-ref="viewport">
+  tabindex="0" x-ref="viewport" style="touch-action: pan-y;">
 
     <!-- track -->
     <div x-ref="track" class="flex will-change-transform h-full" :style="trackStyle()">
@@ -5123,10 +5123,10 @@ rangeLabel() {
   const CLICK_TAP_MAX_MS = 220;
   const CLICK_MOVE_MAX_PX = 8;
   const RESISTANCE_K = 0.0025;
+  const INTENT_THRESHOLD_PX = 8;   // how far before we decide direction
+  const H_BIAS = 1.2;              // horizontal must be ~20% stronger than vertical
 
   return {
-
-
     index: 0,
     slides: [],
     templates: {},     // { [id]: { id, classes:{...}, styles:{...}, anim:{...} } }
@@ -5137,8 +5137,11 @@ rangeLabel() {
 
     // drag / click guard
     dragging: false,
+    lock: null,        // null | 'h' | 'v'
     startX: 0,
+    startY: 0,         // ✅ added
     currX: 0,
+    currY: 0,          // ✅ added
     lastDX: 0,
     pressT: 0,
     pressX: 0,
@@ -5155,7 +5158,7 @@ rangeLabel() {
       const nextIndex = ((i % n) + n) % n;
       if (nextIndex !== this.index) {
         this.index = nextIndex;
-        this.bumpAnimNonce();  // 🔁 restart entry animations for the newly active slide
+        this.bumpAnimNonce();  // replay entry animations on newly active slide
       }
       this.resetAutoplay();
     },
@@ -5192,7 +5195,7 @@ rangeLabel() {
           wrapper:    pick(raw, ['wrapper','container']),
           background: pick(raw, ['background']),
           title:      pick(raw, ['title']),
-          text:       pick(raw, ['text.long','text.short','text']), // prefer long → short
+          text:       pick(raw, ['text.long','text.short','text']),
           cta:        pick(raw, ['cta.button','cta','button']),
           legal_link: pick(raw, ['legal.button','legal_link']),
           layer_1: L.layer_1.cls, layer_2: L.layer_2.cls, layer_3: L.layer_3.cls,
@@ -5215,8 +5218,7 @@ rangeLabel() {
       const c = t?.classes?.[key];
       return (typeof c === 'string' && c.trim()) ? c.trim() : '';
     },
-    // keep legacy alias if you used tcls() in HTML
-    tcls(slide, key) { return this.cls(slide, key); },
+    tcls(slide, key) { return this.cls(slide, key); }, // legacy alias
 
     style(slide, key) {
       const sVal = slide?.styles?.[key];
@@ -5227,18 +5229,19 @@ rangeLabel() {
       return (typeof v === 'string' && v.trim()) ? v.trim() : '';
     },
 
-    // return text content from slide (fix for [object Object] when slide.text is object)
+    // copy helper (handles text.long / text.short)
     txt(slide) {
       const t = slide?.text;
       if (typeof t === 'string') return t;
       if (t && typeof t === 'object') return t.long || t.short || '';
       return slide?.subtitle || '';
     },
+    // CTA helpers (from slide data)
     ctaHref(slide)  { return slide?.cta?.link   || slide?.href || '#/products'; },
     ctaLabel(slide) { return slide?.cta?.label  || slide?.cta?.button || 'Nakoupit'; },
     ctaIcon(slide)  { return slide?.cta?.icon   || 'fa-solid fa-arrow-right'; },
 
-    // Only apply animation class when this slide is active; changing animNonce replays it
+    // animation class only for active slide; animNonce forces replay
     anim(slide, key, i) {
       if (!this.isActive(i)) return '';
       const sVal = slide?.animations?.[key];
@@ -5267,34 +5270,76 @@ rangeLabel() {
       this.width = this.viewportEl.clientWidth;
     },
 
+    // Tap vs drag guard (single definition)
     onSlideClick(e) {
       const dt = performance.now() - this.pressT;
       const moved = Math.abs(this.currX - this.pressX);
-      const isTap = dt <= CLICK_TAP_MAX_MS && moved <= CLICK_MOVE_MAX_PX && !this.dragging;
+      const isTap = dt <= CLICK_TAP_MAX_MS && moved <= CLICK_MOVE_MAX_PX && !this.dragging && this.lock !== 'h';
       if (!isTap) { e.preventDefault(); e.stopPropagation(); this.resetAutoplay(); }
     },
 
+    // ✅ Missing before: define onPointerDown
     onPointerDown(e) {
-      this.stopAutoplay();
+      // Don't preventDefault yet; we haven't locked direction
       this.measure();
-      this.dragging = true;
+      this.lock = null;
+      this.dragging = false;
 
       const x = (e.touches?.[0]?.clientX) ?? e.clientX ?? 0;
-      this.startX = x; this.currX = x; this.lastDX = 0;
-      this.pressT = performance.now(); this.pressX = x;
-      e.preventDefault?.(); // prevent image ghost-drag
+      const y = (e.touches?.[0]?.clientY) ?? e.clientY ?? 0;
+      this.startX = this.currX = x;
+      this.startY = this.currY = y;
+      this.lastDX = 0;
+
+      this.pressT = performance.now();
+      this.pressX = x;
     },
+
     onPointerMove(e) {
-      if (!this.dragging) return;
       const x = (e.touches?.[0]?.clientX) ?? e.clientX ?? 0;
-      this.currX = x; this.lastDX = this.currX - this.startX;
+      const y = (e.touches?.[0]?.clientY) ?? e.clientY ?? 0;
+      this.currX = x; this.currY = y;
+
+      const dx = this.currX - this.startX;
+      const dy = this.currY - this.startY;
+      const adx = Math.abs(dx), ady = Math.abs(dy);
+
+      // Decide direction once
+      if (this.lock === null) {
+        if (adx < INTENT_THRESHOLD_PX && ady < INTENT_THRESHOLD_PX) return; // not enough movement yet
+        // Bias toward vertical unless horizontal is clearly stronger
+        if (adx > ady * H_BIAS) {
+          this.lock = 'h';
+          this.dragging = true;
+          this.stopAutoplay();
+          e.preventDefault?.(); // cancel native scroll now that we own it
+        } else {
+          this.lock = 'v';
+          this.dragging = false; // let the page scroll
+          return;
+        }
+      }
+
+      if (this.lock === 'v') return; // vertical scroll; do nothing
+
+      // Horizontal: apply resistance
+      this.lastDX = dx;
+      e.preventDefault?.(); // keep scrolling from stealing gestures
     },
+
     onPointerUp() {
-      if (!this.dragging) return;
+      // If we never locked horizontally, treat as scroll/tap
+      if (this.lock !== 'h') { this.lock = null; return; }
+
       const moved = this.lastDX;
       this.dragging = false;
-      if (Math.abs(moved) > DRAG_THRESHOLD_PX) (moved < 0) ? this.next() : this.prev();
-      else this.go(this.index); // snap back
+      this.lock = null;
+
+      if (Math.abs(moved) > DRAG_THRESHOLD_PX) {
+        (moved < 0) ? this.next() : this.prev();
+      } else {
+        this.go(this.index); // snap back
+      }
       this.resetAutoplay();
     },
 
@@ -5337,7 +5382,9 @@ rangeLabel() {
       this.$root.addEventListener('mousedown', (e)=>this.onPointerDown(e));
       window.addEventListener('mousemove', (e)=>this.onPointerMove(e));
       window.addEventListener('mouseup', ()=>this.onPointerUp());
-      this.$root.addEventListener('touchstart', (e)=>this.onPointerDown(e), { passive: false });
+
+      // Important: touch listeners must be non-passive for move so we can preventDefault after lock
+      this.$root.addEventListener('touchstart', (e)=>this.onPointerDown(e), { passive: true });
       this.$root.addEventListener('touchmove',  (e)=>this.onPointerMove(e),  { passive: false });
       this.$root.addEventListener('touchend',   ()=>this.onPointerUp(),      { passive: true  });
       this.$root.addEventListener('touchcancel',()=>this.onPointerUp(),      { passive: true  });
@@ -5345,7 +5392,7 @@ rangeLabel() {
       // Keyboard
       this.$root.addEventListener('keydown', (e)=>this.onKeydown(e));
 
-      // Keep height stable by sizing the viewport wrapper too
+      // Sizing
       const ro = new ResizeObserver(()=>this.measure());
       ro.observe(this.$root);
       ro.observe(this.viewportEl);
