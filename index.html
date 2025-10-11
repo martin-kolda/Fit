@@ -430,8 +430,8 @@
   tabindex="0" x-ref="viewport" style="touch-action: pan-y;">
 
     <!-- track -->
-    <div x-ref="track" class="flex will-change-transform h-full" :style="trackStyle()">
 
+    <div x-ref="track" class="flex will-change-transform h-full banner-track" :style="trackStyle()">
       <template x-for="(slide,i) in slides" :key="slide.id || i">
         <a :href="ctaHref(slide)" class="min-w-full block h-full overflow-hidden" @click="onSlideClick($event)">
           <!-- FIXED HEIGHT (no responsive changes) -->
@@ -471,14 +471,14 @@
             </button>
 
             <!-- layers -->
-            <div x-ref="track" class="flex will-change-transform h-full banner-track" :style="trackStyle()">
+
             <template x-for="n in 6" :key="`layer-${i}-${n}-${isActive(i)?animNonce:'off'}`">
               <img :src="slide[`layer_${n}_src`] || slide[`layer_${n}`] || (slide.layers?.[n]?.src)"
                    x-show="slide[`layer_${n}`] || slide[`layer_${n}_src`] || (slide.layers && slide.layers[n])"
                    class="absolute pointer-events-none"
                    :class="[cls(slide, `layer_${n}`), anim(slide, `layer_${n}`, i)].filter(Boolean).join(' ')">
             </template>
-          </div>
+
           </div>
         </a>
       </template>
