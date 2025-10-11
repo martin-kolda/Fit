@@ -427,16 +427,20 @@
 
 <section x-data="homeCarousel()" class="mt-0 lg:mt-4">
   <div class="group relative rounded-2xl overflow-hidden shadow-md select-none h-100"
-  tabindex="0" x-ref="viewport" style="touch-action: pan-y;">
+       tabindex="0" x-ref="viewport" style="touch-action: pan-y;">
 
     <!-- track -->
+    <div x-ref="track"
+         class="flex h-full banner-track will-change-transform transform-gpu" 
+         :style="trackStyle()">
 
-    <div x-ref="track" class="flex will-change-transform h-full banner-track" :style="trackStyle()">
       <template x-for="(slide,i) in slides" :key="slide.id || i">
-        <a :href="ctaHref(slide)" class="min-w-full block h-full overflow-hidden" @click="onSlideClick($event)">
-          <!-- FIXED HEIGHT (no responsive changes) -->
-          
-          <div class="relative bg-base-200 h-100 banner-slide"
+        <a :href="ctaHref(slide)"
+           class="shrink-0 min-w-full block h-full overflow-hidden" 
+           @click="onSlideClick($event)">
+
+          <!-- FIXED HEIGHT slide container -->
+          <div class="relative bg-base-200 h-100 banner-slide transform-gpu"
                :class="cls(slide,'wrapper')"
                :style="style(slide,'background_color')">
 
@@ -447,20 +451,16 @@
                  :class="cls(slide,'background')">
 
             <!-- texts & CTA -->
-            <h2 class="absolute"
-                :class="cls(slide,'title')"
-                x-text="slide.title"></h2>
+            <h2 class="absolute" :class="cls(slide,'title')" x-text="slide.title"></h2>
 
-            <p class="absolute opacity-90"
-               :class="cls(slide,'text')"
-               x-text="txt(slide)"></p>
+            <p class="absolute opacity-90" :class="cls(slide,'text')" x-text="txt(slide)"></p>
 
             <span class="btn absolute btn-squish"
-               @pointerdown="$el.classList.add('is-squishing')"
-               @animationend="requestAnimationFrame(()=> $el.classList.remove('is-squishing'))"
-               :class="cls(slide,'cta')">
-               <span x-text="ctaLabel(slide)"></span>
-               <i :class="ctaIcon(slide)" class="ml-2"></i>
+                  @pointerdown="$el.classList.add('is-squishing')"
+                  @animationend="requestAnimationFrame(()=> $el.classList.remove('is-squishing'))"
+                  :class="cls(slide,'cta')">
+              <span x-text="ctaLabel(slide)"></span>
+              <i :class="ctaIcon(slide)" class="ml-2"></i>
             </span>
 
             <button type="button"
@@ -471,7 +471,6 @@
             </button>
 
             <!-- layers -->
-
             <template x-for="n in 6" :key="`layer-${i}-${n}-${isActive(i)?animNonce:'off'}`">
               <img :src="slide[`layer_${n}_src`] || slide[`layer_${n}`] || (slide.layers?.[n]?.src)"
                    x-show="slide[`layer_${n}`] || slide[`layer_${n}_src`] || (slide.layers && slide.layers[n])"

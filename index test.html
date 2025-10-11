@@ -4,37 +4,335 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>container-scroll</title>
-  <style>
-    html, body { height: 100%; margin: 0; overflow: hidden; background: #fafafa; }
-    #app {
-      height: 100%;
-      overflow: auto;
-      -webkit-overflow-scrolling: touch;
-      /* normalize viewport math */
-      min-height: 100svh; 
-      min-height: 100dvh;
-      padding-bottom: env(safe-area-inset-bottom, 0);
-    }
-    .section { height: 160vh; background: #fff; padding: 16px; }
-    /* sticky bar inside the scroller */
-    .sticky-bar {
-      position: sticky;
-      bottom: 0;
-      z-index: 50;
-      padding-bottom: env(safe-area-inset-bottom, 0);
-      background: #fff;
-      border-top: 1px solid #ddd;
-      box-shadow: 0 -10px 24px rgba(0,0,0,.08);
-      padding: 12px 16px;
-    }
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Figtree:ital,wght@0,300..900;1,300..900&display=swap" rel="stylesheet">
+  <script src="https://kit.fontawesome.com/2c7f1c6cae.js" crossorigin="anonymous"></script>   
+  <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css" />
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <link rel="stylesheet" href="./theme/max-tokens.css"> 
+  <script> // cannot be loaded by classic link
+    fetch('./theme/tw-mapping.css', { cache: 'no-store' }).then(r => r.text()).then(css => {const s = document.createElement('style');s.type = 'text/tailwindcss';s.textContent = css;document.head.appendChild(s);});
+  </script>
+  <link rel="stylesheet" href="./theme/max.css" type="text/css">
+  <script defer src="https://unpkg.com/@alpinejs/persist@3.x.x/dist/cdn.min.js"></script>
+  <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>  
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css">
+  <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+
+
+<style>
+
   </style>
+
 </head>
 <body>
-  <div id="app">
-    <div class="section">
-      <h1>Scroll inside #app</h1>
+<!-- Address Autocomplete -->
+<div x-data="addressPicker(pragueAddresses)" class="max-w-xl">
+  <label class="form-control w-full">
+    <div class="label"><span class="label-text">Adresa (začněte psát ulici, např. „Vodičkova“)</span></div>
+
+    <div class="relative">
+      <input
+        x-ref="input"
+        type="text"
+        class="input input-bordered w-full pr-10"
+        placeholder="Ulice a číslo, např. „Vodičkova 20“"
+        x-model="q"
+        @input="onType()"
+        @keydown.down.prevent="move(+1)"
+        @keydown.up.prevent="move(-1)"
+        @keydown.enter.prevent="confirmActive()"
+        @keydown.esc="closeList()"
+        autocomplete="off"
+      />
+      <!-- Clear -->
+      <button type="button" class="btn btn-xs btn-ghost absolute right-1 top-1/2 -translate-y-1/2"
+              x-show="q.length || selected"
+              @click="clearAll()">✕</button>
     </div>
-    <div class="sticky-bar">Sticky CTA (bottom of #app)</div>
+  </label>
+
+  <!-- Suggestion list -->
+  <div class="mt-2">
+    <template x-if="open && results.length">
+      <ul class="menu bg-base-100 rounded-box border border-base-200 shadow max-h-80 overflow-auto">
+        <template x-for="(row, i) in results" :key="row.key">
+          <li>
+            <button
+              type="button"
+              :class="i === active ? 'bg-base-200' : ''"
+              @mouseenter="active = i"
+              @click="choose(row)"
+            >
+              <span x-text="row.label"></span>
+              <span class="text-xs opacity-60 ml-2" x-text="row.meta"></span>
+            </button>
+          </li>
+        </template>
+      </ul>
+    </template>
   </div>
+
+  <!-- Selected address display -->
+  <div class="mt-4" x-show="selected" x-cloak>
+    <div class="alert bg-base-100 border border-base-200">
+      <div>
+        <div class="font-medium" x-text="formatSelected()"></div>
+        <div class="text-sm opacity-70" x-text="selected?.district"></div>
+      </div>
+      <div class="ml-auto">
+        <button class="btn btn-sm btn-outline mr-2" @click="edit()">Změnit</button>
+        <button class="btn btn-sm btn-error" @click="clearAll()">Smazat</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function addressPicker(data) {
+  const norm = s => (s ?? '')
+    .toString()
+    .normalize('NFD')
+    .replace(/\p{Diacritic}/gu, '')
+    .toLowerCase()
+    .trim();
+
+  const byStreet = data.addresses.reduce((map, a) => {
+    (map[a.street_id] ||= []).push(a);
+    return map;
+  }, {});
+
+  // sort house numbers numerically when possible
+  Object.values(byStreet).forEach(list => {
+    list.sort((a,b) => {
+      const na = parseInt(a.house_number,10), nb = parseInt(b.house_number,10);
+      if (Number.isFinite(na) && Number.isFinite(nb) && na !== nb) return na - nb;
+      return a.house_number.localeCompare(b.house_number);
+    });
+  });
+
+  const streetsIndex = data.streets.map(s => ({
+    ...s,
+    n: norm(s.name),
+  }));
+
+  return {
+    q: '',
+    open: false,
+    stage: 'street',         // 'street' | 'house'
+    chosenStreet: null,      // a street object (from streets[])
+    results: [],
+    active: 0,
+    selected: null,          // full address object
+
+    onType() {
+      // parse numeric hint (e.g., "Vodičkova 12")
+      const m = this.q.match(/\s+(\d[\w\/-]*)\s*$/);
+      const numberHint = m ? m[1] : '';
+      const qn = norm(this.q.replace(/\s+\d[\w\/-]*\s*$/, '')); // street part normalized
+
+      if (!this.chosenStreet) {
+        // STREET SEARCH
+        if (!qn) { this.results = []; this.open = false; return; }
+        const hits = streetsIndex
+          .filter(s => s.n.includes(qn))
+          .slice(0, 20)
+          .map(s => ({
+            type: 'street',
+            key: 's:'+s.id,
+            street: s,
+            label: s.name,
+            meta: `${s.district}, ${s.postal_hint}`,
+            numberHint
+          }));
+        this.results = hits;
+        this.active = 0;
+        this.open = hits.length > 0;
+        // If unique street and a number is typed → jump to house stage
+        if (hits.length === 1 && numberHint) {
+          this.pickStreet(hits[0].street, numberHint);
+        }
+      } else {
+        // HOUSE SEARCH within chosenStreet
+        const list = byStreet[this.chosenStreet.id] || [];
+        const filtered = numberHint
+          ? list.filter(a => a.house_number.startsWith(numberHint))
+          : list;
+        this.results = filtered.slice(0, 30).map(a => ({
+          type: 'house',
+          key: 'h:'+a.id,
+          addr: a,
+          label: `${a.street} ${a.house_number}`,
+          meta: `${a.city}, ${a.postal_code}`
+        }));
+        this.active = 0;
+        this.open = this.results.length > 0;
+      }
+    },
+
+    pickStreet(street, numberHint='') {
+      this.chosenStreet = street;
+      this.stage = 'house';
+      // Keep the typed street text; append number if present
+      const base = street.name + (numberHint ? ' ' + numberHint : '');
+      this.q = base;
+      this.$nextTick(() => { this.onType(); });
+    },
+
+    choose(row) {
+      if (row.type === 'street') {
+        this.pickStreet(row.street, row.numberHint || '');
+        this.$nextTick(() => this.$refs.input.focus());
+      } else if (row.type === 'house') {
+        this.selected = row.addr;
+        this.q = `${row.addr.street} ${row.addr.house_number}, ${row.addr.city} ${row.addr.postal_code}`;
+        this.closeList(true);
+      }
+    },
+
+    move(delta) {
+      if (!this.open) return;
+      const n = this.results.length;
+      this.active = (this.active + delta + n) % n;
+    },
+
+    confirmActive() {
+      if (this.open && this.results[this.active]) this.choose(this.results[this.active]);
+    },
+
+    closeList(lock=false) {
+      this.open = false;
+      if (lock) this.stage = 'street', this.chosenStreet = null, this.results = [];
+    },
+
+    clearAll() {
+      this.q = '';
+      this.open = false;
+      this.stage = 'street';
+      this.chosenStreet = null;
+      this.results = [];
+      this.active = 0;
+      this.selected = null;
+      this.$nextTick(() => this.$refs.input.focus());
+    },
+
+    edit() {
+      // put street back to input to continue editing
+      if (this.selected) {
+        this.q = `${this.selected.street} ${this.selected.house_number}`;
+        this.selected = null;
+        this.stage = 'street';
+        this.chosenStreet = null;
+        this.onType();
+        this.$nextTick(() => this.$refs.input.focus());
+      }
+    },
+
+    formatSelected() {
+      if (!this.selected) return '';
+      const a = this.selected;
+      return `${a.street} ${a.house_number}, ${a.city} ${a.postal_code}`;
+    }
+  };
+}
+</script>
+<script>
+  // Streets catalog + full address list.
+  // Note: ZIPs/districts are plausible for prototyping (not authoritative).
+  const pragueAddresses = {
+    streets: [
+      { id:"vodickova",    name:"Vodičkova",    city:"Praha", district:"Praha 1", postal_hint:"110 00" },
+      { id:"narodni",      name:"Národní",      city:"Praha", district:"Praha 1", postal_hint:"110 00" },
+      { id:"jindrisska",   name:"Jindřišská",   city:"Praha", district:"Praha 1", postal_hint:"110 00" },
+      { id:"parizska",     name:"Pařížská",     city:"Praha", district:"Praha 1", postal_hint:"110 00" },
+      { id:"karlova",      name:"Karlova",      city:"Praha", district:"Praha 1", postal_hint:"110 00" },
+      { id:"karmelitska",  name:"Karmelitská",  city:"Praha", district:"Praha 1", postal_hint:"118 00" },
+      { id:"italska",      name:"Italská",      city:"Praha", district:"Praha 2", postal_hint:"120 00" },
+      { id:"anglicka",     name:"Anglická",     city:"Praha", district:"Praha 2", postal_hint:"120 00" },
+      { id:"dejvicka",     name:"Dejvická",     city:"Praha", district:"Praha 6", postal_hint:"160 00" },
+      { id:"sokolovska",   name:"Sokolovská",   city:"Praha", district:"Praha 8", postal_hint:"186 00" },
+      { id:"veletrzni",    name:"Veletržní",    city:"Praha", district:"Praha 7", postal_hint:"170 00" },
+    ],
+    addresses: [
+      // Vodičkova (Praha 1, 110 00)
+      { id:"vodickova-6",  street_id:"vodickova",  street:"Vodičkova",  house_number:"6",  city:"Praha", district:"Praha 1", postal_code:"110 00" },
+      { id:"vodickova-12", street_id:"vodickova",  street:"Vodičkova",  house_number:"12", city:"Praha", district:"Praha 1", postal_code:"110 00" },
+      { id:"vodickova-20", street_id:"vodickova",  street:"Vodičkova",  house_number:"20", city:"Praha", district:"Praha 1", postal_code:"110 00" },
+      { id:"vodickova-25", street_id:"vodickova",  street:"Vodičkova",  house_number:"25", city:"Praha", district:"Praha 1", postal_code:"110 00" },
+      { id:"vodickova-30", street_id:"vodickova",  street:"Vodičkova",  house_number:"30", city:"Praha", district:"Praha 1", postal_code:"110 00" },
+      { id:"vodickova-34", street_id:"vodickova",  street:"Vodičkova",  house_number:"34", city:"Praha", district:"Praha 1", postal_code:"110 00" },
+  
+      // Národní (Praha 1, 110 00)
+      { id:"narodni-10",   street_id:"narodni",    street:"Národní",    house_number:"10", city:"Praha", district:"Praha 1", postal_code:"110 00" },
+      { id:"narodni-16",   street_id:"narodni",    street:"Národní",    house_number:"16", city:"Praha", district:"Praha 1", postal_code:"110 00" },
+      { id:"narodni-20",   street_id:"narodni",    street:"Národní",    house_number:"20", city:"Praha", district:"Praha 1", postal_code:"110 00" },
+      { id:"narodni-28",   street_id:"narodni",    street:"Národní",    house_number:"28", city:"Praha", district:"Praha 1", postal_code:"110 00" },
+      { id:"narodni-40",   street_id:"narodni",    street:"Národní",    house_number:"40", city:"Praha", district:"Praha 1", postal_code:"110 00" },
+  
+      // Jindřišská (Praha 1, 110 00)
+      { id:"jindrisska-4",  street_id:"jindrisska", street:"Jindřišská", house_number:"4",  city:"Praha", district:"Praha 1", postal_code:"110 00" },
+      { id:"jindrisska-10", street_id:"jindrisska", street:"Jindřišská", house_number:"10", city:"Praha", district:"Praha 1", postal_code:"110 00" },
+      { id:"jindrisska-16", street_id:"jindrisska", street:"Jindřišská", house_number:"16", city:"Praha", district:"Praha 1", postal_code:"110 00" },
+      { id:"jindrisska-20", street_id:"jindrisska", street:"Jindřišská", house_number:"20", city:"Praha", district:"Praha 1", postal_code:"110 00" },
+      { id:"jindrisska-30", street_id:"jindrisska", street:"Jindřišská", house_number:"30", city:"Praha", district:"Praha 1", postal_code:"110 00" },
+  
+      // Pařížská (Praha 1, 110 00)
+      { id:"parizska-1",   street_id:"parizska",   street:"Pařížská",   house_number:"1",  city:"Praha", district:"Praha 1", postal_code:"110 00" },
+      { id:"parizska-10",  street_id:"parizska",   street:"Pařížská",   house_number:"10", city:"Praha", district:"Praha 1", postal_code:"110 00" },
+      { id:"parizska-20",  street_id:"parizska",   street:"Pařížská",   house_number:"20", city:"Praha", district:"Praha 1", postal_code:"110 00" },
+      { id:"parizska-30",  street_id:"parizska",   street:"Pařížská",   house_number:"30", city:"Praha", district:"Praha 1", postal_code:"110 00" },
+  
+      // Karlova (Praha 1, 110 00)
+      { id:"karlova-1",    street_id:"karlova",    street:"Karlova",    house_number:"1",  city:"Praha", district:"Praha 1", postal_code:"110 00" },
+      { id:"karlova-3",    street_id:"karlova",    street:"Karlova",    house_number:"3",  city:"Praha", district:"Praha 1", postal_code:"110 00" },
+      { id:"karlova-12",   street_id:"karlova",    street:"Karlova",    house_number:"12", city:"Praha", district:"Praha 1", postal_code:"110 00" },
+      { id:"karlova-20",   street_id:"karlova",    street:"Karlova",    house_number:"20", city:"Praha", district:"Praha 1", postal_code:"110 00" },
+  
+      // Karmelitská (Praha 1, 118 00)
+      { id:"karmelitska-2",  street_id:"karmelitska", street:"Karmelitská", house_number:"2",  city:"Praha", district:"Praha 1", postal_code:"118 00" },
+      { id:"karmelitska-18", street_id:"karmelitska", street:"Karmelitská", house_number:"18", city:"Praha", district:"Praha 1", postal_code:"118 00" },
+      { id:"karmelitska-25", street_id:"karmelitska", street:"Karmelitská", house_number:"25", city:"Praha", district:"Praha 1", postal_code:"118 00" },
+      { id:"karmelitska-32", street_id:"karmelitska", street:"Karmelitská", house_number:"32", city:"Praha", district:"Praha 1", postal_code:"118 00" },
+  
+      // Italská (Praha 2, 120 00)
+      { id:"italska-2",    street_id:"italska",    street:"Italská",    house_number:"2",  city:"Praha", district:"Praha 2", postal_code:"120 00" },
+      { id:"italska-22",   street_id:"italska",    street:"Italská",    house_number:"22", city:"Praha", district:"Praha 2", postal_code:"120 00" },
+      { id:"italska-30",   street_id:"italska",    street:"Italská",    house_number:"30", city:"Praha", district:"Praha 2", postal_code:"120 00" },
+      { id:"italska-38",   street_id:"italska",    street:"Italská",    house_number:"38", city:"Praha", district:"Praha 2", postal_code:"120 00" },
+  
+      // Anglická (Praha 2, 120 00)
+      { id:"anglicka-4",   street_id:"anglicka",   street:"Anglická",   house_number:"4",  city:"Praha", district:"Praha 2", postal_code:"120 00" },
+      { id:"anglicka-12",  street_id:"anglicka",   street:"Anglická",   house_number:"12", city:"Praha", district:"Praha 2", postal_code:"120 00" },
+      { id:"anglicka-20",  street_id:"anglicka",   street:"Anglická",   house_number:"20", city:"Praha", district:"Praha 2", postal_code:"120 00" },
+      { id:"anglicka-28",  street_id:"anglicka",   street:"Anglická",   house_number:"28", city:"Praha", district:"Praha 2", postal_code:"120 00" },
+  
+      // Dejvická (Praha 6, 160 00)
+      { id:"dejvicka-2",   street_id:"dejvicka",   street:"Dejvická",   house_number:"2",  city:"Praha", district:"Praha 6", postal_code:"160 00" },
+      { id:"dejvicka-8",   street_id:"dejvicka",   street:"Dejvická",   house_number:"8",  city:"Praha", district:"Praha 6", postal_code:"160 00" },
+      { id:"dejvicka-20",  street_id:"dejvicka",   street:"Dejvická",   house_number:"20", city:"Praha", district:"Praha 6", postal_code:"160 00" },
+      { id:"dejvicka-34",  street_id:"dejvicka",   street:"Dejvická",   house_number:"34", city:"Praha", district:"Praha 6", postal_code:"160 00" },
+      { id:"dejvicka-50",  street_id:"dejvicka",   street:"Dejvická",   house_number:"50", city:"Praha", district:"Praha 6", postal_code:"160 00" },
+  
+      // Sokolovská (Praha 8, 186 00)
+      { id:"sokolovska-10",  street_id:"sokolovska", street:"Sokolovská", house_number:"10",  city:"Praha", district:"Praha 8", postal_code:"186 00" },
+      { id:"sokolovska-36",  street_id:"sokolovska", street:"Sokolovská", house_number:"36",  city:"Praha", district:"Praha 8", postal_code:"186 00" },
+      { id:"sokolovska-86",  street_id:"sokolovska", street:"Sokolovská", house_number:"86",  city:"Praha", district:"Praha 8", postal_code:"186 00" },
+      { id:"sokolovska-123", street_id:"sokolovska", street:"Sokolovská", house_number:"123", city:"Praha", district:"Praha 8", postal_code:"186 00" },
+      { id:"sokolovska-146", street_id:"sokolovska", street:"Sokolovská", house_number:"146", city:"Praha", district:"Praha 8", postal_code:"186 00" },
+  
+      // Veletržní (Praha 7, 170 00)
+      { id:"veletrzni-12", street_id:"veletrzni", street:"Veletržní", house_number:"12", city:"Praha", district:"Praha 7", postal_code:"170 00" },
+      { id:"veletrzni-24", street_id:"veletrzni", street:"Veletržní", house_number:"24", city:"Praha", district:"Praha 7", postal_code:"170 00" },
+      { id:"veletrzni-40", street_id:"veletrzni", street:"Veletržní", house_number:"40", city:"Praha", district:"Praha 7", postal_code:"170 00" },
+      { id:"veletrzni-52", street_id:"veletrzni", street:"Veletržní", house_number:"52", city:"Praha", district:"Praha 7", postal_code:"170 00" },
+    ]
+  };
+  </script>
+
 </body>
 </html>
