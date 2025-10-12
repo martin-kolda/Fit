@@ -424,7 +424,6 @@
 
 
 <!-- Billboard Carousel -->
-
 <section x-data="homeCarousel()" class="mt-0 lg:mt-4">
   <div class="group relative rounded-2xl overflow-hidden shadow-md select-none h-100"
        tabindex="0" x-ref="viewport" style="touch-action: pan-y;">
@@ -538,8 +537,130 @@
   </template>
 </section>
 
-<h3 class="text-lg font-semibold mb-3">Vaše uložené v akci</h3>
+ <!-- hits of the week -->
+ <section class="mt-8">
+  <div class="flex items-center justify-between mb-3">
+    <h3 class="text-lg font-semibold">Hity týdne</h3>
+  </div>
 
+  <div class="relative group">
+    <!-- indicators (use the same key) -->
+    <div class="pointer-events-none absolute inset-y-0 left-0 w-10 bg-gradient-to-r from-white to-transparent
+                transition-opacity duration-200 z-10"
+         :class="tpStates['hits']?.left ? 'opacity-100' : 'opacity-0'"></div>
+    <div class="pointer-events-none absolute inset-y-0 right-0 w-10 bg-gradient-to-l from-white to-transparent
+                transition-opacity duration-200 z-10"
+         :class="tpStates['hits']?.right ? 'opacity-100' : 'opacity-0'"></div>
+
+    <!-- mobile affordance -->
+    <div class="md:hidden pointer-events-none absolute inset-y-0 right-0 w-10 z-10 transition-opacity"
+         :class="tpStates['hits']?.scrolled ? 'opacity-0' : 'opacity-100'">
+      <div class="h-full bg-gradient-to-l from-base-100 to-transparent"></div>
+      <div class="absolute right-2 top-1/2 -translate-y-1/2 text-base-content/60 animate-pulse select-none">
+        <i class="fa-solid fa-chevron-right fa-lg"></i>
+      </div>
+    </div>
+
+    <!-- scroller: call registerTopStrip with the same key, use $el not $refs -->
+    <div class="overflow-x-auto scrollbar-thin"
+         x-init="registerTopStrip($el, 'hits')">
+      <div class="flex gap-3 snap-x snap-mandatory px-0 pb-5">
+        <template x-for="p in topProductsShuffledFor('hits', 12)" :key="p.id">
+          <!-- card markup unchanged -->
+          <a :href="link('product',{id:p.id})"
+             class="snap-start shrink-0 w-48 sm:w-56 card bg-white hover:shadow-md transition relative">
+            <span x-show="discountPct(p) !== null"
+                  class="absolute left-2 top-2 badge badge-error text-white font-semibold">
+              <span x-text="`-${discountPct(p)}%`"></span>
+            </span>
+            <figure class="p-3 h-40">
+              <img :src="p.image || './images/placeholder.webp'" :alt="p.name"
+                   class="w-full h-full object-cover">
+            </figure>
+            <div class="card-body pt-0 flex flex-col">
+              <div class="text-sm font-medium line-clamp-2 min-h-[3rem]" x-text="p.name"></div>
+              <div class="mt-auto">
+                <div class="text-base font-semibold">
+                  <span x-text="formatPrice(currentPrice(p))"></span>
+                  <span class="ml-2 line-through text-xs opacity-60"
+                        x-show="crossedPrice(p) !== null"
+                        x-text="formatPrice(crossedPrice(p))"></span>
+                </div>
+                <div class="mt-1" x-show="isInStock(p)">
+                  <span class="badge badge-success">Skladem</span>
+                </div>
+              </div>
+            </div>
+          </a>
+        </template>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+
+
+ <!-- favorites in sale -->
+ <section class="mt-8">
+  <div class="flex items-center justify-between mb-3">
+    <h3 class="text-lg font-semibold">Hity týdne</h3>
+  </div>
+
+  <div class="relative group">
+    <!-- indicators (use the same key) -->
+    <div class="pointer-events-none absolute inset-y-0 left-0 w-10 bg-gradient-to-r from-white to-transparent
+                transition-opacity duration-200 z-10"
+         :class="tpStates['hits']?.left ? 'opacity-100' : 'opacity-0'"></div>
+    <div class="pointer-events-none absolute inset-y-0 right-0 w-10 bg-gradient-to-l from-white to-transparent
+                transition-opacity duration-200 z-10"
+         :class="tpStates['hits']?.right ? 'opacity-100' : 'opacity-0'"></div>
+
+    <!-- mobile affordance -->
+    <div class="md:hidden pointer-events-none absolute inset-y-0 right-0 w-10 z-10 transition-opacity"
+         :class="tpStates['hits']?.scrolled ? 'opacity-0' : 'opacity-100'">
+      <div class="h-full bg-gradient-to-l from-base-100 to-transparent"></div>
+      <div class="absolute right-2 top-1/2 -translate-y-1/2 text-base-content/60 animate-pulse select-none">
+        <i class="fa-solid fa-chevron-right fa-lg"></i>
+      </div>
+    </div>
+
+    <!-- scroller: call registerTopStrip with the same key, use $el not $refs -->
+    <div class="overflow-x-auto scrollbar-thin"
+         x-init="registerTopStrip($el, 'hits')">
+      <div class="flex gap-3 snap-x snap-mandatory px-0 pb-5">
+        <template x-for="p in topProductsShuffledFor('saved', 12)" :key="p.id">
+          <!-- card markup unchanged -->
+          <a :href="link('product',{id:p.id})"
+             class="snap-start shrink-0 w-48 sm:w-56 card bg-white hover:shadow-md transition relative">
+            <span x-show="discountPct(p) !== null"
+                  class="absolute left-2 top-2 badge badge-error text-white font-semibold">
+              <span x-text="`-${discountPct(p)}%`"></span>
+            </span>
+            <figure class="p-3 h-40">
+              <img :src="p.image || './images/placeholder.webp'" :alt="p.name"
+                   class="w-full h-full object-cover">
+            </figure>
+            <div class="card-body pt-0 flex flex-col">
+              <div class="text-sm font-medium line-clamp-2 min-h-[3rem]" x-text="p.name"></div>
+              <div class="mt-auto">
+                <div class="text-base font-semibold">
+                  <span x-text="formatPrice(currentPrice(p))"></span>
+                  <span class="ml-2 line-through text-xs opacity-60"
+                        x-show="crossedPrice(p) !== null"
+                        x-text="formatPrice(crossedPrice(p))"></span>
+                </div>
+                <div class="mt-1" x-show="isInStock(p)">
+                  <span class="badge badge-success">Skladem</span>
+                </div>
+              </div>
+            </div>
+          </a>
+        </template>
+      </div>
+    </div>
+  </div>
+</section>
 
 
 <!-- Top brands -->
@@ -578,215 +699,176 @@
   </div>
 </section>
 
+
+<!-- Magazine blog -->
+<section class="mt-8">
+  <h3 class="text-lg font-semibold mb-3">Blog</h3>
+
+  <!-- Mobile: horizontal scroller (2-up + tiny peek) · md+: 3-col grid -->
+  <div class="flex gap-3 overflow-x-auto snap-x snap-mandatory pb-6
+              md:overflow-visible md:grid md:grid-cols-3 md:gap-4 md:snap-none md:pb-0">
+
+    <!-- Tile -->
+    <article class="shrink-0 w-[calc(50%-0.9rem)] snap-start md:w-auto md:shrink md:col-span-1">
+      <div class="card h-full bg-base-100 shadow rounded-xl overflow-hidden">
+        <!-- IMAGE (clickable) -->
+        <figure class="h-48 overflow-hidden">
+          <a href="#" class="block w-full h-full">
+            <img src="./images/content/alergie_na_slunce.webp" class="w-full h-full object-cover" alt="">
+          </a>
+        </figure>
+
+        <!-- BODY -->
+        <div class="card-body min-w-0 flex flex-col gap-2 md:gap-3">
+          <!-- TITLE (clickable) · fixed 2 lines -->
+          <h2 class="text-xl font-semibold leading-snug line-clamp-2 min-h-[3.5rem]">
+            <a href="#" class="hover:underline">Alergie na slunce – příznaky a léčba</a>
+          </h2>
+
+          <!-- META -->
+          <div class="text-sm">
+            <span class="text-success font-bold">4 minuty čtení</span>
+            <span class="mx-1 opacity-40">•</span>
+            <span class="opacity-70">Zdraví a léky</span>
+          </div>
+
+          <!-- EXCERPT -->
+          <p class="text-base line-clamp-4">
+            Kdo by se netěšil na jasné letní dny? Některým z nás však slunce způsobí spolu s opálením kůže i nevítanou kožní reakci – sluneční alergii. Jak se alergie na slunce projevuje, jaké druhy rozlišujeme a jaké příčiny vedou k jejímu vzniku?
+          </p>
+
+          <!-- CTA + likes -->
+          <div class="mt-4 flex items-center opacity-70">
+            <a href="#" class="btn btn-sm btn-outline">Číst dál</a>
+            <div class="ml-auto"><i class="fa-regular fa-thumbs-up fa-lg"></i> 132</div>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <!-- Tile -->
+    <article class="shrink-0 w-[calc(50%-0.9rem)] snap-start md:w-auto md:shrink md:col-span-1">
+      <div class="card h-full bg-base-100 shadow rounded-xl overflow-hidden">
+        <figure class="h-48 overflow-hidden">
+          <a href="#" class="block w-full h-full">
+            <img src="./images/content/bolest_v_krku.webp" class="w-full h-full object-cover" alt="">
+          </a>
+        </figure>
+
+        <div class="card-body min-w-0 flex flex-col gap-2 md:gap-3">
+          <h2 class="text-xl font-semibold leading-snug line-clamp-2 min-h-[3.5rem]">
+            <a href="#" class="hover:underline">Bolest v krku – příčina a léčba</a>
+          </h2>
+          <div class="text-sm">
+            <span class="text-success font-bold">7 minut čtení</span>
+            <span class="mx-1 opacity-40">•</span>
+            <span class="opacity-70">Chřipka a nachlazení</span>
+          </div>
+          <p class="text-base line-clamp-4">
+            Bolest v krku není samostatnou nemocí, ale pouze příznakem doprovázejícím infekce horních cest dýchacích. Nejčastěji se jedná o zánět hltanu a mandlí virového nebo bakteriálního původu.
+          </p>
+          <!-- CTA + likes -->
+          <div class="mt-4 flex items-center opacity-70">
+            <a href="#" class="btn btn-sm btn-outline">Číst dál</a>
+            <div class="ml-auto"><i class="fa-regular fa-thumbs-up fa-lg"></i> 276</div>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <!-- Duplicate more <article> tiles with the same structure -->
+  </div>
+</section>
+
 <!-- Reasons to buy -->
 <section class="mt-8">
-  <h3 class="text-lg font-semibold mb-3">Proč nakoupit u Dr. Max</h3>
+  <h3 class="text-lg font-semibold mb-3">Proč nakoupit u Dr. Max 2</h3>
+  <div x-data="{ scrolled:false }" class="relative">
+    <div
+      x-ref="rail"
+      @scroll.passive="scrolled = $event.target.scrollLeft > 8"
+      class="flex gap-2 overflow-x-auto snap-x snap-mandatory pb-2
+             md:overflow-visible md:grid md:grid-cols-4 md:gap-3 md:snap-none md:pb-0"
+    >
 
-  <!-- Mobile: horizontal scroller (2-up)  ·  md+: grid -->
-  <div class="flex gap-3 overflow-x-auto snap-x snap-mandatory pb-6
-              md:overflow-visible md:grid md:grid-cols-4 md:gap-3 md:snap-none md:pb-0">
-
-    <!-- Tile -->
-    <div class="shrink-0 w-[calc(50%-0.375rem)] snap-start
-                md:w-auto md:shrink md:col-span-1 md:contents">
-      <a href="#" @click.prevent
-         class="block h-full rounded-xl bg-white p-3 hover:shadow-md transition
-                focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40">
-        <div class="flex h-full flex-col gap-3">
-          <!-- Image area hugs content but stays tidy -->
-          <div class="rounded-xl overflow-hidden grid place-items-center">
-            <img src="./images/rtbs/free-shipping.webp" alt="" class="max-h-24 w-auto object-contain">
+      <!-- Tile -->
+      <div class="shrink-0 w-[calc(50%-0.75rem)] snap-start
+                  md:w-auto md:shrink md:col-span-1 md:contents">
+        <a href="#" @click.prevent
+           class="block h-full rounded-xl bg-white p-3 hover:shadow-md transition
+                  focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40">
+          <div class="flex h-full flex-col gap-3">
+            <div class="rounded-xl overflow-hidden grid place-items-center">
+              <img src="./images/rtbs/free-shipping.webp" alt="" class="max-h-24 w-auto object-contain">
+            </div>
+            <span class="text-base font-medium text-center [&_b]:text-max-green-600">
+              <b>Doprava ZDARMA</b> od 399 Kč pro přihlášené
+            </span>
           </div>
-          <span class="text-base text-center font-medium [&_b]:text-max-green-600">
-            <b>Doprava ZDARMA</b> od 399 Kč pro přihlášené
-          </span>
-        </div>
-      </a>
+        </a>
+      </div>
+
+      <!-- Tile -->
+      <div class="shrink-0 w-[calc(50%-0.75rem)] snap-start
+                  md:w-auto md:shrink md:col-span-1 md:contents">
+        <a href="#" @click.prevent
+           class="block h-full rounded-xl bg-white p-3 hover:shadow-md transition
+                  focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40">
+          <div class="flex h-full flex-col gap-3">
+            <div class="rounded-xl overflow-hidden grid place-items-center">
+              <img src="./images/rtbs/private-label.webp" alt="" class="max-h-24 w-auto object-contain">
+            </div>
+            <span class="text-base font-medium text-center [&_b]:text-max-green-600">
+              Široká nabídka <b>produktů značky Dr. Max</b>
+            </span>
+          </div>
+        </a>
+      </div>
+
+      <!-- Tile -->
+      <div class="shrink-0 w-[calc(50%-0.75rem)] snap-start
+                  md:w-auto md:shrink md:col-span-1 md:contents">
+        <a href="#" @click.prevent
+           class="block h-full rounded-xl bg-white p-3 hover:shadow-md transition
+                  focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40">
+          <div class="flex h-full flex-col gap-3">
+            <div class="rounded-xl overflow-hidden grid place-items-center">
+              <img src="./images/rtbs/loyalty-program.webp" alt="" class="max-h-24 w-auto object-contain">
+            </div>
+            <span class="text-base font-medium text-center [&_b]:text-max-green-600">
+              Kopa výhod <b>věrnostního programu Dr. Max</b>
+            </span>
+          </div>
+        </a>
+      </div>
+      <!-- Tile -->
+      <div class="shrink-0 w-[calc(50%-0.75rem)] snap-start
+                  md:w-auto md:shrink md:col-span-1 md:contents">
+        <a href="#" @click.prevent
+           class="block h-full rounded-xl bg-white p-3 hover:shadow-md transition
+                  focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40">
+          <div class="flex h-full flex-col gap-3">
+            <div class="rounded-xl overflow-hidden grid place-items-center">
+              <img src="./images/rtbs/mobile-app.webp" alt="" class="max-h-24 w-auto object-contain">
+            </div>
+            <span class="text-base font-medium text-center [&_b]:text-max-green-600">
+              <b>Mobilní aplikace</b> plná užitečných funkcí
+            </span>
+          </div>
+        </a>
+      </div>      
+
     </div>
 
-    <!-- Tile -->
-    <div class="shrink-0 w-[calc(50%-0.375rem)] snap-start
-                md:w-auto md:shrink md:col-span-1 md:contents">
-      <a href="#" @click.prevent
-         class="block h-full rounded-xl bg-white p-3 hover:shadow-md transition
-                focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40">
-        <div class="flex h-full flex-col gap-3">
-          <div class="rounded-xl overflow-hidden grid place-items-center">
-            <img src="./images/rtbs/private-label.webp" alt="" class="max-h-24 w-auto object-contain">
-          </div>
-          <span class="text-base text-center font-medium [&_b]:text-max-green-600">
-            Široká nabídka <b>produktů značky Dr. Max</b>
-          </span>
-        </div>
-      </a>
-    </div>
-    <!-- Tile -->
-    <div class="shrink-0 w-[calc(50%-0.375rem)] snap-start
-                md:w-auto md:shrink md:col-span-1 md:contents">
-      <a href="#" @click.prevent
-         class="block h-full rounded-xl bg-white p-3 hover:shadow-md transition
-                focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40">
-        <div class="flex h-full flex-col gap-3">
-          <div class="rounded-xl overflow-hidden grid place-items-center">
-            <img src="./images/rtbs/loyalty-program.webp" alt="" class="max-h-24 w-auto object-contain">
-          </div>
-          <span class="text-base text-center font-medium [&_b]:text-max-green-600">
-            Kopa výhod <b>věrnostního programu Dr. Max</b></b>
-          </span>
-        </div>
-      </a>
+    <!-- Scroll affordance (mobile only): gradient + chevron, fades after first scroll -->
+    <div class="md:hidden pointer-events-none absolute inset-y-0 right-0 w-10 z-10 transition-opacity"
+         :class="scrolled ? 'opacity-0' : 'opacity-100'">
+      <div class="h-full bg-gradient-to-l from-base-100 to-transparent"></div>
+      <div class="absolute right-2 top-1/2 -translate-y-1/2 text-base-content/60 animate-pulse select-none"><i class="fa-solid fa-chevron-right fa-lg"></i></div>
     </div>
   </div>
 </section>
 
-
-
-
-
-    <!-- 2) Top categories -->
-    <section class="mt-8">
-      <div class="flex items-center justify-between mb-3">
-        <h3 class="text-lg font-semibold">Nejlepší kategorie</h3>
-        <a href="#/products" class="link link-primary">Zobrazit vše</a>
-      </div>
-      <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
-        <template x-for="c in topCats" :key="c.name">
-          <a href="#/products" @click.prevent="selectedCategory=c.name; go('#/products')"
-             class="card bg-white hover:shadow-md transition p-3 items-center text-center">
-            <div class="w-full aspect-square rounded-xl bg-base-200 overflow-hidden grid place-items-center">
-              <img :src="c.image" :alt="c.name" class="w-4/5 h-4/5 object-contain">
-            </div>
-            <div class="mt-2 text-sm font-medium truncate" x-text="c.name"></div>
-          </a>
-        </template>
-      </div>
-    </section>
-
-    <!-- 3) Product carousels -->
-    <section class="mt-8">
-      <div class="flex items-center justify-between mb-3">
-        <h3 class="text-lg font-semibold">Doporučené produkty</h3>
-        <a href="#/products" class="link link-primary">Do katalogu</a>
-      </div>
-
-      <!-- horizontal scroll / snap -->
-      <div class="relative group">
-        <div class="overflow-x-auto scrollbar-thin">
-          <div class="flex gap-3 snap-x snap-mandatory px-0">
-            <template x-for="p in topProducts(12)" :key="p.id">
-              <a :href="link('product',{id:p.id})"
-                 class="snap-start shrink-0 w-48 sm:w-56 card bg-white hover:shadow-md transition">
-                <figure class="p-3 h-40">
-                  <img :src="p.image || './images/placeholder.webp'" :alt="p.name"
-                       class="w-full h-full object-contain">
-                </figure>
-                <div class="card-body pt-0">
-                  <div class="text-sm font-medium line-clamp-2" x-text="p.name"></div>
-                  <div class="mt-1 text-base font-semibold">
-                    <span x-text="(p.price || 0).toLocaleString('cs-CZ') + ' Kč'"></span>
-                    <span class="ml-2 line-through text-xs opacity-60" x-show="p.oldPrice"
-                          x-text="(p.oldPrice || 0).toLocaleString('cs-CZ') + ' Kč'"></span>
-                  </div>
-                  <div class="mt-1">
-                    <span class="badge" :class="p.inStock ? 'badge-success' : 'badge-ghost'">
-                      <span x-text="p.inStock ? 'Skladem' : 'Na dotaz'"></span>
-                    </span>
-                  </div>
-                </div>
-              </a>
-            </template>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Optional: category-focused carousel -->
-    <template x-if="topCats.length">
-      <section class="mt-8">
-        <div class="flex items-center justify-between mb-3">
-          <h3 class="text-lg font-semibold" x-text="'Top v kategorii: ' + topCats[0].name"></h3>
-          <a href="#/products" class="link link-primary">Více</a>
-        </div>
-        <div class="overflow-x-auto">
-          <div class="flex gap-3 snap-x snap-mandatory">
-            <template x-for="p in productsByCategory(topCats[0].name, 10)" :key="p.id">
-              <a :href="link('product',{id:p.id})"
-                 class="snap-start shrink-0 w-48 sm:w-56 card bg-white hover:shadow-md transition">
-                <figure class="p-3 h-40">
-                  <img :src="p.image || './images/placeholder.webp'" :alt="p.name"
-                       class="w-full h-full object-contain">
-                </figure>
-                <div class="card-body pt-0">
-                  <div class="text-sm font-medium line-clamp-2" x-text="p.name"></div>
-                  <div class="mt-1 text-base font-semibold">
-                    <span x-text="(p.price || 0).toLocaleString('cs-CZ') + ' Kč'"></span>
-                  </div>
-                </div>
-              </a>
-            </template>
-          </div>
-        </div>
-      </section>
-    </template>
-
-    <!-- 4) Top brands -->
-    <section class="mt-10">
-      <h3 class="text-lg font-semibold mb-3">Top značky</h3>
-      <div class="grid grid-cols-3 sm:grid-cols-5 md:grid-cols-10 gap-4 items-center">
-        <template x-for="b in topBrands" :key="b.name">
-          <a href="#/products" class="rounded-xl border bg-white p-3 grid place-items-center hover:shadow-sm">
-            <img :src="b.logo" :alt="b.name" class="h-8 object-contain opacity-80">
-          </a>
-        </template>
-      </div>
-    </section>
-
-    <!-- 5) Benefits -->
-    <section class="mt-10">
-      <h3 class="text-lg font-semibold mb-3">Proč u nás nakoupit</h3>
-      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3">
-        <template x-for="(b, i) in benefits.slice(0,5)" :key="i">
-          <div class="card bg-white shadow-sm p-4">
-            <div class="flex items-start gap-3">
-              <div class="text-primary text-xl"><i class="fa-solid" :class="b.icon"></i></div>
-              <div>
-                <div class="font-semibold" x-text="b.title"></div>
-                <div class="text-sm opacity-70" x-text="b.text"></div>
-              </div>
-            </div>
-          </div>
-        </template>
-      </div>
-    </section>
-
-    <!-- 6) Blog / Magazine -->
-    <section class="mt-10">
-      <div class="flex items-center justify-between mb-3">
-        <h3 class="text-lg font-semibold">Magazín</h3>
-        <a :href="(infoLinks?.[0]?.href)||'#/products'" class="link link-primary">Další články</a>
-      </div>
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <!-- Use infoLinks if available; otherwise placeholders -->
-        <template x-for="(post, i) in (infoLinks?.slice(0,3) || [])" :key="i">
-          <a :href="post.href" class="card bg-white hover:shadow-md transition overflow-hidden">
-            <figure class="h-40 bg-base-200">
-              <img :src="post.image || './images/blog/placeholder.webp'" :alt="post.title"
-                   class="w-full h-full object-cover">
-            </figure>
-            <div class="card-body">
-              <div class="text-sm opacity-60" x-text="post.category || 'Magazín'"></div>
-              <h4 class="font-semibold line-clamp-2" x-text="post.title"></h4>
-            </div>
-          </a>
-        </template>
-
-        <template x-if="!(infoLinks && infoLinks.length)">
-          <div class="md:col-span-3 text-sm opacity-70">
-            Připravujeme obsah — tipy, recenze a inspiraci pro výběr.
-          </div>
-        </template>
-      </div>
-    </section>
 
   </div>
 </template>
@@ -4163,14 +4245,6 @@ async loadData() {
     const brandSet = new Set(this.products.map(p => (p.brand || '').trim()).filter(Boolean));
     this.topBrands = Array.from(brandSet).slice(0, 10).map(name => ({ name, logo: this.brandLogo(name) }));
 
-    // Benefits (use what you want, or pull from config later)
-    this.benefits = [
-      { icon: 'fa-truck', title: 'Doprava zdarma', text: 'od 999 Kč' },
-      { icon: 'fa-box', title: 'Síť výdejních míst', text: 'po celé ČR & SR' },
-      { icon: 'fa-rotate-left', title: 'Snadné vrácení', text: 'do 30 dní' },
-      { icon: 'fa-bolt', title: 'Rychlé doručení', text: 'již zítra' },
-      { icon: 'fa-shield', title: 'Bezpečný nákup', text: 'ověření zákazníci' },
-    ];
 
   } catch (e) {
     console.error('Failed to load products.json', e);
@@ -4261,6 +4335,107 @@ link(name, params = {}) {
   if (name === 'map')     return '#/map';
   return '#/products';
 },
+
+// --- Scroll indicators (no nested x-data) ---
+tpShowLeft: false,
+tpShowRight: false,
+tpScrolled: false,
+initStripe(el, leftKey = 'tpShowLeft', rightKey = 'tpShowRight') {
+  const update = () => {
+    if (!el) return;
+    const { scrollLeft, scrollWidth, clientWidth } = el;
+    this[leftKey]  = scrollLeft > 4;
+    this[rightKey] = scrollLeft + clientWidth < scrollWidth - 4;
+  };
+  this.$nextTick(() => {
+    update();
+    el?.addEventListener('scroll', update, { passive: true });
+    const ro = new ResizeObserver(update);
+    el && ro.observe(el);
+    window.addEventListener('orientationchange', update, { passive: true });
+    window.addEventListener('resize', update, { passive: true });
+  });
+},
+
+// --- Pricing helpers (supports discounted_price from your feed) ---
+formatPrice(v) {
+  const n = Number(v || 0);
+  return n.toLocaleString('cs-CZ') + ' Kč';
+},
+currentPrice(p) {
+  return (p?.discounted_price != null) ? Number(p.discounted_price) : Number(p?.price || 0);
+},
+crossedPrice(p) {
+  if (p?.discounted_price != null) return Number(p?.price || 0);
+  if (p?.oldPrice != null) return Number(p.oldPrice);
+  return null;
+},
+discountPct(p) {
+  const now = this.currentPrice(p);
+  const was = this.crossedPrice(p);
+  if (!was || !now || !(was > now)) return null;
+  return Math.round(100 - (now / was) * 100);
+},
+isInStock(p) {
+  // your schema: p.stock like "Skladem"
+  return String(p?.stock || '').toLowerCase().includes('sklad');
+},
+
+// --- One-time shuffle per page load ---
+_topProdCache: null,
+// Source + per-key shuffle (unchanged logic, accepts any key)
+_topSource() {
+  const hasTopProducts = typeof this.topProducts === 'function';
+  const hasTopPorudcts = typeof this.topPorudcts === 'function';
+  if (hasTopProducts)  return this.topProducts(200);
+  if (hasTopPorudcts)  return this.topPorudcts(200);
+  return Array.isArray(this.products) ? this.products : [];
+},
+topProductsShuffledFor(key, count = 12) {
+  if (!key) return [];
+  if (!Array.isArray(this._topProdCacheMap[key])) {
+    const src = this._topSource();
+    if (!Array.isArray(src) || src.length === 0) return [];
+    const arr = src.slice();
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    this._topProdCacheMap[key] = arr;
+  }
+  return this._topProdCacheMap[key].slice(0, count);
+},
+// ---- per-strip state (reactive) ----
+_tpId: 0,
+tpStates: {},            // { [key]: {left,right,scrolled} }
+_topProdCacheMap: {},    // { [key]: shuffledArray }
+
+// Register scroller with an explicit key (string) or auto-assigned if missing
+registerTopStrip(el, key = null) {
+  if (!el) return;
+  const id = key || el.dataset.tpId || ('tp' + (++this._tpId));
+  el.dataset.tpId = id;
+
+  if (!this.tpStates[id]) this.tpStates[id] = { left: false, right: false, scrolled: false };
+
+  const update = () => {
+    const { scrollLeft, scrollWidth, clientWidth } = el;
+    const st = this.tpStates[id];
+    st.left  = scrollLeft > 4;
+    st.right = scrollLeft + clientWidth < scrollWidth - 4;
+    if (!st.scrolled && scrollLeft > 2) st.scrolled = true;
+  };
+
+  this.$nextTick(() => {
+    update();
+    el.addEventListener('scroll', update, { passive: true });
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    window.addEventListener('orientationchange', update, { passive: true });
+    window.addEventListener('resize', update, { passive: true });
+  });
+},
+
 
 go(to) {
   // special case: go to homepage WITHOUT hash
@@ -5233,9 +5408,35 @@ rangeLabel() {
         });
       };
     
+
       if (window.Alpine) register();
       window.addEventListener('alpine:init', register);
     })();
+    function scrollFades() {
+      return {
+        showLeft: false,
+        showRight: false,
+        update() {
+          const el = this.$refs.scroller;
+          if (!el) return;
+          const { scrollLeft, scrollWidth, clientWidth } = el;
+          this.showLeft  = scrollLeft > 4;
+          this.showRight = scrollLeft + clientWidth < scrollWidth - 4;
+        },
+        init() {
+          // initialize and listen
+          this.$nextTick(() => {
+            this.update();
+            const el = this.$refs.scroller;
+            el?.addEventListener('scroll', () => this.update(), { passive: true });
+            const ro = new ResizeObserver(() => this.update());
+            el && ro.observe(el);
+            window.addEventListener('orientationchange', () => this.update(), { passive: true });
+          });
+        },
+      };
+    }
+
     // Billboard carousel
     // HOME BILLBOARD CAROUSEL (Alpine component)
     function homeCarousel() {
