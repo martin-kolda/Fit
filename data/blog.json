@@ -1,14 +1,50 @@
 [
     {
       "id": 1,
-      "title": "Bolest chodidla – příčiny, léčba a tipy na úlevu",
-      "img": "./images/banners/default-bg.jpg",
-      "date": "",
-      "category": "./images/banners/losange.webp",
-      "perex": "./images/banners/pharmacist.webp",
+      "title": "Alergie na slunce – příznaky a léčba",
+      "image": "./images/content/alergie_na_slunce.webp",
+      "publication_date": "3.3. 2025",
+      "category": "Zdraví a léky",
+      "perex": "Kdo by se netěšil na jasné letní dny? Některým z nás však slunce způsobí spolu s opálením kůže i nevítanou kožní reakci – sluneční alergii. Jak se alergie na slunce projevuje, jaké druhy rozlišujeme a jaké příčiny vedou k jejímu vzniku? Lze vůbec sluneční alergii předcházet a co dělat, pokud se na kůži svědivá reakce objeví?",
       "likes": 132,
       "minutes_to_read": 4,
-      "link": "./images/banners/sleva.png",
-      "author": { "name": "Nakoupit", "photo": "#/products"}
+      "link": null,
+      "author": { "name": "Mgr. Lukáš Novotný", "photo": "./images/content/lukas_novotny.webp"}
+    },
+    {
+      "id": 2,
+      "title": "Bolest v krku – příčina a léčba",
+      "image": "./images/content/bolest_v_krku.webp",
+      "publication_date": "14.7. 2025",
+      "category": "Chřipka a nachlazení",
+      "perex": "Bolest v krku není samostatnou nemocí, ale pouze příznakem doprovázejícím infekce horních cest dýchacích. Nejčastěji se jedná o zánět hltanu a patrových mandlí virového nebo bakteriálního původu. Méně často se tak projevuje alergie, následek poranění, poleptání, uvíznutí cizího tělesa v dýchacích cestách a jiné onemocnění v oblasti krku. Bolestí v krku se projevuje i zánět hrtanové záklopky (postihuje zejména děti), který patří mezi závažná onemocnění vyžadující lékařskou péči.",
+      "likes": 276,
+      "minutes_to_read": 7,
+      "link": null,
+      "author": { "name": "Mgr. Radka Grec", "photo": "./images/content/radka_grec.webp"}
+    },
+    {
+      "id": 3,
+      "title": "Průjem – příčiny a léčba",
+      "image": "./images/content/prujem.webp",
+      "publication_date": "19.8. 2025",
+      "category": "Trávicí obtíže",
+      "perex": "Průjem patří mezi nejběžnější onemocnění dětí i dospělých. Naštěstí ho lze často zvládnout pomocí samoléčby. Ta spočívá v doplňování tekutin, úpravě diety a užívání volně prodejných přípravků proti průjmu. Jaké jsou konkrétní možnosti léčby průjmu a kdy je nutné vyhledat lékaře?",
+      "likes": 91,
+      "minutes_to_read": 9,
+      "link": null,
+      "author": { "name": "PharmDr. Hana Vondrušková", "photo": "./images/content/hana_vondruskova.webp"}
+    },
+    {
+      "id": 4,
+      "title": "Jak vybrat vitamíny?",
+      "image": "./images/content/vitaminy.webp",
+      "publication_date": "4.9. 2025",
+      "category": "Vitamíny a minerály",
+      "perex": "Pestrá a vyvážená strava dokáže našemu organismu zajistit veškeré živiny, které potřebuje. Jsou však situace anebo období, kdy je na místě doplnit jídelníček větším přísunem vitamín a minerálů – například v období zvýšeného výskytu infekčních onemocnění, po nemoci nebo při větší psychické a fyzické zátěži. Které vitamíny vám mohou prospět a jak z množství preparátů vybrat ten pravý?",
+      "likes": 183,
+      "minutes_to_read": 4,
+      "link": null,
+      "author": { "name": "PharmDr. Hana Vondrušková", "photo": "./images/content/hana_vondruskova.webp"}
     }
 ]

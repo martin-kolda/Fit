@@ -538,7 +538,106 @@
   </template>
 </section>
 
+<h3 class="text-lg font-semibold mb-3">Vaše uložené v akci</h3>
 
+
+
+<!-- Top brands -->
+<section class="mt-8">
+  <h3 class="text-lg font-semibold mb-3">Top značky</h3>
+
+  <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
+    <div class="relative">
+      <a href="#" @click.prevent
+         class="block w-full h-full aspect-square rounded-xl bg-white p-3 hover:shadow-md transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40">
+        <div class="w-full h-full rounded-xl overflow-hidden grid place-items-center">
+          <img src="./images/brands/laroche.webp" alt="La Roche-Posay"
+               class="object-contain">
+        </div>
+      </a>
+      <span class="absolute right-1.5 top-1.5 badge badge-error">Až -31%</span>
+    </div>
+    <div class="relative">
+      <a href="#" @click.prevent
+         class="block w-full h-full aspect-square rounded-xl bg-white p-3 hover:shadow-md transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40">
+        <div class="w-full h-full rounded-xl overflow-hidden grid place-items-center">
+          <img src="./images/brands/vichy.webp" alt="Vichy"
+               class="object-contain">
+        </div>
+      </a>
+    </div>
+    <div class="relative">
+      <a href="#" @click.prevent
+         class="block w-full h-full aspect-square rounded-xl bg-white p-3 hover:shadow-md transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40">
+        <div class="w-full h-full rounded-xl overflow-hidden grid place-items-center">
+          <img src="./images/brands/centrum.webp" alt="Centrum"
+               class="object-contain">
+        </div>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- Reasons to buy -->
+<section class="mt-8">
+  <h3 class="text-lg font-semibold mb-3">Proč nakoupit u Dr. Max</h3>
+
+  <!-- Mobile: horizontal scroller (2-up)  ·  md+: grid -->
+  <div class="flex gap-3 overflow-x-auto snap-x snap-mandatory pb-6
+              md:overflow-visible md:grid md:grid-cols-4 md:gap-3 md:snap-none md:pb-0">
+
+    <!-- Tile -->
+    <div class="shrink-0 w-[calc(50%-0.375rem)] snap-start
+                md:w-auto md:shrink md:col-span-1 md:contents">
+      <a href="#" @click.prevent
+         class="block h-full rounded-xl bg-white p-3 hover:shadow-md transition
+                focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40">
+        <div class="flex h-full flex-col gap-3">
+          <!-- Image area hugs content but stays tidy -->
+          <div class="rounded-xl overflow-hidden grid place-items-center">
+            <img src="./images/rtbs/free-shipping.webp" alt="" class="max-h-24 w-auto object-contain">
+          </div>
+          <span class="text-base text-center font-medium [&_b]:text-max-green-600">
+            <b>Doprava ZDARMA</b> od 399 Kč pro přihlášené
+          </span>
+        </div>
+      </a>
+    </div>
+
+    <!-- Tile -->
+    <div class="shrink-0 w-[calc(50%-0.375rem)] snap-start
+                md:w-auto md:shrink md:col-span-1 md:contents">
+      <a href="#" @click.prevent
+         class="block h-full rounded-xl bg-white p-3 hover:shadow-md transition
+                focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40">
+        <div class="flex h-full flex-col gap-3">
+          <div class="rounded-xl overflow-hidden grid place-items-center">
+            <img src="./images/rtbs/private-label.webp" alt="" class="max-h-24 w-auto object-contain">
+          </div>
+          <span class="text-base text-center font-medium [&_b]:text-max-green-600">
+            Široká nabídka <b>produktů značky Dr. Max</b>
+          </span>
+        </div>
+      </a>
+    </div>
+    <!-- Tile -->
+    <div class="shrink-0 w-[calc(50%-0.375rem)] snap-start
+                md:w-auto md:shrink md:col-span-1 md:contents">
+      <a href="#" @click.prevent
+         class="block h-full rounded-xl bg-white p-3 hover:shadow-md transition
+                focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40">
+        <div class="flex h-full flex-col gap-3">
+          <div class="rounded-xl overflow-hidden grid place-items-center">
+            <img src="./images/rtbs/loyalty-program.webp" alt="" class="max-h-24 w-auto object-contain">
+          </div>
+          <span class="text-base text-center font-medium [&_b]:text-max-green-600">
+            Kopa výhod <b>věrnostního programu Dr. Max</b></b>
+          </span>
+        </div>
+      </a>
+    </div>
+  </div>
+</section>
 
 
 
@@ -5158,6 +5257,7 @@ rangeLabel() {
     width: 0,
 
     // drag / click guard
+    pointerDown: false,
     dragging: false,
     lock: null,        // null | 'h' | 'v'
     startX: 0,
@@ -5300,70 +5400,70 @@ rangeLabel() {
       if (!isTap) { e.preventDefault(); e.stopPropagation(); this.resetAutoplay(); }
     },
 
-    // ✅ Missing before: define onPointerDown
     onPointerDown(e) {
-      // Don't preventDefault yet; we haven't locked direction
-      this.measure();
-      this.lock = null;
-      this.dragging = false;
+    // don't preventDefault yet
+    this.pointerDown = true;            // 👈 NEW
+    this.measure();
+    this.lock = null;
+    this.dragging = false;
 
-      const x = (e.touches?.[0]?.clientX) ?? e.clientX ?? 0;
-      const y = (e.touches?.[0]?.clientY) ?? e.clientY ?? 0;
-      this.startX = this.currX = x;
-      this.startY = this.currY = y;
-      this.lastDX = 0;
+    const x = (e.touches?.[0]?.clientX) ?? e.clientX ?? 0;
+    const y = (e.touches?.[0]?.clientY) ?? e.clientY ?? 0;
+    this.startX = this.currX = x;
+    this.startY = this.currY = y;
+    this.lastDX = 0;
 
-      this.pressT = performance.now();
-      this.pressX = x;
-    },
+    this.pressT = performance.now();
+    this.pressX = x;
+  },
 
-    onPointerMove(e) {
-      const x = (e.touches?.[0]?.clientX) ?? e.clientX ?? 0;
-      const y = (e.touches?.[0]?.clientY) ?? e.clientY ?? 0;
-      this.currX = x; this.currY = y;
+  onPointerMove(e) {
+    // ❗ Ignore all desktop mousemoves unless a button is held
+    if (!this.pointerDown) return;                     // 👈 NEW (fixes “follows cursor”)
+    if (!e.touches && e.buttons === 0) return;         // 👈 extra guard for stray moves
 
-      const dx = this.currX - this.startX;
-      const dy = this.currY - this.startY;
-      const adx = Math.abs(dx), ady = Math.abs(dy);
+    const x = (e.touches?.[0]?.clientX) ?? e.clientX ?? 0;
+    const y = (e.touches?.[0]?.clientY) ?? e.clientY ?? 0;
+    this.currX = x; this.currY = y;
 
-      // Decide direction once
-      if (this.lock === null) {
-        if (adx < INTENT_THRESHOLD_PX && ady < INTENT_THRESHOLD_PX) return; // not enough movement yet
-        // Bias toward vertical unless horizontal is clearly stronger
-        if (adx > ady * H_BIAS) {
-          this.lock = 'h';
-          this.dragging = true;
-          this.stopAutoplay();
-          e.preventDefault?.(); // cancel native scroll now that we own it
-        } else {
-          this.lock = 'v';
-          this.dragging = false; // let the page scroll
-          return;
-        }
-      }
+    const dx = this.currX - this.startX;
+    const dy = this.currY - this.startY;
+    const adx = Math.abs(dx), ady = Math.abs(dy);
 
-      if (this.lock === 'v') return; // vertical scroll; do nothing
+    if (this.lock === null) {
+      if (adx < INTENT_THRESHOLD_PX && ady < INTENT_THRESHOLD_PX) return;
 
-      // Horizontal: apply resistance
-      this.lastDX = dx;
-      e.preventDefault?.(); // keep scrolling from stealing gestures
-    },
-
-    onPointerUp() {
-      // If we never locked horizontally, treat as scroll/tap
-      if (this.lock !== 'h') { this.lock = null; return; }
-
-      const moved = this.lastDX;
-      this.dragging = false;
-      this.lock = null;
-
-      if (Math.abs(moved) > DRAG_THRESHOLD_PX) {
-        (moved < 0) ? this.next() : this.prev();
+      if (adx > ady * H_BIAS) {
+        this.lock = 'h';
+        this.dragging = true;
+        this.stopAutoplay();
+        e.preventDefault?.();
       } else {
-        this.go(this.index); // snap back
+        this.lock = 'v';
+        this.dragging = false;
+        return;
       }
-      this.resetAutoplay();
-    },
+    }
+
+    if (this.lock === 'v') return;
+
+    this.lastDX = dx;
+    e.preventDefault?.();
+  },
+
+  onPointerUp() {
+    // clear pointer state first
+    this.pointerDown = false;        // 👈 NEW
+    if (this.lock !== 'h') { this.lock = null; return; }
+
+    const moved = this.lastDX;
+    this.dragging = false;
+    this.lock = null;
+
+    if (Math.abs(moved) > DRAG_THRESHOLD_PX) (moved < 0) ? this.next() : this.prev();
+    else this.go(this.index);
+    this.resetAutoplay();
+  },
 
     onKeydown(e) { if (e.key === 'ArrowLeft') this.prev(); if (e.key === 'ArrowRight') this.next(); },
 

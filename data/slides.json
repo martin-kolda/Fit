@@ -4,7 +4,7 @@
       "banner_template_id": 1,
       "title": "Podzimní výprodej",
       "text": { "long": "Slevy až 30 % na doplňky stravy Dr. Max", "short": "Slevy až 30 %" },
-  
+      "background": "./images/banners/default-bg.jpg",
       "layer_1": "./images/banners/losange.webp",
       "layer_2": "./images/banners/pharmacist.webp",
       "layer_3": "./images/banners/lutein.webp",
@@ -19,7 +19,7 @@
       "banner_template_id": 2,
       "title": "Dárek před Vánoci",
       "text": { "long": "ke všem nákupům", "short": "Dárek pro Vás" },
-
+      "background": "./images/banners/white-bg.jpg",
       "layer_1": "./images/banners/losange.webp",
       "layer_2": "./images/banners/pharmacist.webp",
       "layer_3": "./images/banners/lutein.webp",
