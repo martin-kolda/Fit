@@ -25,6 +25,7 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css">
   <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css">
   <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+  <script src="https://unpkg.com/@lottiefiles/dotlottie-wc@0.8.1/dist/dotlottie-wc.js" type="module"></script>
 
   <style>
   [x-cloak]{display:none}
@@ -41,7 +42,13 @@
   .free-ship-bar .fill.shimmer::after {content: "";position: absolute;inset: 0; background-image: linear-gradient(120deg,rgba(255,255,255,0) 0%,rgba(255,255,255,0.35) 18%,rgba(255,255,255,0) 36%);background-size: 200% 100%;animation: bar-shimmer 2.6s linear infinite;pointer-events: none;}
   @keyframes bar-shimmer {0%   { background-position: 50% 0; } 30%  { background-position: -100% 0; } 100% { background-position: -100% 0; }}
   @media (prefers-reduced-motion: reduce) {.free-ship-bar .fill.shimmer::after { animation: none; }}  
-/* isolate each slide's painting & stacking on iOS to stop z-index flicker */
+
+.timeline.no-start > li {grid-template-columns: auto 1fr !important;}
+.timeline.no-start > li > .timeline-middle { grid-column: 1 !important; justify-self: center; }
+.timeline.no-start > li > .timeline-end    { grid-column: 2 / -1 !important; padding-left: 0 !important; margin-left: 0 !important; }
+.timeline.no-start > li > hr {grid-column: 1 !important; justify-self: center !important; align-self: stretch !important; width: 2px !important; border: 0 !important; }
+
+  /* isolate each slide's painting & stacking on iOS to stop z-index flicker */
 .banner-slide{
   isolation: isolate;          /* new stacking context */
   contain: paint;              /* confine repaints */
@@ -109,6 +116,39 @@
 
 
   </style>
+
+<script>
+  document.addEventListener('alpine:init', () => {
+    if (!Alpine.store('precart')) {
+      Alpine.store('precart', {
+        // state
+        isOpen: false,
+        product: null,
+        catalog: [],
+        quickAdded: new Set(),
+  
+        // api
+        setCatalog(arr) { this.catalog = Array.isArray(arr) ? arr : []; },
+        recommend(limit = 8) {
+          const cur = String(this.product?.id ?? '');
+          return (this.catalog || []).filter(p => String(p.id) !== cur).slice(0, limit);
+        },
+        open(product) {
+          this.product = product || null;
+          this.isOpen = !!this.product;
+          this.quickAdded.clear();
+        },
+        close() {
+          this.isOpen = false;
+          this.product = null;
+          this.quickAdded.clear();
+        },
+        markQuickAdded(id) { this.quickAdded.add(String(id)); },
+        isQuickAdded(id)   { return this.quickAdded.has(String(id)); },
+      });
+    }
+  });
+  </script>
 </head>
 
 <body class="bg-base-200 overflow-x-hidden" x-data="storeApp()">
@@ -313,28 +353,26 @@
 
   <!-- TOP-BAR BUTTONS + CART (mobile + desktop) -->
   <div class="flex gap-2 flex-none">
-    <button class="btn btn-primary w-12 h-12 btn-lg btn-square max-gradient-gray hidden md:block">
+    <button class="btn btn-primary w-12 h-12 btn-lg btn-square max-gradient-gray hidden md:block"
+    aria-label="Otevřít právě doručujeme" title="Právě doručujeme"
+    @click="location.hash='/my-account'"
+    >
       <i class="fa-classic fa-xl fa-regular fa-truck-fast text-gray-700 max-embos-v-gray"></i>
     </button>
 
-    <button class="btn btn-primary w-12 h-12 btn-lg btn-square max-gradient">
+    <button class="btn btn-primary w-12 h-12 btn-lg btn-square max-gradient" 
+    aria-label="Otevřít moje uložené" title="Moje uložené"
+    @click="location.hash='/my-saved'"
+    >
       <i class="fa-classic fa-xl fa-regular fa-heart text-white max-embos-v"></i>
     </button>
 
-    <div class="dropdown dropdown-end">
-      <label tabindex="0" class="btn btn-primary w-12 h-12 max-gradient btn-square">
-        <div class="w-10 rounded-full bg-neutral-focus text-neutral-content flex items-center justify-center">
-          <i class="fa-classic fa-2xl fa-regular fa-user-circle text-white max-embos-v"></i>
-        </div>
-      </label>
-      <ul tabindex="0" class="menu menu-compact dropdown-content mt-3 p-2 shadow bg-base-100 rounded-box w-52">
-        <li><a>Profile</a></li>
-        <li><a>Settings</a></li>
-        <li><a>Logout</a></li>
-      </ul>
-    </div>
-
-
+    <button class="btn btn-primary w-12 h-12 btn-lg btn-square max-gradient" 
+    aria-label="Otevřít můk účet" title="Můj účet"
+    @click="location.hash='/my-account'"
+    >
+      <i class="fa-classic fa-xl fa-regular fa-user-circle text-white max-embos-v"></i>
+    </button>
 
     <button
     class="btn btn-primary btn-squish w-12 h-12 btn-lg btn-square max-gradient indicator"
@@ -665,39 +703,54 @@
 
 <!-- Top brands -->
 <section class="mt-8">
-  <h3 class="text-lg font-semibold mb-3">Top značky</h3>
+  <div class="flex items-center justify-between mb-3">
+    <h3 class="text-lg font-semibold">Top značky</h3>
+  </div>
 
-  <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
-    <div class="relative">
-      <a href="#" @click.prevent
-         class="block w-full h-full aspect-square rounded-xl bg-white p-3 hover:shadow-md transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40">
-        <div class="w-full h-full rounded-xl overflow-hidden grid place-items-center">
-          <img src="./images/brands/laroche.webp" alt="La Roche-Posay"
-               class="object-contain">
-        </div>
-      </a>
-      <span class="absolute right-1.5 top-1.5 badge badge-error">Až -31%</span>
+  <div class="relative group">
+    <!-- indicators (left/right) -->
+    <div class="pointer-events-none absolute inset-y-0 left-0 w-10 bg-gradient-to-r from-white to-transparent
+                transition-opacity duration-200 z-10"
+         :class="tpStates['brands']?.left ? 'opacity-100' : 'opacity-0'"></div>
+    <div class="pointer-events-none absolute inset-y-0 right-0 w-10 bg-gradient-to-l from-white to-transparent
+                transition-opacity duration-200 z-10"
+         :class="tpStates['brands']?.right ? 'opacity-100' : 'opacity-0'"></div>
+
+    <!-- mobile scroll affordance (fades after first scroll) -->
+    <div class="md:hidden pointer-events-none absolute inset-y-0 right-0 w-10 z-10 transition-opacity"
+         :class="tpStates['brands']?.scrolled ? 'opacity-0' : 'opacity-100'">
+      <div class="h-full bg-gradient-to-l from-base-100 to-transparent"></div>
+      <div class="absolute right-2 top-1/2 -translate-y-1/2 text-base-content/60 animate-pulse select-none">
+        <i class="fa-solid fa-chevron-right fa-lg"></i>
+      </div>
     </div>
-    <div class="relative">
-      <a href="#" @click.prevent
-         class="block w-full h-full aspect-square rounded-xl bg-white p-3 hover:shadow-md transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40">
-        <div class="w-full h-full rounded-xl overflow-hidden grid place-items-center">
-          <img src="./images/brands/vichy.webp" alt="Vichy"
-               class="object-contain">
-        </div>
-      </a>
-    </div>
-    <div class="relative">
-      <a href="#" @click.prevent
-         class="block w-full h-full aspect-square rounded-xl bg-white p-3 hover:shadow-md transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40">
-        <div class="w-full h-full rounded-xl overflow-hidden grid place-items-center">
-          <img src="./images/brands/centrum.webp" alt="Centrum"
-               class="object-contain">
-        </div>
-      </a>
+
+    <!-- scroller -->
+    <div class="overflow-x-auto scrollbar-thin"
+         x-init="registerTopStrip($el, 'brands')">
+      <div class="flex gap-3 snap-x snap-mandatory px-0 pb-2">
+        <template x-for="b in brandsShuffledFor('brands', 18)" :key="b.name">
+          <a :href="brandHref(b)"
+             class="snap-start shrink-0
+                    w-36 sm:w-40 md:w-44 lg:w-48 xl:w-52
+                    aspect-square rounded-xl bg-white p-3 hover:shadow-md transition
+                    focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40
+                    relative grid place-items-center">
+            <!-- logo -->
+            <img :src="b.logo" :alt="b.name" class="object-contain max-w-full max-h-full">
+
+            <!-- badge (optional) -->
+            <template x-if="badgeText(b)">
+              <span class="absolute right-1.5 top-1.5 badge"
+                    :class="badgeClass(b)" x-text="badgeText(b)"></span>
+            </template>
+          </a>
+        </template>
+      </div>
     </div>
   </div>
 </section>
+
 
 
 <!-- Magazine blog -->
@@ -1153,6 +1206,120 @@
   <span class="loading loading-spinner loading-lg"></span>
 </div>
 
+
+<div x-show="!isLoading" x-transition.opacity.duration.200ms class="p-4 grid grid-cols-1 sm:grid-cols-2 gap-4 lg:w-10/12 sm:w-11/12 mx-auto items-stretch">
+  <template x-for="product in pagedProducts().filter(p => String(p.id) === '4')" :key="product.id">
+    <article class="h-full">
+      <div class="card card-side h-full bg-base-100 shadow relative px-8">
+        <!-- BADGES -->
+        <div x-show="product.badges?.length" class="absolute left-2 top-2 z-10 flex flex-col gap-1">
+          <template x-for="(b,i) in (product?.badges || [])" :key="i">
+            <span class="badge badge-error badge-sm font-semibold" x-text="b"></span>
+          </template>
+        </div>
+
+        <!-- IMAGE (clickable) -->
+        <figure class="w-128 flex items-center justify-center overflow-hidden">
+          <a :href="link('product', { id: product.id })"
+           @click="_saveScroll('products')" class="block w-full h-full">
+           <img :src="product.image" class="object-contain max-h-full w-full h-full" :alt="product.name" />
+          </a>
+        </figure>
+
+        <!-- BODY -->
+        <div class="card-body min-w-0 flex flex-col">
+          <!-- EXPERIMENTAL TILE -->
+          <h2 class="card-title">
+            <a :href="link('product', { id: product.id })"
+               @click="_saveScroll('products')"
+               class="hover:underline focus:outline-none focus:ring-2 focus:ring-primary/50"
+               x-text="product.name"></a>
+          </h2>
+
+          <p class="clamp-2" x-text="product.description"></p>
+
+          <div x-data="ratingLine()" x-init="$watch('product.reviews', v => v && set(v))" class="flex items-center gap-2 text-sm">
+            <span class="flex items-center gap-0 text-lg leading-none">
+              <template x-for="(s,i) in stars()" :key="i">
+                <i
+                  :class="s === 'full'
+                    ? 'fa-solid fa-star text-yellow-400'
+                    : (s === 'half'
+                        ? 'fa-solid fa-star-half-stroke text-yellow-400'
+                        : 'fa-regular fa-star text-base-content/30')">
+                </i>
+              </template>
+            </span>
+          
+            <span class="font-bold" x-text="fmtAvg()"></span>
+            <span class="text-base-content/60">(<span x-text="count"></span> recenzí)</span>
+          </div>
+
+
+
+
+          <!-- ACTIONS -->
+          <div class="card-actions mt-auto justify-between items-center">
+            <!-- PRICE BLOCK -->
+            <div class="flex flex-col leading-tight">
+              <span
+                x-show="product.discounted_price && product.discounted_price < product.price"
+                class="font-bold text-lg text-error"
+                x-text="`${product.discounted_price} Kč`"
+              ></span>
+              <span
+                x-show="product.discounted_price && product.discounted_price < product.price"
+                class="text-sm line-through text-base-content/60 -mt-0.5"
+                x-text="`${product.price} Kč`"
+              ></span>
+              <span
+                x-show="!product.discounted_price || !(product.discounted_price < product.price)"
+                class="font-bold text-lg"
+                x-text="`${product.price} Kč`"
+              ></span>
+            </div>
+
+            <!-- CTA or STEPPER -->
+            <template x-if="!$store.cart.inCart(product.id)">
+              <button class="btn btn-primary btn-md font-semibold"
+                      @click="$store.cart.add(product)">
+                Do košíku
+              </button>
+            </template>
+
+            <template x-if="$store.cart.inCart(product.id)">
+              <div class="join">
+                <button class="btn btn-square btn-md join-item"
+                        @click="$store.cart.decrement(product.id)"
+                        aria-label="Odebrat kus">−</button>
+
+                <input type="text" inputmode="numeric" pattern="[0-9]*"
+                      class="input input-bordered input-md w-10 text-center join-item"
+                      :value="$store.cart.qty(product.id)"
+                      @input="$store.cart.setQty(product.id, $event.target.value)"
+                      @keydown.enter.prevent
+                      aria-label="Počet kusů" />
+
+                <button class="btn btn-square btn-md join-item"
+                        @click="$store.cart.increment(product.id)"
+                        aria-label="Přidat kus">+</button>
+              </div>
+            </template>
+          </div>
+
+          <!-- META -->
+          <div class="mt-2 text-sm">
+            <span class="text-success font-bold" x-text="product.stock"></span>
+            <span class="mx-1 opacity-40">•</span>
+            <span class="opacity-70" x-text="product.category"></span>
+          </div>
+        </div>
+      </div>
+    </article>
+  </template>
+</div>
+
+
 <!-- PRODUCT CARDS GRID -->
 <div x-show="!isLoading" x-transition.opacity.duration.200ms class="p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:w-10/12 sm:w-11/12 mx-auto items-stretch">
   <template x-for="product in pagedProducts()" :key="product.id">
@@ -1187,11 +1354,27 @@
 
           <!-- ACTIONS -->
           <div class="card-actions mt-auto justify-between items-center">
-            <!-- PRICE BLOCK -->
+          <!-- PRICE + LEGAL TOOLTIP -->
+          <div
+            class="tooltip tooltip-right md:tooltip-top cursor-help"
+            x-init="$store.legal.init()"
+            x-data="{ paras: $store.legal.paragraphsFor(product) }"
+          >
+            <!-- DaisyUI tooltip body (kept exactly like your sample, but dynamic) -->
+            <div class="tooltip-content lg:p-3 max-w-64 md:max-w-auto">
+              <template x-for="(p, idx) in paras" :key="idx">
+                <p
+                  :class="idx > 0 ? 'mt-1 border-t-1 border-base-300/20 pt-1' : ''"
+                  x-text="p"
+                ></p>
+              </template>
+            </div>
+
+            <!-- PRICE BLOCK (unchanged styles) -->
             <div class="flex flex-col leading-tight">
               <span
                 x-show="product.discounted_price && product.discounted_price < product.price"
-                class="font-bold text-lg text-error"
+                class="font-bold text-lg text-error underline decoration-dotted underline-offset-4 decoration-max-gray-400"
                 x-text="`${product.discounted_price} Kč`"
               ></span>
               <span
@@ -1201,15 +1384,16 @@
               ></span>
               <span
                 x-show="!product.discounted_price || !(product.discounted_price < product.price)"
-                class="font-bold text-lg"
+                class="font-bold text-lg underline decoration-dotted underline-offset-4 decoration-max-gray-400"
                 x-text="`${product.price} Kč`"
               ></span>
             </div>
+          </div>
+
 
             <!-- CTA or STEPPER -->
             <template x-if="!$store.cart.inCart(product.id)">
-              <button class="btn btn-primary btn-md font-semibold"
-                      @click="$store.cart.add(product)">
+              <button class="btn btn-primary btn-md font-semibold" @click="$store.cart.add(product)">
                 Do košíku
               </button>
             </template>
@@ -1369,14 +1553,42 @@
         </div>
   
 
-            <div class="flex items-end gap-3">
-              <div class="flex flex-col">
-                <span x-show="hasDiscount()" class="text-2xl font-extrabold text-error" x-text="formatPrice(priceNow())"></span>
-                <span x-show="hasDiscount()" class="text-sm line-through text-base-content/60 -mt-0.5" x-text="formatPrice(priceOriginal())"></span>
-                <span x-show="!hasDiscount()" class="text-2xl font-extrabold" x-text="formatPrice(priceOriginal())"></span>
-              </div>
-              <span x-show="hasDiscount()" class="badge badge-error badge-sm">-<span x-text="discountPercent()"></span>%</span>
+        <!-- PRODUCT DETAIL: PRICE + LEGAL TOOLTIP -->
+        <div
+          class="tooltip cursor-help"
+          x-init="$store.legal.init()"
+          x-data="{
+            // Build a pseudo 'product' for the legal helper based on your local API
+            get paras () {
+              const pseudo = {
+                price: priceOriginal(),                               
+                discounted_price: hasDiscount() ? priceNow() : null  
+              };
+              return $store.legal.paragraphsFor(pseudo);
+            }
+          }"
+        >
+          <!-- Tooltip content (auto paragraphs; same separators as in grid) -->
+          <div class="tooltip-content lg:p-3">
+            <template x-for="(p, idx) in paras" :key="idx">
+              <p
+                :class="idx > 0 ? 'mt-1 border-t-1 border-base-300/20 pt-1' : ''"
+                x-text="p"
+              ></p>
+            </template>
+          </div>
+
+          <!-- Your original price area (unchanged design) -->
+          <div class="flex items-end gap-3">
+            <div class="flex flex-col">
+              <span x-show="hasDiscount()" class="text-2xl font-extrabold text-error underline decoration-dotted underline-offset-4 decoration-max-gray-400" x-text="formatPrice(priceNow())"></span>
+              <span x-show="hasDiscount()" class="text-sm line-through text-base-content/60 -mt-0.5" x-text="formatPrice(priceOriginal())"></span>
+              <span x-show="!hasDiscount()" class="text-2xl font-extrabold underline decoration-dotted underline-offset-4 decoration-max-gray-400" x-text="formatPrice(priceOriginal())"></span>
             </div>
+            <span x-show="hasDiscount()" class="badge badge-error badge-sm">-<span x-text="discountPercent()"></span>%</span>
+          </div>
+        </div>
+
   
             <div class="text-sm mt-1 gap-1 grid">
               <div class="text-success font-semibold text-xl" x-text="product?.stock || 'Skladem'"></div>
@@ -1855,8 +2067,8 @@
   <!-- EMPTY STATE -->
   <template x-if="$store.cart.distinctCount() === 0">
     <div class="grid place-items-center py-16">
-      <div class="text-7xl select-none animate-bounce"><i class="fa-classic fa-3xl fa-solid fa-shopping-bag text-max-gray-200"></i></div>
-      <p class="mt-4 text-max-gray-200">Váš košík je prázdný. Pojďme to napravit!</p>
+      <dotlottie-wc src="https://lottie.host/eb88511c-2fed-471c-8171-78a57701e4ef/z9tvJoPVCp.lottie" style="width: 160px;height: 160px" autoplay loop></dotlottie-wc>
+      <p class="mt-4 font-medium">Váš košík je prázdný. Pojďme to napravit!</p>
       <button class="btn btn-outline mt-6" @click="location.hash='/products'">Pokračovat v nákupu</button>
     </div>
   </template>
@@ -1866,58 +2078,83 @@
     <div class="space-y-2">
 
       <!-- CART LIST: MOBILE TILES (no horizontal scroll) -->
-<div class="md:hidden space-y-3">
-  <template x-for="it in $store.cart.list()" :key="it.id + '-' + it.image">
-    <article class="card bg-white border border-base-200 shadow-sm">
-      <div class="card-body p-3">
-        <!-- Header: image + title + price -->
-        <div class="flex gap-3 items-center">
-          <div class="h-18 w-18 rounded bg-base-200 overflow-hidden shrink-0 grid place-content-center">
-            <img
-              :src="it.image"
-              :alt="it.name"
-              class="h-full w-full object-contain"
-              loading="lazy"
-              @error="$event.target.closest('.grid')?.classList.add('opacity-50')"
-            >
-          </div>
+      <div class="md:hidden space-y-3">
+        <template x-for="it in $store.cart.list()" :key="it.id + '-' + it.image">
+          <article class="card bg-white border border-base-200 shadow-sm">
+            <div class="card-body p-3">
+              <!-- Header: image + title + price -->
+              <div class="flex gap-3 items-center">
+                <div class="h-18 w-18 rounded bg-base-200 overflow-hidden shrink-0 grid place-content-center">
+                  <img
+                    :src="it.image"
+                    :alt="it.name"
+                    class="h-full w-full object-contain"
+                    loading="lazy"
+                    @error="$event.target.closest('.grid')?.classList.add('opacity-50')"
+                  >
+                </div>
 
-          <div class="min-w-0 flex-1">
-            <h3 class="font-medium text-base" :title="it.name" x-text="it.name"></h3>
-            <div class="flex flex-wrap gap-1 mt-1">
-              <template x-for="b in (it.badges || [])">
-                <span class="badge badge-ghost badge-sm" x-text="b"></span>
-              </template>
+                <div class="min-w-0 flex-1">
+                  <h3 class="font-medium text-base" :title="it.name" x-text="it.name"></h3>
+                  <div class="flex flex-wrap gap-1 mt-1">
+                    <template x-for="b in (it.badges || [])">
+                      <span class="badge badge-ghost badge-sm" x-text="b"></span>
+                    </template>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Controls: stepper + subtotal + remove -->
+              <div class="mt-3 flex items-center justify-between gap-3">
+                <div class="join">
+                  <button class="btn btn-square btn-md join-item" @click="$store.cart.decrement(it.id)" aria-label="Odebrat kus">−</button>
+                  <input
+                  type="text" inputmode="numeric" pattern="[0-9]*"
+                  class="input input-bordered input-md w-12 text-center join-item px-0 tabular-nums"
+                  :value="$store.cart.qty(it.id)"
+                  @input="$store.cart.setQty(it.id, $event.target.value.replace(/[^0-9]/g,''))"
+                  @keydown.enter.prevent
+                  />
+                  <button class="btn btn-square btn-md join-item" @click="$store.cart.increment(it.id)" aria-label="Přidat kus">+</button>
+                </div>
+
+                <div class="text-right">
+                  <template x-if="it.priceBefore && it.priceBefore > it.price">
+                    <span class="text-sm line-through text-base-content/50 ml-2" x-text="koruny(it.priceBefore)"></span>
+                  </template>
+                  <div class="font-medium" x-text="koruny($store.cart.linePrice(it))"></div>
+                  
+                  <!-- CART: MOBILE PRICE + LEGAL TOOLTIP (wrap only the price, leave '/ ks' outside) -->
+                  <span
+                    class="tooltip tooltip-left cursor-help inline-flex"
+                    x-init="$store.legal.init()"
+                    x-data="{
+                      get paras () {
+                        const hasDisc = !!(it.priceBefore && it.priceBefore > it.price);
+                        const original = hasDisc ? it.priceBefore : it.price;
+                        const discounted_price = hasDisc ? it.price : null;
+                        return $store.legal.paragraphsFor({ price: original, discounted_price });
+                      }
+                    }"
+                  >
+                    <div class="tooltip-content lg:p-3 max-w-64 md:max-w-auto">
+                      <template x-for="(p, idx) in paras" :key="idx">
+                        <p :class="idx > 0 ? 'mt-1 border-t-1 border-base-300/20 pt-1' : ''" x-text="p"></p>
+                      </template>
+                    </div>
+
+                    <span class="font-medium text-base underline decoration-dotted underline-offset-4 decoration-max-gray-400"
+                          x-text="koruny(it.price)"></span>
+                  </span>
+                  <span> / ks</span>
+
+                </div>
+              </div>
+
             </div>
-          </div>
-        </div>
-
-        <!-- Controls: stepper + subtotal + remove -->
-        <div class="mt-3 flex items-center justify-between gap-3">
-          <div class="join">
-            <button class="btn btn-square btn-md join-item" @click="$store.cart.decrement(it.id)" aria-label="Odebrat kus">−</button>
-            <input
-            type="text" inputmode="numeric" pattern="[0-9]*"
-            class="input input-bordered input-md w-12 text-center join-item px-0 tabular-nums"
-            :value="$store.cart.qty(it.id)"
-            @input="$store.cart.setQty(it.id, $event.target.value.replace(/[^0-9]/g,''))"
-            @keydown.enter.prevent
-            />
-            <button class="btn btn-square btn-md join-item" @click="$store.cart.increment(it.id)" aria-label="Přidat kus">+</button>
-          </div>
-
-          <div class="text-right">
-            <template x-if="it.priceBefore && it.priceBefore > it.price">
-              <span class="text-sm line-through text-base-content/50 ml-2" x-text="koruny(it.priceBefore)"></span>
-            </template>
-            <span class="font-medium text-base" x-text="koruny(it.price)"></span>
-          </div>
-        </div>
-
+          </article>
+        </template>
       </div>
-    </article>
-  </template>
-</div>
 
 <!-- CART TABLE: DESKTOP/MD+ -->
 <div class="hidden md:block overflow-x-auto rounded-xl border border-base-200 bg-white p-10">
@@ -1960,7 +2197,31 @@
 
           <td class="text-center align-center">
             <div>
-              <div class="font-medium" x-text="koruny(it.price)"></div>
+            <!-- CART: DESKTOP PRICE + LEGAL TOOLTIP (priceBefore-aware) -->
+            <div
+              class="tooltip cursor-help"
+              x-init="$store.legal.init()"
+              x-data="{
+                get paras () {
+                  const hasDisc = !!(it.priceBefore && it.priceBefore > it.price);
+                  const original = hasDisc ? it.priceBefore : it.price;      // pre-discount for legal
+                  const discounted_price = hasDisc ? it.price : null;        // discount only when present
+                  return $store.legal.paragraphsFor({ price: original, discounted_price });
+                }
+              }"
+            >
+              <div class="tooltip-content lg:p-3">
+                <template x-for="(p, idx) in paras" :key="idx">
+                  <p :class="idx > 0 ? 'mt-1 border-t-1 border-base-300/20 pt-1' : ''" x-text="p"></p>
+                </template>
+              </div>
+
+              <!-- Your original desktop price element (unchanged look) -->
+              <div class="font-medium underline decoration-dotted underline-offset-4 decoration-max-gray-400"
+                  x-text="koruny(it.price)"></div>
+            </div>
+
+
               <template x-if="it.priceBefore && it.priceBefore > it.price">
                 <div class="text-sm line-through text-base-content/50" x-text="koruny(it.priceBefore)"></div>
               </template>
@@ -2056,7 +2317,7 @@
     <dialog class="modal" :open="open" @close="open=false">
       <div class="modal-box lg:px-8 lg:py-10">
         <form method="dialog">
-          <button class="btn btn-md btn-circle btn-ghost absolute right-2 top-2"><i class="fa-solid fa-xmark fa-lg" aria-hidden="true"></i></button>
+          <button class="btn btn-md btn-circle btn-ghost absolute right-2 top-2"><i class="fa-solid fa-xmark fa-lg text-max-gray-500" aria-hidden="true"></i></button>
         </form>
         
         <h3 class="font-semibold text-xl">Slevové kupóny</h3>
@@ -2129,7 +2390,7 @@
       <dialog class="modal" :open="open" @close="open=false">
         <div class="modal-box  lg:px-8 lg:py-10">
           <form method="dialog">
-            <button class="btn btn-md btn-circle btn-ghost absolute right-2 top-2"><i class="fa-solid fa-xmark fa-lg" aria-hidden="true"></i></button>
+            <button class="btn btn-md btn-circle btn-ghost absolute right-2 top-2"><i class="fa-solid fa-xmark fa-lg text-max-gray-500" aria-hidden="true"></i></button>
           </form>
           <h3 class="font-semibold text-xl">Dárkové karty</h3>
 
@@ -2832,13 +3093,205 @@ function deliveryPaymentUI() {
 
           <button class="btn btn-primary btn-lg"
             :disabled="$store.cart.distinctCount() === 0"
-            @click="location.hash='/delivery-payment'">
+            @click="location.hash='/addresses'">
             Pokračovat <i class="fa-solid fa-arrow-right fa-sm" aria-hidden="true"></i>
           </button>
         </div>
       </div>
 </section>
 
+</section>
+
+<!-- ROUTE == ADDRESSES -->
+<section x-show="is('addresses')" x-cloak>
+  <section class="w-auto md:w-11/12 xl:w-8/12 mx-auto px-4 pt-2 md:pt-12 pb-32">
+    <h1 class="text-3xl mx-auto mb-6">Adresy</h1>
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
+
+      <fieldset class="border border-base-300 rounded-xl bg-white shadow-sm p-4 py-8 md:p-10">
+        <h2 class="text-xl font-medium mb-4">Kontaktní údaje</h2>
+        <fieldset class="fieldset">
+          <legend class="fieldset-legend">E-mail</legend>
+          <input type="text" class="input" placeholder="@" />
+        </fieldset>
+      
+      
+      
+      
+      </fieldset>
+      <fieldset class="border border-base-300 rounded-xl bg-white shadow-sm p-4 py-8 md:p-10">
+        <h2 class="text-xl font-medium mb-4 ml-3">Doručení a fakturace</h2>
+      </fieldset>
+
+    </div>  
+  </section>
+
+
+  <!-- Sticky bottom bar -->
+  <div class="fixed bottom-0 left-0 right-0 border-t border-base-200 bg-white py-6 z-10">
+    <div class="w-12/12 md:w-11/12 xl:w-8/12 mx-auto px-4 flex items-center justify-between gap-3">
+      <button class="btn btn-outline btn-lg" @click="location.hash='/delivery-payment'">
+        Zpět</button>
+
+      <button class="btn btn-primary btn-lg"
+        :disabled="$store.cart.distinctCount() === 0"
+        @click="location.hash='/purchase-review'">
+        Pokračovat <i class="fa-solid fa-arrow-right fa-sm" aria-hidden="true"></i>
+      </button>
+    </div>
+  </div>
+</section>
+
+<!-- ROUTE == PURCHASE REVIEW -->
+<section x-show="is('purchase-review')" x-cloak>
+  <section class="w-auto md:w-11/12 xl:w-8/12 mx-auto px-4 pt-2 md:pt-12 pb-32">
+    <h1 class="text-3xl mx-auto mb-6">Kontrola nákupu</h1>
+  
+  </section>
+
+  <!-- Sticky bottom bar -->
+  <div class="fixed bottom-0 left-0 right-0 border-t border-base-200 bg-white py-6 z-10">
+    <div class="w-12/12 md:w-11/12 xl:w-8/12 mx-auto px-4 flex items-center justify-between gap-3">
+      <button class="btn btn-outline btn-lg" @click="location.hash='/addresses'">
+        Zpět</button>
+
+      <button class="btn btn-primary btn-lg"
+        :disabled="$store.cart.distinctCount() === 0"
+        @click="location.hash='/thank-you'">
+        Pokračovat <i class="fa-solid fa-arrow-right fa-sm" aria-hidden="true"></i>
+      </button>
+    </div>
+  </div>  
+</section>
+
+<!-- ROUTE == THANK YOU PAGE -->
+<section x-show="is('thank-you')" x-cloak>
+  <section class="w-auto md:w-11/12 xl:w-8/12 mx-auto px-4 pt-2 md:pt-12 pb-32">
+    <h1 class="text-3xl mx-auto mb-6">Hotovo!</h1>
+  
+  </section>
+
+</section>
+
+<!-- ROUTE == MY ACCOUNT ORDER HISTORY -->
+<section x-show="is('my-account')" x-cloak>
+  <section class="w-auto md:w-11/12 xl:w-8/12 mx-auto px-4 pt-2 md:pt-12 pb-32">
+    <h1 class="text-3xl mx-auto mb-6">Vaše objednávky</h1>
+  
+
+<div class="grid grid-cols-4 gap-8">
+<div class="flex flex-col gap-y-2">
+  <div class="block rounded-2xl bg-base-300 w-full h-12 animate-pulse"></div>
+  <div class="block rounded-2xl bg-base-300 w-full h-12 animate-pulse"></div>  
+  <div class="block rounded-2xl bg-base-300 w-full h-12 animate-pulse"></div>  
+  <div class="block rounded-2xl bg-base-300 w-full h-12 animate-pulse"></div>  
+  <div class="block rounded-2xl bg-base-300 w-full h-12 animate-pulse"></div>  
+  <div class="block rounded-2xl bg-base-300 w-full h-12 animate-pulse"></div>
+</div>   
+
+    <ul class="timeline timeline-snap-icon timeline-compact timeline-vertical no-start col-span-3">
+      <li>
+        <div class="timeline-middle">
+          <div class="w-10 h-10 m-1 rounded-full bg-primary flex items-center justify-center">
+            <i class="fa-solid fa-check text-primary-content"></i>
+          </div>        
+        </div>
+        <div class="timeline-end md:mb-6 text-base">
+        <time class="font-medium text-sm text-primary">11.12.2025 12:46</time>
+        <div class="text-lg font-bold">Přijali jsme vaši objednávku</div>
+        Zasíláme e-mail s potvrzením. Objednávka má číslo <span class="underline underline-offset-4 decoration-4 decoration-max-blue-500">7767789 12</span>
+      </div>
+      <hr class="bg-primary"/>
+    </li>
+    <li>
+      <hr class="bg-primary"/>
+      <div class="timeline-middle">
+        <div class="w-10 h-10 m-1 rounded-full bg-primary flex items-center justify-center">
+          <i class="fa-solid fa-check text-primary-content"></i>
+        </div>
+        
+      </div>
+      <div class="timeline-end md:mb-6 text-base">
+      <time class="font-medium text-sm text-primary">11.12. 12:52</time>
+      <div class="text-lg font-bold">Objednávka byla zaplacena</div>
+      Kartou online
+    </div>
+    <hr class="bg-primary"/>
+  </li>
+  <li>
+    <hr class="bg-primary"/>
+    <div class="timeline-middle">
+      <div class="w-10 h-10 m-1 rounded-full bg-primary flex items-center justify-center">
+        <i class="fa-solid fa-check text-primary-content"></i>
+      </div>
+      
+    </div>
+    <div class="timeline-end md:mb-6 text-base">
+    <time class="font-medium text-sm text-primary">11.12. 20:00</time>
+    <div class="text-lg font-bold">Vaši objednávku jsme připravili a zabalili</div>
+    <span class="underline underline-offset-4 decoration-4 decoration-max-blue-500">Očekávejte 1 balíček</span> o hmotnosti 729 g
+  </div>
+  <hr class="bg-primary"/>
+</li>
+<li>
+  <hr class="bg-primary"/>
+  <div class="timeline-middle">
+    <div class="w-10 h-10 m-1 rounded-full bg-primary flex items-center justify-center">
+      <i class="fa-solid fa-check text-primary-content"></i>
+    </div>
+    
+  </div>
+  <div class="timeline-end md:mb-6 text-base">
+  <time class="font-medium text-sm text-primary">12.12. 6:42</time>
+  <div class="text-lg font-bold">Objednávku jsme předali dopravci</div>
+  Balíček Vám veze pan Karel ze společnosti PPL
+</div>
+<hr class="bg-primary"/>
+</li>
+<li>
+  <hr class="bg-primary"/>
+  <div class="timeline-middle">
+    <div class="w-10 h-10 m-1 rounded-full bg-primary flex items-center justify-center">
+      <i class="fa-solid fa-check text-primary-content"></i>
+    </div>
+    
+  </div>
+  <div class="timeline-end md:mb-6 text-base">
+  <time class="font-medium text-sm text-primary">13.12. 8:51</time>
+  <div class="text-lg font-bold">Objednávku byla doručena na adresu</div>
+  Dr. Max Box, Havlínova 16, Praha 4 a počká tu <span class="underline underline-offset-4 decoration-4 decoration-max-blue-500">3 dny</span>
+</div>
+<hr class="bg-primary"/>
+</li>
+<li>
+  <hr class="bg-max-gray-200"/>
+  <div class="timeline-middle relative">
+    <div class="absolute w-10 h-10 m-1 rounded-full bg-max-gray-200 animate-ping opacity-60"></div>
+    <div class="relative w-10 h-10 m-1 rounded-full bg-max-gray-200 flex items-center justify-center">
+      <i class="fa-solid fa-box-isometric-tape text-max-gray-600"></i>
+    </div>         
+  </div>
+  <div class="timeline-end md:mb-6 text-base">
+    <div class="text-lg font-bold ">Balíček čeká na vyzvednutí</div>
+    PIN k vyzvednutí je <span class="underline underline-offset-4 decoration-4 decoration-max-blue-500">110 112</span>
+  </div>
+</li>
+
+</ul>
+  
+
+</div>  
+  </section>
+</section>
+
+<!-- ROUTE == MY SAVED FAVORITES -->
+<section x-show="is('my-saved')" x-cloak>
+  <section class="w-auto md:w-11/12 xl:w-8/12 mx-auto px-4 pt-2 md:pt-12 pb-32">
+    <h1 class="text-3xl mx-auto mb-6">Moje uložené</h1>
+  </section>
+  
+  
+  
 </section>
 
 <!-- ROUTE == MAP -->
@@ -3244,6 +3697,7 @@ this.$nextTick(() => requestAnimationFrame(focusRealInput));
 
   freeShipThreshold: 600, // Kč
   _badgePulse: false,
+  
 
   // --- lifecycle / persistence ---
   init() {
@@ -3383,14 +3837,26 @@ this.$nextTick(() => requestAnimationFrame(focusRealInput));
     return it ? this._lineBefore(it) : 0;
   },
 
+  _addCore(product) {
+  const id = String(product.id);
+  if (this.inCart(id)) { this.increment(id); return false; }
+  this.items = { ...this.items, [id]: { qty: 1, product } };
+  this._persistAndNotify('add');
+  this._pingBadge();
+  return true; // indicates a fresh add (wasn't in cart)
+  },
   // --- mutations (now with persist + notify) ---
   add(product) {
-    let id = String(product.id);
-    if (this.inCart(id)) { this.increment(id); return; }
-    this.items = { ...this.items, [id]: { qty: 1, product } };
-    this._persistAndNotify('add');
-    this._pingBadge();
-    Alpine.store('toast')?.push(`Přidáno do košíku: ${product.name}`, 'success');
+    // normal CTA: add and open precart modal (no toast)
+    const fresh = this._addCore(product);
+    if (fresh) {
+      // open pre-basket modal
+      Alpine.store('precart')?.open(product);
+    }
+  },
+  silentAdd(product) {
+    // impulse add: add 1 pc quietly (no toast, no modal)
+    this._addCore(product);
   },
 
   increment(id) {
@@ -4176,6 +4642,9 @@ benefits: [],
 
 // product detail state
 detail: null,
+brands: [],
+
+
 
 // ---- lifecycle ----
 init() {
@@ -4205,11 +4674,76 @@ init() {
   });
 
   // 3) Load data
-  this.loadData();
+  this.loadData().then(() => {
+    // set initial catalog once data exists
+    Alpine.store('precart').setCatalog(this.pagedProducts());
+  });
 
   Alpine.store('cart').init?.();
+  Alpine.store('legal').init();
+
+  const refreshCatalog = () => Alpine.store('precart').setCatalog(this.pagedProducts());
+  this.$watch('page', refreshCatalog);
+  this.$watch('showCount', refreshCatalog);
+  this.$watch(() => this.filteredProducts().length, refreshCatalog);
+  this.$watch('search', refreshCatalog);
+  this.$watch('selectedCategory', refreshCatalog);
+  this.$watch('selectedForm', refreshCatalog);
+  this.$watch('selectedConsumers', refreshCatalog);
+  this.$watch('onlyInStock', refreshCatalog);
+  this.$watch('benefitOnly', refreshCatalog);
+  this.$watch('onlyDiscounted', refreshCatalog);
+  this.$watch('sortOrder', refreshCatalog);
+
+},
+// Load brands.json (call from loadData or once on home)
+async loadBrands() {
+  try {
+    const r = await fetch('data/brands.json');
+    const arr = await r.json();
+    this.brands = Array.isArray(arr) ? arr.filter(b => b?.name && b?.logo) : [];
+  } catch (e) {
+    console.warn('brands.json failed', e);
+    this.brands = [];
+  }
 },
 
+// Optional: call in loadData() after products/aux files load:
+/// await this.loadBrands();
+
+// Brand link (adapt later if you add brand filtering in router)
+brandHref(b) { return this.link('products'); },
+
+// Badge helpers (supports e.g. "Až -31%" or "3za2")
+badgeText(b) {
+  const t = String(b?.badge || '').trim();
+  if (!t) return '';
+  if (t.toLowerCase() === '3za2') return '3 za 2';
+  return t;
+},
+badgeClass(b) {
+  const t = String(b?.badge || '').toLowerCase();
+  if (t === '3za2') return 'badge-warning';
+  // default discount style
+  return 'badge-error text-white';
+},
+
+// Per-key shuffle cache for brands
+_brandCacheMap: {},   // { [key]: shuffledArray }
+brandsShuffledFor(key, count = 18) {
+  if (!key) return [];
+  if (!Array.isArray(this._brandCacheMap[key])) {
+    const src = Array.isArray(this.brands) ? this.brands : [];
+    if (src.length === 0) return [];
+    const arr = src.slice();
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    this._brandCacheMap[key] = arr;
+  }
+  return this._brandCacheMap[key].slice(0, count);
+},
 async loadData() {
   try {
     const res = await fetch('data/products.json');
@@ -4244,7 +4778,7 @@ async loadData() {
     // Top brands (from product.brand if present)
     const brandSet = new Set(this.products.map(p => (p.brand || '').trim()).filter(Boolean));
     this.topBrands = Array.from(brandSet).slice(0, 10).map(name => ({ name, logo: this.brandLogo(name) }));
-
+    await this.loadBrands();
 
   } catch (e) {
     console.error('Failed to load products.json', e);
@@ -4326,13 +4860,18 @@ productsByCategory(cat, limit = 10) {
   return this.products.filter(p => p.category === cat).slice(0, limit);
 },
 
-// link helper
+// link helper router
 link(name, params = {}) {
   if (name === 'home')    return '/';
   if (name === 'product') return `#/product/${params.id}${params.tab ? '/' + params.tab : ''}`;
   if (name === 'cart')    return '#/cart';
   if (name === 'delivery-payment') return '#/delivery-payment';
+  if (name === 'addresses') return '#/addresses';
+  if (name === 'purchase-review') return '#/purchase-review';
+  if (name === 'thank-you') return '#/thank-you';
   if (name === 'map')     return '#/map';
+  if (name === 'my-account')     return '#/my-account';
+  if (name === 'my-saved')     return '#/my-saved';
   return '#/products';
 },
 
@@ -4498,6 +5037,41 @@ _onRoute() {
     case 'delivery-payment':
       if (prevRoute === 'products') this._saveScroll('products');
       this.route = 'delivery-payment';
+      this.params = {};
+      this._scrollToTopSoon();
+      break;
+
+      case 'addresses':
+      if (prevRoute === 'products') this._saveScroll('products');
+      this.route = 'addresses';
+      this.params = {};
+      this._scrollToTopSoon();
+      break;
+
+      case 'purchase-review':
+      if (prevRoute === 'products') this._saveScroll('products');
+      this.route = 'purchase-review';
+      this.params = {};
+      this._scrollToTopSoon();
+      break;
+
+      case 'thank-you':
+      if (prevRoute === 'products') this._saveScroll('products');
+      this.route = 'thank-you';
+      this.params = {};
+      this._scrollToTopSoon();
+      break;
+      
+      case 'my-account':
+      if (prevRoute === 'products') this._saveScroll('products');
+      this.route = 'my-account';
+      this.params = {};
+      this._scrollToTopSoon();
+      break;
+
+      case 'my-saved':
+      if (prevRoute === 'products') this._saveScroll('products');
+      this.route = 'my-saved';
       this.params = {};
       this._scrollToTopSoon();
       break;
@@ -5372,7 +5946,137 @@ rangeLabel() {
     });
   });
 </script>
+
+<script>
+  /** LEGAL TOOLTIPS **/
+  function formatCZDate(d) {
+    const dd = String(d.getDate()).padStart(2, '0');
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const yyyy = d.getFullYear();
+    return `${dd}.${mm}.${yyyy}`;
+  }
+  function randomDateWithinLast(days = 30) {
+    const now = new Date();
+    const past = new Date(now);
+    past.setDate(now.getDate() - days);
+    const ts = past.getTime() + Math.random() * (now.getTime() - past.getTime());
+    return new Date(ts);
+  }
+  function isDiscounted(p) {
+    return p?.discounted_price && p.discounted_price < p.price;
+  }
+  function replaceWildcards(str, { price, dateStr }) {
+    return str
+      .replaceAll('{{PRICE}}', String(price))
+      .replaceAll('{{DATE}}', dateStr);
+  }
   
+  document.addEventListener('alpine:init', () => {
+    //preloads legal texts for legal tooltips
+    Alpine.store('legal', {
+      loaded: false,
+      base: { legal_always: '', legal_extended: { price_info: '', date_info: '' } },
+  
+      async init() {
+        if (this.loaded) return;
+        try {
+          const res = await fetch('./data/legal.json', { cache: 'no-store' });
+          const arr = await res.json();
+          // file structure is an array with one object
+          this.base = Array.isArray(arr) && arr[0] ? arr[0] : this.base; // :contentReference[oaicite:1]{index=1}
+          this.loaded = true;
+        } catch (e) {
+          console.warn('Failed to load legal.json', e);
+          this.loaded = true; // fail-safe; show nothing rather than block UI
+        }
+      },
+  
+      paragraphsFor(product) {
+        const always = this.base?.legal_always || '';
+        const ext = this.base?.legal_extended || {};
+        const list = [];
+  
+        if (always) list.push(always);
+  
+        if (isDiscounted(product)) {
+          const dateStr = formatCZDate(randomDateWithinLast(30));
+          const priceInfo = ext.price_info
+            ? replaceWildcards(ext.price_info, { price: product.price, dateStr })
+            : '';
+          const dateInfo = ext.date_info
+            ? replaceWildcards(ext.date_info, { price: product.price, dateStr })
+            : '';
+  
+          if (priceInfo) list.push(priceInfo);
+          if (dateInfo) list.push(dateInfo);
+        }
+        return list;
+      }
+    });
+  });
+  </script>
+<script>
+  document.addEventListener('alpine:init', () => {
+    Object.assign(Alpine.store('precart'), {
+  
+      // normalize products to ensure id/name/image/price are usable in the modal
+      _normalize(p) {
+        if (!p) return null;
+        const id = String(p.id ?? p.product_id ?? p.sku ?? '');
+        if (!id) return null;
+  
+        // image via cart helper (covers many shapes), fallback to p.image
+        const img = Alpine.store('cart')?.imgFor?.(p) || p.image || '';
+  
+        const priceFull = Number(p.price ?? 0);
+        const priceNow  = Number(p.discounted_price ?? priceFull);
+        const discounted_price = (priceNow < priceFull) ? priceNow : null;
+  
+        return {
+          ...p,
+          id,
+          name: p.name ?? p.title ?? `Produkt #${id}`,
+          image: img,
+          price: priceFull,
+          discounted_price
+        };
+      },
+  
+      setCatalog(arr) {
+        const norm = Array.isArray(arr)
+          ? arr.map(x => this._normalize(x)).filter(Boolean)
+          : [];
+        // Only overwrite when we actually have something to show
+        if (norm.length) this.catalog = norm;
+      },
+  
+      async _ensureCatalog() {
+        if (Array.isArray(this.catalog) && this.catalog.length) return;
+  
+        // 1) Try common global caches if you keep any around
+        let src = (window.allProducts || window.products || window.PRODUCTS || []);
+        // 2) As a prototype fallback, fetch the master JSON
+        if (!src.length) {
+          try {
+            const res = await fetch('./data/products.json', { cache: 'no-store' });
+            src = await res.json();
+          } catch (e) {
+            console.warn('precart: failed to fetch products.json', e);
+          }
+        }
+        this.setCatalog(src);
+      },
+  
+      open(product) {
+        this.product = product || null;
+        this.isOpen  = !!this.product;
+        this.quickAdded.clear();
+        // Make sure we have recommendations even on pages without storeApp
+        this._ensureCatalog();
+      },
+    });
+  });
+  </script>
   <script defer>
     (() => {
       const register = () => {
@@ -6129,7 +6833,303 @@ rangeLabel() {
   </div>
 </template>
 
+<!-- PRE-BASKET MODAL -->
+<dialog
+  id="precart_modal"
+  x-data="precartModal()"
+  x-ref="dlg"
+  x-effect="
+    const s = $store.precart;
+    if (s && s.isOpen) { $refs.dlg.open || $refs.dlg.showModal(); }
+    else { $refs.dlg.open && $refs.dlg.close(); }
+  "
+  @click.self="close()"
+  @keydown.escape.window="close()"
+  class="modal"
+>
+  <div class="modal-box w-11/12 max-w-3xl bg-base-200 lg:px-8 lg:py-10">
 
+    <!-- Header / confirmation -->
+    <h2 class="text-2xl font-medium text-max-green-500 mb-2">
+      <i class="fa-classic fa-md fa-solid fa-check-circle"></i> Přidáno do košíku
+    </h2>
+
+    <!-- Context product -->
+
+    
+    <template x-if="$store.precart.product">
+      <div x-transition.opacity.duration.200ms class="py-4 w-auto mx-auto items-stretch">
+        <article class="h-full" x-data="{ product: $store.precart.product }">
+        <div class="card card-side h-full relative px-2 items-center bg-base-100">
+          <!-- BADGES -->
+          <div x-show="product.badges?.length" class="absolute left-2 top-2 z-10 flex flex-col gap-1">
+            <template x-for="(b,i) in (product?.badges || [])" :key="i">
+              <span class="badge badge-error badge-sm font-semibold" x-text="b"></span>
+            </template>
+          </div>
+
+          <!-- IMAGE (clickable) -->
+          <figure class="w-36 flex items-center justify-center overflow-hidden">
+            <a :href="link('product', { id: product.id })"
+               @click="close()"
+               class="block w-full h-full">
+              <img :src="product.image" class="object-contain max-h-full w-full h-full" :alt="product.name" />
+            </a>
+          </figure>
+
+          <!-- BODY -->
+          <div class="card-body min-w-0 flex flex-col">
+            <h3 class="text-xl font-medium">
+              <a :href="link('product', { id: product.id })"
+                 @click="close()"
+                 class="hover:underline focus:outline-none focus:ring-2 focus:ring-primary/50"
+                 x-text="product.name"></a>
+            </h3>
+
+            <div class="card-actions mt-0 justify-between items-center">
+
+              <!-- PRICE with LEGAL TOOLTIP -->
+              <div
+                class="tooltip cursor-help"
+                x-init="$store.legal.init()"
+                x-data="{
+                  get paras(){
+                    const hasDisc = !!(product.discounted_price && product.discounted_price < product.price);
+                    const original = hasDisc ? product.price : product.price; // original comes from product.price in your list
+                    const discounted = hasDisc ? product.discounted_price : null;
+                    return $store.legal.paragraphsFor({ price: original, discounted_price: discounted });
+                  }
+                }"
+              >
+                <div class="tooltip-content lg:p-3">
+                  <template x-for="(p, idx) in paras" :key="idx">
+                    <p :class="idx > 0 ? 'mt-1 border-t-1 border-base-300/20 pt-1' : ''" x-text="p"></p>
+                  </template>
+                </div>
+
+                <div class="flex flex-col leading-tight">
+                  <span
+                    x-show="product.discounted_price && product.discounted_price < product.price"
+                    class="font-bold text-lg text-error underline decoration-dotted underline-offset-4 decoration-max-gray-400"
+                    x-text="koruny(product.discounted_price)"
+                  ></span>
+                  <span
+                    x-show="product.discounted_price && product.discounted_price < product.price"
+                    class="text-sm line-through text-base-content/60 -mt-0.5"
+                    x-text="koruny(product.price)"
+                  ></span>
+                  <span
+                    x-show="!product.discounted_price || !(product.discounted_price < product.price)"
+                    class="font-medium text-lg underline decoration-dotted underline-offset-4 decoration-max-gray-400"
+                    x-text="koruny(product.price)"
+                  ></span>
+                </div>
+              </div>
+
+              <!-- CTA or STEPPER -->
+              <template x-if="!$store.cart.inCart(product.id)">
+                <button class="btn btn-primary btn-md font-semibold" @click="$store.cart.add(product)">
+                  Do košíku
+                </button>
+              </template>
+              <template x-if="$store.cart.inCart(product.id)">
+                <div class="join">
+                  <button class="btn btn-square btn-md join-item"
+                          @click="$store.cart.decrement(product.id)"
+                          aria-label="Odebrat kus">−</button>
+
+                  <input type="text" inputmode="numeric" pattern="[0-9]*"
+                         class="input input-bordered input-md w-10 text-center join-item"
+                         :value="$store.cart.qty(product.id)"
+                         @input="$store.cart.setQty(product.id, $event.target.value.replace(/[^0-9]/g,''))"
+                         @keydown.enter.prevent
+                         aria-label="Počet kusů" />
+
+                  <button class="btn btn-square btn-md join-item"
+                          @click="$store.cart.increment(product.id)"
+                          aria-label="Přidat kus">+</button>
+                </div>
+              </template>
+            </div>
+          </div>
+        </div>
+      </article>
+    </div>
+  </template>
+
+    <!-- Upsell -->
+    <h4 class="text-sm font-medium my-4">Ostatní k tomuto produktu kupují</h4>
+
+    <div class="grid grid-cols-1 gap-2 max-h-80 overflow-auto">
+      <ul
+        class="max-h-80 overflow-y-auto w-full flex flex-col space-y-1"
+        :id="listId"
+        role="listbox"
+        x-data="{ highlighted: -1, get items(){ return ($store.precart?.recommend?.(8) || []); } }"     
+      >
+        <template x-for="(item, i) in items" :key="item.id">
+          <li
+            :id="itemId(i)"
+            class="w-full rounded-xl bg-white px-2 py-4"
+            role="option"
+            @mouseenter="highlighted = i"
+            :class="i===highlighted ? 'bg-white' : 'hover:bg-base-200'"
+          >
+            <a :href="link('product', { id: item.id })"
+               @click.prevent="goDetail(item)"
+               class="flex w-full items-center gap-3 min-h-12">
+              <img :src="item.image" alt="" class="w-14 h-14 object-contain rounded" />
+
+              <div class="min-w-0 flex-1">
+                <div class="text-base font-medium truncate" x-text="item.name"></div>
+                <div class="text-sm font-medium text-base-content/60 truncate max-w-5/6" x-text="item.description"></div>
+                <div class="text-xs font-medium text-base-content/60">Sponzorováno</div>
+              </div>
+
+              <!-- price block (desktop only) -->
+              <div class="hidden md:flex flex-col leading-tight">
+                <span
+                  x-show="item.discounted_price && item.discounted_price < item.price"
+                  class="font-bold text-lg text-error underline decoration-dotted underline-offset-4 decoration-max-gray-400"
+                  x-text="koruny(item.discounted_price)"
+                ></span>
+                <span
+                  x-show="item.discounted_price && item.discounted_price < item.price"
+                  class="text-sm line-through text-base-content/60 -mt-0.5"
+                  x-text="koruny(item.price)"
+                ></span>
+
+                <!-- LEGAL TOOLTIP (desktop) -->
+                <div
+                  class="tooltip tooltip-left cursor-help"
+                  x-init="$store.legal.init()"
+                  x-data="{
+                    get paras(){
+                      const hasDisc = !!(item.discounted_price && item.discounted_price < item.price);
+                      const original = item.price;
+                      const discounted = hasDisc ? item.discounted_price : null;
+                      return $store.legal.paragraphsFor({ price: original, discounted_price: discounted });
+                    }
+                  }"
+                >
+                  <div class="tooltip-content lg:p-3">
+                    <template x-for="(p, idx) in paras" :key="idx">
+                      <p :class="idx > 0 ? 'mt-1 border-t-1 border-base-300/20 pt-1' : ''" x-text="p"></p>
+                    </template>
+                  </div>
+                  <span
+                    x-show="!item.discounted_price || !(item.discounted_price < item.price)"
+                    class="font-medium text-base underline decoration-dotted underline-offset-4 decoration-max-gray-400"
+                    x-text="koruny(item.price)"
+                  ></span>
+                </div>
+              </div>
+
+              <!-- Quick add -->
+              <button
+                class="hidden md:block btn btn-sm shrink-0 w-16"
+                :class="$store.precart.isQuickAdded(item.id) ? 'btn-ghost btn-disabled text-max-green-500' : ''"
+                @click.stop="quickAdd(item)"
+                x-text="$store.precart.isQuickAdded(item.id) ? 'Přidáno' : 'Přidat'">
+              </button>
+            </a>
+          </li>
+        </template>
+
+      </ul>
+    </div>
+
+    <!-- Footer / free shipping + actions -->
+    <div class="modal-action grid-cols-2 items-center">
+      <!-- Free shipping bar -->
+      <div class="py-4 free-ship-bar select-none w-3/6 mr-auto">
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-sm font-medium">Doprava zdarma</span>
+
+          <span class="hidden md:block text-sm text-base-content/70" x-show="$store.cart.totalToPay() < $store.cart.freeShipThreshold">
+            Ještě <strong x-text="koruny($store.cart.freeShipMissing())"></strong>
+          </span>
+
+          <span class="text-sm text-success" x-show="$store.cart.totalToPay() >= $store.cart.freeShipThreshold">
+            <i class="fa-classic fa-sm fa-solid fa-check"></i>
+          </span>
+        </div>
+
+        <!-- Track -->
+        <div class="relative h-3 rounded-full bg-base-300 overflow-hidden"
+             role="progressbar"
+             :aria-valuemin="0" :aria-valuemax="100"
+             :aria-valuenow="$store.cart.freeShipProgress()">
+
+          <!-- Fill -->
+          <div class="fill h-full rounded-full transition-[width] duration-500"
+               :class="{
+                 'bg-success' : $store.cart.hasFreeShipping(),
+                 'bg-primary/80 shimmer' : !$store.cart.hasFreeShipping()
+               }"
+               :style="`width: ${$store.cart.freeShipProgress()}%`">
+          </div>
+        </div>
+      </div>
+
+      <!-- Close / go to cart -->
+      <form method="dialog">
+        <button class="btn btn-md btn-circle btn-ghost absolute right-2 top-2"
+                @click.prevent="close()"
+                aria-label="Zavřít">
+          <i class="fa-solid fa-xmark fa-lg text-max-gray-500" aria-hidden="true"></i>
+        </button>
+
+        <button class="btn btn-primary" @click.prevent="goCart()">
+          Přejít do košíku
+        </button>
+      </form>
+    </div>
+  </div>
+</dialog>
+
+  
+<script>
+function precartModal() {
+  const randId = Math.random().toString(36).slice(2, 9);
+  return {
+    // accessibility helpers
+    listId: 'precart-list-' + randId,
+    itemId(i) { return `precart-item-${randId}-${i}`; },
+
+    // price formatter; fallback if global isn't present
+    koruny(v) {
+      if (window.koruny) return window.koruny(v);
+      try { return new Intl.NumberFormat('cs-CZ', { style: 'currency', currency: 'CZK', maximumFractionDigits: 0 }).format(v); }
+      catch { return `${v} Kč`; }
+    },
+
+    // link builder; use your existing global link() if available
+    link(name, params) {
+      if (typeof window.link === 'function') return window.link(name, params);
+      // fallback hash routes
+      if (name === 'product') return `#/product/${params?.id ?? ''}`;
+      if (name === 'cart') return '#/cart';
+      return '#';
+    },
+
+    // actions
+    close() { Alpine.store('precart').close(); },
+    goCart() {
+      this.close();
+      window.location.href = this.link('cart');
+    },
+    goDetail(item) {
+      this.close();
+      window.location.href = this.link('product', { id: item.id });
+    },
+    quickAdd(item) {
+      Alpine.store('cart').silentAdd(item);
+      Alpine.store('precart').markQuickAdded(item.id);
+    },
+  };
+}
+</script>
 
 
 </body>

@@ -1,0 +1,9 @@
+[
+    {
+        "legal_always": "Uvedená cena platí pouze pro nákup v e-shopu drmax.cz. Cena v lékárnách se může lišit.",
+        "legal_extended": {
+            "price_info": "Nejnižší cena v e-shopu drmax.cz, za kterou se produkt prodával/nabízel za posledních 30 dní před začátkem akce {{PRICE}} Kč",
+            "date_info": "Začátek akce {{DATE}}"
+        }
+    }
+]

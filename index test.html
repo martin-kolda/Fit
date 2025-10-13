@@ -31,6 +31,204 @@
 
 </head>
 <body>
+  <button class="btn" onclick="my_modal_1.showModal()">open modal</button>
+
+<dialog id="my_modal_1" class="modal">
+  <div class="modal-box w-11/12 max-w-3xl bg-base-200 lg:px-8 lg:py-10">
+    <h2 class="text-2xl font-medium text-max-green-500 mb-2"><i class="fa-classic fa-md fa-solid fa-check-circle"></i> Přidáno do košíku</h2>
+    <div x-show="!isLoading" x-transition.opacity.duration.200ms class="py-4 w-auto mx-auto items-stretch">
+      
+      
+      <template x-for="product in pagedProducts().filter(p => String(p.id) === '3')" :key="product.id">
+        <article class="h-full">
+          <div class="card card-side h-full relative px-2 items-center bg-base-100">
+            <!-- BADGES -->
+            <div x-show="product.badges?.length" class="absolute left-2 top-2 z-10 flex flex-col gap-1">
+              <template x-for="(b,i) in (product?.badges || [])" :key="i">
+                <span class="badge badge-error badge-sm font-semibold" x-text="b"></span>
+              </template>
+            </div>
+    
+            <!-- IMAGE (clickable) -->
+            <figure class="w-36 flex items-center justify-center overflow-hidden">
+              <a :href="link('product', { id: product.id })"
+               @click="_saveScroll('products')" class="block w-full h-full">
+               <img :src="product.image" class="object-contain max-h-full w-full h-full" :alt="product.name" />
+              </a>
+            </figure>
+    
+            <!-- BODY -->
+            <div class="card-body min-w-0 flex flex-col">
+                <h3 class="text-xl font-medium">
+                  <a :href="link('product', { id: product.id })"
+                  @click="_saveScroll('products')"
+                  class="hover:underline focus:outline-none focus:ring-2 focus:ring-primary/50"
+                  x-text="product.name"></a></h3>
+    
+              <div class="card-actions mt-0 justify-between items-center">
+                <!-- PRICE BLOCK -->
+                <div class="flex flex-col leading-tight">
+                  <span
+                    x-show="product.discounted_price && product.discounted_price < product.price"
+                    class="font-bold text-lg text-error underline decoration-dotted underline-offset-4 decoration-max-gray-400"
+                    x-text="`${product.discounted_price} Kč`"
+                  ></span>
+                  <span
+                    x-show="product.discounted_price && product.discounted_price < product.price"
+                    class="text-sm line-through text-base-content/60 -mt-0.5"
+                    x-text="`${product.price} Kč`"
+                  ></span>
+                  <div class="tooltip cursor-help">
+                      <div class="tooltip-content lg:p-3">
+                        <p>Uvedená cena platí pouze pro nákup v e-shopu drmax.cz. Cena v lékárnách se může lišit.</p>
+                        <p class="mt-1 border-t-1 border-base-300/20 pt-1">Nejnižší cena v e-shopu drmax.cz, za kterou se produkt prodával/nabízel za posledních 30 dní před začátkem akce 1650 Kč.</p>
+                        <p class="mt-1 border-t-1 border-base-300/20 pt-1">Začátek akce 01.10.2025</p>
+                      </div>
+                  <span
+                    x-show="!product.discounted_price || !(product.discounted_price < product.price)"
+                    class="font-medium text-lg underline decoration-dotted underline-offset-4 decoration-max-gray-400"
+                    x-text="`${product.price} Kč`"
+                  ></span>          
+                  </div>
+                </div>
+    
+                <!-- CTA or STEPPER -->
+                <template x-if="!$store.cart.inCart(product.id)">
+                  <button class="btn btn-primary btn-md font-semibold"
+                          @click="$store.cart.add(product)">
+                    Do košíku
+                  </button>
+                </template>
+    
+                <template x-if="$store.cart.inCart(product.id)">
+                  <div class="join">
+                    <button class="btn btn-square btn-md join-item"
+                            @click="$store.cart.decrement(product.id)"
+                            aria-label="Odebrat kus">−</button>
+    
+                    <input type="text" inputmode="numeric" pattern="[0-9]*"
+                          class="input input-bordered input-md w-10 text-center join-item"
+                          :value="$store.cart.qty(product.id)"
+                          @input="$store.cart.setQty(product.id, $event.target.value)"
+                          @keydown.enter.prevent
+                          aria-label="Počet kusů" />
+    
+                    <button class="btn btn-square btn-md join-item"
+                            @click="$store.cart.increment(product.id)"
+                            aria-label="Přidat kus">+</button>
+                  </div>
+                </template>
+              </div>
+    
+            </div>
+          </div>
+        </article>
+      </template>
+    </div>
+
+ 
+
+    <h4 class="text-sm font-medium my-4">Ostatní k tomuto produktu kupují</h4>
+    <div class="grid grid-cols-1 gap-2 max-h-40 overflow-auto">
+      
+      <template x-for="item in pagedProducts().filter(p => String(p.id) === '5')" :key="item.id">
+        <ul
+          class="px-2 py-4 max-h-80 overflow-y-auto w-full flex flex-col space-y-1 rounded-xl bg-white"
+          :id="listId" role="listbox"
+        >
+
+            <li
+              :id="itemId(i)"
+              class="w-full"
+              role="option"
+              @mouseenter="highlighted = i"
+            >
+              <a :href="item.href || '#'"
+                 @click.prevent="onSelect(item)" 
+                 class="flex w-full items-center gap-3 min-h-12"
+                 :class="i===highlighted ? 'bg-white' : 'hover:bg-base-200'">
+          
+                  <img :src="item.image" alt="" class="w-14 h-14 object-contain rounded" />
+          
+          
+                <div class="min-w-0 flex-1">
+                  <div class="text-base font-medium truncate" x-text="item.name"></div>
+                  <div class="text-sm font-medium text-base-content/60 truncate max-w-5/6" x-text="item.description"></div>
+                  <div class="text-sm font-medium text-base-content/60">Sponzorováno</div> 
+                </div>
+          
+                <!-- price block -->
+                <div class="hidden md:flex flex-col leading-tight">
+                  <span
+                    x-show="item.discounted_price && item.discounted_price < item.price"
+                    class="font-bold text-lg text-error underline decoration-dotted underline-offset-4 decoration-max-gray-400"
+                    x-text="`${item.discounted_price} Kč`"
+                  ></span>
+                  <span
+                    x-show="item.discounted_price && item.discounted_price < item.price"
+                    class="text-sm line-through text-base-content/60 -mt-0.5"
+                    x-text="`${item.price} Kč`"
+                  ></span>
+                  <span
+                    x-show="!item.discounted_price || !(item.discounted_price < item.price)"
+                    class="font-medium text-base underline decoration-dotted underline-offset-4 decoration-max-gray-400"
+                    x-text="`${item.price} Kč`"
+                  ></span>
+                </div>
+
+                <!-- small type badge (optional) -->
+                <button class="hidden md:block btn btn-sm shrink-0">Přidat</Button>
+              </a>
+            </li>
+
+        </ul>
+      </template>
+
+
+    <div class="card h-full relative px-8 items-center bg-base-100 min-h-16"></div>
+    <div class="card h-full relative px-8 items-center bg-base-100 min-h-16"></div>
+    <div class="card h-full relative px-8 items-center bg-base-100 min-h-16"></div>
+    <div class="card h-full relative px-8 items-center bg-base-100 min-h-16"></div>
+  </div>
+    
+    <div class="modal-action grid-cols-2 items-center" class="modal-backdrop">
+    <!-- Free shipping bar -->
+    <div class="py-4 free-ship-bar select-none w-3/6 mr-auto">
+      <div class="flex items-center justify-between mb-2">
+        <span class="text-sm font-medium">Doprava zdarma</span>
+
+        <span class="hidden md:block text-sm text-base-content/70" x-show="$store.cart.totalToPay() < $store.cart.freeShipThreshold">
+          Ještě <strong x-text="koruny($store.cart.freeShipMissing())"></strong>
+        </span>
+
+        <span class="text-sm text-success" x-show="$store.cart.totalToPay() >= $store.cart.freeShipThreshold">
+          <i class="fa-classic fa-sm fa-solid fa-check"></i>
+        </span>
+      </div>
+
+      <!-- Track -->
+      <div class="relative h-3 rounded-full bg-base-300 overflow-hidden"
+          role="progressbar"
+          :aria-valuemin="0" :aria-valuemax="100"
+          :aria-valuenow="$store.cart.freeShipProgress()">
+
+        <!-- Fill -->
+        <div class="fill h-full rounded-full transition-[width] duration-500"
+            :class="{
+              'bg-success' : $store.cart.hasFreeShipping(),
+              'bg-primary/80 shimmer' : !$store.cart.hasFreeShipping()
+            }"
+            :style="`width: ${$store.cart.freeShipProgress()}%`">
+        </div>
+      </div>
+    </div>
+      <form method="dialog">
+        <button class="btn btn-md btn-circle btn-ghost absolute right-2 top-2"><i class="fa-solid fa-xmark fa-lg text-max-gray-500" aria-hidden="true"></i></button>
+        <button class="btn btn-primary">Přejít do košíku</button>
+      </form>
+    </div>
+  </div>
+</dialog>
 <!-- Address Autocomplete -->
 <div x-data="addressPicker(pragueAddresses)" class="max-w-xl">
   <label class="form-control w-full">
