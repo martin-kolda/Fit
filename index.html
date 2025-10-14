@@ -752,84 +752,52 @@
 </section>
 
 
-
 <!-- Magazine blog -->
-<section class="mt-8">
+<section class="mt-8" x-cloak x-show="Array.isArray(blogPosts) && blogPosts.length">
   <h3 class="text-lg font-semibold mb-3">Blog</h3>
 
   <!-- Mobile: horizontal scroller (2-up + tiny peek) · md+: 3-col grid -->
   <div class="flex gap-3 overflow-x-auto snap-x snap-mandatory pb-6
               md:overflow-visible md:grid md:grid-cols-3 md:gap-4 md:snap-none md:pb-0">
+    <template x-for="post in blogFeatured(6)" :key="post.id || post.title">
+      <article class="shrink-0 w-[calc(50%-0.9rem)] snap-start md:w-auto md:shrink md:col-span-1">
+        <div class="card h-full bg-base-100 shadow rounded-xl overflow-hidden">
+          <!-- IMAGE (clickable) -->
+          <figure class="h-48 overflow-hidden">
+            <a :href="blogLink(post)" class="block w-full h-full">
+              <img :src="post.image" :alt="post.title" class="w-full h-full object-cover" loading="lazy">
+            </a>
+          </figure>
 
-    <!-- Tile -->
-    <article class="shrink-0 w-[calc(50%-0.9rem)] snap-start md:w-auto md:shrink md:col-span-1">
-      <div class="card h-full bg-base-100 shadow rounded-xl overflow-hidden">
-        <!-- IMAGE (clickable) -->
-        <figure class="h-48 overflow-hidden">
-          <a href="#" class="block w-full h-full">
-            <img src="./images/content/alergie_na_slunce.webp" class="w-full h-full object-cover" alt="">
-          </a>
-        </figure>
+          <!-- BODY -->
+          <div class="card-body min-w-0 flex flex-col gap-2 md:gap-3">
+            <!-- TITLE (clickable) · fixed 2 lines -->
+            <h2 class="text-xl font-semibold leading-snug line-clamp-2 min-h-[3.5rem]">
+              <a :href="blogLink(post)" class="hover:underline" x-text="post.title"></a>
+            </h2>
 
-        <!-- BODY -->
-        <div class="card-body min-w-0 flex flex-col gap-2 md:gap-3">
-          <!-- TITLE (clickable) · fixed 2 lines -->
-          <h2 class="text-xl font-semibold leading-snug line-clamp-2 min-h-[3.5rem]">
-            <a href="#" class="hover:underline">Alergie na slunce – příznaky a léčba</a>
-          </h2>
+            <!-- META -->
+            <div class="text-sm">
+              <span class="text-success font-bold" x-text="readingTimeLabel(post)"></span>
+              <span class="mx-1 opacity-40">•</span>
+              <span class="opacity-70" x-text="post.category"></span>
+            </div>
 
-          <!-- META -->
-          <div class="text-sm">
-            <span class="text-success font-bold">4 minuty čtení</span>
-            <span class="mx-1 opacity-40">•</span>
-            <span class="opacity-70">Zdraví a léky</span>
-          </div>
+            <!-- EXCERPT -->
+            <p class="text-base line-clamp-4" x-text="blogExcerpt(post)"></p>
 
-          <!-- EXCERPT -->
-          <p class="text-base line-clamp-4">
-            Kdo by se netěšil na jasné letní dny? Některým z nás však slunce způsobí spolu s opálením kůže i nevítanou kožní reakci – sluneční alergii. Jak se alergie na slunce projevuje, jaké druhy rozlišujeme a jaké příčiny vedou k jejímu vzniku?
-          </p>
-
-          <!-- CTA + likes -->
-          <div class="mt-4 flex items-center opacity-70">
-            <a href="#" class="btn btn-sm btn-outline">Číst dál</a>
-            <div class="ml-auto"><i class="fa-regular fa-thumbs-up fa-lg"></i> 132</div>
-          </div>
-        </div>
-      </div>
-    </article>
-
-    <!-- Tile -->
-    <article class="shrink-0 w-[calc(50%-0.9rem)] snap-start md:w-auto md:shrink md:col-span-1">
-      <div class="card h-full bg-base-100 shadow rounded-xl overflow-hidden">
-        <figure class="h-48 overflow-hidden">
-          <a href="#" class="block w-full h-full">
-            <img src="./images/content/bolest_v_krku.webp" class="w-full h-full object-cover" alt="">
-          </a>
-        </figure>
-
-        <div class="card-body min-w-0 flex flex-col gap-2 md:gap-3">
-          <h2 class="text-xl font-semibold leading-snug line-clamp-2 min-h-[3.5rem]">
-            <a href="#" class="hover:underline">Bolest v krku – příčina a léčba</a>
-          </h2>
-          <div class="text-sm">
-            <span class="text-success font-bold">7 minut čtení</span>
-            <span class="mx-1 opacity-40">•</span>
-            <span class="opacity-70">Chřipka a nachlazení</span>
-          </div>
-          <p class="text-base line-clamp-4">
-            Bolest v krku není samostatnou nemocí, ale pouze příznakem doprovázejícím infekce horních cest dýchacích. Nejčastěji se jedná o zánět hltanu a mandlí virového nebo bakteriálního původu.
-          </p>
-          <!-- CTA + likes -->
-          <div class="mt-4 flex items-center opacity-70">
-            <a href="#" class="btn btn-sm btn-outline">Číst dál</a>
-            <div class="ml-auto"><i class="fa-regular fa-thumbs-up fa-lg"></i> 276</div>
+            <!-- CTA + likes -->
+            <div class="mt-4 flex items-center opacity-70">
+              <a :href="blogLink(post)" class="btn btn-sm btn-outline">Číst dál</a>
+              <div class="ml-auto flex items-center gap-1">
+                <i class="fa-regular fa-thumbs-up fa-lg"></i>
+                <span x-text="post.likes ?? 0"></span>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
-    </article>
-
-    <!-- Duplicate more <article> tiles with the same structure -->
+      </article>
+    </template>
   </div>
 </section>
 
@@ -4643,6 +4611,7 @@ benefits: [],
 // product detail state
 detail: null,
 brands: [],
+blogPosts: [],
 
 
 
@@ -4706,6 +4675,41 @@ async loadBrands() {
     console.warn('brands.json failed', e);
     this.brands = [];
   }
+},
+
+async loadBlog() {
+  try {
+    const res = await fetch('data/blog.json', { cache: 'no-store' });
+    const arr = await res.json();
+    this.blogPosts = Array.isArray(arr)
+      ? arr.filter(post => post?.title && post?.image)
+      : [];
+  } catch (e) {
+    console.warn('blog.json failed', e);
+    this.blogPosts = [];
+  }
+  return this.blogPosts;
+},
+
+blogFeatured(count = 6) {
+  return Array.isArray(this.blogPosts) ? this.blogPosts.slice(0, count) : [];
+},
+blogLink(post) {
+  const url = String(post?.link || '').trim();
+  return url || '#';
+},
+readingTimeLabel(post) {
+  const minutes = Number(post?.minutes_to_read);
+  if (!Number.isFinite(minutes) || minutes <= 0) return 'Čtení';
+  const abs = Math.round(minutes);
+  const forms = ['minuta', 'minuty', 'minut'];
+  const form = abs === 1 ? forms[0] : (abs >= 2 && abs <= 4 ? forms[1] : forms[2]);
+  return `${abs} ${form} čtení`;
+},
+blogExcerpt(post, limit = 220) {
+  const text = String(post?.perex || '').trim();
+  if (!text) return '';
+  return text.length > limit ? `${text.slice(0, limit - 1)}…` : text;
 },
 
 // Optional: call in loadData() after products/aux files load:
@@ -4779,6 +4783,7 @@ async loadData() {
     const brandSet = new Set(this.products.map(p => (p.brand || '').trim()).filter(Boolean));
     this.topBrands = Array.from(brandSet).slice(0, 10).map(name => ({ name, logo: this.brandLogo(name) }));
     await this.loadBrands();
+    await this.loadBlog();
 
   } catch (e) {
     console.error('Failed to load products.json', e);
@@ -4789,6 +4794,7 @@ async loadData() {
       ]);
       this.navCategories = (cats.status === 'fulfilled'  && Array.isArray(cats.value))  ? cats.value  : [];
       this.infoLinks     = (links.status === 'fulfilled' && Array.isArray(links.value)) ? links.value : [];
+      await this.loadBlog();
     } catch {}
   } finally {
     this.isLoading = false;
