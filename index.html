@@ -4056,16 +4056,35 @@ function deliveryPaymentUI() {
       <fieldset class="border border-base-300 rounded-xl bg-white shadow-sm p-4 py-8 md:p-10">
         <h2 class="text-xl font-medium mb-4">Kontaktní údaje</h2>
         <fieldset class="fieldset">
-          <legend class="fieldset-legend">E-mail</legend>
-          <input type="text" class="input" placeholder="@" />
+          <legend class="fieldset-legend text-sm text-max-gray-600">E-mail</legend>
+          <label class="input input-lg w-full">
+            <i class="fa-regular fa-envelope text-max-gray-400"></i>
+            <input type="text" placeholder="" />
+          </label>
         </fieldset>
-      
-      
-      
+
+
+      <fieldset class="fieldset">
+        <legend class="fieldset-legend text-sm text-max-gray-600">Telefon</legend>
+        <label class="input input-lg w-full">
+        <span class="label">+420</span>
+        <input type="text" placeholder="" />
+        </label>
+      </fieldset>
       
       </fieldset>
       <fieldset class="border border-base-300 rounded-xl bg-white shadow-sm p-4 py-8 md:p-10">
-        <h2 class="text-xl font-medium mb-4 ml-3">Doručení a fakturace</h2>
+        <h2 class="text-xl font-medium mb-4">Doručení a fakturace</h2>
+           <label class="label text-base border-base-300">
+            <input type="checkbox" class="checkbox rounded checkbox-secondary" />
+            Remember me
+          </label>
+          <fieldset class="fieldset">
+            <legend class="fieldset-legend text-sm text-max-gray-600">Poznámka k objednávce</legend>
+            <textarea class="textarea h-24 w-full" placeholder="Např. preferovaná barva produktu"></textarea>
+          </fieldset> 
+ 
+ 
       </fieldset>
 
     </div>  
