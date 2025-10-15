@@ -117,6 +117,13 @@
 
   </style>
 
+  <style>
+    .max-gradient-v-red {
+      background: linear-gradient(180deg, #f03a54 12%, #c31833 100%);
+      box-shadow: 0 -2px 0 0 rgba(0, 0, 0, 0.18) inset, 0 2px 0 0 rgba(255, 255, 255, 0.18) inset;
+    }
+  </style>
+
 <script>
   document.addEventListener('alpine:init', () => {
     if (!Alpine.store('precart')) {
@@ -146,6 +153,103 @@
         markQuickAdded(id) { this.quickAdded.add(String(id)); },
         isQuickAdded(id)   { return this.quickAdded.has(String(id)); },
       });
+    }
+
+    if (!Alpine.store('saved')) {
+      const savedStore = {
+        key: 'fit:saved-products',
+        items: [],
+        load() {
+          if (typeof localStorage === 'undefined') return this.items;
+          try {
+            const raw = localStorage.getItem(this.key);
+            const parsed = raw ? JSON.parse(raw) : [];
+            this.items = Array.isArray(parsed) ? parsed : [];
+          } catch (e) {
+            console.warn('saved store load failed', e);
+            this.items = [];
+          }
+          return this.items;
+        },
+        persist() {
+          if (typeof localStorage === 'undefined') return;
+          try {
+            localStorage.setItem(this.key, JSON.stringify(this.items));
+          } catch (e) {
+            console.warn('saved store persist failed', e);
+          }
+        },
+        list() { return this.items.slice(); },
+        normalize(product) {
+          const src = product || {};
+          const rawId = src.id ?? src.productId ?? null;
+          if (rawId == null) return null;
+          const pickFirst = arr => Array.isArray(arr) ? arr.find(Boolean) : null;
+          const image = src.image || pickFirst(src.images) || pickFirst(src.photos) || '';
+          const price = Number(src.price);
+          const discounted = Number(src.discounted_price);
+          const normalized = {
+            id: String(rawId),
+            name: src.name || '',
+            image,
+            price: Number.isFinite(price) ? price : null,
+            discounted_price: Number.isFinite(discounted) ? discounted : null,
+            brand: src.brand || '',
+            perex: src.perex || '',
+            savedAt: Date.now(),
+          };
+          if (src.url) normalized.url = src.url;
+          if (src.slug) normalized.slug = src.slug;
+          if (src.variantId != null) normalized.variantId = src.variantId;
+          if (src.productId != null && src.productId !== rawId) normalized.productId = src.productId;
+          return normalized;
+        },
+        isSaved(id) {
+          const key = String(id ?? '');
+          if (!key) return false;
+          return this.items.some(item => String(item.id) === key);
+        },
+        save(product) {
+          const normalized = this.normalize(product);
+          if (!normalized) return false;
+          this.items = [
+            normalized,
+            ...this.items.filter(item => String(item.id) !== normalized.id)
+          ];
+          this.persist();
+          return true;
+        },
+        remove(id) {
+          const key = String(id ?? '');
+          if (!key) return false;
+          const before = this.items.length;
+          this.items = this.items.filter(item => String(item.id) !== key);
+          if (this.items.length !== before) {
+            this.persist();
+            return true;
+          }
+          return false;
+        },
+        toggle(product) {
+          const normalized = this.normalize(product);
+          if (!normalized) return false;
+          if (this.isSaved(normalized.id)) {
+            this.remove(normalized.id);
+            return false;
+          }
+          this.save(normalized);
+          return true;
+        },
+        replace(list) {
+          if (!Array.isArray(list)) return;
+          this.items = list.slice();
+          this.persist();
+        }
+      };
+      Alpine.store('saved', savedStore);
+      savedStore.load();
+    } else {
+      Alpine.store('saved').load?.();
     }
   });
   </script>
@@ -222,10 +326,14 @@
               class="p-2 max-h-80 overflow-y-auto w-full flex flex-col space-y-0"
               :id="listId" role="listbox"
             >
-              <li class="px-2 py-1 text-xs font-semibold text-base-content/60">Naposledy hledané</li>
+              <template x-if="recentItems().length">
+                <li class="px-2 py-1 text-xs font-semibold text-base-content/60">Naposledy hledané</li>
+              </template>
 
               <template x-if="!recentItems().length">
-                <li class="w-full px-2 py-2 text-sm text-base-content/60">Začněte psát psát váš dotaz…</li>
+                <li class="w-full px-2 py-3 text-base text-center text-max-gray-400">
+                  Začněte psát váš dotaz…
+                </li>
               </template>
 
               <template x-for="(item, i) in recentItems()" :key="`${item.t}-${item.k ?? i}`">
@@ -272,7 +380,7 @@
                 :id="listId" role="listbox"
               >
                 <template x-if="!suggestions().length">
-                  <li class="w-full px-2 py-3 font-medium text-base text-center text-max-gray-400">
+                  <li class="w-full px-2 py-3 text-base text-center text-max-gray-400">
                     Žádné výsledky
                   </li>
                 </template>
@@ -425,28 +533,62 @@
   />
 </div>
 
-  <!-- NAVBAR PRODUCT NAVIGATION -->
-  <div class="navbar hidden md:flex bg-primary max-gradient-v text-primary-content h-12 p-1 pl-4 pr-4">
+<!-- NAVBAR PRODUCT NAVIGATION -->
+  <div
+    class="hidden md:flex w-full items-stretch bg-primary max-gradient-v text-primary-content md:h-12 lg:h-16 px-2 lg:px-4"
+    x-data="topNav()"
+    x-init="init()"
+    x-ref="navRoot"
+    x-cloak
+  >
+    <div class="flex w-full items-stretch gap-2">
+      <div class="flex items-stretch gap-1 flex-1 overflow-hidden" x-ref="leftWrap">
+        <template x-if="showDrawer">
+          <button
+            type="button"
+            data-left-item
+            data-sticky="true"
+            data-index="-1"
+            class="flex items-center gap-2 h-full px-3 lg:px-4 text-sm lg:text-base font-semibold transition-colors duration-150 hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40 cursor-pointer"
+            @click="handleDrawerClick()"
+          >
+            <i class="fa-solid fa-bars"></i>
+            <span class="whitespace-nowrap" x-text="drawerItem?.label || 'Procházet kategorie'"></span>
+          </button>
+        </template>
 
-    <ul class="menu flex-none w-fit menu-horizontal rounded-box text-base font-medium">
-      <li>
-        <a @click="$store.menu.openAt()"><i class="fa-solid fa-bars"></i>Procházet kategorie</a>
-      </li>
+        <template x-if="showDrawer && highlightItems.length">
+          <div class="w-px self-stretch bg-white/30 mx-1 my-2 lg:my-4"></div>
+        </template>
 
-      <li>
-        <a>Zdravé léto</a>
-      </li>
-      <li>
-        <a>Na opalování
-        </a>
-      </li>
-      <li>
-        <a>Produkty Dr. Max</a>
-      </li>
-      <li>
-        <a>3 za 2</a>
-      </li>      
-    </ul>
+        <template x-for="(item, idx) in highlightItems" :key="item.key">
+          <button
+            type="button"
+            data-left-item
+            :data-index="idx"
+            class="flex items-center h-full px-3 lg:px-4 text-sm lg:text-base font-medium whitespace-nowrap transition-colors duration-150 hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
+            :class="isLeftHidden(idx) ? 'hidden' : ''"
+            @click="handleItemClick(item)"
+          >
+            <span x-text="item.label"></span>
+          </button>
+        </template>
+      </div>
+
+      <div class="flex items-stretch gap-1" x-show="promoItems.length" x-transition.opacity>
+        <div class="flex items-stretch gap-1 px-2 lg:px-3 max-gradient-v-red h-full">
+          <template x-for="item in promoItems" :key="item.key">
+            <button
+              type="button"
+              class="flex items-center h-full px-2 lg:px-3 text-sm lg:text-base font-semibold whitespace-nowrap transition-colors duration-150 hover:bg-black/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
+              @click="handlePromoClick(item)"
+            >
+              <span x-text="item.label"></span>
+            </button>
+          </template>
+        </div>
+      </div>
+    </div>
   </div>
 
 
@@ -1206,7 +1348,7 @@
 
           <p class="clamp-2" x-text="product.description"></p>
 
-          <div x-data="ratingLine()" x-init="$watch('product.reviews', v => v && set(v))" class="flex items-center gap-2 text-sm">
+          <div x-data="ratingLine()" x-init="$watch('product.reviews', v => v && set(v))" class="flex items-center gap-2 text-sm" x-show="hasRating()" x-cloak>
             <span class="flex items-center gap-0 text-lg leading-none">
               <template x-for="(s,i) in stars()" :key="i">
                 <i
@@ -1461,6 +1603,21 @@
             <span class="badge badge-accent border-0 bg-max-red-500 badge-md font-semibold" x-text="b"></span>
           </template>
         </div>
+
+        <div class="absolute right-4 top-4 z-20 flex flex-col gap-2">
+          <button type="button" class="tooltip tooltip-left btn btn-circle btn-sm md:btn-md shadow-lg border border-base-200 bg-base-100 hover:bg-base-200" :class="isSavedCurrent() ? 'text-error' : ''" data-tip="Uložit"
+                  @click.prevent="toggleSave()">
+            <i :class="isSavedCurrent() ? 'fa-solid fa-heart' : 'fa-regular fa-heart'"></i>
+          </button>
+          <button type="button" class="tooltip tooltip-left btn btn-circle btn-sm md:btn-md shadow-lg border border-base-200 bg-base-100 hover:bg-base-200" data-tip="Sdílet"
+                  @click.prevent="openShareModal()">
+            <i class="fa-regular fa-arrow-up-from-square"></i>
+          </button>
+          <button type="button" class="tooltip tooltip-left btn btn-circle btn-sm md:btn-md shadow-lg border border-base-200 bg-base-100 hover:bg-base-200" data-tip="Zeptat se"
+                  @click.prevent="openAskModal()">
+            <i class="fa-regular fa-comment-question"></i>
+          </button>
+        </div>
         <div class="aspect-square bg-base-200 rounded-xl flex items-center justify-center overflow-hidden">
           <img class="object-contain w-full h-full"
                :src="images[currentImage] || ''"
@@ -1479,10 +1636,10 @@
   
       <!-- buy box (variants + price + add to cart) -->
       <section class="space-y-6">
-        <h1 class="text-2xl md:text-3xl font-semibold" x-text="product?.name || '…'"></h1>
+        <h1 class="text-2xl md:text-3xl font-semibold" x-text="selectedVariant?.name || product?.name || '…'"></h1>
 
         <!-- user rating -->
-        <div x-data="ratingLine()" x-init="$watch('product.reviews', v => v && set(v))" class="flex items-center gap-2 text-sm">
+        <div x-data="ratingLine()" x-init="$watch('product.reviews', v => v && set(v))" class="flex items-center gap-2 text-sm" x-show="hasRating()" x-cloak>
           <span class="flex items-center gap-0 text-lg leading-none">
             <template x-for="(s,i) in stars()" :key="i">
               <i
@@ -1502,11 +1659,27 @@
         <div x-text="product?.perex || ''"></div>   
 
         <section>
-          <div>Brand: <a href="" class="underline-offset-2 decoration-1 decoration-current hover:underline focus-visible:underline text-secondary font-semibold" x-text="product?.brand || ''"></span></a> /
-          <a href="" class="underline-offset-2 decoration-1 decoration-current hover:underline focus-visible:underline text-secondary font-semibold" x-text="product?.productLine || ''"></span></a></div>
+          <div>
+            <template x-if="product?.brand">
+              <span>
+                Brand:
+                <a href=""
+                   class="underline-offset-2 decoration-1 decoration-current hover:underline focus-visible:underline text-secondary font-semibold"
+                   x-text="product.brand"></a>
+              </span>
+            </template>
+            <template x-if="product?.brand && product?.productLine">
+              <span class="mx-1">/</span>
+            </template>
+            <template x-if="product?.productLine">
+              <a href=""
+                 class="underline-offset-2 decoration-1 decoration-current hover:underline focus-visible:underline text-secondary font-semibold"
+                 x-text="product.productLine"></a>
+            </template>
+          </div>
         </section>
-        <div x-show="variants?.length" class="space-y-2">
-          <div class="textmd font-semibold">Varianta</div>
+        <div x-show="Array.isArray(variants) && variants.length > 1" class="space-y-2" x-cloak>
+          <div class="textmd font-semibold">Varianty</div>
           <div class="flex flex-wrap gap-2">
             <template x-for="v in variants" :key="v.id">
               <button
@@ -1514,7 +1687,7 @@
                 class="btn btn-md rounded-lg"
                 :class="selectedVariant?.id === v.id ? 'btn-secondary' : 'btn-outline'"
                 @click="selectVariant(v.id)"
-                x-text="v.name"
+                x-text="v.label || v.name"
               ></button>
             </template>
           </div>
@@ -2019,6 +2192,136 @@
             </template>
           </div>
         </div>
+      </div>
+    </div>
+
+    <!-- Share modal -->
+    <div x-cloak x-show="shareModal.open" x-transition.opacity
+         class="fixed inset-0 z-[70] flex items-center justify-center px-4"
+         @keydown.escape.window="closeShareModal()">
+      <div class="absolute inset-0 bg-base-200/90 backdrop-blur-sm" @click="closeShareModal()"></div>
+      <div class="relative z-[71] w-full max-w-lg bg-base-100 border border-base-200 rounded-2xl shadow-2xl p-6 space-y-5">
+        <button type="button"
+                class="btn btn-circle btn-ghost absolute right-3 top-3"
+                aria-label="Zavřít sdílení"
+                @click="closeShareModal()">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+        <header class="space-y-1 pr-10">
+          <h2 class="text-xl font-semibold">Sdílet produkt</h2>
+          <p class="text-sm text-base-content/70" x-text="product?.name"></p>
+        </header>
+
+        <div class="grid gap-2">
+          <button type="button"
+                  class="btn btn-outline justify-start"
+                  @click.prevent="shareNative()">
+            <i class="fa-solid fa-share-nodes"></i>
+            <span>Sdílet přes systémové menu</span>
+          </button>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <a :href="`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl())}`"
+               class="btn btn-outline justify-start"
+               target="_blank" rel="noopener">
+              <i class="fa-brands fa-facebook"></i>
+              <span>Facebook</span>
+            </a>
+            <a :href="`https://api.whatsapp.com/send?text=${encodeURIComponent((product?.name ? product.name + ' – ' : '') + shareUrl())}`"
+               class="btn btn-outline justify-start"
+               target="_blank" rel="noopener">
+              <i class="fa-brands fa-whatsapp"></i>
+              <span>WhatsApp</span>
+            </a>
+            <a :href="`https://twitter.com/intent/tweet?text=${encodeURIComponent(product?.name || 'Skvělý tip')}&url=${encodeURIComponent(shareUrl())}`"
+               class="btn btn-outline justify-start"
+               target="_blank" rel="noopener">
+              <i class="fa-brands fa-x-twitter"></i>
+              <span>Twitter</span>
+            </a>
+            <a :href="`mailto:?subject=${encodeURIComponent(product?.name || 'Doporučuji produkt')}&body=${encodeURIComponent(shareUrl())}`"
+               class="btn btn-outline justify-start">
+              <i class="fa-regular fa-envelope"></i>
+              <span>E-mail</span>
+            </a>
+          </div>
+        </div>
+
+        <div class="space-y-2">
+          <label class="text-sm font-medium text-base-content/70">Odkaz na produkt</label>
+          <div class="flex flex-col sm:flex-row gap-2">
+            <input type="text"
+                   class="input input-bordered w-full text-sm"
+                   :value="shareUrl()"
+                   readonly
+                   @focus="$event.target.select()">
+            <button type="button"
+                    class="btn sm:w-auto"
+                    @click.prevent="copyShareLink()"
+                    :class="shareModal.copied ? 'btn-success' : 'btn-primary'">
+              <span x-show="!shareModal.copied">Kopírovat</span>
+              <span x-show="shareModal.copied">
+                <i class="fa-solid fa-check mr-1"></i>
+                Zkopírováno
+              </span>
+            </button>
+          </div>
+          <p class="text-sm text-success" x-show="shareModal.copied">Odkaz máte ve schránce.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Ask modal -->
+    <div x-cloak x-show="askModal.open" x-transition.opacity
+         class="fixed inset-0 z-[80] flex items-center justify-center px-4"
+         @keydown.escape.window="closeAskModal()">
+      <div class="absolute inset-0 bg-base-200/90 backdrop-blur-sm" @click="closeAskModal()"></div>
+      <div class="relative z-[81] w-full max-w-xl bg-base-100 border border-base-200 rounded-2xl shadow-2xl p-6 space-y-5">
+        <button type="button"
+                class="btn btn-circle btn-ghost absolute right-3 top-3"
+                aria-label="Zavřít dotaz"
+                @click="closeAskModal()">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+        <header class="space-y-1 pr-10">
+          <h2 class="text-xl font-semibold">Zeptat se na produkt</h2>
+          <p class="text-sm text-base-content/70">Odpověď posíláme do 48 hodin na e-mail.</p>
+        </header>
+
+        <form class="space-y-4" @submit.prevent="submitAsk()">
+          <label class="form-control">
+            <span class="label-text font-medium">Váš dotaz</span>
+            <textarea class="textarea textarea-bordered h-32"
+                      placeholder="Co vás zajímá?"
+                      x-model="askModal.message"
+                      required></textarea>
+          </label>
+
+          <label class="form-control">
+            <span class="label-text font-medium">E-mail</span>
+            <input type="email"
+                   class="input input-bordered"
+                   placeholder="jmeno@domena.cz"
+                   x-model="askModal.email"
+                   required>
+          </label>
+
+          <div class="text-sm text-base-content/70">
+            Na dotazy reagujeme nejpozději do 48&nbsp;hodin. Odpověď dorazí do vaší e-mailové schránky.
+          </div>
+
+          <p class="text-sm text-error" x-show="askModal.error" x-text="askModal.error"></p>
+
+          <div class="flex flex-col sm:flex-row sm:justify-end gap-2">
+            <button type="button" class="btn btn-ghost sm:w-auto w-full" @click="closeAskModal()">Zrušit</button>
+            <button type="submit"
+                    class="btn btn-primary sm:w-auto w-full"
+                    :disabled="askModal.submitting">
+              <span x-show="!askModal.submitting">Odeslat dotaz</span>
+              <span x-show="askModal.submitting">Odesílám…</span>
+            </button>
+          </div>
+        </form>
       </div>
     </div>
 
@@ -2698,7 +3001,8 @@ document.addEventListener('alpine:init', () => {
     <template x-for="opt in delivery" :key="opt.id">
       <!-- Only select after confirm if followup exists, else select immediately -->
       <label :class="rowClasses('delivery', opt)"
-             @click.prevent="handleDeliveryClick(opt)">
+             class="block mb-2 last:mb-0"
+             @click="handleDeliveryClick(opt, $event)">
         <div class="flex items-center gap-3 min-w-0">
           <!-- Radio reflects state (we set it in JS) -->
           <input type="radio"
@@ -2707,7 +3011,7 @@ document.addEventListener('alpine:init', () => {
                  :checked="selectedDeliveryId === opt.id"
                  tabindex="-1" />
           <img :src="opt.icon" :alt="opt.name"
-               class="size-11 rounded-full bg-base-200 object-contain shrink-0"
+               class="size-11 rounded bg-base-200 object-contain shrink-0"
                @error="$event.target.style.opacity=0.3" />
           <div class="min-w-0">
             <div class="font-medium leading-tight">
@@ -2735,11 +3039,35 @@ document.addEventListener('alpine:init', () => {
                 </div>
               </div>
             </div>
-            <template x-if="opt.description">
-              <p class="text-sm font-medium text-base-content/70 leading-snug line-clamp-2" x-text="opt.description"></p>
-            </template>
-          </div>
-        </div>
+        <template x-if="opt.description">
+          <p class="text-sm font-medium text-base-content/70 leading-snug line-clamp-2" x-text="opt.description"></p>
+        </template>
+        <template x-if="timeslotInfo(opt.id) && selectedDeliveryId === opt.id">
+          <p class="mt-2 text-sm text-base-content/80 flex flex-wrap items-center gap-2">
+            <i class="fa-regular fa-clock"></i>
+            <span x-text="timeslotInfo(opt.id).label"></span>
+            <span class="text-base-content/60">PSČ <span x-text="timeslotInfo(opt.id).zip"></span></span>
+            <button type="button"
+                    class="link link-primary text-sm"
+                    @click.stop="changeTimeslot(opt)">
+              Změnit
+            </button>
+          </p>
+        </template>
+        <template x-if="pickupInfo(opt.id) && selectedDeliveryId === opt.id">
+          <p class="mt-2 text-sm text-base-content/80 flex flex-wrap items-center gap-2">
+            <i class="fa-solid fa-store"></i>
+            <span x-text="pickupInfo(opt.id).name"></span>
+            <span class="text-base-content/60" x-text="pickupInfo(opt.id).addressLine"></span>
+            <button type="button"
+                    class="link link-primary text-sm"
+                    @click.stop="changePickup(opt)">
+              Změnit
+            </button>
+          </p>
+        </template>
+      </div>
+    </div>
 
         <!-- Price (free shipping overrides everything in this column) -->
         <div class="text-right shrink-0">
@@ -2767,9 +3095,10 @@ document.addEventListener('alpine:init', () => {
 
     <template x-for="opt in payment" :key="opt.id">
       <label :class="rowClasses('payment', opt)"
+             class="block mb-2 last:mb-0"
              :aria-disabled="isPaymentDisabled(opt.id)"
-             @click.prevent="handlePaymentClick(opt)">
-        <div class="flex items-center gap-3 min-w-0">
+             @click="handlePaymentClick(opt, $event)">
+        <div class="flex items-center gap-3 min-w-0 mb-1">
           <input type="radio"
                  name="payment"
                  class="radio radio-secondary shrink-0"
@@ -2803,6 +3132,23 @@ document.addEventListener('alpine:init', () => {
             <template x-if="opt.description">
               <p class="text-sm font-medium text-base-content/70 leading-snug" x-text="opt.description"></p>
             </template>
+            <template x-if="benefitInfo(opt.id) && selectedPaymentId === opt.id">
+              <p class="mt-2 text-sm text-base-content/80 flex items-center gap-2">
+                <template x-if="benefitInfo(opt.id)?.image">
+                  <img :src="benefitInfo(opt.id).image"
+                       alt=""
+                       class="w-8 h-8 object-contain rounded bg-base-200"
+                       @error="$event.target.style.opacity=0.3">
+                </template>
+                <i class="fa-solid fa-gift" x-show="!benefitInfo(opt.id)?.image"></i>
+                <span x-text="benefitInfo(opt.id).name"></span>
+                <button type="button"
+                        class="link link-primary text-sm"
+                        @click.stop="changeBenefit(opt)">
+                  Změnit
+                </button>
+              </p>
+            </template>
           </div>
         </div>
 
@@ -2816,14 +3162,21 @@ document.addEventListener('alpine:init', () => {
           </template>
 
           <template x-if="!isPaymentDisabled(opt.id)">
-            <template x-if="opt.price === 0">
-              <div class="font-semibold">Zdarma</div>
-            </template>
-            <template x-if="opt.price > 0">
+            <template x-if="selectedDeliveryId === opt.id && timeslotInfo(opt.id)">
               <div>
-                <div class="text-xs tracking-wide font-medium text-base-content/60" x-show="opt.price_from">Od</div>
-                <div class="font-semibold" x-text="formatCZK(opt.price)"></div>
+                <div class="font-semibold" x-text="formatCZK(timeslotInfo(opt.id).price)"></div>
               </div>
+            </template>
+            <template x-if="!(selectedDeliveryId === opt.id && timeslotInfo(opt.id))">
+              <template x-if="opt.price === 0">
+                <div class="font-semibold">Zdarma</div>
+              </template>
+              <template x-if="opt.price > 0">
+                <div>
+                  <div class="text-xs tracking-wide font-medium text-base-content/60" x-show="opt.price_from">Od</div>
+                  <div class="font-semibold" x-text="formatCZK(opt.price)"></div>
+                </div>
+              </template>
             </template>
           </template>
         </div>
@@ -2833,26 +3186,167 @@ document.addEventListener('alpine:init', () => {
 
 
 
-  <!-- Follow-up modal (placeholder content) -->
-  <dialog x-ref="modal" class="modal">
-    <div class="modal-box">
-      <h3 class="font-bold text-lg" x-text="followupTitle()"></h3>
-      <div class="py-3 text-base-content/70">
-        <template x-if="currentFollowup?.type === 'map'">
-          <p>Zde bude mapa pro výběr výdejního místa.</p>
-        </template>
-        <template x-if="currentFollowup?.type === 'timeslot'">
-          <p>Zde bude výběr časového okna doručení.</p>
-        </template>
-        <template x-if="currentFollowup?.type === 'benefits'">
-          <p>Zde bude výběr benefitní platby (Pluxee, Benefit Plus, Edenred…).</p>
-        </template>
-      </div>
-      <div class="modal-action">
-        <button class="btn btn-ghost" @click="cancelFollowup()">Zrušit</button>
-        <button class="btn btn-primary" @click="confirmFollowup()">Potvrdit</button>
-      </div>
+  <!-- Follow-up modal -->
+  <dialog x-ref="modal" class="modal" @cancel.prevent="cancelFollowup()">
+    <div class="modal-box w-11/12 max-w-3xl">
+      <button type="button" class="btn btn-sm btn-circle btn-ghost absolute right-3 top-3" @click="cancelFollowup()">✕</button>
+
+      <template x-if="currentFollowup?.type === 'timeslot'">
+        <div class="space-y-6">
+          <h3 class="text-lg font-semibold" x-text="followupTitle()"></h3>
+
+          <template x-if="timeslotModal.step === 'zip'">
+            <form class="grid gap-4 py-6" @submit.prevent="submitZip()">
+              <label class="text-sm font-medium text-base-content/70 text-center">Zadejte PSČ doručení</label>
+              <input type="text"
+                     class="input input-bordered input-lg text-center text-xl tracking-[0.3em]"
+                     maxlength="5"
+                     autocomplete="postal-code"
+                     inputmode="numeric"
+                     pattern="[0-9]{5}"
+                     placeholder="00000"
+                     x-model="timeslotModal.zip"
+                     @input="timeslotModal.message = ''"
+              >
+              <p class="text-sm text-error text-center min-h-[1.25rem]" x-text="timeslotModal.message"></p>
+              <div class="flex justify-center gap-2">
+                <button type="button" class="btn btn-ghost" @click="cancelFollowup()">Zrušit</button>
+                <button type="submit" class="btn btn-primary">Pokračovat</button>
+              </div>
+            </form>
+          </template>
+
+      <template x-if="currentFollowup?.type === 'map'">
+        <div class="space-y-4">
+          <h3 class="text-lg font-semibold">Vyberte výdejní místo</h3>
+          <p class="text-sm text-base-content/70">Otevřeli jsme mapu s výdejními místy. Vyberte prosím preferovaný bod a potvrďte jej.</p>
+          <div class="modal-action">
+            <button class="btn btn-ghost" type="button" @click="cancelFollowup()">Zavřít</button>
+          </div>
+        </div>
+      </template>
+
+          <template x-if="timeslotModal.step === 'loading'">
+            <div class="py-16 flex flex-col items-center gap-3">
+              <span class="loading loading-spinner loading-lg text-secondary"></span>
+              <p class="text-sm text-base-content/60">Ověřujeme dostupnost…</p>
+            </div>
+          </template>
+
+          <template x-if="timeslotModal.step === 'slots'">
+            <div class="space-y-6">
+              <div class="flex flex-wrap items-center justify-between gap-3 text-sm text-base-content/70">
+                <span>PSČ: <span class="font-semibold" x-text="timeslotModal.zip"></span></span>
+                <button type="button"
+                        class="link link-primary text-sm"
+                        @click="timeslotModal.step = 'zip'; timeslotModal.message = ''; timeslotModal.days = []; timeslotModal.lookup = {}; timeslotModal.selectedSlotKey = '';">
+                  Změnit PSČ
+                </button>
+              </div>
+
+              <template x-for="day in timeslotModal.days" :key="day.key">
+                <div>
+                  <div class="flex items-center gap-2 mb-3">
+                    <h4 class="text-base font-semibold" x-text="day.display"></h4>
+                    <span class="badge badge-success badge-sm" x-show="day.isTomorrow">Zítra</span>
+                  </div>
+                  <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                    <template x-for="slot in day.slots" :key="slot.key">
+                      <label :class="slotClass(slot.key, slot.disabled)">
+                        <input type="radio"
+                               class="radio radio-secondary"
+                               name="timeslot"
+                               :value="slot.key"
+                               :disabled="slot.disabled"
+                               :checked="timeslotModal.selectedSlotKey === slot.key"
+                               @change="selectTimeslot(slot.key)"
+                        >
+                        <div class="flex items-center gap-3">
+                          <span class="font-semibold" x-text="slot.label"></span>
+                          <span class="text-sm text-base-content/70" x-show="!slot.disabled" x-text="formatCZK(slot.price)"></span>
+                          <span x-show="slot.disabled" class="text-sm text-base-content/40">
+                            <span class="tooltip tooltip-left" data-tip="Není k dispozici">
+                              <i class="fa-regular fa-circle-info"></i>
+                            </span>
+                          </span>
+                        </div>
+                      </label>
+                    </template>
+                  </div>
+                </div>
+              </template>
+
+              <div class="modal-action pt-2">
+                <button class="btn btn-ghost" type="button" @click="cancelFollowup()">Zrušit</button>
+                <button class="btn btn-primary" type="button" @click="confirmTimeslot()" :disabled="!timeslotModal.selectedSlotKey">Potvrdit termín</button>
+              </div>
+            </div>
+          </template>
+        </div>
+      </template>
+
+     <template x-if="currentFollowup?.type === 'benefits'">
+       <div class="space-y-6">
+         <h3 class="text-lg font-semibold">Vyberte benefitní program</h3>
+         <template x-if="benefitPrograms.length">
+           <div class="grid gap-3 sm:grid-cols-2">
+              <template x-for="program in benefitPrograms" :key="program.id">
+                <label class="flex items-center gap-3 rounded-xl border border-base-300 p-3 hover:border-secondary cursor-pointer transition"
+                       :class="benefitModal.selectedId === program.id ? 'border-2 border-secondary bg-secondary/10' : ''">
+                  <input type="radio"
+                         class="radio radio-secondary"
+                         name="benefitProgram"
+                         :value="program.id"
+                         :checked="benefitModal.selectedId === program.id"
+                         @change="benefitModal.selectedId = program.id">
+                  <template x-if="program.image">
+                    <img :src="program.image"
+                         alt=""
+                         class="w-10 h-10 object-contain rounded bg-base-200"
+                         @error="$event.target.style.opacity=0.3">
+                  </template>
+                  <div class="min-w-0 flex-1">
+                    <span class="font-medium" x-text="program.name"></span>
+                  </div>
+                </label>
+              </template>
+            </div>
+         </template>
+         <template x-if="!benefitPrograms.length">
+           <p class="text-sm text-base-content/60">Žádné benefitní programy nejsou aktuálně dostupné.</p>
+         </template>
+         <div class="modal-action">
+           <button class="btn btn-ghost" type="button" @click="cancelFollowup()">Zrušit</button>
+           <button class="btn btn-primary" type="button" @click="confirmBenefit()" :disabled="!benefitModal.selectedId">Potvrdit</button>
+         </div>
+       </div>
+     </template>
+
+      <template x-if="currentFollowup?.type === 'map'">
+        <div class="space-y-4">
+          <h3 class="text-lg font-semibold">Vyberte výdejní místo</h3>
+          <p class="text-sm text-base-content/70">Otevřeli jsme mapu s výdejními místy. Vyberte prosím preferovaný bod a potvrďte jej.</p>
+          <div class="modal-action">
+            <button class="btn btn-ghost" type="button" @click="cancelFollowup()">Zavřít</button>
+          </div>
+        </div>
+      </template>
+
+      <template x-if="currentFollowup?.type && !['timeslot','benefits'].includes(currentFollowup.type)">
+        <div>
+          <h3 class="font-bold text-lg" x-text="followupTitle()"></h3>
+          <div class="py-3 text-base-content/70">
+            <p>Akce není dostupná.</p>
+          </div>
+          <div class="modal-action">
+            <button class="btn btn-ghost" @click="cancelFollowup()">Zavřít</button>
+          </div>
+        </div>
+      </template>
     </div>
+    <form method="dialog" class="modal-backdrop" @click="cancelFollowup()">
+      <button type="button">close</button>
+    </form>
   </dialog>
 </div>
 
@@ -2903,6 +3397,20 @@ function deliveryPaymentUI() {
     currentFollowup: null,   // { type: 'map'|'timeslot'|'benefits', option, kind }
     pending: null,           // { kind: 'delivery'|'payment', id, opt }
     freeShippingActive: false,
+    timeslotModal: {
+      step: 'zip',
+      zip: '',
+      days: [],
+      lookup: {},
+      selectedSlotKey: '',
+      message: ''
+    },
+    timeslotModalTimer: null,
+    timeslotSelections: {},
+    pickupSelections: {},
+    benefitPrograms: [],
+    benefitSelections: {},
+    benefitModal: { selectedId: '' },
 
     async init() {
       try {
@@ -2923,6 +3431,39 @@ function deliveryPaymentUI() {
         if (this.selectedPaymentId && this.isPaymentDisabled(this.selectedPaymentId)) {
           this.clearPaymentSelection();
         }
+
+        this.loadTimeslotSelections();
+        this.loadPickupSelections();
+        this.loadBenefitSelections();
+        await this.loadBenefitPrograms();
+        this._onPickupSelected = (e) => {
+          const detail = e.detail || {};
+          const deliveryId = Number(detail.deliveryId || detail.id || 0);
+          if (!deliveryId) return;
+          const point = detail.point || {};
+          const record = {
+            id: point.id,
+            mapType: detail.mapType || point.type || '',
+            name: point.name || '',
+            address: point.address || {},
+            addressLine: this.formatPickupAddress(point.address),
+            phone: point.phone || '',
+            note: point.note || '',
+            coords: point.coords || null
+          };
+          this.pickupSelections = {
+            ...this.pickupSelections,
+            [deliveryId]: record
+          };
+          this.persistPickupSelections();
+          this.applyDeliverySelection(deliveryId);
+        };
+        window.addEventListener('pickup:selected', this._onPickupSelected);
+        window.addEventListener('beforeunload', () => {
+          if (this._onPickupSelected) {
+            window.removeEventListener('pickup:selected', this._onPickupSelected);
+          }
+        }, { once: true });
       } catch (e) {
         console.error('Failed to load delivery-payment.json', e);
       } finally {
@@ -2963,22 +3504,414 @@ function deliveryPaymentUI() {
     formatCZK(value) {
       return new Intl.NumberFormat('cs-CZ', { maximumFractionDigits: 0 }).format(value) + '\u00A0Kč';
     },
+    formatPickupAddress(addr) {
+      if (!addr) return '';
+      const parts = [addr.street, addr.city, addr.zip].filter(Boolean);
+      return parts.join(', ');
+    },
+
+    timeslotInfo(id) {
+      if (!id) return null;
+      return this.timeslotSelections?.[id] || null;
+    },
+
+    pickupInfo(id) {
+      if (!id) return null;
+      return this.pickupSelections?.[id] || null;
+    },
+
+    benefitInfo(id) {
+      if (!id) return null;
+      return this.benefitSelections?.[id] || null;
+    },
+
+    openTimeslotModal(opt, isChange = false) {
+      if (!opt) return;
+      this.pending = { kind: 'delivery', id: opt.id, opt };
+      this.currentFollowup = { type: 'timeslot', option: opt, kind: 'delivery', isChange };
+      this.prepareTimeslotModal(opt.id);
+      this.$refs.modal?.showModal();
+    },
+
+    async openBenefitModal(opt, isChange = false) {
+      if (!opt) return;
+      if (!this.benefitPrograms.length) {
+        await this.loadBenefitPrograms();
+      }
+      const existing = this.benefitInfo(opt.id);
+      this.pending = { kind: 'payment', id: opt.id, opt };
+      this.currentFollowup = { type: 'benefits', option: opt, kind: 'payment', isChange };
+      this.benefitModal.selectedId = existing?.id || '';
+      this.$refs.modal?.showModal();
+    },
+
+    prepareTimeslotModal(id) {
+      const existing = this.timeslotInfo(id);
+      this.resetTimeslotModal();
+      if (existing) {
+        this.timeslotModal.zip = existing.zip || '';
+        this.timeslotModal.selectedSlotKey = existing.slotKey || '';
+        this.timeslotModal.step = this.timeslotModal.zip ? 'slots' : 'zip';
+      }
+      if (this.timeslotModal.step === 'slots') {
+        const { days, lookup } = this.generateTimeslotDays(this.timeslotModal.selectedSlotKey);
+        this.timeslotModal.days = days;
+        this.timeslotModal.lookup = lookup;
+      }
+    },
+
+    submitZip() {
+      const value = (this.timeslotModal.zip || '').trim();
+      if (!value) {
+        this.timeslotModal.message = 'Zadejte platné PSČ.';
+        return;
+      }
+      this.timeslotModal.zip = value;
+      this.timeslotModal.message = '';
+      this.timeslotModal.step = 'loading';
+      if (this.timeslotModalTimer) clearTimeout(this.timeslotModalTimer);
+      this.timeslotModalTimer = setTimeout(() => {
+        const { days, lookup } = this.generateTimeslotDays(this.timeslotModal.selectedSlotKey);
+        this.timeslotModal.days = days;
+        this.timeslotModal.lookup = lookup;
+        if (!lookup[this.timeslotModal.selectedSlotKey]) {
+          this.timeslotModal.selectedSlotKey = '';
+        }
+        this.timeslotModal.step = 'slots';
+        this.timeslotModalTimer = null;
+      }, 1000);
+    },
+
+    selectTimeslot(key) {
+      if (!key || !this.timeslotModal.lookup[key]) return;
+      const info = this.timeslotModal.lookup[key];
+      if (info.slot.disabled) return;
+      this.timeslotModal.selectedSlotKey = key;
+    },
+
+    slotClass(key, disabled) {
+      if (disabled) {
+        return 'border border-base-300 rounded-lg p-3 opacity-60 cursor-not-allowed bg-base-200/70 transition-colors';
+      }
+      if (this.timeslotModal.selectedSlotKey === key) {
+        return 'border-2 border-secondary rounded-lg p-3 bg-secondary/10 cursor-pointer transition-colors';
+      }
+      return 'border border-base-300 rounded-lg p-3 hover:border-secondary/60 cursor-pointer transition-colors';
+    },
+
+    confirmTimeslot() {
+      if (!this.pending || this.pending.kind !== 'delivery') return;
+      const key = this.timeslotModal.selectedSlotKey;
+      const info = key ? this.timeslotModal.lookup[key] : null;
+      if (!info || info.slot.disabled) return;
+
+      const selection = {
+        id: this.pending.id,
+        zip: this.timeslotModal.zip,
+        slotKey: key,
+        dayIso: info.day.iso,
+        dayLabel: info.day.decorated,
+        slotLabel: info.slot.label,
+        price: info.slot.price,
+        startISO: info.slot.startISO,
+        endISO: info.slot.endISO,
+        label: `${info.day.decorated} · ${info.slot.label}`
+      };
+
+      this.timeslotSelections = {
+        ...this.timeslotSelections,
+        [selection.id]: selection
+      };
+      this.persistTimeslotSelections();
+
+      const deliveryId = this.pending.id;
+      this.pending = null;
+      this.currentFollowup = null;
+      this.applyDeliverySelection(deliveryId);
+      this.resetTimeslotModal();
+      this.$refs.modal?.close();
+    },
+
+    confirmBenefit() {
+      if (!this.pending || this.pending.kind !== 'payment') return;
+      const id = this.benefitModal.selectedId;
+      const program = this.benefitPrograms.find(p => p.id === id);
+      if (!program) return;
+      this.benefitSelections = {
+        ...this.benefitSelections,
+        [this.pending.id]: { ...program }
+      };
+      this.persistBenefitSelections();
+      const paymentId = this.pending.id;
+      this.pending = null;
+      this.currentFollowup = null;
+      this.resetBenefitModal();
+      this.applyPaymentSelection(paymentId);
+      this.$refs.modal?.close();
+    },
+
+    generateTimeslotDays(selectedKey = '') {
+      const days = [];
+      const lookup = {};
+      const now = new Date();
+
+      for (let i = 1; i <= 4; i++) {
+        const date = new Date(now);
+        date.setDate(date.getDate() + i);
+        const isoDate = date.toISOString().split('T')[0];
+        const display = this.formatTimeslotDayFull(date);
+        const shortLabel = this.formatTimeslotDayShort(date);
+        const decorated = i === 1 ? 'Zítra' : display;
+        const isTomorrow = i === 1;
+
+        const slots = [];
+        for (let j = 0; j < 6; j++) {
+          const startHour = 8 + j * 2;
+          const endHour = startHour + 2;
+          const key = `${isoDate}|${startHour}`;
+          const price = startHour >= 16 ? 99 : 79;
+          const disabled = this.isSlotDisabled(i, j);
+
+          const slot = {
+            key,
+            label: `${this.pad(startHour)}:00–${this.pad(endHour)}:00`,
+            price,
+            disabled,
+            startISO: this.buildSlotISO(date, startHour),
+            endISO: this.buildSlotISO(date, endHour)
+          };
+          slots.push(slot);
+          lookup[key] = { day: { iso: isoDate, display, label: shortLabel, decorated, isTomorrow }, slot };
+        }
+
+        days.push({
+          key: isoDate,
+          iso: isoDate,
+          display,
+          label: shortLabel,
+          decorated,
+          isTomorrow,
+          slots
+        });
+      }
+
+      return { days, lookup };
+    },
+
+    isSlotDisabled(dayIndex, slotIndex) {
+      return (dayIndex === 2 && slotIndex === 4) || (dayIndex === 3 && slotIndex === 1) || (dayIndex === 4 && slotIndex === 5);
+    },
+
+    buildSlotISO(date, hour) {
+      const d = new Date(date);
+      d.setHours(hour, 0, 0, 0);
+      return d.toISOString();
+    },
+
+    formatTimeslotDayShort(date) {
+      const str = date.toLocaleDateString('cs-CZ', { weekday: 'short', day: 'numeric', month: 'numeric' });
+      return str.charAt(0).toUpperCase() + str.slice(1);
+    },
+
+    formatTimeslotDayFull(date) {
+      const str = date.toLocaleDateString('cs-CZ', { weekday: 'long', day: 'numeric', month: 'numeric' });
+      return str.charAt(0).toUpperCase() + str.slice(1);
+    },
+
+    pad(num) {
+      return String(num).padStart(2, '0');
+    },
+
+    changeTimeslot(opt) {
+      this.openTimeslotModal(opt, true);
+    },
+
+    changePickup(opt) {
+      this.preparePickupContext(opt, true);
+    },
+
+    changeBenefit(opt) {
+      this.openBenefitModal(opt, true);
+    },
+
+    mapTypeForOption(opt) {
+      const explicit = String(opt?.map_type || '').toLowerCase();
+      if (explicit) return explicit;
+      const name = String(opt?.name || '').toLowerCase();
+      if (name.includes('zásilkov')) return 'z-box';
+      if (name.includes('box')) return 'box';
+      if (name.includes('lékár')) return 'pharmacy';
+      return 'all';
+    },
+
+    preparePickupContext(opt, isChange = false) {
+      if (!opt) return;
+      const type = this.mapTypeForOption(opt);
+      const existing = this.pickupInfo(opt.id) || {};
+      const ctx = {
+        deliveryId: opt.id,
+        mapType: type,
+        selectedId: existing.id || null,
+        mode: isChange ? 'change' : 'new'
+      };
+      try { localStorage.setItem('pickupSelectionContext', JSON.stringify(ctx)); } catch (e) { console.warn('Failed to persist pickup context', e); }
+      const query = type && type !== 'all' ? `?type=${encodeURIComponent(type)}` : '';
+      location.hash = `#/map${query}`;
+    },
+
+    openPickupMap(opt) {
+      this.preparePickupContext(opt, false);
+    },
+
+    persistTimeslotSelections() {
+      try {
+        localStorage.setItem('deliveryTimeslots', JSON.stringify(this.timeslotSelections));
+      } catch (e) {
+        console.warn('Failed to persist timeslot selections', e);
+      }
+    },
+
+    loadTimeslotSelections() {
+      try {
+        const raw = localStorage.getItem('deliveryTimeslots');
+        if (!raw) return;
+        const parsed = JSON.parse(raw);
+        if (parsed && typeof parsed === 'object') {
+          this.timeslotSelections = parsed;
+        }
+      } catch (e) {
+        console.warn('Failed to load timeslot selections', e);
+      }
+    },
+
+    persistPickupSelections() {
+      try {
+        localStorage.setItem('deliveryPickupSelections', JSON.stringify(this.pickupSelections));
+      } catch (e) {
+        console.warn('Failed to persist pickup selections', e);
+      }
+    },
+
+    loadPickupSelections() {
+      try {
+        const raw = localStorage.getItem('deliveryPickupSelections');
+        if (!raw) return;
+        const parsed = JSON.parse(raw);
+        if (parsed && typeof parsed === 'object') {
+          const normalized = {};
+          for (const [key, value] of Object.entries(parsed)) {
+            if (value && typeof value === 'object') {
+              normalized[key] = {
+                ...value,
+                addressLine: value.addressLine || this.formatPickupAddress(value.address)
+              };
+            }
+          }
+          this.pickupSelections = normalized;
+        }
+      } catch (e) {
+        console.warn('Failed to load pickup selections', e);
+      }
+    },
+
+    persistBenefitSelections() {
+      try {
+        localStorage.setItem('deliveryBenefitSelections', JSON.stringify(this.benefitSelections));
+      } catch (e) {
+        console.warn('Failed to persist benefit selections', e);
+      }
+    },
+
+    loadBenefitSelections() {
+      try {
+        const raw = localStorage.getItem('deliveryBenefitSelections');
+        if (!raw) return;
+        const parsed = JSON.parse(raw);
+        if (parsed && typeof parsed === 'object') {
+          this.benefitSelections = parsed;
+        }
+      } catch (e) {
+        console.warn('Failed to load benefit selections', e);
+      }
+    },
+
+    async loadBenefitPrograms() {
+      try {
+        const res = await fetch('./data/benefits.json', { cache: 'no-store' });
+        const arr = await res.json();
+        this.benefitPrograms = Array.isArray(arr)
+          ? arr.filter(p => p?.eshop_payment).map(p => {
+              const img = p.image ? String(p.image) : '';
+              const normalizedImage = img
+                ? (img.startsWith('./') || img.startsWith('http') ? img : `./images/benefits/${img}`)
+                : '';
+              return {
+                id: p.name,
+                name: p.name,
+                image: normalizedImage
+              };
+            })
+          : [];
+      } catch (e) {
+        console.warn('Failed to load benefits.json', e);
+        this.benefitPrograms = [];
+      }
+    },
+
+    resetTimeslotModal() {
+      if (this.timeslotModalTimer) {
+        clearTimeout(this.timeslotModalTimer);
+        this.timeslotModalTimer = null;
+      }
+      this.timeslotModal = {
+        step: 'zip',
+        zip: '',
+        days: [],
+        lookup: {},
+        selectedSlotKey: '',
+        message: ''
+      };
+    },
+
+    resetBenefitModal() {
+      this.benefitModal.selectedId = '';
+    },
 
     rowClasses(kind, opt) {
       const selected = (kind === 'delivery' ? this.selectedDeliveryId : this.selectedPaymentId) === opt.id;
       const disabled = (kind === 'payment') && this.isPaymentDisabled(opt.id);
-      return [
+      const classes = [
         'flex items-center justify-between gap-4 p-3 rounded-lg transition select-none',
-        disabled ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer hover:bg-base-100',
-        // No borders by default; only selected rows get border (Ask #6)
-        selected ? 'border-2 border-secondary bg-max-blue-25' : ''
-      ].join(' ');
+      ];
+      if (disabled) {
+        classes.push('cursor-not-allowed bg-base-200/80 text-base-content/60');
+      } else {
+        classes.push('cursor-pointer hover:bg-base-100');
+      }
+      if (selected) {
+        classes.push('border-2 border-secondary bg-max-blue-25');
+      }
+      return classes.join(' ');
     },
 
     // ---------- click handlers (Ask #5 behavior) ----------
-    handleDeliveryClick(opt) {
+    handleDeliveryClick(opt, event) {
+      if (opt.followup === 'timeslot') {
+        event?.preventDefault();
+        event?.stopPropagation();
+        this.openTimeslotModal(opt);
+        return;
+      }
+      if (opt.followup === 'map') {
+        event?.preventDefault();
+        event?.stopPropagation();
+        this.openPickupMap(opt);
+        return;
+      }
       // If followup is required, show modal first and set pending, not the selection
       if (opt.followup) {
+        event?.preventDefault();
+        event?.stopPropagation();
         this.pending = { kind: 'delivery', id: opt.id, opt };
         this.currentFollowup = { type: opt.followup, option: opt, kind: 'delivery' };
         this.$refs.modal?.showModal();
@@ -2988,12 +3921,22 @@ function deliveryPaymentUI() {
       this.applyDeliverySelection(opt.id);
     },
 
-    handlePaymentClick(opt) {
+    handlePaymentClick(opt, event) {
       if (this.isPaymentDisabled(opt.id)) {
+        event?.preventDefault();
+        event?.stopPropagation();
         // do nothing, and the tooltip on price explains why
         return;
       }
+      if (opt.followup === 'benefits') {
+        event?.preventDefault();
+        event?.stopPropagation();
+        this.openBenefitModal(opt);
+        return;
+      }
       if (opt.followup) {
+        event?.preventDefault();
+        event?.stopPropagation();
         this.pending = { kind: 'payment', id: opt.id, opt };
         this.currentFollowup = { type: opt.followup, option: opt, kind: 'payment' };
         this.$refs.modal?.showModal();
@@ -3011,9 +3954,19 @@ function deliveryPaymentUI() {
       this.$refs.modal?.close();
     },
     cancelFollowup() {
+      if (this.pending?.kind === 'delivery') {
+        this.clearDeliverySelection(this.pending.id);
+      }
+      if (this.pending?.kind === 'payment') {
+        this.clearPaymentSelection(this.pending.id);
+      }
       this.pending = null;
       this.currentFollowup = null;
-      this.$refs.modal?.close();
+      this.resetTimeslotModal();
+      this.resetBenefitModal();
+      if (this.$refs.modal?.open) {
+        this.$refs.modal.close();
+      }
     },
 
     // ---------- selection application ----------
@@ -3034,9 +3987,34 @@ function deliveryPaymentUI() {
       this.selectedPaymentId = id;
       localStorage.setItem('selectedPaymentId', String(id));
     },
-    clearPaymentSelection() {
-      this.selectedPaymentId = null;
-      localStorage.removeItem('selectedPaymentId');
+    clearPaymentSelection(id = null) {
+      const target = id ?? this.selectedPaymentId;
+      if (!target) return;
+      if (this.selectedPaymentId === target) {
+        this.selectedPaymentId = null;
+        localStorage.removeItem('selectedPaymentId');
+      }
+      if (this.benefitSelections?.[target]) {
+        delete this.benefitSelections[target];
+        this.persistBenefitSelections();
+      }
+    },
+
+    clearDeliverySelection(id = null) {
+      const target = id ?? this.selectedDeliveryId;
+      if (!target) return;
+      if (this.selectedDeliveryId === target) {
+        this.selectedDeliveryId = null;
+        localStorage.removeItem('selectedDeliveryId');
+      }
+      if (this.timeslotSelections?.[target]) {
+        delete this.timeslotSelections[target];
+        this.persistTimeslotSelections();
+      }
+      if (this.pickupSelections?.[target]) {
+        delete this.pickupSelections[target];
+        this.persistPickupSelections();
+      }
     },
 
     // ---------- follow-up labels ----------
@@ -3254,27 +4232,82 @@ function deliveryPaymentUI() {
 
 <!-- ROUTE == MY SAVED FAVORITES -->
 <section x-show="is('my-saved')" x-cloak>
-  <section class="w-auto md:w-11/12 xl:w-8/12 mx-auto px-4 pt-2 md:pt-12 pb-32">
-    <h1 class="text-3xl mx-auto mb-6">Moje uložené</h1>
+  <section class="w-auto md:w-11/12 xl:w-8/12 mx-auto px-4 pt-2 md:pt-12 pb-32 space-y-6">
+    <header class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+      <h1 class="text-3xl font-semibold">Moje uložené</h1>
+      <span class="text-sm text-base-content/60" x-text="`${$store.saved.items.length} položek`" x-cloak></span>
+    </header>
+
+    <template x-if="!$store.saved.items.length">
+      <div class="bg-white border border-base-200 rounded-2xl p-8 text-center space-y-4">
+        <p class="text-base text-base-content/70">Zatím nemáte uložené žádné produkty.</p>
+        <button type="button" class="btn btn-primary" @click="location.hash='/products'">Zpět na nabídku</button>
+      </div>
+    </template>
+
+    <template x-if="$store.saved.items.length">
+      <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <template x-for="saved in $store.saved.items" :key="saved.id">
+          <article class="card bg-white border border-base-200 shadow-sm relative h-full"
+                   x-data="{ product: products.find(p => String(p.id) === String(saved.id)) || null }">
+            <button type="button"
+                    class="btn btn-circle btn-ghost btn-sm absolute right-3 top-3"
+                    aria-label="Odebrat z uložených"
+                    @click.stop="
+                      $store.saved.remove(saved.id);
+                      $store.toast?.push?.('Produkt odebrán z uložených', 'warning');
+                    ">
+              <i class="fa-solid fa-xmark"></i>
+            </button>
+            <a :href="link('product',{ id: saved.id })" class="block h-full">
+              <figure class="p-4 h-44 flex items-center justify-center">
+                <img :src="product?.image || (Array.isArray(product?.images) ? product.images[0] : '') || saved.image || './images/placeholder.webp'"
+                     :alt="product?.name || saved.name || 'Uložený produkt'"
+                     class="object-contain w-full h-full">
+              </figure>
+              <div class="card-body pt-0">
+                <h3 class="text-base font-semibold min-h-[3.25rem]" x-text="product?.name || saved.name || 'Produkt bez názvu'"></h3>
+                <p class="text-sm text-base-content/70 min-h-[2.5rem]" x-text="product?.perex || saved.perex || ''"></p>
+                <div class="mt-4 space-y-1">
+                  <div class="text-lg font-semibold"
+                       x-text="formatPrice((product?.discounted_price ?? product?.price ?? saved.discounted_price ?? saved.price) || 0)"></div>
+                  <div class="text-xs line-through text-base-content/60"
+                       x-show="(product?.discounted_price ?? saved.discounted_price) != null && (product?.price ?? saved.price)"
+                       x-text="formatPrice((product?.price ?? saved.price) || 0)"></div>
+                </div>
+              </div>
+            </a>
+          </article>
+        </template>
+      </div>
+    </template>
   </section>
-  
-  
-  
 </section>
 
 <!-- ROUTE == MAP -->
-<section x-show="is('map')" x-cloak
-         x-data="pickupMapUI({
-           jsonUrl: './data/map-points.json',
-           enableClustering: true
-         })"
-         x-init="init()" class="relative">
-  <div class="bg-base-200" :class="mode === 'list' ? 'pb-0' : ''">
-    <div class="px-4 py-0 md:py-6">
-      <div class="grid grid-cols-1 md:grid-cols-12 gap-4 items-stretch md:min-h-[60vh] lg:h-[70vh]">
+<template x-if="is('map')">
+  <section x-cloak
+           x-data="pickupMapUI({
+             jsonUrl: './data/map-points.json',
+             enableClustering: true
+           })"
+           x-init="init()"
+           class="fixed inset-0 z-[80] flex flex-col bg-base-200/95 backdrop-blur-sm"
+           @keydown.escape.window="closeModal()"
+           @click.self="closeModal()">
+    <button type="button"
+            class="absolute top-10 right-8 z-[90] btn btn-circle btn-ghost bg-base-100 border-base-300 border-2 hover:bg-base-200/60  btn-sm md:btn-lg"
+            aria-label="Zavřít mapu"
+            @click.stop="closeModal()">
+      <i class="fa-solid fa-xmark"></i>
+    </button>
+
+    <div class="relative flex-1 overflow-hidden pointer-events-none">
+      <div class="absolute inset-0 px-4 py-4 md:py-6 pointer-events-auto">
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-4 items-stretch h-full">
 
         <!-- Mobile tabs -->
-        <div class="md:hidden col-span-12">
+        <div class="md:hidden col-span-12 mt-16">
           <div class="join w-full">
             <input class="join-item btn btn-block flex-1"
                    type="radio" name="maplist" aria-label="Mapa"
@@ -3369,12 +4402,19 @@ function deliveryPaymentUI() {
 
             <!-- Overlay (desktop / tablet) -->
             <div x-show="selected"
-                 class="rounded-xl border border-base-300 px-4 py-6 lg:px-8 lg:py-10 w-80 sm:w-96 bg-white absolute m-2 z-10">
-              <button class="btn btn-md btn-circle btn-ghost absolute right-2 top-2"
+                 class="rounded-xl border border-base-300 w-80 sm:w-96 bg-white absolute m-2 z-10">
+
+              <div class="h-50 w-full rounded-t-xl bg-base-200 overflow-hidden mr-2 shrink-0">
+                <img :src="selected.photo || placeholderImg" alt=""
+                      class="h-full w-full object-cover object-center" loading="lazy">
+              </div>
+                
+              <button class="btn btn-md btn-circle btn-ghost bg-base-100 absolute right-2 top-2"
                       @click="selected=null; updateMarkerIcons()">
                 <i class="fa-solid fa-xmark fa-lg" aria-hidden="true"></i>
               </button>
-
+              
+             <div class="px-4 py-6 lg:px-8">
               <div class="mb-2">
                 <div class="font-medium text-base" x-text="selected?.name"></div>
                 <div class="text-base opacity-70"
@@ -3410,17 +4450,17 @@ function deliveryPaymentUI() {
                 </template>
               </div>
 
-              <address class="not-italic mt-6">
+              <address class="not-italic mt-6" x-show="selected?.phone" x-cloak>
                 <p class="flex flex-wrap items-center gap-y-2 gap-x-6">
                   <a :href="selected?.phone ? `tel:${selected.phone}` : '#'"
-                     class="group inline-flex items-center gap-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 rounded"
-                     :class="selected?.phone ? '' : 'pointer-events-none opacity-50'">
+                     class="group inline-flex items-center gap-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 rounded">
                     <i class="fa-solid fa-phone fa-sm" aria-hidden="true"></i>
                     <span class="group-hover:underline group-focus-visible:underline underline-offset-2"
-                          x-text="selected?.phone || '—'"></span>
+                          x-text="selected?.phone"></span>
                   </a>
                 </p>
               </address>
+            </div>
             </div>
 
             <!-- The map element -->
@@ -3432,45 +4472,77 @@ function deliveryPaymentUI() {
       </div>
     </div>
   </div>
+
+  <!-- Type filter FAB -->
+  <div class="absolute bottom-24 right-4 sm:bottom-28 sm:right-6 md:bottom-14 md:right-10 z-[95]"
+       x-show="typeOptions.length"
+       x-cloak
+       @keydown.escape.window="fabOpen=false"
+       @click.outside="fabOpen=false">
+    <div class="flex flex-col items-end gap-3">
+      <div class="w-max flex flex-col items-end gap-2"
+           x-show="fabOpen"
+           x-transition:enter="transition ease-out duration-150"
+           x-transition:enter-start="opacity-0 translate-y-2"
+           x-transition:enter-end="opacity-100 translate-y-0"
+           x-transition:leave="transition ease-in duration-100"
+           x-transition:leave-start="opacity-100 translate-y-0"
+           x-transition:leave-end="opacity-0 translate-y-2">
+        <template x-for="option in typeOptions" :key="option.value">
+          <button type="button"
+                  class="flex items-center gap-3 rounded-full px-4 py-2 text-base font-medium shadow-lg bg-white/90 backdrop-blur border-2 border-base-200 hover:border-base-300 transition"
+                  :class="typeFilter === option.value ? 'bg-primary text-primary-content' : 'text-base-content'"
+                  @click="setTypeFilter(option.value)">
+            <i :class="typeFilter === option.value ? 'fa-solid fa-check-circle text-max-blue-500' : 'fa-regular fa-circle opacity-40'"></i>
+            <span x-text="option.label"></span>
+          </button>
+        </template>
+      </div>
+
+      <button type="button"
+              class="relative flex items-center justify-center w-14 h-14 rounded-full bg-primary text-primary-content shadow-xl transition transform hover:scale-105 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary/60 focus-visible:ring-offset-base-200"
+              aria-label="Filtrovat výdejní místa podle typu"
+              @click="fabOpen = !fabOpen">
+        <i class="fa-solid fa-bars-filter fa-lg"></i>
+        <span class="absolute top-0 right-0" x-show="typeFilter !== defaultType">
+          <span class="relative flex h-4 w-4">
+            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-max-red-500 opacity-75"></span>
+            <span class="relative inline-flex rounded-full h-4 w-4 bg-max-red-500"></span>
+          </span>
+        </span>
+      </button>
+    </div>
+  </div>
 </section>
+</template>
 
 
 <!-- FOOTER -->
-<div class="block bg-gray-200">
-<footer class="footer footer-horizontal hidden lg:grid py-12 mx-auto w-11/12 lg:w-10/12 px-4">
-  <nav>
-      <h6 class="footer-title">Services</h6>
-      <a class="link link-hover">Branding</a>
-      <a class="link link-hover">Design</a>
-      <a class="link link-hover">Marketing</a>
-      <a class="link link-hover">Advertisement</a>
-    </nav>
-    <nav>
-      <h6 class="footer-title">Company</h6>
-      <a class="link link-hover">About us</a>
-      <a class="link link-hover">Contact</a>
-      <a class="link link-hover">Jobs</a>
-      <a class="link link-hover">Press kit</a>
-    </nav>
-    <nav>
-      <h6 class="footer-title">Legal</h6>
-      <a class="link link-hover">Terms of use</a>
-      <a class="link link-hover">Privacy policy</a>
-      <a class="link link-hover">Cookie policy</a>
-    </nav>
-    <nav>
-      <h6 class="footer-title">Legal</h6>
-      <a class="link link-hover">Terms of use</a>
-      <a class="link link-hover">Privacy policy</a>
-      <a class="link link-hover">Cookie policy</a>
-    </nav>
-    <nav>
-      <h6 class="footer-title">Legal</h6>
-      <a class="link link-hover">Terms of use</a>
-      <a class="link link-hover">Privacy policy</a>
-      <a class="link link-hover">Cookie policy</a>
-    </nav>
-  </footer>
+<div class="block bg-gray-200" x-data="pageFooter()" x-init="init()">
+<footer class="w-11/12 lg:w-10/12 mx-auto hidden lg:block py-12 px-4" x-show="columns.length" x-cloak>
+  <div class="grid gap-8" :class="gridClass()">
+    <template x-for="col in columns" :key="col.key">
+      <nav>
+        <template x-for="section in col.sections" :key="section.key">
+          <div class="mb-6">
+            <template x-if="section.title">
+              <h6 class="footer-title" x-text="section.title"></h6>
+            </template>
+            <template x-for="item in section.items" :key="item.key">
+              <a
+                class="link link-hover block"
+                :class="{'mt-1': true}"
+                href="#"
+                @click.prevent="handleItemClick(item)"
+                x-text="item.label"
+              ></a>
+            </template>
+          </div>
+        </template>
+      </nav>
+    </template>
+  </div>
+</footer>
   <footer class="footer footer-horizontal p-4 pb-6 lg:pb-6 pt-10 lg:pt-4 mx-auto w-11/12 lg:w-10/12 text-base-content">
     <aside class="w-full">
       <p class="text-sm opacity-70">© 2025 Dr. Max — All rights reserved</p>
@@ -4042,7 +5114,7 @@ this.$nextTick(() => requestAnimationFrame(focusRealInput));
     }
   });
     // PRODUCT DETAIL
-    Alpine.data('productDetail', (opts = {}) => ({
+  Alpine.data('productDetail', (opts = {}) => ({
     // ---- inputs ----
     id: opts.id ?? null,
     fetchUrl: opts.fetchUrl ?? null,      // e.g. `data/product-details/${params.id}.json`
@@ -4055,6 +5127,8 @@ this.$nextTick(() => requestAnimationFrame(focusRealInput));
     selectedVariant: null,
     currentImage: 0,
     ctaVisible: false,
+    shareModal: { open: false, copied: false },
+    askModal: { open: false, message: '', email: '', error: '', submitting: false },
 
     // ---- internal fetch guards ----
     _currentUrl: null,
@@ -4064,6 +5138,16 @@ this.$nextTick(() => requestAnimationFrame(focusRealInput));
     // Lifecycle
     // ================================
     async init() {
+      this._ensureSavedStoreLoaded();
+      this.$watch(() => this.product?.id, () => {
+        this.shareModal.open = false;
+        this.shareModal.copied = false;
+        this.askModal.open = false;
+        this.askModal.message = '';
+        this.askModal.error = '';
+        this.askModal.submitting = false;
+      });
+
       // initial load
       if (this.fetchUrl) await this.load(this.fetchUrl);
 
@@ -4196,6 +5280,161 @@ this.$nextTick(() => requestAnimationFrame(focusRealInput));
         console.warn('Cart add failed (no $store.cart?)', e);
       }
     },
+
+    // ================================
+    // Saved products & customer actions
+    // ================================
+    _ensureSavedStoreLoaded() {
+      try {
+        this.$store?.saved?.load?.();
+      } catch (e) {
+        console.warn('Saved store unavailable', e);
+      }
+    },
+    savedStore() {
+      return this.$store?.saved || null;
+    },
+    buildSavedPayload() {
+      const product = this.product || {};
+      const variant = this.selectedVariant || null;
+      const baseName = String(product.name || '').trim();
+      const variantName = String(variant?.name || '').trim();
+      const name = variant ? [baseName, variantName].filter(Boolean).join(' – ') : baseName;
+      const galleryImage = Array.isArray(this.images)
+        ? (this.images[this.currentImage] || this.images.find(Boolean))
+        : null;
+      const image = product.image || galleryImage || '';
+      const payload = {
+        id: product.id ?? null,
+        name,
+        image,
+        price: this.priceOriginal(),
+        discounted_price: this.hasDiscount() ? this.priceNow() : null,
+        brand: product.brand || '',
+        perex: product.perex || '',
+      };
+      if (variant?.id != null) payload.variantId = variant.id;
+      if (product.slug) payload.slug = product.slug;
+      if (product.url) payload.url = product.url;
+      if (!payload.url) payload.url = this.shareUrl();
+      return payload;
+    },
+    toggleSave() {
+      const store = this.savedStore();
+      const payload = this.buildSavedPayload();
+      if (!store || !payload?.id) return;
+      const saved = store.toggle(payload);
+      const name = payload.name || 'Produkt';
+      const toast = this.$store?.toast;
+      if (saved) {
+        toast?.push?.(`Uloženo: ${name}`, 'success');
+      } else {
+        toast?.push?.(`Odebráno z uložených: ${name}`, 'warning');
+      }
+    },
+    isSavedCurrent() {
+      const store = this.savedStore();
+      return !!(store && store.isSaved(this.product?.id));
+    },
+    shareUrl() {
+      const productId = this.product?.id;
+      try {
+        if (!productId) return window.location.href;
+        const { origin, pathname } = window.location;
+        return `${origin}${pathname}#/product/${productId}`;
+      } catch {
+        if (productId) return `#/product/${productId}`;
+        return (typeof window !== 'undefined' && window.location?.href) || '#';
+      }
+    },
+    openShareModal() {
+      this.shareModal.open = true;
+      this.shareModal.copied = false;
+    },
+    closeShareModal() {
+      this.shareModal.open = false;
+    },
+    async copyShareLink() {
+      const link = this.shareUrl();
+      try {
+        if (navigator?.clipboard?.writeText) {
+          await navigator.clipboard.writeText(link);
+        } else {
+          this._fallbackCopy(link);
+        }
+        this.shareModal.copied = true;
+        this.$store?.toast?.push?.('Odkaz zkopírován do schránky.', 'success');
+      } catch (e) {
+        console.warn('Share copy failed', e);
+        this.shareModal.copied = false;
+        this.$store?.toast?.push?.('Nepodařilo se zkopírovat odkaz.', 'warning');
+      }
+    },
+    async shareNative() {
+      const link = this.shareUrl();
+      if (navigator?.share) {
+        try {
+          await navigator.share({
+            title: this.product?.name || 'Sdílení produktu',
+            url: link
+          });
+          this.$store?.toast?.push?.('Sdílení bylo odesláno.', 'success');
+          this.closeShareModal();
+          return;
+        } catch (e) {
+          console.warn('Native share cancelled', e);
+        }
+      }
+      await this.copyShareLink();
+    },
+    _fallbackCopy(text) {
+      const area = document.createElement('textarea');
+      area.value = text;
+      area.setAttribute('readonly', '');
+      area.style.position = 'absolute';
+      area.style.left = '-9999px';
+      document.body.appendChild(area);
+      area.select();
+      document.execCommand('copy');
+      document.body.removeChild(area);
+    },
+    openAskModal() {
+      this.askModal.open = true;
+      this.askModal.error = '';
+      this.askModal.submitting = false;
+    },
+    closeAskModal() {
+      this.askModal.open = false;
+      this.askModal.submitting = false;
+    },
+    async submitAsk() {
+      const message = this.askModal.message?.trim();
+      const email = this.askModal.email?.trim();
+
+      if (!message) {
+        this.askModal.error = 'Napište, prosím, váš dotaz.';
+        return;
+      }
+      if (!this._isValidEmail(email)) {
+        this.askModal.error = 'Zadejte platnou e-mailovou adresu.';
+        return;
+      }
+
+      this.askModal.submitting = true;
+      try {
+        await new Promise(resolve => setTimeout(resolve, 350));
+        this.$store?.toast?.push?.('Dotaz jsme přijali. Odpovíme e-mailem do 48 hodin.', 'success');
+        this.askModal.message = '';
+        this.askModal.error = '';
+        this.askModal.open = false;
+      } finally {
+        this.askModal.submitting = false;
+      }
+    },
+    _isValidEmail(email) {
+      if (!email) return false;
+      return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+    }
   })); 
 
     // USER REVIEWS LIS
@@ -5369,11 +6608,15 @@ rangeLabel() {
         id: m.id,
         parentId: m.parentId ?? m.parent ?? null,
         name: m.name,
+        footer_position: (m.footer_position != null && !Number.isNaN(Number(m.footer_position)))
+          ? Number(m.footer_position)
+          : null,
         // some menus have root items, some only sections – handle both
         items: Array.isArray(m.items) ? m.items.map(normItem) : [],
         sections: Array.isArray(m.sections)
           ? m.sections.map(s => ({
               name: s.name ?? null,
+              tag: s.tag ?? null,
               type: s.type ?? null,     // 'language' / 'loyalty' / undefined
               items: Array.isArray(s.items) ? s.items.map(normItem) : []
             }))
@@ -5446,7 +6689,10 @@ rangeLabel() {
     avg: Number(src?.average ?? 0),
     count: Number(src?.count ?? 0),
 
-    set(r){ this.avg = Number(r?.average ?? 0); this.count = Number(r?.count ?? 0); },
+    set(r){
+      this.avg = Number(r?.average ?? 0);
+      this.count = Number(r?.count ?? 0);
+    },
 
     // array of 5 slots: 'full' | 'half' | 'empty'
     stars() {
@@ -5459,7 +6705,9 @@ rangeLabel() {
       });
     },
 
-    fmtAvg(){ return (isFinite(this.avg) ? this.avg : 0).toFixed(1); }
+    fmtAvg(){ return (isFinite(this.avg) ? this.avg : 0).toFixed(1); },
+
+    hasRating(){ return Number(this.count) > 0; }
   })),
 
       // CATEGORIES LIST
@@ -5525,6 +6773,7 @@ rangeLabel() {
     const pngs = {
       pharmacy: { normal: './images/map/pharmacy.png', selected: './images/map/pharmacy_selected.png' },
       box: { normal: './images/map/box.png', selected: './images/map/box_selected.png' },
+      'z-box': { normal: './images/map/zasilkovna.png', selected: './images/map/zasilkovna_selected.png' },
       shadow: './images/map/shadow.png'
     };
     const prague = [50.0755, 14.4378];
@@ -5535,7 +6784,7 @@ rangeLabel() {
       jsonUrl: cfg?.jsonUrl || './data/map-points.json',
       tracestrackKey: cfg?.tracestrackKey || '',
       enableClustering: !!cfg?.enableClustering,
-  
+
       // STATE
       map: null,
       cluster: null,
@@ -5546,19 +6795,33 @@ rangeLabel() {
       mode: 'map',
       search: '',
       district: '',
+      typeFilter: 'pharmacy',
+      defaultType: 'pharmacy',
       districts: ['Praha 1','Praha 2','Praha 3','Praha 4','Praha 5','Praha 6','Praha 7','Praha 8','Praha 9','Praha 10'],
+      types: [],
+      typeOptions: [],
+      typeLabels: {},
+      fabOpen: false,
       placeholderImg,
       enableGeolocateOnLoad: true,   
       geolocateOncePerSession: true, 
       userMarker: null,
       userAccuracy: null,
-  
+      _bodyLocked: false,
+      _prevOverflow: '',
+      _inited: false,
+      selectionContext: null,
+
       // RESPONSIVE FLAGS
       isMd: false,
       isLg: false,
   
       // COMPUTED
-      get filterActive(){ return !!(this.search || this.district); },
+      get filterActive(){
+        const defaultType = this.defaultType || 'pharmacy';
+        const typeActive = this.typeFilter && this.typeFilter !== defaultType;
+        return !!(this.search || this.district || typeActive);
+      },
       get filterSummary(){ return `Zobrazuji ${this.filtered.length} z ${this.all.length}`; },
   
       // HELPERS
@@ -5575,12 +6838,13 @@ rangeLabel() {
   
       async init() {
         if (this._inited) return; this._inited = true;
-  
+
         this.updateBreakpoints();
         this._onResize = () => this.updateBreakpoints();
         window.addEventListener('resize', this._onResize);
-  
+
         await this.loadData();
+        this.lockBody();
 
         this.$nextTick(async () => {
           await this.ensureVisibleSize();
@@ -5689,8 +6953,11 @@ rangeLabel() {
     },
 
       teardown() {
+        if (!this._inited) return;
         if (this._onResize) window.removeEventListener('resize', this._onResize), this._onResize = null;
         if (this._onOpenPharmacy) window.removeEventListener('pharmacy:open', this._onOpenPharmacy), this._onOpenPharmacy = null;
+        if (this._onHashChange) window.removeEventListener('hashchange', this._onHashChange), this._onHashChange = null;
+        if (this._onPickupSelected) window.removeEventListener('pickup:selected', this._onPickupSelected), this._onPickupSelected = null;
         if (this._ro) { try { this._ro.disconnect(); } catch(_) {} this._ro = null; }
         const host = this.$refs?.mapEl || document.getElementById('map');
         if (this._onInvalidate) { window.removeEventListener('map:invalidate', this._onInvalidate); this._onInvalidate = null; }
@@ -5698,18 +6965,66 @@ rangeLabel() {
         if (this.map) { try { this.map.remove(); } catch(_) {} this.map = null; }
         if (host && host._leaflet_id) try { host._leaflet_id = null; } catch(_) {}
         window.__pickupMap = null;
+        this.clearSelectionContext();
+        this.unlockBody();
+        this._inited = false;
       },
   
       async loadData() {
         const res = await fetch(this.jsonUrl);
         const json = await res.json();
-        this.all = json.map(p => ({
-          ...p,
-          coords: { lat: +p.coords.lat, lng: +p.coords.lng },
-          searchIndex: [p.name, p.type, p.address?.street, p.address?.city, p.address?.district, p.address?.zip]
+        this.all = json.map(p => {
+          const type = (p.type || '').toLowerCase();
+          const entry = {
+            ...p,
+            type,
+            coords: { lat: +p.coords.lat, lng: +p.coords.lng },
+            searchIndex: [p.name, type, p.address?.street, p.address?.city, p.address?.district, p.address?.zip]
             .filter(Boolean).join(' ').toLowerCase()
-        }));
-        this.filtered = this.all.slice();
+          };
+          return entry;
+        });
+        const uniqueTypes = Array.from(new Set(this.all.map(p => (p.type || '').toLowerCase()).filter(Boolean)));
+        this.types = uniqueTypes;
+        this.typeLabels = uniqueTypes.reduce((acc, t) => {
+          acc[t] = this.formatTypeLabel(t);
+          return acc;
+        }, {});
+        this.defaultType = uniqueTypes.includes('pharmacy') ? 'pharmacy' : 'all';
+        this.typeOptions = this.buildTypeOptions();
+        this.selectionContext = this.loadSelectionContext();
+        const ctxType = this.normalizeTypeParam(this.selectionContext?.mapType, uniqueTypes);
+        const initialType = this.normalizeTypeParam(this.extractTypeParam(), uniqueTypes) ?? ctxType ?? this.defaultType;
+        this.typeFilter = initialType;
+        this.applyFilters();
+        if (this.selectionContext?.selectedId) {
+          const selectedId = this.selectionContext.selectedId;
+          const selectedPoint = this.all.find(p => String(p.id) === String(selectedId));
+          if (selectedPoint) {
+            this.selected = selectedPoint;
+            this.$nextTick(() => {
+              this.updateMarkerIcons();
+              this.selectFromMap(selectedPoint);
+            });
+          }
+        }
+
+        this._onHashChange = () => {
+          const hash = location.hash || '';
+          if (!hash.startsWith('#/map')) {
+            this.teardown();
+            return;
+          }
+          this.lockBody();
+          const typeFromHash = this.normalizeTypeParam(this.extractTypeParam(), this.types);
+          const next = typeFromHash ?? this.defaultType;
+          if (next !== this.typeFilter) {
+            this.typeFilter = next;
+            this.applyFilters();
+            this.fabOpen = false;
+          }
+        };
+        window.addEventListener('hashchange', this._onHashChange);
       },
   
       initMap() {
@@ -5787,8 +7102,8 @@ rangeLabel() {
         this.markers.forEach(m => { try { m.remove(); } catch(_) {} });
         this.markers.clear();
   
-        const list = this.filtered.length ? this.filtered : this.all;
-  
+        const list = this.filtered;
+
         list.forEach(p => {
           const m = L.marker([p.coords.lat, p.coords.lng], { icon: this.iconFor(p) })
             .on('click', () => this.selectFromMap(p));
@@ -5858,9 +7173,24 @@ rangeLabel() {
   
       confirmSelection() {
         if (!this.selected) return;
-        try { localStorage.setItem('selectedPickupPoint', JSON.stringify(this.selected)); } catch(e){}
-        window.dispatchEvent(new CustomEvent('pickup:selected', { detail: this.selected }));
+        const ctx = this.selectionContext || this.loadSelectionContext() || {};
+        const detail = {
+          deliveryId: ctx.deliveryId || null,
+          mapType: ctx.mapType || this.selected.type || '',
+          point: {
+            id: this.selected.id,
+            type: this.selected.type,
+            name: this.selected.name,
+            address: this.selected.address,
+            phone: this.selected.phone,
+            note: this.selected.note,
+            coords: this.selected.coords
+          }
+        };
+        window.dispatchEvent(new CustomEvent('pickup:selected', { detail }));
         this.toast(`Vybráno: ${this.selected.name}`);
+        this.clearSelectionContext();
+        this.closeModal();
       },
   
       toast(msg) {
@@ -5875,18 +7205,126 @@ rangeLabel() {
       applyFilters() {
         const q = (this.search || '').toLowerCase().trim();
         const d = this.district;
+        const t = this.typeFilter || this.defaultType || 'pharmacy';
         this.filtered = this.all.filter(p => {
           const okQ = q ? p.searchIndex.includes(q) : true;
           const okD = d ? (p.address?.city||'').toLowerCase().includes(d.toLowerCase()) : true;
-          return okQ && okD;
+          const okT = (t === 'all') ? true : (p.type || '').toLowerCase() === t;
+          return okQ && okD && okT;
         });
         this.renderMarkers();
         if (this.selected && !this.filtered.some(pp => pp.id===this.selected.id)) {
           this.selected = null;
           this.updateMarkerIcons();
         }
+        this.updateHashWithType();
       },
-      clearAllFilters() { this.search=''; this.district=''; this.applyFilters(); },
+      clearAllFilters() {
+        this.search='';
+        this.district='';
+        this.typeFilter = this.defaultType;
+        this.applyFilters();
+      },
+      setTypeFilter(type) {
+        const normalized = this.normalizeTypeParam(type, this.types) ?? this.defaultType;
+        if (this.typeFilter === normalized) {
+          this.fabOpen = false;
+          return;
+        }
+        this.typeFilter = normalized;
+        this.applyFilters();
+        this.fabOpen = false;
+      },
+      extractTypeParam() {
+        const hash = location.hash || '';
+        const parts = hash.split('?');
+        if (parts.length < 2) return null;
+        const params = new URLSearchParams(parts[1]);
+        return params.get('type');
+      },
+      normalizeTypeParam(type, available) {
+        if (!type) return null;
+        const val = String(type).toLowerCase();
+        if (val === 'all') return 'all';
+        if (Array.isArray(available) && available.includes(val)) return val;
+        return null;
+      },
+      buildTypeOptions() {
+        const options = [];
+        options.push({ value: 'all', label: 'Vše' });
+        const ordered = [...this.types];
+        ordered.sort();
+        if (ordered.includes('pharmacy')) {
+          options.push({ value: 'pharmacy', label: this.formatTypeLabel('pharmacy') });
+        }
+        ordered.filter(t => t !== 'pharmacy').forEach(t => {
+          options.push({ value: t, label: this.formatTypeLabel(t) });
+        });
+        return options;
+      },
+      formatTypeLabel(type) {
+        const map = {
+          pharmacy: 'Lékárny',
+          box: 'Boxy',
+          'z-box': 'Zásilkovna boxy',
+          pickup: 'Výdejní místa',
+          partner: 'Partneři'
+        };
+        if (map[type]) return map[type];
+        if (!type) return 'Neznámé';
+        return type
+          .replace(/[_-]+/g, ' ')
+          .replace(/\b\w/g, (s) => s.toUpperCase());
+      },
+      updateHashWithType() {
+        if (!(location.hash || '').startsWith('#/map')) return;
+        const params = new URLSearchParams(location.hash.split('?')[1] || '');
+        const effectiveDefault = this.defaultType || 'pharmacy';
+        if (this.typeFilter && this.typeFilter !== effectiveDefault) {
+          params.set('type', this.typeFilter);
+        } else {
+          params.delete('type');
+        }
+        const query = params.toString();
+        const newHash = `#/map${query ? '?' + query : ''}`;
+        const newUrl = `${location.pathname}${location.search}${newHash}`;
+        history.replaceState(null, '', newUrl);
+      },
+      loadSelectionContext() {
+        try {
+          const raw = localStorage.getItem('pickupSelectionContext');
+          if (!raw) return null;
+          const parsed = JSON.parse(raw);
+          if (parsed && typeof parsed === 'object') return parsed;
+        } catch (e) {
+          console.warn('Failed to parse pickup selection context', e);
+        }
+        return null;
+      },
+      clearSelectionContext() {
+        try { localStorage.removeItem('pickupSelectionContext'); } catch (_) {}
+        this.selectionContext = null;
+      },
+      lockBody() {
+        if (this._bodyLocked) return;
+        this._prevOverflow = document.body.style.overflow;
+        document.body.style.overflow = 'hidden';
+        this._bodyLocked = true;
+      },
+      unlockBody() {
+        if (!this._bodyLocked) return;
+        document.body.style.overflow = this._prevOverflow || '';
+        this._bodyLocked = false;
+      },
+      closeModal() {
+        this.teardown();
+        this.fabOpen = false;
+        if (window.history.length > 1) {
+          history.back();
+        } else {
+          location.hash = '#/products';
+        }
+      },
       
       locateUser() {
       if (!navigator.geolocation) {
@@ -6865,8 +8303,8 @@ rangeLabel() {
     
     <template x-if="$store.precart.product">
       <div x-transition.opacity.duration.200ms class="py-4 w-auto mx-auto items-stretch">
-        <article class="h-full" x-data="{ product: $store.precart.product }">
-        <div class="card card-side h-full relative px-2 items-center bg-base-100">
+        <article class="h-full" x-data="precartItem($store.precart.product)">
+        <div class="card card-side h-full relative px-2 items-center bg-base-100 overflow-visible">
           <!-- BADGES -->
           <div x-show="product.badges?.length" class="absolute left-2 top-2 z-10 flex flex-col gap-1">
             <template x-for="(b,i) in (product?.badges || [])" :key="i">
@@ -6879,7 +8317,12 @@ rangeLabel() {
             <a :href="link('product', { id: product.id })"
                @click="close()"
                class="block w-full h-full">
-              <img :src="product.image" class="object-contain max-h-full w-full h-full" :alt="product.name" />
+              <img
+                :src="imgSrc"
+                class="object-contain max-h-full w-full h-full"
+                :alt="product.name"
+                @error="handleImgError($event)"
+              />
             </a>
           </figure>
 
@@ -6896,7 +8339,7 @@ rangeLabel() {
 
               <!-- PRICE with LEGAL TOOLTIP -->
               <div
-                class="tooltip cursor-help"
+                class="tooltip tooltip-right md:tooltip-top cursor-help overflow-visible"
                 x-init="$store.legal.init()"
                 x-data="{
                   get paras(){
@@ -6981,9 +8424,10 @@ rangeLabel() {
             @mouseenter="highlighted = i"
             :class="i===highlighted ? 'bg-white' : 'hover:bg-base-200'"
           >
+          <div class="flex w-full items-center gap-3 min-h-12">
             <a :href="link('product', { id: item.id })"
                @click.prevent="goDetail(item)"
-               class="flex w-full items-center gap-3 min-h-12">
+               class="flex flex-1 items-center gap-3 min-h-12 min-w-0">
               <img :src="item.image" alt="" class="w-14 h-14 object-contain rounded" />
 
               <div class="min-w-0 flex-1">
@@ -6993,22 +8437,11 @@ rangeLabel() {
               </div>
 
               <!-- price block (desktop only) -->
-              <div class="hidden md:flex flex-col leading-tight">
-                <span
-                  x-show="item.discounted_price && item.discounted_price < item.price"
-                  class="font-bold text-lg text-error underline decoration-dotted underline-offset-4 decoration-max-gray-400"
-                  x-text="koruny(item.discounted_price)"
-                ></span>
-                <span
-                  x-show="item.discounted_price && item.discounted_price < item.price"
-                  class="text-sm line-through text-base-content/60 -mt-0.5"
-                  x-text="koruny(item.price)"
-                ></span>
-
-                <!-- LEGAL TOOLTIP (desktop) -->
+              <div class="hidden md:flex">
                 <div
                   class="tooltip tooltip-left cursor-help"
                   x-init="$store.legal.init()"
+                  @click.prevent.stop
                   x-data="{
                     get paras(){
                       const hasDisc = !!(item.discounted_price && item.discounted_price < item.price);
@@ -7023,23 +8456,37 @@ rangeLabel() {
                       <p :class="idx > 0 ? 'mt-1 border-t-1 border-base-300/20 pt-1' : ''" x-text="p"></p>
                     </template>
                   </div>
-                  <span
-                    x-show="!item.discounted_price || !(item.discounted_price < item.price)"
-                    class="font-medium text-base underline decoration-dotted underline-offset-4 decoration-max-gray-400"
-                    x-text="koruny(item.price)"
-                  ></span>
+                  <div class="flex flex-col leading-tight">
+                    <span
+                      x-show="item.discounted_price && item.discounted_price < item.price"
+                      class="font-bold text-lg text-error underline decoration-dotted underline-offset-4 decoration-max-gray-400"
+                      x-text="koruny(item.discounted_price)"
+                    ></span>
+                    <span
+                      x-show="item.discounted_price && item.discounted_price < item.price"
+                      class="text-sm line-through text-base-content/60 -mt-0.5"
+                      x-text="koruny(item.price)"
+                    ></span>
+                    <span
+                      x-show="!item.discounted_price || !(item.discounted_price < item.price)"
+                      class="font-medium text-base underline decoration-dotted underline-offset-4 decoration-max-gray-400"
+                      x-text="koruny(item.price)"
+                    ></span>
+                  </div>
                 </div>
               </div>
-
-              <!-- Quick add -->
-              <button
-                class="hidden md:block btn btn-sm shrink-0 w-16"
-                :class="$store.precart.isQuickAdded(item.id) ? 'btn-ghost btn-disabled text-max-green-500' : ''"
-                @click.stop="quickAdd(item)"
-                x-text="$store.precart.isQuickAdded(item.id) ? 'Přidáno' : 'Přidat'">
-              </button>
             </a>
-          </li>
+
+            <!-- Quick add -->
+            <button
+              type="button"
+              class="hidden md:block btn btn-sm shrink-0 w-16"
+              :class="$store.precart.isQuickAdded(item.id) ? 'btn-ghost btn-disabled text-max-green-500' : ''"
+              @click.prevent.stop="quickAdd(item)"
+              x-text="$store.precart.isQuickAdded(item.id) ? 'Přidáno' : 'Přidat'">
+            </button>
+          </div>
+        </li>
         </template>
 
       </ul>
@@ -7096,6 +8543,261 @@ rangeLabel() {
 
   
 <script>
+function precartItem(initialProduct) {
+  return {
+    product: initialProduct,
+    imgSrc: '',
+    init() {
+      this.refreshImage();
+      this.$watch(
+        () => Alpine.store('precart').product,
+        (next) => {
+          if (next !== this.product) {
+            this.product = next;
+            this.refreshImage();
+          }
+        }
+      );
+    },
+    refreshImage() {
+      const fallback = './images/placeholder.png';
+      if (!this.product) {
+        this.imgSrc = fallback;
+        return;
+      }
+      const viaCart = Alpine.store('cart')?.imgFor?.(this.product);
+      this.imgSrc = viaCart || this.product.image || fallback;
+    },
+    handleImgError(event) {
+      if (!event || !event.target) return;
+      if (event.target.dataset.fallbackTried) {
+        this.imgSrc = './images/placeholder.png';
+        return;
+      }
+      event.target.dataset.fallbackTried = '1';
+      const alt = Alpine.store('cart')?.imgFor?.({ ...this.product, image: '' });
+      this.imgSrc = (alt && alt !== event.target.src) ? alt : './images/placeholder.png';
+    }
+  };
+}
+
+function topNav() {
+  return {
+    drawerItem: null,
+    highlightItems: [],
+    promoItems: [],
+    hiddenLeftIndices: [],
+    showDrawer: window.matchMedia('(min-width: 1024px)').matches,
+    _resizeHandler: null,
+    _mq: null,
+    _mqHandler: null,
+    _ro: null,
+    _raf: null,
+
+    async init() {
+      await Alpine.store('menu').load();
+      this.extractItems();
+      this.setupMediaWatcher();
+      this.$nextTick(() => {
+        this.setupResizeObserver();
+        this.scheduleMeasure();
+      });
+    },
+
+    destroy() {
+      if (this._resizeHandler) window.removeEventListener('resize', this._resizeHandler);
+      if (this._mq && this._mqHandler) this._mq.removeEventListener('change', this._mqHandler);
+      if (this._ro) this._ro.disconnect();
+      if (this._raf) cancelAnimationFrame(this._raf);
+    },
+
+    setupMediaWatcher() {
+      const mq = window.matchMedia('(min-width: 1024px)');
+      const handler = (e) => {
+        const prev = this.showDrawer;
+        this.showDrawer = e.matches;
+        if (prev !== this.showDrawer) {
+          this.scheduleMeasure();
+        }
+      };
+      mq.addEventListener('change', handler);
+      this._mq = mq;
+      this._mqHandler = handler;
+
+      const onResize = () => this.scheduleMeasure();
+      window.addEventListener('resize', onResize);
+      this._resizeHandler = onResize;
+    },
+
+    setupResizeObserver() {
+      const ro = new ResizeObserver(() => this.scheduleMeasure());
+      if (this.$refs.leftWrap) ro.observe(this.$refs.leftWrap);
+      if (this.$refs.navRoot) ro.observe(this.$refs.navRoot);
+      this._ro = ro;
+    },
+
+    extractItems() {
+      const store = Alpine.store('menu');
+      const root = store.byId(1) || store.menus.find(m => Array.isArray(m.sections) && m.sections.some(sec => sec.tag));
+      if (!root) return;
+
+      const highlightSection = (root.sections || []).find(sec => sec.tag === 'highlights') || { items: [] };
+      const promoSection = (root.sections || []).find(sec => sec.tag === 'promotions') || { items: [] };
+
+      const highlightsRaw = Array.isArray(highlightSection.items) ? highlightSection.items.slice() : [];
+      let drawer = null;
+      const drawerIndex = highlightsRaw.findIndex(it => String(it.name || '').toLowerCase().includes('procházet kategorie'));
+      if (drawerIndex >= 0) {
+        drawer = highlightsRaw.splice(drawerIndex, 1)[0];
+      }
+      if (!drawer) {
+        drawer = { name: 'Procházet kategorie', linkMenuId: 2 };
+      }
+      this.drawerItem = this.normalizeItem(drawer, 'drawer', true, 0);
+      this.highlightItems = highlightsRaw.map((item, idx) => this.normalizeItem(item, 'highlight', false, idx));
+      this.promoItems = Array.isArray(promoSection.items)
+        ? promoSection.items.map((item, idx) => this.normalizeItem(item, 'promo', false, idx))
+        : [];
+      this.hiddenLeftIndices = [];
+    },
+
+    normalizeItem(raw, prefix, isDrawer = false, idx = 0) {
+      const label = String(raw?.name || '').trim();
+      const key = `${prefix}-${idx}-${label.replace(/[^a-z0-9]+/gi, '-').toLowerCase() || 'item'}`;
+      return {
+        label,
+        linkMenuId: raw?.linkMenuId ?? null,
+        route: raw?.route ?? '',
+        key,
+        isDrawer
+      };
+    },
+
+    handleDrawerClick() {
+      const target = this.drawerItem?.linkMenuId != null ? this.drawerItem.linkMenuId : undefined;
+      Alpine.store('menu').openAt(target);
+    },
+
+    handleItemClick(item) {
+      if (!item) return;
+      if (item.linkMenuId != null) {
+        Alpine.store('menu').openAt(item.linkMenuId);
+        return;
+      }
+      if (item.route) {
+        const route = String(item.route).replace(/^#?\/?/, '');
+        location.hash = '#/' + route;
+      }
+    },
+
+    handlePromoClick(item) {
+      this.handleItemClick(item);
+    },
+
+    scheduleMeasure() {
+      if (this._raf) cancelAnimationFrame(this._raf);
+      this._raf = requestAnimationFrame(() => this.recalcVisibility());
+    },
+
+    recalcVisibility() {
+      if (!this.$refs.leftWrap) return;
+      this.hiddenLeftIndices = [];
+      this.$nextTick(() => {
+        const wrap = this.$refs.leftWrap;
+        const items = Array.from(wrap.querySelectorAll('[data-left-item]'));
+        if (!items.length) return;
+        let available = wrap.clientWidth;
+        let used = 0;
+        const hidden = [];
+        const gapValue = parseFloat(getComputedStyle(wrap).getPropertyValue('column-gap') || getComputedStyle(wrap).getPropertyValue('gap') || '0') || 0;
+
+        items.forEach((el, orderIdx) => {
+          const idx = Number(el.dataset.index);
+          const sticky = el.dataset.sticky === 'true';
+          const width = el.offsetWidth;
+          const addition = width + (orderIdx > 0 ? gapValue : 0);
+          if (sticky) {
+            used += addition;
+            return;
+          }
+          if (idx < 0) return;
+          if (used + addition <= available) {
+            used += addition;
+          } else {
+            hidden.push(idx);
+          }
+        });
+
+        this.hiddenLeftIndices = hidden;
+      });
+    },
+
+    isLeftHidden(idx) {
+      return this.hiddenLeftIndices.includes(idx);
+    }
+  };
+}
+
+function pageFooter() {
+  return {
+    columns: [],
+
+    async init() {
+      await Alpine.store('menu').load();
+      this.buildColumns();
+    },
+
+    buildColumns() {
+      const store = Alpine.store('menu');
+      const cols = (store.menus || [])
+        .filter(m => typeof m.footer_position === 'number')
+        .sort((a, b) => Number(a.footer_position) - Number(b.footer_position))
+        .map((menu, idx) => {
+          const sections = Array.isArray(menu.sections) && menu.sections.length
+            ? menu.sections
+            : [{ name: null, items: menu.items || [] }];
+
+          const normSections = sections.map((sec, sIdx) => ({
+            key: `${menu.id}-section-${sIdx}`,
+            title: sec.name ? String(sec.name).trim() : null,
+            items: (Array.isArray(sec.items) ? sec.items : []).map((it, iIdx) => ({
+              key: `${menu.id}-item-${sIdx}-${iIdx}`,
+              label: String(it.name || '').trim(),
+              route: it.route || null,
+              linkMenuId: it.linkMenuId ?? null
+            }))
+          })).filter(sec => sec.items.length);
+
+          return {
+            key: `footer-col-${idx}-${menu.id}`,
+            sections: normSections
+          };
+        }).filter(col => col.sections.length);
+
+      this.columns = cols;
+    },
+
+    gridClass() {
+      const count = Math.max(1, this.columns.length);
+      return {
+        [`grid-cols-${count}`]: count <= 6,
+        'sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6': count > 6
+      };
+    },
+
+    handleItemClick(item) {
+      if (item.linkMenuId != null) {
+        Alpine.store('menu').openAt(item.linkMenuId);
+        return;
+      }
+      if (item.route) {
+        const route = String(item.route).replace(/^#?\/?/, '');
+        location.hash = '#/' + route;
+      }
+    }
+  };
+}
+
 function precartModal() {
   const randId = Math.random().toString(36).slice(2, 9);
   return {

@@ -158,5 +158,21 @@
     },
     "tags": ["Homeopatika", "Měření tlaku krve", "Bezbariérový přístup"],
     "note": ""
+  },
+  {
+    "id": 11,
+    "name": "Z-BOX Římská",
+    "type": "z-box",
+    "address": {
+      "street": "Římská 17", "city": "Praha 2", "district": "Vinohrady", "zip": "120 00"
+    },
+    "coords": { "lat": "50.07769026119714", "lng": "14.434473468755824" },
+    "phone": null,
+    "photo": "./images/pup-photos/11.webp",
+    "opening_hours": {
+      "Mon": "06:00–23:00", "Tue": "06:00–23:00", "Wed": "06:00–23:00", "Thu": "06:00–23:00", "Fri": "06:00–23:00", "Sat": "09:00–18:00", "Sun": "10:00–17:00"
+    },
+    "tags": ["Zásilka do 15 kg", "Výdejní i podací místo", "Z-BOX má klávesnici"],
+    "note": "Nachází v prodejně potravin Žabka"
   }
 ]
