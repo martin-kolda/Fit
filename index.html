@@ -1605,17 +1605,17 @@
         </div>
 
         <div class="absolute right-4 top-4 z-20 flex flex-col gap-2">
-          <button type="button" class="tooltip tooltip-left btn btn-circle btn-sm md:btn-md shadow-lg border border-base-200 bg-base-100 hover:bg-base-200" :class="isSavedCurrent() ? 'text-error' : ''" data-tip="Uložit"
+          <button type="button" class="tooltip tooltip-left btn btn-circle btn-sm md:btn-md border border-base-200 bg-base-100 hover:bg-base-200" :class="isSavedCurrent() ? 'text-error' : ''" data-tip="Uložit"
                   @click.prevent="toggleSave()">
-            <i :class="isSavedCurrent() ? 'fa-solid fa-heart' : 'fa-regular fa-heart'"></i>
+            <i :class="isSavedCurrent() ? 'fa-solid fa-lg fa-heart' : 'fa-regular fa-lg fa-heart'"></i>
           </button>
-          <button type="button" class="tooltip tooltip-left btn btn-circle btn-sm md:btn-md shadow-lg border border-base-200 bg-base-100 hover:bg-base-200" data-tip="Sdílet"
+          <button type="button" class="tooltip tooltip-left btn btn-circle btn-sm md:btn-md border border-base-200 bg-base-100 hover:bg-base-200" data-tip="Sdílet"
                   @click.prevent="openShareModal()">
-            <i class="fa-regular fa-arrow-up-from-square"></i>
+            <i class="fa-regular fa-lg fa-arrow-up-from-square"></i>
           </button>
-          <button type="button" class="tooltip tooltip-left btn btn-circle btn-sm md:btn-md shadow-lg border border-base-200 bg-base-100 hover:bg-base-200" data-tip="Zeptat se"
+          <button type="button" class="tooltip tooltip-left btn btn-circle btn-sm md:btn-md border border-base-200 bg-base-100 hover:bg-base-200" data-tip="Zeptat se"
                   @click.prevent="openAskModal()">
-            <i class="fa-regular fa-comment-question"></i>
+            <i class="fa-regular fa-lg fa-comment-question"></i>
           </button>
         </div>
         <div class="aspect-square bg-base-200 rounded-xl flex items-center justify-center overflow-hidden">
@@ -2199,7 +2199,8 @@
     <div x-cloak x-show="shareModal.open" x-transition.opacity
          class="fixed inset-0 z-[70] flex items-center justify-center px-4"
          @keydown.escape.window="closeShareModal()">
-      <div class="absolute inset-0 bg-base-200/90 backdrop-blur-sm" @click="closeShareModal()"></div>
+      <!-- TODO: make backdrop-blur discrete, e.g. with softer appear/dissapear, like short easing-->
+      <div class="absolute inset-0 bg-base-200/10 backdrop-blur-sm" @click="closeShareModal()"></div>
       <div class="relative z-[71] w-full max-w-lg bg-base-100 border border-base-200 rounded-2xl shadow-2xl p-6 space-y-5">
         <button type="button"
                 class="btn btn-circle btn-ghost absolute right-3 top-3"
@@ -3035,7 +3036,9 @@ document.addEventListener('alpine:init', () => {
                     class="ml-1 inline-flex h-5 w-5 items-center justify-center rounded-full text-[10px] bg-base-200"
                     aria-label="Více informací"
                     @click.stop="open = !open"
-                  ><i class="fa-regular fa-question-circle fa-lg text-max-gray-600" aria-hidden="true"></i></button>
+                  >
+                  <!--TODO: All icons .fa-question-circle in "Doprava" and "Platba" should be removed, tooltip should be visible on opt.name and the name should add to classes "underline decoration-dotted underline-offset-4 decoration-max-gray-400" and cursor question mark -->
+                  <i class="fa-regular fa-question-circle fa-lg text-max-gray-600" aria-hidden="true"></i></button>
                 </div>
               </div>
             </div>
@@ -3044,9 +3047,7 @@ document.addEventListener('alpine:init', () => {
         </template>
         <template x-if="timeslotInfo(opt.id) && selectedDeliveryId === opt.id">
           <p class="mt-2 text-sm text-base-content/80 flex flex-wrap items-center gap-2">
-            <i class="fa-regular fa-clock"></i>
             <span x-text="timeslotInfo(opt.id).label"></span>
-            <span class="text-base-content/60">PSČ <span x-text="timeslotInfo(opt.id).zip"></span></span>
             <button type="button"
                     class="link link-primary text-sm"
                     @click.stop="changeTimeslot(opt)">
@@ -3056,8 +3057,6 @@ document.addEventListener('alpine:init', () => {
         </template>
         <template x-if="pickupInfo(opt.id) && selectedDeliveryId === opt.id">
           <p class="mt-2 text-sm text-base-content/80 flex flex-wrap items-center gap-2">
-            <i class="fa-solid fa-store"></i>
-            <span x-text="pickupInfo(opt.id).name"></span>
             <span class="text-base-content/60" x-text="pickupInfo(opt.id).addressLine"></span>
             <button type="button"
                     class="link link-primary text-sm"
@@ -3074,6 +3073,7 @@ document.addEventListener('alpine:init', () => {
           <template x-if="freeShippingActive || opt.price === 0">
             <div class="font-semibold">Zdarma</div>
           </template>
+          <!-- TODO: Price should be updated and from "Od" removed for DODO row, if timeslot is selecte (aka we know the exact price) -->
           <template x-if="!freeShippingActive && opt.price > 0">
             <div>
               <div class="text-xs tracking-wide font-medium text-base-content/60" x-show="opt.price_from">Od</div>
@@ -3106,7 +3106,7 @@ document.addEventListener('alpine:init', () => {
                  :disabled="isPaymentDisabled(opt.id)"
                  tabindex="-1" />
           <img :src="opt.icon" :alt="opt.name"
-               class="size-11 rounded-full bg-base-200 object-contain shrink-0"
+               class="size-11 rounded bg-base-200 object-contain shrink-0"
                @error="$event.target.style.opacity=0.3" />
           <div class="min-w-0">
             <div class="font-medium leading-tight">
@@ -3189,7 +3189,7 @@ document.addEventListener('alpine:init', () => {
   <!-- Follow-up modal -->
   <dialog x-ref="modal" class="modal" @cancel.prevent="cancelFollowup()">
     <div class="modal-box w-11/12 max-w-3xl">
-      <button type="button" class="btn btn-sm btn-circle btn-ghost absolute right-3 top-3" @click="cancelFollowup()">✕</button>
+      <button type="button" class="btn btn-xl btn-circle btn-ghost absolute right-3 top-3" @click="cancelFollowup()">✕</button>
 
       <template x-if="currentFollowup?.type === 'timeslot'">
         <div class="space-y-6">
@@ -3316,7 +3316,6 @@ document.addEventListener('alpine:init', () => {
            <p class="text-sm text-base-content/60">Žádné benefitní programy nejsou aktuálně dostupné.</p>
          </template>
          <div class="modal-action">
-           <button class="btn btn-ghost" type="button" @click="cancelFollowup()">Zrušit</button>
            <button class="btn btn-primary" type="button" @click="confirmBenefit()" :disabled="!benefitModal.selectedId">Potvrdit</button>
          </div>
        </div>
