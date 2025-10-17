@@ -4,6 +4,12 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Prototype prototype</title>
+  
+  <!-- Favions -->
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+  <link rel="manifest" href="/site.webmanifest">
 
   <!-- CDN / dependecies -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -121,6 +127,9 @@
     .max-gradient-v-red {
       background: linear-gradient(180deg, #f03a54 12%, #c31833 100%);
       box-shadow: 0 -2px 0 0 rgba(0, 0, 0, 0.18) inset, 0 2px 0 0 rgba(255, 255, 255, 0.18) inset;
+    }
+    .tooltip::before {
+      font-weight: 500;
     }
   </style>
 
@@ -758,7 +767,7 @@
                    class="w-full h-full object-cover">
             </figure>
             <div class="card-body pt-0 flex flex-col">
-              <div class="text-sm font-medium line-clamp-2 min-h-[3rem]" x-text="p.name"></div>
+              <div class="text-sm font-medium line-clamp-2 leading-snug min-h-[2.45rem] max-h-[2.45rem]" x-text="p.name"></div>
               <div class="mt-auto">
                 <div class="text-base font-semibold">
                   <span x-text="formatPrice(currentPrice(p))"></span>
@@ -822,7 +831,7 @@
                    class="w-full h-full object-cover">
             </figure>
             <div class="card-body pt-0 flex flex-col">
-              <div class="text-sm font-medium line-clamp-2 min-h-[3rem]" x-text="p.name"></div>
+              <div class="text-sm font-medium line-clamp-2 leading-snug min-h-[2.45rem] max-h-[2.45rem]" x-text="p.name"></div>
               <div class="mt-auto">
                 <div class="text-base font-semibold">
                   <span x-text="formatPrice(currentPrice(p))"></span>
@@ -896,56 +905,63 @@
 
 <!-- Magazine blog -->
 <section class="mt-8" x-cloak x-show="Array.isArray(blogPosts) && blogPosts.length">
-  <h3 class="text-lg font-semibold mb-3">Blog</h3>
-
-  <!-- Mobile: horizontal scroller (2-up + tiny peek) · md+: 3-col grid -->
-  <div class="flex gap-3 overflow-x-auto snap-x snap-mandatory pb-6
-              md:overflow-visible md:grid md:grid-cols-3 md:gap-4 md:snap-none md:pb-0">
-    <template x-for="post in blogFeatured(6)" :key="post.id || post.title">
-      <article class="shrink-0 w-[calc(50%-0.9rem)] snap-start md:w-auto md:shrink md:col-span-1">
-        <div class="card h-full bg-base-100 shadow rounded-xl overflow-hidden">
-          <!-- IMAGE (clickable) -->
-          <figure class="h-48 overflow-hidden">
-            <a :href="blogLink(post)" class="block w-full h-full">
-              <img :src="post.image" :alt="post.title" class="w-full h-full object-cover" loading="lazy">
-            </a>
-          </figure>
-
-          <!-- BODY -->
-          <div class="card-body min-w-0 flex flex-col gap-2 md:gap-3">
-            <!-- TITLE (clickable) · fixed 2 lines -->
-            <h2 class="text-xl font-semibold leading-snug line-clamp-2 min-h-[3.5rem]">
-              <a :href="blogLink(post)" class="hover:underline" x-text="post.title"></a>
-            </h2>
-
-            <!-- META -->
-            <div class="text-sm">
-              <span class="text-success font-bold" x-text="readingTimeLabel(post)"></span>
-              <span class="mx-1 opacity-40">•</span>
-              <span class="opacity-70" x-text="post.category"></span>
-            </div>
-
-            <!-- EXCERPT -->
-            <p class="text-base line-clamp-4" x-text="blogExcerpt(post)"></p>
-
-            <!-- CTA + likes -->
-            <div class="mt-4 flex items-center opacity-70">
-              <a :href="blogLink(post)" class="btn btn-sm btn-outline">Číst dál</a>
-              <div class="ml-auto flex items-center gap-1">
-                <i class="fa-regular fa-thumbs-up fa-lg"></i>
-                <span x-text="post.likes ?? 0"></span>
+  <div class="flex items-center justify-between mb-3">
+    <h3 class="text-lg font-semibold">Blog</h3>
+  </div>
+  <div class="relative group">
+    <div class="pointer-events-none absolute inset-y-0 left-0 w-10 bg-gradient-to-r from-base-200 to-transparent
+                transition-opacity duration-200 z-10"
+         :class="tpStates['blog']?.left ? 'opacity-100' : 'opacity-0'"></div>
+    <div class="pointer-events-none absolute inset-y-0 right-0 w-10 bg-gradient-to-l from-base-200 to-transparent
+                transition-opacity duration-200 z-10"
+         :class="tpStates['blog']?.right ? 'opacity-100' : 'opacity-0'"></div>
+    <div class="md:hidden pointer-events-none absolute inset-y-0 right-0 w-10 z-10 transition-opacity"
+         :class="tpStates['blog']?.scrolled ? 'opacity-0' : 'opacity-100'">
+      <div class="h-full bg-gradient-to-l from-base-200 to-transparent"></div>
+      <div class="absolute right-2 top-1/2 -translate-y-1/2 text-base-content/60 animate-pulse select-none">
+        <i class="fa-solid fa-chevron-right fa-lg"></i>
+      </div>
+    </div>
+    <div class="overflow-x-auto scrollbar-thin"
+         x-init="registerTopStrip($el, 'blog')">
+      <div class="flex gap-3 md:gap-4 snap-x snap-mandatory px-0 pb-5">
+        <template x-for="post in blogFeatured(6)" :key="post.id || post.title">
+          <article class="snap-start shrink-0 w-[calc(100%-2.5rem)] sm:w-[calc(75%-2rem)] md:w-[340px] lg:w-[360px] xl:w-[380px]">
+            <div class="card h-full bg-base-100 shadow rounded-xl overflow-hidden">
+              <figure class="h-48 overflow-hidden">
+                <a :href="blogLink(post)" class="block w-full h-full">
+                  <img :src="post.image" :alt="post.title" class="w-full h-full object-cover" loading="lazy">
+                </a>
+              </figure>
+              <div class="card-body min-w-0 flex flex-col gap-2 md:gap-3">
+                <h2 class="text-xl font-semibold leading-snug line-clamp-2 min-h-[3.75rem]">
+                  <a :href="blogLink(post)" class="hover:underline" x-text="post.title"></a>
+                </h2>
+                <div class="text-sm">
+                  <span class="text-success font-bold" x-text="readingTimeLabel(post)"></span>
+                  <span class="mx-1 opacity-40">•</span>
+                  <span class="opacity-70" x-text="post.category"></span>
+                </div>
+                <p class="text-base line-clamp-4" x-text="blogExcerpt(post)"></p>
+                <div class="mt-4 flex items-center opacity-70">
+                  <a :href="blogLink(post)" class="btn btn-sm btn-outline">Číst dál</a>
+                  <div class="ml-auto flex items-center gap-1">
+                    <i class="fa-regular fa-thumbs-up fa-lg"></i>
+                    <span x-text="post.likes ?? 0"></span>
+                  </div>
+                </div>
               </div>
             </div>
-          </div>
-        </div>
-      </article>
-    </template>
+          </article>
+        </template>
+      </div>
+    </div>
   </div>
 </section>
 
 <!-- Reasons to buy -->
 <section class="mt-8">
-  <h3 class="text-lg font-semibold mb-3">Proč nakoupit u Dr. Max 2</h3>
+  <h3 class="text-lg font-semibold mb-3">Proč nakoupit u Dr. Max</h3>
   <div x-data="{ scrolled:false }" class="relative">
     <div
       x-ref="rail"
@@ -960,11 +976,11 @@
         <a href="#" @click.prevent
            class="block h-full rounded-xl bg-white p-3 hover:shadow-md transition
                   focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40">
-          <div class="flex h-full flex-col gap-3">
-            <div class="rounded-xl overflow-hidden grid place-items-center">
-              <img src="./images/rtbs/free-shipping.webp" alt="" class="max-h-24 w-auto object-contain">
+          <div class="flex h-full flex-col gap-3 xl:flex-row xl:items-center xl:gap-4">
+            <div class="rounded-xl overflow-hidden grid place-items-center xl:w-32 xl:h-32 xl:shrink-0">
+              <img src="./images/rtbs/free-shipping.webp" alt="" class="w-auto object-contain">
             </div>
-            <span class="text-base font-medium text-center [&_b]:text-max-green-600">
+            <span class="text-base font-medium text-center xl:text-left [&_b]:text-max-green-600">
               <b>Doprava ZDARMA</b> od 399 Kč pro přihlášené
             </span>
           </div>
@@ -977,11 +993,11 @@
         <a href="#" @click.prevent
            class="block h-full rounded-xl bg-white p-3 hover:shadow-md transition
                   focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40">
-          <div class="flex h-full flex-col gap-3">
-            <div class="rounded-xl overflow-hidden grid place-items-center">
-              <img src="./images/rtbs/private-label.webp" alt="" class="max-h-24 w-auto object-contain">
+          <div class="flex h-full flex-col gap-3 xl:flex-row xl:items-center xl:gap-4">
+            <div class="rounded-xl overflow-hidden grid place-items-center xl:w-32 xl:h-32 xl:shrink-0">
+              <img src="./images/rtbs/private-label.webp" alt="" class="w-auto object-contain">
             </div>
-            <span class="text-base font-medium text-center [&_b]:text-max-green-600">
+            <span class="text-base font-medium text-center xl:text-left [&_b]:text-max-green-600">
               Široká nabídka <b>produktů značky Dr. Max</b>
             </span>
           </div>
@@ -994,11 +1010,11 @@
         <a href="#" @click.prevent
            class="block h-full rounded-xl bg-white p-3 hover:shadow-md transition
                   focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40">
-          <div class="flex h-full flex-col gap-3">
-            <div class="rounded-xl overflow-hidden grid place-items-center">
-              <img src="./images/rtbs/loyalty-program.webp" alt="" class="max-h-24 w-auto object-contain">
+          <div class="flex h-full flex-col gap-3 xl:flex-row xl:items-center xl:gap-4">
+            <div class="rounded-xl overflow-hidden grid place-items-center xl:w-32 xl:h-32 xl:shrink-0">
+              <img src="./images/rtbs/loyalty-program.webp" alt="" class="w-auto object-contain">
             </div>
-            <span class="text-base font-medium text-center [&_b]:text-max-green-600">
+            <span class="text-base font-medium text-center xl:text-left [&_b]:text-max-green-600">
               Kopa výhod <b>věrnostního programu Dr. Max</b>
             </span>
           </div>
@@ -1010,11 +1026,11 @@
         <a href="#" @click.prevent
            class="block h-full rounded-xl bg-white p-3 hover:shadow-md transition
                   focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40">
-          <div class="flex h-full flex-col gap-3">
-            <div class="rounded-xl overflow-hidden grid place-items-center">
-              <img src="./images/rtbs/mobile-app.webp" alt="" class="max-h-24 w-auto object-contain">
+          <div class="flex h-full flex-col gap-3 xl:flex-row xl:items-center xl:gap-4">
+            <div class="rounded-xl overflow-hidden grid place-items-center xl:w-32 xl:h-32 xl:shrink-0">
+              <img src="./images/rtbs/mobile-app.webp" alt="" class="w-auto object-contain">
             </div>
-            <span class="text-base font-medium text-center [&_b]:text-max-green-600">
+            <span class="text-base font-medium text-center xl:text-left [&_b]:text-max-green-600">
               <b>Mobilní aplikace</b> plná užitečných funkcí
             </span>
           </div>
@@ -1052,531 +1068,361 @@
   </div>
   <h1 class="text-3xl mx-auto mt-4 px-4 pb-4">Zdraví a léky</h1>
 
-  <div class="grid gap-2 md:gap-4 sm:grid-cols-2 lg:grid-cols-3 p-4">
-    
+  <div class="grid gap-2 md:gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 p-4">
     <template x-for="cat in categories" :key="cat.name">
-      <a class="card card-side items-center shadow-sm hover:shadow-md bg-white transition cursor-pointer h-14 md:h-auto">
-        <figure class="p-2 shrink-0 ">
-          <div class="h-10 md:h-16 w-10 md:w-16 rounded bg-base-200 overflow-hidden grid place-content-center">
-            <img
-              :src="imageUrl(cat)"
-              :alt="cat.name"
-              class="h-full w-full object-contain"
-              @error="$event.target.src = fallback"
-            />
+      <a class="card card-side items-center shadow-sm hover:shadow-md bg-white transition cursor-pointer h-14 md:h-auto"
+         :href="hrefFor(cat)"
+         @click="handleClick(cat, $event)">
+        <figure class="p-2 shrink-0">
+          <div class="h-10 md:h-16 w-10 md:w-16 rounded overflow-hidden grid place-content-center"
+               :class="squareClass(cat)"
+               :style="squareStyle(cat)">
+            <template x-if="isIconTile(cat)">
+              <i :class="iconClass(cat)"
+                 :style="iconStyle(cat)"></i>
+            </template>
+            <template x-if="!isIconTile(cat)">
+              <img
+                :src="imageUrl(cat)"
+                :alt="cat.name"
+                class="h-full w-full object-contain"
+                @error="$event.target.src = fallback"
+              />
+            </template>
           </div>
         </figure>
-    
+
         <div class="card-body min-w-0 pl-1">
-          <h2 class="card-title block truncate max-w-full text-base font-medium" :title="cat.name" x-text="cat.name"></h2>
-          <!--<div class="card-actions justify-end">
-            <span class="badge badge-outline" x-text="productsLabel(cat.products)"></span>
-          </div>-->
+          <h2 class="card-title block truncate max-w-full text-base font-medium"
+              :title="cat.name"
+              x-text="cat.name"></h2>
         </div>
       </a>
     </template>
-
   </div>
 </div>
 
 
 <!-- FILTERS -->
-<section aria-labelledby="filters-heading" class="space-y-3">
-  <!-- Heading row -->
-  <div class="lg:w-10/12 sm:w-11/12 mx-auto px-4 pt-6 flex flex-wrap items-center gap-2">
+<section aria-labelledby="filters-heading"
+         class="lg:w-10/12 sm:w-11/12 mx-auto px-4 pt-6"
+         x-data="{ mobileFiltersOpen: false }"
+         @keydown.escape.window="mobileFiltersOpen = false">
+  <div class="flex flex-wrap items-center justify-between gap-3">
     <h2 id="filters-heading" class="text-lg font-semibold">Filtry a řazení</h2>
+    <div class="flex items-center gap-2">
+      <button type="button"
+              class="btn btn-outline btn-sm lg:hidden"
+              @click="mobileFiltersOpen = true">
+        <i class="fa-solid fa-filter"></i>
+        <span>Filtry</span>
+      </button>
+      <button type="button"
+              class="btn btn-sm btn-outline hidden lg:inline-flex border-max-blue-500 text-max-blue-600"
+              @click="clearFilters()"
+              x-show="hasActiveFilters()"
+              x-cloak
+              x-transition.opacity>
+        Vymazat filtry
+        <span class="badge badge-error badge-sm ml-2" x-show="activeFiltersCount() > 0" x-text="activeFiltersCount()"></span>
+      </button>
+    </div>
   </div>
 
-  <!-- Controls -->
-  <div class="flex flex-col sm:flex-row flex-wrap items-stretch gap-2 px-4 lg:w-10/12 sm:w-11/12 mx-auto">
+  <div class="mt-6 lg:grid lg:grid-cols-[minmax(260px,320px)_1fr] lg:gap-6 relative">
+    <div x-cloak
+         x-show="mobileFiltersOpen"
+         x-transition.opacity
+         class="fixed inset-0 z-40 bg-base-200/70 backdrop-blur-sm lg:hidden"
+         @click.self="mobileFiltersOpen = false"></div>
 
-    <!-- Kategorie -->
-    <div class="dropdown">
-        <div tabindex="0" role="button"
-             class="relative select select-bordered w-full sm:w-56 flex items-center justify-between gap-2"
-             x-ref="catBtn">
-          <span class="truncate" x-text="selectedCategory || 'Kategorie: všechny'"></span>
-      
-          <!-- Clear button -->
+    <aside class="fixed inset-y-0 left-0 w-5/6 max-w-xs bg-base-100 shadow-xl transform -translate-x-full transition-transform duration-300 ease-out overflow-y-auto z-50 p-6 pb-10 lg:sticky lg:top-24 lg:h-[calc(100vh-8rem)] lg:w-auto lg:max-w-none lg:bg-transparent lg:shadow-none lg:p-5 lg:pb-12 lg:translate-x-0 lg:transform-none lg:overflow-y-auto"
+           :class="mobileFiltersOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'">
+      <div class="lg:hidden flex items-center justify-between mb-4">
+        <h3 class="text-lg font-semibold">Filtry</h3>
+        <button type="button" class="btn btn-sm btn-ghost" @click="mobileFiltersOpen = false">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div class="space-y-6 lg:pr-5 lg:pt-2 lg:pb-8">
+        <div class="space-y-3">
+          <h3 class="font-semibold text-base">Vyhledávání</h3>
+          <label class="input input-bordered items-center gap-2 w-full" aria-label="Vyhledávání">
+            <i class="fa-solid fa-magnifying-glass text-max-gray-600"></i>
+            <input type="search"
+                   placeholder="Filtruj dle názvu"
+                   class="grow min-w-0"
+                   x-model.debounce.300ms="search" />
+          </label>
+        </div>
+
+        <div class="space-y-3">
+          <div class="flex items-center justify-between">
+            <h3 class="font-semibold text-base">Cena</h3>
+            <button type="button" class="btn btn-xs btn-ghost"
+                    x-show="_priceRangeActive()" x-cloak
+                    @click="priceMin = priceBounds.min; priceMax = priceBounds.max; activePriceRangeIndex = null">
+              Reset
+            </button>
+          </div>
+          <div class="space-y-4" x-show="priceBounds.max > priceBounds.min" x-cloak>
+            <input type="range"
+                   class="range range-secondary range-xs"
+                   :min="priceBounds.min"
+                   :max="priceBounds.max"
+                   step="10"
+                   :value="priceMax ?? priceBounds.max"
+                   @input="clampPrice($event.target.value, 'max')">
+            <div class="flex justify-between text-xs text-base-content/60 px-1">
+              <span x-text="formatPrice(priceMin ?? priceBounds.min)"></span>
+              <span x-text="formatPrice(priceMax ?? priceBounds.max)"></span>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <template x-for="(range, idx) in priceQuickRanges" :key="`pr-${idx}`">
+                <button type="button"
+                        class="btn btn-sm w-full"
+                        :class="activePriceRangeIndex === idx ? 'btn-secondary' : 'btn-outline'"
+                        @click="applyPriceQuickRange(idx)">
+                  <span x-text="priceRangeLabel(range)"></span>
+                </button>
+              </template>
+            </div>
+          </div>
+          <div class="text-sm text-base-content/60" x-show="priceBounds.max <= priceBounds.min">
+            Ceny nejsou k dispozici.
+          </div>
+        </div>
+
+        <div class="space-y-3">
+          <h3 class="font-semibold text-base">Kategorie</h3>
+          <div class="grid grid-cols-1 gap-2 max-h-60 overflow-auto pr-1">
+            <label class="label cursor-pointer justify-start gap-2 text-max-gray-800">
+              <input type="radio" name="cat" class="radio radio-sm radio-secondary" value="" x-model="selectedCategory">
+              <span>Všechny kategorie</span>
+            </label>
+            <template x-for="c in categories" :key="'cat-'+c">
+              <label class="label cursor-pointer justify-start gap-2 text-max-gray-800">
+                <input type="radio" name="cat" class="radio radio-sm radio-secondary" :value="c" x-model="selectedCategory">
+                <span x-text="c"></span>
+              </label>
+            </template>
+          </div>
+        </div>
+
+        <div class="space-y-3">
+          <h3 class="font-semibold text-base">Forma</h3>
+          <div class="grid grid-cols-1 gap-2 max-h-48 overflow-auto pr-1">
+            <label class="label cursor-pointer justify-start gap-2 text-max-gray-800">
+              <input type="radio" name="form" class="radio radio-sm radio-secondary" value="" x-model="selectedForm">
+              <span>Všechny typy</span>
+            </label>
+            <template x-for="f in forms" :key="'form-'+f">
+              <label class="label cursor-pointer justify-start gap-2 text-max-gray-800">
+                <input type="radio" name="form" class="radio radio-sm radio-secondary" :value="f" x-model="selectedForm">
+                <span x-text="f"></span>
+              </label>
+            </template>
+          </div>
+        </div>
+
+        <div class="space-y-3">
+          <h3 class="font-semibold text-base">Vhodné pro</h3>
+          <div class="grid grid-cols-1 gap-2 max-h-56 overflow-auto pr-1">
+            <template x-for="opt in consumersList" :key="'cons-'+opt">
+              <label class="label cursor-pointer justify-start gap-2 text-max-gray-800">
+                <input type="checkbox"
+                       class="checkbox checkbox-sm checkbox-secondary rounded-[4px]"
+                       :value="opt"
+                       :checked="selectedConsumers.includes(opt)"
+                       @change="toggleConsumer(opt)" />
+                <span x-text="opt"></span>
+              </label>
+            </template>
+          </div>
+        </div>
+
+        <div class="space-y-3">
+          <h3 class="font-semibold text-base">Možnosti</h3>
+          <div class="space-y-2">
+            <label class="label cursor-pointer justify-start gap-2 text-max-gray-800">
+              <input type="checkbox" class="checkbox checkbox-sm checkbox-secondary rounded-[4px]" x-model="onlyInStock">
+              <span>Pouze skladem</span>
+            </label>
+            <label class="label cursor-pointer justify-start gap-2 text-max-gray-800">
+              <input type="checkbox" class="checkbox checkbox-sm checkbox-secondary rounded-[4px]" x-model="benefitOnly">
+              <span>Lze platit benefity</span>
+            </label>
+            <label class="label cursor-pointer justify-start gap-2 text-max-gray-800">
+              <input type="checkbox" class="checkbox checkbox-sm checkbox-secondary rounded-[4px]" x-model="onlyDiscounted">
+              <span>Produkty v akci</span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <button type="button"
+              class="btn btn-outline btn-sm w-full mt-6 lg:hidden"
+              @click="clearFilters(); mobileFiltersOpen = false"
+              x-show="hasActiveFilters()"
+              x-cloak
+              x-transition.opacity>
+        Vymazat filtry
+        <span class="badge badge-error badge-sm ml-2" x-show="activeFiltersCount() > 0" x-text="activeFiltersCount()"></span>
+      </button>
+    </aside>
+
+    <div class="space-y-6 lg:pl-4">
+      <div class="flex flex-wrap items-center justify-between gap-3">
+        <div class="flex items-center gap-3">
+          <h2 class="text-lg font-semibold">
+            Výpis produktů:
+            <span class="ml-1 font-semibold" x-text="filteredCount()"></span>
+          </h2>
           <button type="button"
-                  class="btn btn-xs btn-outline bg-white absolute right-2"
-                  x-show="!!selectedCategory"
-                  aria-label="Zrušit kategorii"
-                  @mousedown.prevent.stop
-                  @click.prevent.stop="selectedCategory=''; $refs.catBtn.blur()">
-            ✕
+                  class="btn btn-sm btn-outline border-max-blue-500 text-max-blue-600 lg:hidden"
+                  @click="clearFilters(); mobileFiltersOpen = false"
+                  x-show="hasActiveFilters()"
+                  x-cloak
+                  x-transition.opacity>
+            Vymazat filtry
+            <span class="badge badge-error badge-sm ml-2" x-show="activeFiltersCount() > 0" x-text="activeFiltersCount()"></span>
           </button>
         </div>
-      <ul tabindex="0"
-          class="dropdown-content menu bg-base-100 rounded-box shadow p-2 w-full sm:w-64
-                 max-h-72 overflow-auto grid grid-cols-1">
-        <li>
-          <label class="label cursor-pointer justify-start gap-2 text-max-gray-800">
-            <input type="radio" name="cat" class="radio radio-sm radio-secondary"
-                   :checked="!selectedCategory" @change="selectedCategory=''" />
-            <span>Všechny kategorie</span>
-          </label>
-        </li>
-        <template x-for="c in categories" :key="'cat-'+c">
-          <li>
-            <label class="label cursor-pointer justify-start gap-2 text-max-gray-800">
-              <input type="radio" name="cat" class="radio radio-sm radio-secondary"
-                     :checked="selectedCategory===c" @change="selectedCategory=c" />
-              <span x-text="c"></span>
-            </label>
-          </li>
-        </template>
-      </ul>
-    </div>
+        <div class="flex items-center gap-2 w-full sm:w-auto">
+          <label class="text-sm font-medium hidden sm:block">Řadit dle</label>
+          <select class="select select-bordered select-sm sm:select-md w-full sm:w-56"
+                  x-model="sortOrder">
+            <option value="">Doporučeno</option>
+            <option value="priceAsc">Cena ↑</option>
+            <option value="priceDesc">Cena ↓</option>
+            <option value="alphaAsc">Abecedně A–Z</option>
+            <option value="alphaDesc">Abecedně Z–A</option>
+          </select>
+        </div>
+      </div>
 
-    <!-- Forma -->
-    <div class="dropdown">
-      <div tabindex="0" role="button"
-           class="relative select select-bordered w-full sm:w-56 flex items-center justify-between gap-2"
-           x-ref="formBtn">
-        <span class="truncate" x-text="selectedForm || 'Forma: všechny'"></span>
-    
-        <!-- Clear button -->
-        <button type="button"
-                class="btn btn-xs btn-outline bg-white absolute right-2"
-                x-show="!!selectedForm"
-                aria-label="Zrušit formu"
-                @mousedown.prevent.stop
-                @click.prevent.stop="selectedForm=''; $refs.formBtn.blur()">
-          ✕
+      <div x-show="isLoading" class="flex justify-center py-8" aria-live="polite" aria-busy="true">
+        <span class="loading loading-spinner loading-lg"></span>
+      </div>
+
+
+
+      <div x-show="!isLoading"
+           x-transition.opacity.duration.200ms
+           x-cloak
+           class="p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        <template x-for="product in pagedProducts()" :key="product.id">
+          <article class="h-full">
+            <div class="card h-full bg-base-100 shadow relative">
+              <div x-show="product.badges?.length" class="absolute left-2 top-2 z-10 flex flex-col gap-1">
+                <template x-for="(b,i) in (product?.badges || [])" :key="i">
+                  <span class="badge badge-error badge-sm font-semibold" x-text="b"></span>
+                </template>
+              </div>
+              <figure class="h-48 flex items-center justify-center overflow-hidden">
+                <a :href="link('product', { id: product.id })"
+                   @click="_saveScroll('products')"
+                   class="block w-full h-full">
+                  <img :src="product.image" class="object-contain max-h-full w-full h-full" :alt="product.name" />
+                </a>
+              </figure>
+              <div class="card-body min-w-0 flex flex-col">
+                <h2 class="card-title">
+                  <a :href="link('product', { id: product.id })"
+                     @click="_saveScroll('products')"
+                     class="hover:underline focus:outline-none focus:ring-2 focus:ring-primary/50"
+                     x-text="product.name"></a>
+                </h2>
+                <p class="clamp-2" x-text="product.description"></p>
+                <div class="card-actions mt-auto justify-between items-center">
+                  <div class="tooltip tooltip-right md:tooltip-top cursor-help"
+                       x-init="$store.legal.init()"
+                       x-data="{ paras: $store.legal.paragraphsFor(product) }">
+                    <div class="tooltip-content lg:p-3 max-w-64 md:max-w-auto">
+                      <template x-for="(p, idx) in paras" :key="idx">
+                        <p :class="idx > 0 ? 'mt-1 border-t-1 border-base-300/20 pt-1' : ''" x-text="p"></p>
+                      </template>
+                    </div>
+                    <div class="flex flex-col leading-tight">
+                      <span x-show="product.discounted_price && product.discounted_price < product.price"
+                            class="font-bold text-lg text-error underline decoration-dotted underline-offset-4 decoration-max-gray-400"
+                            x-text="`${product.discounted_price} Kč`"></span>
+                      <span x-show="product.discounted_price && product.discounted_price < product.price"
+                            class="text-sm line-through text-base-content/60 -mt-0.5"
+                            x-text="`${product.price} Kč`"></span>
+                      <span x-show="!product.discounted_price || !(product.discounted_price < product.price)"
+                            class="font-bold text-lg underline decoration-dotted underline-offset-4 decoration-max-gray-400"
+                            x-text="`${product.price} Kč`"></span>
+                    </div>
+                  </div>
+                  <template x-if="!$store.cart.inCart(product.id)">
+                    <button class="btn btn-primary btn-md font-semibold" @click="$store.cart.add(product)">
+                      Do košíku
+                    </button>
+                  </template>
+                  <template x-if="$store.cart.inCart(product.id)">
+                    <div class="join">
+                      <button class="btn btn-square btn-md join-item"
+                              @click="$store.cart.decrement(product.id)"
+                              aria-label="Odebrat kus">−</button>
+                      <input type="text" inputmode="numeric" pattern="[0-9]*"
+                             class="input input-bordered input-md w-10 text-center join-item"
+                             :value="$store.cart.qty(product.id)"
+                             @input="$store.cart.setQty(product.id, $event.target.value)"
+                             @keydown.enter.prevent
+                             aria-label="Počet kusů" />
+                      <button class="btn btn-square btn-md join-item"
+                              @click="$store.cart.increment(product.id)"
+                              aria-label="Přidat kus">+</button>
+                    </div>
+                  </template>
+                </div>
+                <div class="mt-2 text-sm">
+                  <span class="text-success font-bold" x-text="product.stock"></span>
+                  <span class="mx-1 opacity-40">•</span>
+                  <span class="opacity-70" x-text="product.category"></span>
+                </div>
+              </div>
+            </div>
+          </article>
+        </template>
+      </div>
+
+      <div x-show="!isLoading && filteredProducts().length === 0" class="py-16 text-center opacity-70">
+        Nic jsme nenašli pro zadané filtrování.
+      </div>
+
+      <div x-show="!isLoading && (totalPages() > 1 || canLoadMoreFirstPage())"
+           class="mt-2 flex items-center justify-between gap-4 flex-wrap p-4">
+        <div class="text-sm opacity-70">
+          <span x-text="rangeLabel()"></span>
+        </div>
+        <div class="join mx-auto">
+          <button class="btn btn-md join-item" :class="{'btn-disabled': page === 1}"
+                  @click="page = Math.max(1, page - 1)" aria-label="Předchozí stránka">«</button>
+          <template x-for="n in pagesToShow()" :key="`p-${n}-${page}`">
+            <button class="btn btn-md join-item"
+                    :class="{'btn-active': n === page, 'btn-disabled': n === '…'}"
+                    @click="if(n !== '…') page = n"
+                    x-text="n === '…' ? '…' : n"
+                    :aria-current="n === page ? 'page' : null"></button>
+          </template>
+          <button class="btn btn-md join-item" :class="{'btn-disabled': page === totalPages()}"
+                  @click="page = Math.min(totalPages(), page + 1)" aria-label="Další stránka">»</button>
+        </div>
+        <button x-show="canLoadMoreFirstPage()" class="btn btn-secondary btn-md" @click="loadMore()" :disabled="isLoading">
+          <span x-text="loadMoreLabel()"></span>
         </button>
       </div>
-      <ul tabindex="0"
-          class="dropdown-content menu bg-base-100 rounded-box shadow p-2 w-full sm:w-64
-                 max-h-72 overflow-auto grid grid-cols-1">
-        <li>
-          <label class="label cursor-pointer justify-start gap-2 text-max-gray-800">
-            <input type="radio" name="form" class="radio radio-sm radio-secondary"
-                   :checked="!selectedForm" @change="selectedForm=''" />
-            <span>Všechny typy</span>
-          </label>
-        </li>
-        <template x-for="f in forms" :key="'form-'+f">
-          <li>
-            <label class="label cursor-pointer justify-start gap-2 text-max-gray-800">
-              <input type="radio" name="form" class="radio radio-sm radio-secondary"
-                     :checked="selectedForm===f" @change="selectedForm=f" />
-              <span x-text="f"></span>
-            </label>
-          </li>
-        </template>
-      </ul>
-    </div>
 
-    <!-- Vhodné pro (multi) -->
-    <div class="dropdown">
-      <div tabindex="0" role="button"
-           class="relative select select-bordered w-full sm:w-56 flex items-center justify-between gap-2"
-           x-ref="consBtn">
-        <span class="truncate" x-text="consumersLabel()"></span>
-    
-        <!-- Clear button -->
-        <button type="button"
-                class="btn btn-xs btn-outline bg-white absolute right-2"
-                x-show="selectedConsumers.length"
-                aria-label="Zrušit Vhodné pro"
-                @mousedown.prevent.stop
-                @click.prevent.stop="selectedConsumers=[]; $refs.consBtn.blur()">
-          ✕
-        </button>
+      <div class="p-4 mb-10 text-sm leading-relaxed">
+        V kategorii Zdraví a léky naleznete volně prodejné léčivé přípravky, které pomáhají při různých obtížích. Jsou to například léky proti bolesti, při rýmě či kašli, na zvýšenou teplotu nebo při chřipce a nachlazení. Léčbu těmito přípravky zvládnete sami doma. V případě opakujících se nebo déle přetrvávajících obtíží je vždy na místě vyhledat pomoc lékaře. O vhodném léku se nejprve poraďte s lékárníkem.
       </div>
-      <ul tabindex="0"
-          class="dropdown-content menu bg-base-100 rounded-box shadow p-2 w-full sm:w-64
-                 max-h-72 overflow-auto grid grid-cols-1">
-        <template x-for="opt in consumersList" :key="'cons-'+opt">
-          <li>
-            <label class="label cursor-pointer justify-start gap-2 text-max-gray-800">
-              <input type="checkbox" class="checkbox checkbox-sm checkbox-secondary"
-                     :value="opt"
-                     @change="toggleConsumer(opt)"
-                     :checked="selectedConsumers.includes(opt)"/>
-              <span x-text="opt"></span>
-            </label>
-          </li>
-        </template>
-      </ul>
     </div>
-
-    <!-- Možnosti (binary toggles) -->
-    <div class="dropdown">
-      <div tabindex="0" role="button"
-           class="relative select select-bordered w-full sm:w-56 flex items-center justify-between gap-2"
-           x-ref="optsBtn">
-        <span class="truncate" x-text="optionsLabel()"></span>
-    
-        <!-- Clear button -->
-        <button type="button"
-                class="btn btn-xs btn-outline bg-white absolute right-2"
-                x-show="optionsCount()>0"
-                aria-label="Zrušit možnosti"
-                @mousedown.prevent.stop
-                @click.prevent.stop="clearOptions(); $refs.optsBtn.blur()">
-          ✕
-        </button>
-      </div>
-      <ul tabindex="0"
-          class="dropdown-content menu bg-base-100 rounded-box shadow p-2 w-full sm:w-64
-                 max-h-72 overflow-auto grid grid-cols-1">
-        <li>
-          <label class="label cursor-pointer justify-start gap-2 text-max-gray-800">
-            <input type="checkbox" class="checkbox checkbox-sm checkbox-secondary" x-model="onlyInStock">
-            <span>Pouze skladem</span>
-          </label>
-        </li>
-        <li>
-          <label class="label cursor-pointer justify-start gap-2 text-max-gray-800">
-            <input type="checkbox" class="checkbox checkbox-sm checkbox-secondary" x-model="benefitOnly">
-            <span>Lze platit benefity</span>
-          </label>
-        </li>
-        <li>
-          <label class="label cursor-pointer justify-start gap-2 text-max-gray-800">
-            <input type="checkbox" class="checkbox checkbox-sm checkbox-secondary" x-model="onlyDiscounted">
-            <span>Produkty v akci</span>
-          </label>
-        </li>
-      </ul>
-    </div>
-
-    <!-- Řadit dle -->
-    <div class="dropdown">
-      <div tabindex="0" role="button"
-           class="select select-bordered w-full sm:w-56 flex items-center justify-between">
-        <span x-text="sortLabel()"></span>
-      </div>
-      <ul tabindex="0"
-          class="dropdown-content menu bg-base-100 rounded-box shadow p-2 w-full sm:w-64
-                 max-h-72 overflow-auto grid grid-cols-1">
-        <li>
-          <label class="label cursor-pointer justify-start gap-2 text-max-gray-800">
-            <input type="radio" name="sort" class="radio radio-sm radio-secondary"
-                   :checked="!sortOrder" @change="sortOrder=''" />
-            <span>Doporučeno</span>
-          </label>
-        </li>
-        <li>
-          <label class="label cursor-pointer justify-start gap-2 text-max-gray-800">
-            <input type="radio" name="sort" class="radio radio-sm radio-secondary"
-                   :checked="sortOrder==='priceAsc'" @change="sortOrder='priceAsc'" />
-            <span>Cena ↑</span>
-          </label>
-        </li>
-        <li>
-          <label class="label cursor-pointer justify-start gap-2 text-max-gray-800">
-            <input type="radio" name="sort" class="radio radio-sm radio-secondary"
-                   :checked="sortOrder==='priceDesc'" @change="sortOrder='priceDesc'" />
-            <span>Cena ↓</span>
-          </label>
-        </li>
-        <li>
-          <label class="label cursor-pointer justify-start gap-2 text-max-gray-800">
-            <input type="radio" name="sort" class="radio radio-sm radio-secondary"
-                   :checked="sortOrder==='alphaAsc'" @change="sortOrder='alphaAsc'" />
-            <span>Abecedně A–Z</span>
-          </label>
-        </li>
-        <li>
-          <label class="label cursor-pointer justify-start gap-2 text-max-gray-800">
-            <input type="radio" name="sort" class="radio radio-sm radio-secondary"
-                   :checked="sortOrder==='alphaDesc'" @change="sortOrder='alphaDesc'" />
-            <span>Abecedně Z–A</span>
-          </label>
-        </li>
-      </ul>
-    </div>
-
-    <!-- Search (compact & flexible) -->
-     <div>
-    <label class="input input-bordered items-center gap-2 w-full"
-           aria-label="Vyhledávání">
-           <i class="fa-solid fa-magnifying-glass text-max-gray-600"></i>
-      <input type="search" placeholder="Filtruj dle názvu"
-             x-model.debounce.300ms="search" />
-    </label>
   </div>
-  </div>
-
-
-<!-- Heading row -->
-<div class="lg:w-10/12 sm:w-11/12 mx-auto px-4 pt-6 flex flex-wrap items-center gap-2">
-  <h2 id="filters-heading" class="text-lg font-semibold">Výpis produktů: <span class="ml-1 font-semibold" x-text="filteredCount()"></span></h2>
-  <button class="btn btn-sm btn-outline ml-2 border-max-blue-500 text-max-blue-600" @click="clearFilters()" x-show="hasActiveFilters()" x-cloak x-transition.opacity.scale>
-    Vymazat filtry
-  </button>
-</div>
 </section>
 
-<!-- LOADER -->
-<div x-show="isLoading" class="flex justify-center py-8" aria-live="polite" aria-busy="true">
-  <span class="loading loading-spinner loading-lg"></span>
-</div>
-
-
-<div x-show="!isLoading" x-transition.opacity.duration.200ms class="p-4 grid grid-cols-1 sm:grid-cols-2 gap-4 lg:w-10/12 sm:w-11/12 mx-auto items-stretch">
-  <template x-for="product in pagedProducts().filter(p => String(p.id) === '4')" :key="product.id">
-    <article class="h-full">
-      <div class="card card-side h-full bg-base-100 shadow relative px-8">
-        <!-- BADGES -->
-        <div x-show="product.badges?.length" class="absolute left-2 top-2 z-10 flex flex-col gap-1">
-          <template x-for="(b,i) in (product?.badges || [])" :key="i">
-            <span class="badge badge-error badge-sm font-semibold" x-text="b"></span>
-          </template>
-        </div>
-
-        <!-- IMAGE (clickable) -->
-        <figure class="w-128 flex items-center justify-center overflow-hidden">
-          <a :href="link('product', { id: product.id })"
-           @click="_saveScroll('products')" class="block w-full h-full">
-           <img :src="product.image" class="object-contain max-h-full w-full h-full" :alt="product.name" />
-          </a>
-        </figure>
-
-        <!-- BODY -->
-        <div class="card-body min-w-0 flex flex-col">
-          <!-- EXPERIMENTAL TILE -->
-          <h2 class="card-title">
-            <a :href="link('product', { id: product.id })"
-               @click="_saveScroll('products')"
-               class="hover:underline focus:outline-none focus:ring-2 focus:ring-primary/50"
-               x-text="product.name"></a>
-          </h2>
-
-          <p class="clamp-2" x-text="product.description"></p>
-
-          <div x-data="ratingLine()" x-init="$watch('product.reviews', v => v && set(v))" class="flex items-center gap-2 text-sm" x-show="hasRating()" x-cloak>
-            <span class="flex items-center gap-0 text-lg leading-none">
-              <template x-for="(s,i) in stars()" :key="i">
-                <i
-                  :class="s === 'full'
-                    ? 'fa-solid fa-star text-yellow-400'
-                    : (s === 'half'
-                        ? 'fa-solid fa-star-half-stroke text-yellow-400'
-                        : 'fa-regular fa-star text-base-content/30')">
-                </i>
-              </template>
-            </span>
-          
-            <span class="font-bold" x-text="fmtAvg()"></span>
-            <span class="text-base-content/60">(<span x-text="count"></span> recenzí)</span>
-          </div>
-
-
-
-
-          <!-- ACTIONS -->
-          <div class="card-actions mt-auto justify-between items-center">
-            <!-- PRICE BLOCK -->
-            <div class="flex flex-col leading-tight">
-              <span
-                x-show="product.discounted_price && product.discounted_price < product.price"
-                class="font-bold text-lg text-error"
-                x-text="`${product.discounted_price} Kč`"
-              ></span>
-              <span
-                x-show="product.discounted_price && product.discounted_price < product.price"
-                class="text-sm line-through text-base-content/60 -mt-0.5"
-                x-text="`${product.price} Kč`"
-              ></span>
-              <span
-                x-show="!product.discounted_price || !(product.discounted_price < product.price)"
-                class="font-bold text-lg"
-                x-text="`${product.price} Kč`"
-              ></span>
-            </div>
-
-            <!-- CTA or STEPPER -->
-            <template x-if="!$store.cart.inCart(product.id)">
-              <button class="btn btn-primary btn-md font-semibold"
-                      @click="$store.cart.add(product)">
-                Do košíku
-              </button>
-            </template>
-
-            <template x-if="$store.cart.inCart(product.id)">
-              <div class="join">
-                <button class="btn btn-square btn-md join-item"
-                        @click="$store.cart.decrement(product.id)"
-                        aria-label="Odebrat kus">−</button>
-
-                <input type="text" inputmode="numeric" pattern="[0-9]*"
-                      class="input input-bordered input-md w-10 text-center join-item"
-                      :value="$store.cart.qty(product.id)"
-                      @input="$store.cart.setQty(product.id, $event.target.value)"
-                      @keydown.enter.prevent
-                      aria-label="Počet kusů" />
-
-                <button class="btn btn-square btn-md join-item"
-                        @click="$store.cart.increment(product.id)"
-                        aria-label="Přidat kus">+</button>
-              </div>
-            </template>
-          </div>
-
-          <!-- META -->
-          <div class="mt-2 text-sm">
-            <span class="text-success font-bold" x-text="product.stock"></span>
-            <span class="mx-1 opacity-40">•</span>
-            <span class="opacity-70" x-text="product.category"></span>
-          </div>
-        </div>
-      </div>
-    </article>
-  </template>
-</div>
-
-
-<!-- PRODUCT CARDS GRID -->
-<div x-show="!isLoading" x-transition.opacity.duration.200ms class="p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:w-10/12 sm:w-11/12 mx-auto items-stretch">
-  <template x-for="product in pagedProducts()" :key="product.id">
-    <article class="h-full">
-      <div class="card h-full bg-base-100 shadow relative">
-        <!-- BADGES -->
-        <div x-show="product.badges?.length" class="absolute left-2 top-2 z-10 flex flex-col gap-1">
-          <template x-for="(b,i) in (product?.badges || [])" :key="i">
-            <span class="badge badge-error badge-sm font-semibold" x-text="b"></span>
-          </template>
-        </div>
-
-        <!-- IMAGE (clickable) -->
-        <figure class="h-48 flex items-center justify-center overflow-hidden">
-          <a :href="link('product', { id: product.id })"
-           @click="_saveScroll('products')" class="block w-full h-full">
-           <img :src="product.image" class="object-contain max-h-full w-full h-full" :alt="product.name" />
-          </a>
-        </figure>
-
-        <!-- BODY -->
-        <div class="card-body min-w-0 flex flex-col">
-          <!-- TITLE (clickable) -->
-          <h2 class="card-title">
-            <a :href="link('product', { id: product.id })"
-               @click="_saveScroll('products')"
-               class="hover:underline focus:outline-none focus:ring-2 focus:ring-primary/50"
-               x-text="product.name"></a>
-          </h2>
-
-          <p class="clamp-2" x-text="product.description"></p>
-
-          <!-- ACTIONS -->
-          <div class="card-actions mt-auto justify-between items-center">
-          <!-- PRICE + LEGAL TOOLTIP -->
-          <div
-            class="tooltip tooltip-right md:tooltip-top cursor-help"
-            x-init="$store.legal.init()"
-            x-data="{ paras: $store.legal.paragraphsFor(product) }"
-          >
-            <!-- DaisyUI tooltip body (kept exactly like your sample, but dynamic) -->
-            <div class="tooltip-content lg:p-3 max-w-64 md:max-w-auto">
-              <template x-for="(p, idx) in paras" :key="idx">
-                <p
-                  :class="idx > 0 ? 'mt-1 border-t-1 border-base-300/20 pt-1' : ''"
-                  x-text="p"
-                ></p>
-              </template>
-            </div>
-
-            <!-- PRICE BLOCK (unchanged styles) -->
-            <div class="flex flex-col leading-tight">
-              <span
-                x-show="product.discounted_price && product.discounted_price < product.price"
-                class="font-bold text-lg text-error underline decoration-dotted underline-offset-4 decoration-max-gray-400"
-                x-text="`${product.discounted_price} Kč`"
-              ></span>
-              <span
-                x-show="product.discounted_price && product.discounted_price < product.price"
-                class="text-sm line-through text-base-content/60 -mt-0.5"
-                x-text="`${product.price} Kč`"
-              ></span>
-              <span
-                x-show="!product.discounted_price || !(product.discounted_price < product.price)"
-                class="font-bold text-lg underline decoration-dotted underline-offset-4 decoration-max-gray-400"
-                x-text="`${product.price} Kč`"
-              ></span>
-            </div>
-          </div>
-
-
-            <!-- CTA or STEPPER -->
-            <template x-if="!$store.cart.inCart(product.id)">
-              <button class="btn btn-primary btn-md font-semibold" @click="$store.cart.add(product)">
-                Do košíku
-              </button>
-            </template>
-
-            <template x-if="$store.cart.inCart(product.id)">
-              <div class="join">
-                <button class="btn btn-square btn-md join-item"
-                        @click="$store.cart.decrement(product.id)"
-                        aria-label="Odebrat kus">−</button>
-
-                <input type="text" inputmode="numeric" pattern="[0-9]*"
-                      class="input input-bordered input-md w-10 text-center join-item"
-                      :value="$store.cart.qty(product.id)"
-                      @input="$store.cart.setQty(product.id, $event.target.value)"
-                      @keydown.enter.prevent
-                      aria-label="Počet kusů" />
-
-                <button class="btn btn-square btn-md join-item"
-                        @click="$store.cart.increment(product.id)"
-                        aria-label="Přidat kus">+</button>
-              </div>
-            </template>
-          </div>
-
-          <!-- META -->
-          <div class="mt-2 text-sm">
-            <span class="text-success font-bold" x-text="product.stock"></span>
-            <span class="mx-1 opacity-40">•</span>
-            <span class="opacity-70" x-text="product.category"></span>
-          </div>
-        </div>
-      </div>
-    </article>
-  </template>
-</div>
-
-
-<!-- EMPTY STATE -->
-<div x-show="!isLoading && filteredProducts().length === 0" class="py-16 text-center opacity-70">
-  Nic jsme nenašli pro zadané filtrování.
-</div>
-
-<!-- PAGINATION + LOAD MORE -->
-<div x-show="!isLoading && (totalPages() > 1 || canLoadMoreFirstPage())"
-     class="mt-6 flex items-center justify-between gap-4 flex-wrap w-11/12 lg:w-10/12 mx-auto p-4">
-  <!-- left: range -->
-  <div class="text-sm opacity-70">
-    <span x-text="rangeLabel()"></span>
-  </div>
-
-  <!-- center: pager -->
-  <div class="join mx-auto">
-    <button class="btn btn-md join-item" :class="{'btn-disabled': page === 1}"
-            @click="page = Math.max(1, page - 1)" aria-label="Předchozí stránka">«</button>
-
-    <template x-for="n in pagesToShow()" :key="`p-${n}-${page}`">
-      <button class="btn btn-md join-item"
-              :class="{'btn-active': n === page, 'btn-disabled': n === '…'}"
-              @click="if(n !== '…') page = n"
-              x-text="n === '…' ? '…' : n"
-              :aria-current="n === page ? 'page' : null"></button>
-    </template>
-
-    <button class="btn btn-md join-item" :class="{'btn-disabled': page === totalPages()}"
-            @click="page = Math.min(totalPages(), page + 1)" aria-label="Další stránka">»</button>
-  </div>
-
-  <button x-show="canLoadMoreFirstPage()" class="btn btn-secondary btn-md" @click="loadMore()" :disabled="isLoading">
-    <span x-text="loadMoreLabel()"></span>
-  </button>
-</div>
-
-<div class="w-11/12 lg:w-10/12 mx-auto p-4 pt-12 pb-12">V kategorii Zdraví a léky naleznete volně prodejné léčivé přípravky, které pomáhají při různých obtížích. Jsou to například léky proti bolesti, při rýmě či kašli, na zvýšenou teplotu nebo při chřipce a nachlazení. Léčbu těmito přípravky zvládnete sami doma. V případě opakujících se nebo déle přetrvávajících obtíží je vždy na místě vyhledat pomoc lékaře. O vhodném léku se nejprve poraďte s lékárníkem.</div>
 </section>
 
 <!-- ROUTE == PRODUCT DETAIL -->
@@ -1604,16 +1450,16 @@
           </template>
         </div>
 
-        <div class="absolute right-4 top-4 z-20 flex flex-col gap-2">
-          <button type="button" class="tooltip tooltip-left btn btn-circle btn-sm md:btn-md border border-base-200 bg-base-100 hover:bg-base-200" :class="isSavedCurrent() ? 'text-error' : ''" data-tip="Uložit"
+        <div class="absolute right-4 top-4 z-10 flex flex-col gap-2">
+          <button type="button" class="tooltip tooltip-left btn btn-circle btn-md shadow-lg border border-base-200 bg-base-100 hover:bg-base-200" :class="isSavedCurrent() ? 'text-error' : ''" data-tip="Uložit"
                   @click.prevent="toggleSave()">
             <i :class="isSavedCurrent() ? 'fa-solid fa-lg fa-heart' : 'fa-regular fa-lg fa-heart'"></i>
           </button>
-          <button type="button" class="tooltip tooltip-left btn btn-circle btn-sm md:btn-md border border-base-200 bg-base-100 hover:bg-base-200" data-tip="Sdílet"
+          <button type="button" class="tooltip tooltip-left btn btn-circle btn-md shadow-lg border border-base-200 bg-base-100 hover:bg-base-200" data-tip="Sdílet"
                   @click.prevent="openShareModal()">
             <i class="fa-regular fa-lg fa-arrow-up-from-square"></i>
           </button>
-          <button type="button" class="tooltip tooltip-left btn btn-circle btn-sm md:btn-md border border-base-200 bg-base-100 hover:bg-base-200" data-tip="Zeptat se"
+          <button type="button" class="tooltip tooltip-left btn btn-circle btn-md shadow-lg border border-base-200 bg-base-100 hover:bg-base-200" data-tip="Zeptat se"
                   @click.prevent="openAskModal()">
             <i class="fa-regular fa-lg fa-comment-question"></i>
           </button>
@@ -1696,7 +1542,7 @@
 
         <!-- PRODUCT DETAIL: PRICE + LEGAL TOOLTIP -->
         <div
-          class="tooltip cursor-help"
+          class="tooltip cursor-help z-[30]"
           x-init="$store.legal.init()"
           x-data="{
             // Build a pseudo 'product' for the legal helper based on your local API
@@ -2199,8 +2045,7 @@
     <div x-cloak x-show="shareModal.open" x-transition.opacity
          class="fixed inset-0 z-[70] flex items-center justify-center px-4"
          @keydown.escape.window="closeShareModal()">
-      <!-- TODO: make backdrop-blur discrete, e.g. with softer appear/dissapear, like short easing-->
-      <div class="absolute inset-0 bg-base-200/10 backdrop-blur-sm" @click="closeShareModal()"></div>
+      <div class="absolute inset-0 bg-base-200/10 backdrop-blur-sm transition-all duration-500 ease-out" @click="closeShareModal()"></div>
       <div class="relative z-[71] w-full max-w-lg bg-base-100 border border-base-200 rounded-2xl shadow-2xl p-6 space-y-5">
         <button type="button"
                 class="btn btn-circle btn-ghost absolute right-3 top-3"
@@ -2276,7 +2121,7 @@
     <div x-cloak x-show="askModal.open" x-transition.opacity
          class="fixed inset-0 z-[80] flex items-center justify-center px-4"
          @keydown.escape.window="closeAskModal()">
-      <div class="absolute inset-0 bg-base-200/90 backdrop-blur-sm" @click="closeAskModal()"></div>
+      <div class="absolute inset-0 bg-base-200/10 backdrop-blur-sm transition-all duration-500 ease-out" @click="closeAskModal()"></div>
       <div class="relative z-[81] w-full max-w-xl bg-base-100 border border-base-200 rounded-2xl shadow-2xl p-6 space-y-5">
         <button type="button"
                 class="btn btn-circle btn-ghost absolute right-3 top-3"
@@ -4053,12 +3898,24 @@ function deliveryPaymentUI() {
     <h1 class="text-3xl mx-auto mb-6">Adresy</h1>
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
 
-      <fieldset class="border border-base-300 rounded-xl bg-white shadow-sm p-4 py-8 md:p-10">
-        <h2 class="text-xl font-medium mb-4">Kontaktní údaje</h2>
+      <fieldset class="border border-base-300 rounded-xl bg-white shadow-sm p-6 py-8 md:p-16 grid grid-cols-1 gap-y-1">
+        <h2 class="text-xl font-medium mb-4 border-1">Kontaktní údaje</h2>
         <fieldset class="fieldset">
           <legend class="fieldset-legend text-sm text-max-gray-600">E-mail</legend>
           <label class="input input-lg w-full">
             <i class="fa-regular fa-envelope text-max-gray-400"></i>
+            <input type="email" placeholder="" />
+          </label>
+        </fieldset>
+        <fieldset class="fieldset">
+          <legend class="fieldset-legend text-sm text-max-gray-600">Jméno</legend>
+          <label class="input input-lg w-full">
+            <input type="text" placeholder="" />
+          </label>
+        </fieldset>
+        <fieldset class="fieldset">
+          <legend class="fieldset-legend text-sm text-max-gray-600">Příjmení</legend>
+          <label class="input input-lg w-full">
             <input type="text" placeholder="" />
           </label>
         </fieldset>
@@ -4068,17 +3925,21 @@ function deliveryPaymentUI() {
         <legend class="fieldset-legend text-sm text-max-gray-600">Telefon</legend>
         <label class="input input-lg w-full">
         <span class="label">+420</span>
-        <input type="text" placeholder="" />
+        <input type="phone" placeholder="" />
         </label>
       </fieldset>
       
       </fieldset>
-      <fieldset class="border border-base-300 rounded-xl bg-white shadow-sm p-4 py-8 md:p-10">
+      <fieldset class="border border-base-300 rounded-xl bg-white shadow-sm p-6 py-8 md:p-16 grid grid-cols-1 gap-y-1">
         <h2 class="text-xl font-medium mb-4">Doručení a fakturace</h2>
            <label class="label text-base border-base-300">
             <input type="checkbox" class="checkbox rounded checkbox-secondary" />
-            Remember me
+            Zadat podrobnosti k doručení a informace pro kurýra
           </label>
+           <label class="label text-base border-base-300">
+            <input type="checkbox" class="checkbox rounded checkbox-secondary" />
+            Zadat firemní údaje
+          </label>          
           <fieldset class="fieldset">
             <legend class="fieldset-legend text-sm text-max-gray-600">Poznámka k objednávce</legend>
             <textarea class="textarea h-24 w-full" placeholder="Např. preferovaná barva produktu"></textarea>
@@ -5850,6 +5711,11 @@ selectedConsumers: [],            // multi
 onlyInStock: false,
 benefitOnly: false,
 onlyDiscounted: false,
+priceBounds: { min: 0, max: 0 },
+priceMin: null,
+priceMax: null,
+priceQuickRanges: [],
+activePriceRangeIndex: null,
 
 sortOrder: '',
 isLoading: true,
@@ -5857,6 +5723,7 @@ _filterTimer: null,
 page: 1,
 pageSize: 8,
 showCount: 8,
+_initialDataLoaded: false,
 
 // router
 route: 'products',
@@ -5893,6 +5760,8 @@ init() {
   this.$watch('benefitOnly', trigger);
   this.$watch('onlyDiscounted', trigger);
   this.$watch('sortOrder', trigger);
+  this.$watch('priceMin', trigger);
+  this.$watch('priceMax', trigger);
 
   // keep page in range if results shrink
   this.$watch(() => this.filteredProducts().length, () => {
@@ -5920,6 +5789,8 @@ init() {
   this.$watch('benefitOnly', refreshCatalog);
   this.$watch('onlyDiscounted', refreshCatalog);
   this.$watch('sortOrder', refreshCatalog);
+  this.$watch('priceMin', refreshCatalog);
+  this.$watch('priceMax', refreshCatalog);
 
 },
 // Load brands.json (call from loadData or once on home)
@@ -6019,6 +5890,24 @@ async loadData() {
     this.products.forEach(p => (Array.isArray(p.consumers) ? p.consumers : []).forEach(c => cons.add(c)));
     this.consumersList = [...cons].sort((a,b)=>a.localeCompare(b,'cs'));
 
+    const priceValues = this.products
+      .map(p => Number(p.discounted_price ?? p.price ?? 0))
+      .filter(v => Number.isFinite(v) && v >= 0);
+    if (priceValues.length) {
+      const rawMin = Math.min(...priceValues);
+      const rawMax = Math.max(...priceValues);
+      const normalizedMax = Math.ceil(rawMax / 10) * 10;
+      this.priceBounds = { min: 0, max: normalizedMax };
+      this.priceMin = 0;
+      this.priceMax = normalizedMax;
+      this.priceQuickRanges = this.buildPriceQuickRanges(priceValues, normalizedMax);
+    } else {
+      this.priceBounds = { min: 0, max: 0 };
+      this.priceMin = 0;
+      this.priceMax = 0;
+      this.priceQuickRanges = [];
+    }
+
     // 👉 optional data
     const [cats, links] = await Promise.allSettled([
       fetch('data/categories.json').then(r => r.ok ? r.json() : []),
@@ -6054,6 +5943,7 @@ async loadData() {
       await this.loadBlog();
     } catch {}
   } finally {
+    this._initialDataLoaded = true;
     this.isLoading = false;
   }
 },
@@ -6091,10 +5981,36 @@ optionsLabel() {
   if (this.onlyDiscounted)  on.push('V akci');
   return on.length ? this.truncate(on.join(', ')) : 'Možnosti';
 },
-clearOptions() {
-  this.onlyInStock = false;
-  this.benefitOnly = false;
-  this.onlyDiscounted = false;
+buildPriceQuickRanges(rawMin, rawMax, normalizedMax) {
+  const ranges = [];
+  const min = Math.floor(Math.min(rawMin, normalizedMax) / 10) * 10;
+  const max = Math.ceil(Math.max(rawMax, min) / 10) * 10;
+  if (!(Number.isFinite(min) && Number.isFinite(max)) || max <= min) return ranges;
+  const segments = 4;
+  const span = max - min;
+  const step = Math.max(10, Math.ceil(span / segments / 10) * 10);
+  let start = min;
+  for (let i = 0; i < segments; i++) {
+    let end = i === segments - 1 ? max : Math.min(max, start + step);
+    if (end < start) end = start;
+    ranges.push({
+      min: Math.max(0, Math.floor(start / 10) * 10),
+      max: Math.ceil(end / 10) * 10
+    });
+    start = end + 1;
+  }
+  const deduped = [];
+  for (const r of ranges) {
+    if (!deduped.length || deduped[deduped.length - 1].min !== r.min || deduped[deduped.length - 1].max !== r.max) {
+      deduped.push(r);
+    }
+  }
+  return deduped;
+},
+priceRangeLabel(range) {
+  if (!range) return '';
+  const fmt = v => new Intl.NumberFormat('cs-CZ').format(Math.round(Number(v) || 0));
+  return `${fmt(range.min)} – ${fmt(range.max)} Kč`;
 },
 
 // ---- homepage helpers (images/logos; adapt paths as needed) ----
@@ -6417,12 +6333,35 @@ async loadDetail(id) {
 },
 
 // ---- filter helpers ----
-optionsCount() {
-  let n = 0;
-  if (this.onlyInStock) n++;
-  if (this.benefitOnly) n++;
-  if (this.onlyDiscounted) n++;
-  return n;
+_priceRangeActive() {
+  if (!this.priceBounds) return false;
+  const minBound = Number(this.priceBounds.min ?? 0);
+  const maxBound = Number(this.priceBounds.max ?? 0);
+  if (!Number.isFinite(minBound) || !Number.isFinite(maxBound)) return false;
+  const currentMin = Number(this.priceMin ?? minBound);
+  const currentMax = Number(this.priceMax ?? maxBound);
+  return (Number.isFinite(currentMin) && currentMin > minBound) ||
+         (Number.isFinite(currentMax) && currentMax < maxBound);
+},
+clampPrice(value, which = 'min') {
+  if (!this.priceBounds) return;
+  const minBound = Number(this.priceBounds.min ?? 0);
+  const maxBound = Number(this.priceBounds.max ?? 0);
+  if (!Number.isFinite(minBound) || !Number.isFinite(maxBound)) return;
+  let num = Number(value);
+  if (!Number.isFinite(num)) num = which === 'min' ? minBound : maxBound;
+  this.activePriceRangeIndex = null;
+  if (which === 'min') {
+    const currentMax = Number(this.priceMax);
+    const upper = Number.isFinite(currentMax) ? currentMax : maxBound;
+    const next = Math.min(Math.max(num, minBound), upper);
+    if (next !== this.priceMin) this.priceMin = next;
+  } else {
+    const lower = minBound;
+    const next = Math.max(Math.min(num, maxBound), lower);
+    if (next !== this.priceMax) this.priceMax = next;
+    if (this.priceMin !== lower) this.priceMin = lower;
+  }
 },
 filteredCount() { return this.filteredProducts().length; },
 
@@ -6441,6 +6380,28 @@ toggleConsumer(val) {
   else this.selectedConsumers.push(val);
   this.selectedConsumers = [...this.selectedConsumers]; // normalize
 },
+applyPriceQuickRange(idx) {
+  const range = this.priceQuickRanges?.[idx];
+  if (!range) {
+    this.activePriceRangeIndex = null;
+    if (this.priceBounds) {
+      this.priceMin = this.priceBounds.min;
+      this.priceMax = this.priceBounds.max;
+    }
+    return;
+  }
+  if (this.activePriceRangeIndex === idx) {
+    this.activePriceRangeIndex = null;
+    if (this.priceBounds) {
+      this.priceMin = this.priceBounds.min;
+      this.priceMax = this.priceBounds.max;
+    }
+  } else {
+    this.activePriceRangeIndex = idx;
+    this.priceMin = Number(range.min);
+    this.priceMax = Number(range.max);
+  }
+},
 
 hasActiveFilters() {
   return !!(
@@ -6450,7 +6411,8 @@ hasActiveFilters() {
     this.selectedConsumers.length ||
     this.onlyInStock ||
     this.benefitOnly ||
-    this.onlyDiscounted
+    this.onlyDiscounted ||
+    this._priceRangeActive()
   );
 },
 activeFiltersCount() {
@@ -6462,6 +6424,7 @@ activeFiltersCount() {
   if (this.onlyInStock) n++;
   if (this.benefitOnly) n++;
   if (this.onlyDiscounted) n++;
+  if (this._priceRangeActive()) n++;
   return n;
 },
 clearFilters() {
@@ -6473,13 +6436,23 @@ clearFilters() {
   this.benefitOnly = false;
   this.onlyDiscounted = false;
   this.sortOrder = '';
+  this.activePriceRangeIndex = null;
+  if (this.priceBounds) {
+    this.priceMin = this.priceBounds.min;
+    this.priceMax = this.priceBounds.max;
+  }
 },
 
 // ---- loader delay ----
 scheduleDisplayDelay() {
-  this.isLoading = true;
-  clearTimeout(this._filterTimer);
-  this._filterTimer = setTimeout(() => { this.isLoading = false; }, 750);
+  if (!this._initialDataLoaded) {
+    this.isLoading = true;
+    clearTimeout(this._filterTimer);
+    this._filterTimer = setTimeout(() => { this.isLoading = false; }, 750);
+  } else {
+    clearTimeout(this._filterTimer);
+    this.isLoading = false;
+  }
 },
 
 // ---- filtering/sorting ----
@@ -6516,6 +6489,17 @@ filteredProducts() {
       const d = Number(p.discounted_price || 0);
       const pr = Number(p.price || 0);
       return d > 0 && d < pr;
+    });
+  }
+  if (this.priceBounds) {
+    const minBound = Number(this.priceBounds.min ?? 0);
+    const maxBound = Number(this.priceBounds.max ?? 0);
+    const min = Number.isFinite(Number(this.priceMin)) ? Number(this.priceMin) : minBound;
+    const max = Number.isFinite(Number(this.priceMax)) ? Number(this.priceMax) : maxBound;
+    items = items.filter(p => {
+      const price = Number(p.discounted_price ?? p.price ?? 0);
+      if (!Number.isFinite(price)) return false;
+      return price >= min && price <= max;
     });
   }
 
@@ -6734,9 +6718,26 @@ rangeLabel() {
       fallback: './images/placeholder.png',
 
       async init() {
-        // adjust path if needed
         const res = await fetch('./data/categories.json');
-        this.categories = await res.json();
+        const raw = await res.json();
+        this.categories = Array.isArray(raw) ? raw.map(cat => this.normalizeCategory(cat)) : [];
+      },
+
+      normalizeCategory(cat) {
+        const base = { ...cat };
+        const appearance = { ...(cat?.appearance || {}) };
+        if (cat?.icon && !appearance.icon) appearance.icon = cat.icon;
+        if (cat?.bg && !appearance.backgroundClass) appearance.backgroundClass = cat.bg;
+        if (cat?.backgroundClass && !appearance.backgroundClass) appearance.backgroundClass = cat.backgroundClass;
+        if (cat?.backgroundToken && !appearance.backgroundToken) appearance.backgroundToken = cat.backgroundToken;
+        if (cat?.background && !appearance.background) appearance.background = cat.background;
+        if (cat?.iconClass && !appearance.iconClass) appearance.iconClass = cat.iconClass;
+        if (cat?.iconToken && !appearance.iconToken) appearance.iconToken = cat.iconToken;
+        if (cat?.iconColor && !appearance.iconColor) appearance.iconColor = cat.iconColor;
+        if (cat?.iconShadow && !appearance.iconShadow) appearance.iconShadow = cat.iconShadow;
+        if (Object.keys(appearance).length) base.appearance = appearance;
+        else delete base.appearance;
+        return base;
       },
 
       imageUrl(cat) {
@@ -6745,16 +6746,84 @@ rangeLabel() {
         return base ? withSlug : this.fallback;
       },
 
+      isIconTile(cat) {
+        return !!(cat?.appearance && cat.appearance.icon);
+      },
+
+      squareClass(cat) {
+        const app = cat?.appearance || {};
+        const cls = [];
+        if (app.backgroundClass) cls.push(app.backgroundClass);
+        if (!cls.length && !this.isIconTile(cat)) cls.push('bg-base-200');
+        return cls.join(' ');
+      },
+
+      squareStyle(cat) {
+        const app = cat?.appearance || {};
+        const styles = [];
+        if (app.backgroundGradient) styles.push(`background:${app.backgroundGradient}`);
+        else if (app.background) styles.push(`background:${app.background}`);
+        else if (app.backgroundToken) styles.push(`background:${this.tokenToVar(app.backgroundToken)}`);
+        return styles.join(';');
+      },
+
+      iconClass(cat) {
+        const app = cat?.appearance || {};
+        const cls = [];
+        if (app.icon) cls.push(app.icon);
+        if (app.iconClass) cls.push(app.iconClass);
+        if (!cls.length) cls.push('fa-solid fa-circle-info');
+        if (!cls.some(c => /text-/i.test(c))) cls.push('text-lg md:text-2xl');
+        return cls.join(' ');
+      },
+
+      iconStyle(cat) {
+        const app = cat?.appearance || {};
+        const styles = [];
+        if (app.iconToken) styles.push(`color:${this.tokenToVar(app.iconToken)}`);
+        else if (app.iconColor) styles.push(`color:${app.iconColor}`);
+        if (app.iconShadow) styles.push(`text-shadow:${app.iconShadow}`);
+        return styles.join(';');
+      },
+
+      hrefFor(cat) {
+        const route = String(cat?.route || '').trim();
+        if (!route || route.toUpperCase() === 'TBD') return '#';
+        const normalized = route.replace(/^#/,'').replace(/^\/+/, '');
+        return normalized ? `#/${normalized}` : '#';
+      },
+
+      handleClick(cat, event) {
+        const href = this.hrefFor(cat);
+        if (!href || href === '#') {
+          event.preventDefault();
+          return;
+        }
+        if (href.startsWith('#/')) {
+          event.preventDefault();
+          window.location.hash = href.slice(1);
+        }
+      },
+
       slug(str) {
         return str
           .toLowerCase()
-          .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // remove diacritics
+          .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
           .replace(/[^a-z0-9]+/g, '-')
           .replace(/(^-|-$)/g, '');
       },
 
+      tokenToVar(token) {
+        const raw = String(token || '').trim();
+        if (!raw) return '';
+        if (/^var\(/.test(raw) || raw.startsWith('#') || raw.startsWith('rgb') || raw.startsWith('hsl') || raw.includes('gradient')) {
+          return raw;
+        }
+        const cleaned = raw.replace(/^--/, '');
+        return `var(--${cleaned})`;
+      },
+
       productsLabel(n) {
-        // Czech pluralization-ish
         if (n === 1) return '1 produkt';
         if (n >= 2 && n <= 4) return `${n} produkty`;
         return `${n} produktů`;

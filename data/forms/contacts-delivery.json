@@ -1,7 +1,7 @@
 [
     {
         "filedset_id": 1,
-        "fieldset_name": "Kontaktní informace",
+        "fieldset_name": "Kontaktní údaje",
         "items": 
             [
                 {
@@ -131,7 +131,7 @@
                     "id": 8,
                     "type": "checkbox_fieldset",
                     "default": "!checked",
-                    "label": "Zadat podrobnosti k doručení a informace pro kurýra",
+                    "label": "Zadat firemní údaje",
                     "validations": null,
                     "items":[  
                                 {
