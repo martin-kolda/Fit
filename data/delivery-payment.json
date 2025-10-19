@@ -31,7 +31,7 @@
     },
     {
         "id": 3,
-        "name": "Osobní odběr v lékárně",
+        "name": "Vyzvednutí v lékárně",
         "tooltip": null,
         "type": "pickup",
         "price_from": false,

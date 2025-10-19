@@ -324,6 +324,533 @@
     } else {
       Alpine.store('saved').load?.();
     }
+
+    if (!Alpine.store('activeOrder')) {
+      const storageKey = 'fit:active-order';
+      const underlineClass = 'underline underline-offset-4 decoration-4 decoration-max-blue-500';
+      const fallbackFlowSteps = {
+        home_delivery_pay_online: [
+          'order_acceptation',
+          'order_payment_online',
+          'order_completion',
+          'order_shipped',
+          'order_delivered',
+          'order_received'
+        ],
+        home_delivery_cash_on_delivery: [
+          'order_acceptation',
+          'order_completion',
+          'order_shipped',
+          'order_delivered',
+          'order_payment_on_delivery',
+          'order_received'
+        ],
+        pharmacy_reservation: [
+          'order_acceptation',
+          'order_completion',
+          'order_prepared',
+          'order_payment_pharmacy',
+          'order_received'
+        ]
+      };
+
+      const escapeHtml = (input) => {
+        if (input == null) return '';
+        return String(input)
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#39;');
+      };
+
+      const capitalize = (value) => {
+        const s = String(value || '');
+        return s ? s.charAt(0).toUpperCase() + s.slice(1) : '';
+      };
+
+      const formatOrderNumber = (value) => {
+        const digits = String(value || '').replace(/\D+/g, '');
+        if (!digits) return '';
+        return digits.replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+      };
+
+      const computePurchaseForms = (kind = 'order') => {
+        if (kind === 'reservation') {
+          return {
+            nominative: 'Rezervace',
+            nominativeLower: 'rezervace',
+            accusativeLower: 'rezervaci',
+            genitiveLower: 'rezervace'
+          };
+        }
+        return {
+          nominative: 'Objednávka',
+          nominativeLower: 'objednávka',
+          accusativeLower: 'objednávku',
+          genitiveLower: 'objednávky'
+        };
+      };
+
+      const detectFlowFromContext = (context = {}) => {
+        if (context.flowId) return context.flowId;
+        const delivery = context.deliveryMeta || {};
+        const payment = context.paymentMeta || {};
+        const deliveryType = String(delivery.type || '').toLowerCase();
+        const deliveryName = String(delivery.name || '').toLowerCase();
+        const mapType = String(delivery.mapType || '').toLowerCase();
+        const paymentName = String(payment.name || '').toLowerCase();
+
+        const isPharmacy =
+          deliveryType === 'pickup' &&
+          (mapType === 'pharmacy' || deliveryName.includes('lékárn'));
+        if (isPharmacy) return 'pharmacy_reservation';
+
+        const isCash = paymentName.includes('dobírk');
+        if (isCash) return 'home_delivery_cash_on_delivery';
+
+        return 'home_delivery_pay_online';
+      };
+
+      const detectPurchaseKind = (flowId = '') => {
+        return flowId === 'pharmacy_reservation' ? 'reservation' : 'order';
+      };
+
+      const resolveDeliveryAddress = (deliveryMeta = {}, deliveryDetails = []) => {
+        const pickupAddress = deliveryMeta?.pickup?.addressLine || '';
+        const pickupName = deliveryMeta?.pickup?.name || '';
+        if (pickupAddress) {
+          return [pickupName, pickupAddress]
+            .map(part => String(part || '').trim())
+            .filter(Boolean)
+            .join(', ');
+        }
+        const detail = (Array.isArray(deliveryDetails) ? deliveryDetails : []).find(item =>
+          /adresa|adresu/i.test(String(item?.label || ''))
+        );
+        if (detail?.value) {
+          return String(detail.value)
+            .split('\n')
+            .map(part => part.trim())
+            .filter(Boolean)
+            .join(', ');
+        }
+        return '';
+      };
+
+      const estimatePackages = (items = []) => {
+        const totalQty = (Array.isArray(items) ? items : []).reduce((sum, item) => {
+          const qty = Number(item?.qty || 0);
+          return sum + (Number.isFinite(qty) ? qty : 0);
+        }, 0);
+        if (!totalQty) return 1;
+        return Math.max(1, Math.ceil(totalQty / 4));
+      };
+
+      const estimateWeight = (items = []) => {
+        const totalQty = (Array.isArray(items) ? items : []).reduce((sum, item) => {
+          const qty = Number(item?.qty || 0);
+          return sum + (Number.isFinite(qty) ? qty : 0);
+        }, 0);
+        const weight = totalQty * 0.35;
+        const normalized = weight > 0 ? weight : 0.35;
+        return normalized.toFixed(2);
+      };
+
+      const activeOrderStore = {
+        key: storageKey,
+        loading: false,
+        error: null,
+        flows: [],
+        steps: {},
+        order: null,
+        cashModalOpen: false,
+        _dataLoaded: false,
+
+        async ensureData() {
+          if (this._dataLoaded || this.loading) return;
+          this.loading = true;
+          this.error = null;
+          try {
+            const [flowRes, stepRes] = await Promise.all([
+              fetch('./data/order-flow.json', { cache: 'no-store' }),
+              fetch('./data/order-tracking.json', { cache: 'no-store' })
+            ]);
+            const flowJson = await flowRes.json();
+            const stepJson = await stepRes.json();
+            this.flows = Array.isArray(flowJson) ? flowJson : [];
+            this.steps = Array.isArray(stepJson)
+              ? stepJson.reduce((acc, item) => {
+                  if (item?.id) acc[item.id] = item;
+                  return acc;
+                }, {})
+              : {};
+            this._dataLoaded = true;
+          } catch (e) {
+            console.warn('activeOrder: failed to load flow data', e);
+            this.error = 'Nepodařilo se načíst data objednávky.';
+            this._dataLoaded = false;
+          } finally {
+            this.loading = false;
+          }
+        },
+
+        restore() {
+          if (typeof localStorage === 'undefined') return;
+          try {
+            const raw = localStorage.getItem(this.key);
+            if (!raw) return;
+            const parsed = JSON.parse(raw);
+            if (parsed && typeof parsed === 'object' && parsed.order) {
+              this.order = parsed.order;
+              this.cashModalOpen = false;
+              this.normalizeOrder();
+            }
+          } catch (e) {
+            console.warn('activeOrder: restore failed', e);
+          }
+        },
+
+        persist() {
+          if (typeof localStorage === 'undefined') return;
+          try {
+            if (!this.order) {
+              localStorage.removeItem(this.key);
+              return;
+            }
+            const payload = {
+              order: this.order,
+              version: 1
+            };
+            localStorage.setItem(this.key, JSON.stringify(payload));
+          } catch (e) {
+            console.warn('activeOrder: persist failed', e);
+          }
+        },
+
+        hasOrder() {
+          return !!this.order;
+        },
+
+        orderLabel() {
+          if (!this.order) return '';
+          const forms = this.order.purchaseTypeForms || computePurchaseForms();
+          const label = forms.nominative || capitalize(forms.nominativeLower || 'Objednávka');
+          return `${label} #${this.order.number || ''}`.trim();
+        },
+
+        formattedOrderNumber() {
+          if (!this.order) return '';
+          return this.order.vars?.ORDER_NUMBER || formatOrderNumber(this.order.number);
+        },
+
+        flowById(id) {
+          return this.flows.find(flow => flow?.id === id) || null;
+        },
+
+        flowSteps(id) {
+          const flow = this.flowById(id);
+          if (flow && Array.isArray(flow.steps)) return flow.steps.slice();
+          const fallback = fallbackFlowSteps[id];
+          return Array.isArray(fallback) ? fallback.slice() : [];
+        },
+
+        generateOrderNumber() {
+          const base = Math.floor(Math.random() * 9_000_000_000) + 1_000_000_000;
+          return String(base);
+        },
+
+        formatTimestamp(ts) {
+          if (!ts) return '';
+          const date = new Date(ts);
+          if (Number.isNaN(date.getTime())) return '';
+          try {
+            return new Intl.DateTimeFormat('cs-CZ', {
+              day: '2-digit',
+              month: '2-digit',
+              year: 'numeric',
+              hour: '2-digit',
+              minute: '2-digit'
+            }).format(date);
+          } catch {
+            return date.toLocaleString('cs-CZ');
+          }
+        },
+
+        normalizeOrder() {
+          if (!this.order) return;
+          const steps = this.flowSteps(this.order.flowId);
+          if (!steps.length) return;
+          const meta = this.order.stepMeta && typeof this.order.stepMeta === 'object'
+            ? { ...this.order.stepMeta }
+            : {};
+          const current = steps.includes(this.order.currentStepId) ? this.order.currentStepId : steps[0];
+          steps.forEach(stepId => {
+            if (!meta[stepId]) {
+              meta[stepId] = { state: 'future', timestamp: null };
+            }
+          });
+          this.order.currentStepId = current;
+          this.order.stepMeta = meta;
+          if (!this.order.purchaseTypeForms) {
+            const kind = detectPurchaseKind(this.order.flowId);
+            this.order.purchaseTypeForms = computePurchaseForms(kind);
+          }
+          if (this.order.vars && !this.order.vars.PURCHASE_TYPE_FORMS) {
+            this.order.vars.PURCHASE_TYPE_FORMS = this.order.purchaseTypeForms;
+          }
+        },
+
+        detectFlow(context = {}) {
+          return detectFlowFromContext(context);
+        },
+
+        buildVars(context, forms, orderNumber, flowId) {
+          const review = context.review || {};
+          const deliveryMeta = context.deliveryMeta || {};
+          const paymentMeta = context.paymentMeta || {};
+          const cartSummary = review.cart || context.cartSummary || {};
+          const items = cartSummary.items || [];
+          const flowPaymentFallback = {
+            home_delivery_pay_online: 'Kartou online',
+            home_delivery_cash_on_delivery: 'Na dobírku',
+            pharmacy_reservation: 'V lékárně'
+          };
+          const flowDeliveryFallback = {
+            home_delivery_pay_online: 'Kurýr',
+            home_delivery_cash_on_delivery: 'Kurýr',
+            pharmacy_reservation: 'Lékárna Dr. Max'
+          };
+
+          const vars = {
+            ORDER_NUMBER: formatOrderNumber(orderNumber),
+            PAYMENT_METHOD: paymentMeta.name || flowPaymentFallback[flowId] || '',
+            DELIVERY_METHOD: deliveryMeta.name || flowDeliveryFallback[flowId] || '',
+            DELIVERY_ADDRESS: resolveDeliveryAddress(deliveryMeta, review.deliveryDetails),
+            PACKAGES_COUNT: String(estimatePackages(items)),
+            TOTAL_WEIGHT: estimateWeight(items),
+            PURCHASE_TYPE_FORMS: forms
+          };
+          return vars;
+        },
+
+        resolvePurchaseType(full, offset, matchLength, forms) {
+          const accLower = forms.accusativeLower || forms.nominativeLower || '';
+          const genLower = forms.genitiveLower || accLower;
+          const nomLower = forms.nominativeLower || accLower;
+          const nom = forms.nominative || capitalize(nomLower);
+
+          const prefix = full.slice(0, offset);
+          const suffix = full.slice(offset + matchLength);
+          const trimmedPrefix = prefix.trimEnd();
+          const prevWord = trimmedPrefix.split(/\s+/).pop()?.toLowerCase() || '';
+          const atSentenceStart = trimmedPrefix === '' || /[.!?]\s*$/.test(trimmedPrefix);
+          const nextWord = suffix.trimStart().split(/[\s,.;?!]/).shift()?.toLowerCase() || '';
+          const nominativeTriggers = ['je', 'má', 'bude', 'zůstává', 'čeká'];
+
+          if (prevWord === 'vaší') return genLower;
+          if (prevWord === 'vaši') return accLower;
+
+          if (nominativeTriggers.includes(nextWord)) {
+            return atSentenceStart ? nom : nomLower;
+          }
+
+          if (!accLower) return atSentenceStart ? capitalize(nomLower) : nomLower;
+          return atSentenceStart ? capitalize(accLower) : accLower;
+        },
+
+        fillTemplate(template, vars = {}) {
+          if (!template) return '';
+          const str = String(template);
+          const forms = vars.PURCHASE_TYPE_FORMS || this.order?.purchaseTypeForms || computePurchaseForms();
+          return str.replace(/{{\s*([A-Z0-9_]+)\s*}}/g, (match, key, offset, full) => {
+            if (key === 'PURCHASE_TYPE') {
+              return this.resolvePurchaseType(full, offset, match.length, forms);
+            }
+            const value = vars[key];
+            return value == null ? '' : String(value);
+          });
+        },
+
+        plainText(template, vars = {}) {
+          const filled = this.fillTemplate(template, vars);
+          if (!filled) return '';
+          return filled.replace(/<\/?u>/g, '').replace(/\s{2,}/g, ' ').trim();
+        },
+
+        richText(template, vars = {}) {
+          const filled = this.fillTemplate(template, vars);
+          if (!filled) return '';
+          const placeholders = [];
+          let withTokens = filled.replace(/<u>(.*?)<\/u>/g, (_, inner) => {
+            const idx = placeholders.length;
+            placeholders.push(escapeHtml(inner));
+            return `__UNDERLINE_${idx}__`;
+          });
+          withTokens = escapeHtml(withTokens).replace(/\n/g, '<br>');
+          placeholders.forEach((content, idx) => {
+            withTokens = withTokens.replace(
+              `__UNDERLINE_${idx}__`,
+              `<span class="${underlineClass}">${content}</span>`
+            );
+          });
+          return withTokens;
+        },
+
+        templateForState(template, state, field) {
+          if (!template) return '';
+          const key = `${state}_${field}`;
+          return template[key] ?? '';
+        },
+
+        timeline() {
+          if (!this.order) return [];
+          this.normalizeOrder();
+          const steps = this.flowSteps(this.order.flowId);
+          if (!steps.length) return [];
+          const vars = { ...(this.order.vars || {}) };
+          vars.PURCHASE_TYPE_FORMS = this.order.purchaseTypeForms || vars.PURCHASE_TYPE_FORMS || computePurchaseForms();
+          return steps.map(stepId => {
+            const template = this.steps[stepId] || {};
+            const meta = this.order.stepMeta?.[stepId] || { state: 'future', timestamp: null };
+            const state = meta.state || (stepId === this.order.currentStepId ? 'now' : 'future');
+            const headlineTpl = this.templateForState(template, state, 'headline')
+              || this.templateForState(template, 'past', 'headline')
+              || this.templateForState(template, 'now', 'headline')
+              || this.templateForState(template, 'future', 'headline');
+            const descriptionTpl = this.templateForState(template, state, 'description')
+              || '';
+            return {
+              id: stepId,
+              state,
+              headline: this.plainText(headlineTpl, vars),
+              description: this.richText(descriptionTpl, vars),
+              timestamp: this.formatTimestamp(meta.timestamp)
+            };
+          });
+        },
+
+        stepOptions() {
+          if (!this.order) return [];
+          this.normalizeOrder();
+          const steps = this.flowSteps(this.order.flowId);
+          const vars = { ...(this.order.vars || {}) };
+          vars.PURCHASE_TYPE_FORMS = this.order.purchaseTypeForms || vars.PURCHASE_TYPE_FORMS || computePurchaseForms();
+          return steps.map((stepId, index) => {
+            const template = this.steps[stepId] || {};
+            const headlineTpl = template.now_headline
+              || template.past_headline
+              || template.future_headline
+              || `Krok ${index + 1}`;
+            const label = this.plainText(headlineTpl, vars) || `Krok ${index + 1}`;
+            return { id: stepId, label };
+          });
+        },
+
+        setCurrentStep(stepId) {
+          if (!this.order || !stepId) return;
+          const steps = this.flowSteps(this.order.flowId);
+          const targetIndex = steps.indexOf(stepId);
+          if (targetIndex === -1) return;
+          this.normalizeOrder();
+          const now = Date.now();
+          steps.forEach((id, idx) => {
+            const meta = this.order.stepMeta[id] || { state: 'future', timestamp: null };
+            if (idx < targetIndex) {
+              meta.state = 'past';
+              if (!meta.timestamp) {
+                const offset = (targetIndex - idx) * 45 * 60 * 1000;
+                meta.timestamp = new Date(now - offset).toISOString();
+              }
+            } else if (idx === targetIndex) {
+              meta.state = 'now';
+              meta.timestamp = new Date(now).toISOString();
+            } else {
+              meta.state = 'future';
+              meta.timestamp = null;
+            }
+            this.order.stepMeta[id] = meta;
+          });
+          this.order.currentStepId = stepId;
+          if (this.order.flowId === 'home_delivery_cash_on_delivery' && this.order.cashModalShown !== true) {
+            this.order.cashModalShown = true;
+          }
+          this.persist();
+        },
+
+        clearOrder() {
+          this.order = null;
+          this.cashModalOpen = false;
+          this.persist();
+        },
+
+        createFromCheckout(context = {}) {
+          const flowId = this.detectFlow(context);
+          const steps = this.flowSteps(flowId);
+          if (!steps.length) return;
+          const kind = detectPurchaseKind(flowId);
+          const forms = computePurchaseForms(kind);
+          const number = context.orderNumber || this.generateOrderNumber();
+          const targetStep = steps.includes('order_completion') ? 'order_completion' : steps[steps.length - 1];
+          const targetIndex = Math.max(0, steps.indexOf(targetStep));
+          const now = Date.now();
+          const stepMeta = {};
+          steps.forEach((id, idx) => {
+            let state = 'future';
+            if (idx < targetIndex) state = 'past';
+            else if (idx === targetIndex) state = 'now';
+            let timestamp = null;
+            if (state !== 'future') {
+              const offset = (targetIndex - idx) * 45 * 60 * 1000;
+              timestamp = new Date(now - offset).toISOString();
+            }
+            stepMeta[id] = { state, timestamp };
+          });
+
+          const vars = this.buildVars(context, forms, number, flowId);
+
+          this.order = {
+            number,
+            flowId,
+            currentStepId: steps[targetIndex],
+            createdAt: new Date(now).toISOString(),
+            vars,
+            stepMeta,
+            purchaseTypeForms: forms,
+            cashModalShown: flowId === 'home_delivery_cash_on_delivery' ? false : true
+          };
+          this.normalizeOrder();
+          this.persist();
+          this.openCashModalIfNeeded();
+        },
+
+        openCashModalIfNeeded() {
+          if (!this.order) {
+            this.cashModalOpen = false;
+            return;
+          }
+          if (this.order.flowId === 'home_delivery_cash_on_delivery' && this.order.cashModalShown !== true) {
+            this.cashModalOpen = true;
+          } else {
+            this.cashModalOpen = false;
+          }
+        },
+
+        acknowledgeCashModal() {
+          if (this.order && this.order.flowId === 'home_delivery_cash_on_delivery') {
+            this.order.cashModalShown = true;
+            this.persist();
+          }
+          this.cashModalOpen = false;
+          location.hash = '/order-tracking';
+        }
+      };
+
+      Alpine.store('activeOrder', activeOrderStore);
+      activeOrderStore.restore();
+    } else {
+      Alpine.store('activeOrder').restore?.();
+    }
   });
   </script>
 </head>
@@ -535,8 +1062,8 @@
   <!-- TOP-BAR BUTTONS + CART (mobile + desktop) -->
   <div class="flex gap-2 flex-none">
     <button class="btn btn-primary w-12 h-12 btn-lg btn-square max-gradient-gray hidden md:block"
-    aria-label="Otevřít právě doručujeme" title="Právě doručujeme"
-    @click="location.hash='/my-account'"
+    aria-label="Otevřít aktivní objednávku" title="Aktivní objednávka"
+    @click="location.hash='/active-order'"
     >
       <i class="fa-classic fa-xl fa-regular fa-truck-fast text-gray-700 max-embos-v-gray"></i>
     </button>
@@ -903,7 +1430,7 @@
     </div>
 
     <!-- scroller -->
-    <div class="overflow-x-auto scrollbar-thin"
+    <div class="overflow-x-auto scrollbar-thin pb-3"
          x-init="registerTopStrip($el, 'brands')">
       <div class="flex gap-3 snap-x snap-mandatory px-0 pb-2">
         <template x-for="b in brandsShuffledFor('brands', 18)" :key="b.name">
@@ -994,7 +1521,7 @@
     <div
       x-ref="rail"
       @scroll.passive="scrolled = $event.target.scrollLeft > 8"
-      class="flex gap-2 overflow-x-auto snap-x snap-mandatory pb-2
+      class="flex gap-2 overflow-x-auto snap-x snap-mandatory pb-5
              md:overflow-visible md:grid md:grid-cols-4 md:gap-3 md:snap-none md:pb-0"
     >
 
@@ -1224,7 +1751,7 @@
          class="fixed inset-0 z-40 bg-base-200/70 backdrop-blur-sm lg:hidden"
          @click.self="mobileFiltersOpen = false"></div>
 
-    <aside class="fixed inset-y-0 left-0 w-5/6 max-w-xs bg-base-100 shadow-xl transform -translate-x-full transition-transform duration-300 ease-out overflow-y-auto z-50 p-6 pb-10 lg:sticky lg:top-24 lg:h-[calc(100vh-8rem)] lg:w-auto lg:max-w-none lg:bg-transparent lg:shadow-none lg:p-0 lg:pb-12 lg:translate-x-0 lg:transform-none lg:overflow-y-auto"
+    <aside class="fixed inset-y-0 left-0 w-5/6 max-w-xs bg-base-100 shadow-xl transform -translate-x-full transition-transform duration-300 ease-out overflow-y-auto z-50 p-6 pb-10 lg:sticky lg:top-24 lg:h-[calc(100vh-8rem)] lg:w-5/6 lg:max-w-none lg:bg-transparent lg:shadow-none lg:p-0 lg:pb-12 lg:translate-x-0 lg:transform-none lg:overflow-y-auto mb-10"
            :class="mobileFiltersOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'">
       <div class="lg:hidden flex items-center justify-between mb-4">
         <h3 class="text-lg font-semibold">Filtry</h3>
@@ -1233,10 +1760,10 @@
         </button>
       </div>
 
-      <div class="space-y-6 lg:pr-5 lg:pt-2 lg:pb-8">
+      <div class="space-y-6 lg:pr-12 lg:pt-2 lg:pb-8 mb-10">
         <div class="space-y-3">
           <h2 id="filters-heading" class="text-lg font-semibold">Filtry a řazení</h2>
-          <label class="input input-bordered items-center gap-2 w-full" aria-label="Vyhledávání">
+          <label class="input input-bordered items-center gap-2 w-full mt-4" aria-label="Vyhledávání">
             <i class="fa-solid fa-magnifying-glass text-max-gray-600"></i>
             <input type="search"
                    placeholder="Filtruj dle názvu"
@@ -1282,19 +1809,29 @@
           </div>
         </div>
 
-        <div class="space-y-3">
+        <div class="space-y-3" x-data="{ showAllCategories: false, limit: 6 }">
           <h3 class="font-semibold text-base">Kategorie</h3>
-          <div class="grid grid-cols-1 gap-2 max-h-60 overflow-auto pr-1">
+          <div class="grid grid-cols-1 gap-2">
             <label class="label cursor-pointer justify-start gap-2 text-max-gray-800">
               <input type="radio" name="cat" class="radio radio-sm radio-secondary" value="" x-model="selectedCategory">
               <span>Všechny kategorie</span>
             </label>
-            <template x-for="c in categories" :key="'cat-'+c">
+            <template x-for="c in (showAllCategories ? categories : categories.slice(0, limit))" :key="'cat-'+c">
               <label class="label cursor-pointer justify-start gap-2 text-max-gray-800">
                 <input type="radio" name="cat" class="radio radio-sm radio-secondary" :value="c" x-model="selectedCategory">
                 <span x-text="c"></span>
               </label>
             </template>
+          </div>
+          <div class="pt-1">
+            <button type="button"
+                    class="btn btn-ghost btn-xs px-0"
+                    x-show="categories.length > limit"
+                    @click="showAllCategories = !showAllCategories">
+              <span x-text="showAllCategories ? 'Méně' : 'Více'"></span>
+              <i class="fa-solid fa-chevron-down ml-1 transition-transform"
+                 :class="showAllCategories ? 'rotate-180' : ''"></i>
+            </button>
           </div>
         </div>
 
@@ -1332,16 +1869,16 @@
 
         <div class="space-y-3">
           <h3 class="font-semibold text-base">Možnosti</h3>
-          <div class="space-y-2">
-            <label class="label cursor-pointer justify-start gap-2 text-max-gray-800">
+          <div class="grid grid-cols-1 gap-2">
+            <label class="label cursor-pointer justify-start gap-2 text-max-gray-800 w-full">
               <input type="checkbox" class="checkbox checkbox-sm checkbox-secondary rounded-[4px]" x-model="onlyInStock">
               <span>Pouze skladem</span>
             </label>
-            <label class="label cursor-pointer justify-start gap-2 text-max-gray-800">
+            <label class="label cursor-pointer justify-start gap-2 text-max-gray-800 w-full">
               <input type="checkbox" class="checkbox checkbox-sm checkbox-secondary rounded-[4px]" x-model="benefitOnly">
               <span>Lze platit benefity</span>
             </label>
-            <label class="label cursor-pointer justify-start gap-2 text-max-gray-800">
+            <label class="label cursor-pointer justify-start gap-2 text-max-gray-800 w-full">
               <input type="checkbox" class="checkbox checkbox-sm checkbox-secondary rounded-[4px]" x-model="onlyDiscounted">
               <span>Produkty v akci</span>
             </label>
@@ -1360,7 +1897,7 @@
       </button>
     </aside>
 
-    <div class="space-y-6 lg:pl-4">
+    <div class="space-y-6">
       <div class="flex flex-wrap items-center justify-between gap-3">
         <div class="flex items-center gap-3">
           <h2 class="text-lg font-semibold">
@@ -1399,7 +1936,7 @@
       <div x-show="!isLoading"
            x-transition.opacity.duration.200ms
            x-cloak
-           class="p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+           class="py-1 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
         <template x-for="product in pagedProducts()" :key="product.id">
           <article class="h-full">
             <div class="card h-full bg-base-100 shadow relative">
@@ -1504,7 +2041,7 @@
         </button>
       </div>
 
-      <div class="p-4 mb-10 text-sm leading-relaxed">
+      <div class="py-4 mb-10 text-sm leading-relaxed">
         V kategorii Zdraví a léky naleznete volně prodejné léčivé přípravky, které pomáhají při různých obtížích. Jsou to například léky proti bolesti, při rýmě či kašli, na zvýšenou teplotu nebo při chřipce a nachlazení. Léčbu těmito přípravky zvládnete sami doma. V případě opakujících se nebo déle přetrvávajících obtíží je vždy na místě vyhledat pomoc lékaře. O vhodném léku se nejprve poraďte s lékárníkem.
       </div>
     </div>
@@ -2510,7 +3047,7 @@
       @click="open = true"
       type="button"
     >
-      Mám slevový kupón
+      Slevový kupón
       <!-- indicator with count -->
       <template x-if="$store.cart.couponCount() > 0">
         <span class="badge badge-error badge-sm indicator-item"
@@ -2583,7 +3120,7 @@
         @click="open = true"
         type="button"
       >
-        Mám dárkovou kartu
+        Dárková karta
         <!-- indicator with count -->
         <template x-if="$store.cart.giftCardCount() > 0">
           <span class="badge badge-error badge-sm indicator-item"
@@ -3236,13 +3773,12 @@ document.addEventListener('alpine:init', () => {
               </div>
 
               <div class="mt-4 pt-3 flex flex-wrap items-center justify-between gap-3 bg-base-100">
-                <button class="btn btn-ghost btn-md"
+                <button class="btn btn-outline btn-md"
                         type="button"
                         @click="timeslotModal.step = 'zip'; timeslotModal.message = ''; timeslotModal.days = []; timeslotModal.lookup = {}; timeslotModal.selectedSlotKey = ''; timeslotModal.activeDayKey = '';">
                   Změnit PSČ
                 </button>
                 <div class="flex gap-2">
-                  <button class="btn btn-ghost" type="button" @click="cancelFollowup()">Zrušit</button>
                   <button class="btn btn-primary" type="button" @click="confirmTimeslot()" :disabled="!timeslotModal.selectedSlotKey">Potvrdit termín</button>
                 </div>
               </div>
@@ -3544,6 +4080,7 @@ function deliveryPaymentUI() {
         id: opt.id,
         name: opt.name,
         type: opt.type || '',
+        mapType: opt.map_type || null,
         tooltip: opt.tooltip || null,
         description: opt.description || null,
         price: Number.isFinite(basePrice) ? basePrice : 0,
@@ -4546,13 +5083,101 @@ function deliveryPaymentUI() {
   </form>
 </dialog>
 
-<!-- ROUTE == THANK YOU PAGE -->
-<section x-show="is('thank-you')" x-cloak>
-  <section class="w-auto md:w-11/12 xl:w-8/12 mx-auto px-4 pt-2 md:pt-12 pb-32">
-    <h1 class="text-3xl mx-auto mb-6">Hotovo!</h1>
-  
+<!-- ROUTE == ACTIVE ORDER -->
+<section x-show="is('active-order')" x-cloak x-data="activeOrderPage()">
+  <section class="w-auto md:w-11/12 xl:w-8/12 mx-auto px-4 pt-2 md:pt-12 pb-32 space-y-8">
+    <div class="flex items-start justify-between gap-4">
+      <div>
+        <h1 class="text-3xl mb-2">Aktivní objednávka</h1>
+        <template x-if="$store.activeOrder.hasOrder()">
+          <p class="text-base text-base-content/70">
+            Sledujeme průběh pro
+            <span class="font-semibold" x-text="$store.activeOrder.orderLabel()"></span>.
+            Číslo objednávky:
+            <span class="underline underline-offset-4 decoration-4 decoration-max-blue-500"
+                  x-text="$store.activeOrder.formattedOrderNumber()"></span>
+          </p>
+        </template>
+        <template x-if="!$store.activeOrder.hasOrder()">
+          <p class="text-base text-base-content/70">
+            Dokončete nákup a přehled jeho průběhu se zobrazí právě zde.
+          </p>
+        </template>
+      </div>
+    </div>
+
+    <template x-if="$store.activeOrder.hasOrder()">
+      <ul class="timeline timeline-snap-icon timeline-compact timeline-vertical no-start col-span-3"
+          x-data="{
+            steps: [],
+            connector(state) { return state === 'past' ? 'bg-primary' : 'bg-max-gray-200'; }
+          }"
+          x-effect="steps = $store.activeOrder.timeline()">
+        <template x-for="(item, index) in steps" :key="item.id">
+          <li>
+            <template x-if="index !== 0">
+              <hr :class="connector(steps[index - 1]?.state || 'future')">
+            </template>
+            <div class="timeline-middle">
+              <template x-if="item.state === 'past'">
+                <div class="w-10 h-10 m-1 rounded-full bg-primary flex items-center justify-center text-primary-content shadow">
+                  <i class="fa-solid fa-check"></i>
+                </div>
+              </template>
+              <template x-if="item.state === 'now'">
+                <div class="relative">
+                  <div class="absolute w-10 h-10 m-1 rounded-full bg-primary/30 animate-ping opacity-60"></div>
+                  <div class="relative w-10 h-10 m-1 rounded-full border-2 border-primary bg-white flex items-center justify-center shadow">
+                    <i class="fa-solid fa-box-isometric-tape text-primary"></i>
+                  </div>
+                </div>
+              </template>
+              <template x-if="item.state === 'future'">
+                <div class="w-10 h-10 m-1 rounded-full border-2 border-max-gray-200 bg-white"></div>
+              </template>
+            </div>
+            <div class="timeline-end md:mb-6 text-base space-y-1">
+              <time class="font-medium text-sm text-primary block"
+                    x-show="item.timestamp"
+                    x-text="item.timestamp"></time>
+              <div class="text-lg font-bold" x-text="item.headline"></div>
+              <div class="text-base text-base-content/80 leading-relaxed"
+                   x-show="item.description"
+                   x-html="item.description"></div>
+            </div>
+            <template x-if="index !== steps.length - 1">
+              <hr :class="connector(item.state)">
+            </template>
+          </li>
+        </template>
+      </ul>
+    </template>
+
+    <template x-if="!$store.activeOrder.hasOrder()">
+      <div class="rounded-2xl border border-dashed border-base-300 bg-base-100/80 p-8 text-center text-base-content/70">
+        Nemáte žádnou aktivní objednávku. Jakmile dokončíte nákup, ukážeme tady její průběh krok za krokem.
+      </div>
+    </template>
   </section>
 
+  <div class="modal"
+       x-cloak
+       :class="{ 'modal-open': $store.activeOrder.cashModalOpen }"
+       x-show="$store.activeOrder.cashModalOpen">
+    <div class="modal-box max-w-md space-y-4">
+      <h3 class="text-xl font-semibold">Zaplatíte při převzetí</h3>
+      <p class="text-base text-base-content/70">
+        <span class="font-semibold" x-text="$store.activeOrder.orderLabel()"></span> uhradíte kurýrovi při doručení.
+        Pokračujte na detailní sledování a mějte přehled, kdy máte platbu připravenou.
+      </p>
+      <div class="modal-action justify-end">
+        <button type="button" class="btn btn-primary"
+                @click="$store.activeOrder.acknowledgeCashModal()">
+          Přejít na sledování
+        </button>
+      </div>
+    </div>
+  </div>
 </section>
 
 <!-- ROUTE == CONFIG -->
@@ -4584,20 +5209,43 @@ function deliveryPaymentUI() {
       <div class="rounded-2xl border border-base-300 bg-white shadow-sm p-6 space-y-4">
         <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h2 class="text-lg font-semibold">Změna stavu aktivní objednávky (TODO)</h2>
+            <h2 class="text-lg font-semibold">
+              Změna stavu aktivní objednávky
+              <template x-if="hasActiveOrder">
+                <span class="block text-sm font-normal text-base-content/70">
+                  Aktuálně sledujeme
+                  <span class="font-semibold" x-text="$store.activeOrder.orderLabel()"></span>
+                </span>
+              </template>
+            </h2>
             <p class="text-sm text-base-content/70">
               Umožní přesunout aktivní objednávku do libovolného stavu dle <code>./data/order-flow.json</code>
             </p>
+            <template x-if="!hasActiveOrder">
+              <p class="text-xs text-base-content/60 mt-1">
+                Zatím zde žádná objednávka není. Jakmile ji vytvoříte, objeví se možnosti pro ladění stavu.
+              </p>
+            </template>
           </div>
           <label class="flex items-center gap-3">
-            <select class="select" disabled>
-              <option disabled selected>Pick a color</option>
-              <option>Crimson</option>
-              <option>Amber</option>
-              <option>Velvet</option>
+            <select class="select select-bordered min-w-[220px]"
+                    :disabled="!hasActiveOrder"
+                    x-model="selectedStep"
+                    @change="changeOrderStep($event.target.value)">
+              <option value="" disabled>Vyberte stav</option>
+              <template x-for="option in $store.activeOrder.stepOptions()" :key="option.id">
+                <option :value="option.id" x-text="option.label"></option>
+              </template>
             </select>
           </label>
         </div>
+        <button type="button"
+                class="btn btn-ghost btn-sm"
+                :disabled="!hasActiveOrder"
+                @click="cancelOrder()">
+          <i class="fa-solid fa-trash-can mr-2"></i>
+          Zrušit objednávku
+        </button>
       </div>      
 
       <div class="rounded-2xl border border-dashed border-base-300 bg-base-100/80 p-4">
@@ -4629,95 +5277,7 @@ function deliveryPaymentUI() {
   <div class="block rounded-2xl bg-base-300 w-full h-12 animate-pulse"></div>
 </div> 
 
-    <ul class="timeline timeline-snap-icon timeline-compact timeline-vertical no-start col-span-3">
-      <li>
-        <div class="timeline-middle">
-          <div class="w-10 h-10 m-1 rounded-full bg-primary flex items-center justify-center">
-            <i class="fa-solid fa-check text-primary-content"></i>
-          </div>        
-        </div>
-        <div class="timeline-end md:mb-6 text-base">
-        <time class="font-medium text-sm text-primary">11.12.2025 12:46</time>
-        <div class="text-lg font-bold">Přijali jsme vaši objednávku</div>
-        Zasíláme e-mail s potvrzením. Objednávka má číslo <span class="underline underline-offset-4 decoration-4 decoration-max-blue-500">7767789 12</span>
-      </div>
-      <hr class="bg-primary"/>
-    </li>
-    <li>
-      <hr class="bg-primary"/>
-      <div class="timeline-middle">
-        <div class="w-10 h-10 m-1 rounded-full bg-primary flex items-center justify-center">
-          <i class="fa-solid fa-check text-primary-content"></i>
-        </div>
-        
-      </div>
-      <div class="timeline-end md:mb-6 text-base">
-      <time class="font-medium text-sm text-primary">11.12. 12:52</time>
-      <div class="text-lg font-bold">Objednávka byla zaplacena</div>
-      Kartou online
-    </div>
-    <hr class="bg-primary"/>
-  </li>
-  <li>
-    <hr class="bg-primary"/>
-    <div class="timeline-middle">
-      <div class="w-10 h-10 m-1 rounded-full bg-primary flex items-center justify-center">
-        <i class="fa-solid fa-check text-primary-content"></i>
-      </div>
-      
-    </div>
-    <div class="timeline-end md:mb-6 text-base">
-    <time class="font-medium text-sm text-primary">11.12. 20:00</time>
-    <div class="text-lg font-bold">Vaši objednávku jsme připravili a zabalili</div>
-    <span class="underline underline-offset-4 decoration-4 decoration-max-blue-500">Očekávejte 1 balíček</span> o hmotnosti 729 g
-  </div>
-  <hr class="bg-primary"/>
-</li>
-<li>
-  <hr class="bg-primary"/>
-  <div class="timeline-middle">
-    <div class="w-10 h-10 m-1 rounded-full bg-primary flex items-center justify-center">
-      <i class="fa-solid fa-check text-primary-content"></i>
-    </div>
-    
-  </div>
-  <div class="timeline-end md:mb-6 text-base">
-  <time class="font-medium text-sm text-primary">12.12. 6:42</time>
-  <div class="text-lg font-bold">Objednávku jsme předali dopravci</div>
-  Balíček Vám veze pan Karel ze společnosti PPL
-</div>
-<hr class="bg-primary"/>
-</li>
-<li>
-  <hr class="bg-primary"/>
-  <div class="timeline-middle">
-    <div class="w-10 h-10 m-1 rounded-full bg-primary flex items-center justify-center">
-      <i class="fa-solid fa-check text-primary-content"></i>
-    </div>
-    
-  </div>
-  <div class="timeline-end md:mb-6 text-base">
-  <time class="font-medium text-sm text-primary">13.12. 8:51</time>
-  <div class="text-lg font-bold">Objednávku byla doručena na adresu</div>
-  Dr. Max Box, Havlínova 16, Praha 4 a počká tu <span class="underline underline-offset-4 decoration-4 decoration-max-blue-500">3 dny</span>
-</div>
-<hr class="bg-primary"/>
-</li>
-<li>
-  <hr class="bg-max-gray-200"/>
-  <div class="timeline-middle relative">
-    <div class="absolute w-10 h-10 m-1 rounded-full bg-max-gray-200 animate-ping opacity-60"></div>
-    <div class="relative w-10 h-10 m-1 rounded-full bg-max-gray-200 flex items-center justify-center">
-      <i class="fa-solid fa-box-isometric-tape text-max-gray-600"></i>
-    </div>         
-  </div>
-  <div class="timeline-end md:mb-6 text-base">
-    <div class="text-lg font-bold ">Balíček čeká na vyzvednutí</div>
-    PIN k vyzvednutí je <span class="underline underline-offset-4 decoration-4 decoration-max-blue-500">110 112</span>
-  </div>
-</li>
 
-</ul>
   
 
 </div>  
@@ -6763,7 +7323,7 @@ link(name, params = {}) {
   if (name === 'delivery-payment') return '#/delivery-payment';
   if (name === 'addresses') return '#/addresses';
   if (name === 'purchase-review') return '#/purchase-review';
-  if (name === 'thank-you') return '#/thank-you';
+  if (name === 'active-order') return '#/active-order';
   if (name === 'map')     return '#/map';
   if (name === 'my-account')     return '#/my-account';
   if (name === 'my-saved')     return '#/my-saved';
@@ -6974,9 +7534,9 @@ _onRoute() {
       this.resetCheckoutConsents();
       break;
 
-    case 'thank-you':
+    case 'active-order':
       if (prevRoute === 'products') this._saveScroll('products');
-      this.route = 'thank-you';
+      this.route = 'active-order';
       this.params = {};
       this._scrollToTopSoon();
       this.closePaygate(false);
@@ -7810,13 +8370,14 @@ openPaygate() {
     this.paygateModal.open = false;
     this.paygateModal.step = 'intro';
     this.paygateModal.amount = 0;
+    this.syncPaygateModal();
     this.finalizePurchase();
     return;
   }
   this.paygateModal.amount = amount;
   this.paygateModal.step = 'intro';
   this.paygateModal.open = true;
-  this.$nextTick(() => this.$refs.paygate?.showModal?.());
+  this.$nextTick(() => this.syncPaygateModal());
 },
 
 startPaygateProcessing() {
@@ -7843,12 +8404,10 @@ closePaygate(proceed = false) {
     clearTimeout(this.paygateModal.timer);
     this.paygateModal.timer = null;
   }
-  if (this.paygateModal.open) {
-    this.$refs.paygate?.close?.();
-  }
   this.paygateModal.open = false;
   this.paygateModal.step = 'intro';
   this.paygateModal.amount = 0;
+  this.syncPaygateModal();
   if (proceed) {
     this.finalizePurchase();
   }
@@ -7859,9 +8418,41 @@ paygateManualCancel() {
   this.closePaygate(false);
 },
 
+syncPaygateModal() {
+  const dialog = this.$refs?.paygate;
+  if (!dialog) return;
+  try {
+    if (this.paygateModal.open) {
+      if (typeof dialog.showModal === 'function' && !dialog.open) {
+        dialog.showModal();
+      }
+    } else {
+      if (typeof dialog.close === 'function' && dialog.open) {
+        dialog.close();
+      }
+      if (typeof dialog.removeAttribute === 'function') {
+        dialog.removeAttribute('open');
+      }
+    }
+  } catch (e) {
+    console.warn('paygate modal sync failed', e);
+  }
+},
+
 finalizePurchase() {
-  if (this.paygateModal.open || this.paygateModal.step !== 'intro' || this.paygateModal.amount !== 0) {
-    this.closePaygate(false);
+  this.closePaygate(false);
+  const reviewSnapshot = this.checkoutReview || this.refreshCheckoutReview();
+  const orderStore = Alpine.store('activeOrder');
+  if (orderStore && typeof orderStore.createFromCheckout === 'function') {
+    try {
+      orderStore.createFromCheckout({
+        review: reviewSnapshot,
+        deliveryMeta: this.checkoutDeliveryMeta,
+        paymentMeta: this.checkoutPaymentMeta
+      });
+    } catch (e) {
+      console.warn('activeOrder: failed to create order snapshot', e);
+    }
   }
   this.reviewValidationErrors = [];
   this.suppressCartRedirect = true;
@@ -7869,7 +8460,7 @@ finalizePurchase() {
   cart?.clear?.();
   this.checkoutReview = null;
   try { localStorage.removeItem('checkout.review'); } catch (_) {}
-  location.hash = '/thank-you';
+  location.hash = '/active-order';
 },
 
 refreshCheckoutReview() {
@@ -8989,8 +9580,19 @@ loadCheckoutReviewFromStorage() {
   document.addEventListener('alpine:init', () => {
     Alpine.data('configPage', () => ({
       store: null,
+      orderStore: null,
+      selectedStep: '',
       init() {
         this.store = Alpine.store('appConfig');
+        this.orderStore = Alpine.store('activeOrder');
+        Promise.resolve(this.orderStore?.ensureData?.());
+        this.selectedStep = this.orderStore?.order?.currentStepId || '';
+        this.$watch(() => this.orderStore?.order, () => {
+          this.selectedStep = this.orderStore?.order?.currentStepId || '';
+        });
+        this.$watch(() => this.orderStore?.order?.currentStepId, (value) => {
+          this.selectedStep = value || '';
+        });
       },
       get showBadge() {
         return !!(this.store?.get ? this.store.get('showBreakpointBadge') : this.store?.showBreakpointBadge);
@@ -9018,6 +9620,33 @@ loadCheckoutReviewFromStorage() {
         } catch {
           return '';
         }
+      },
+      get hasActiveOrder() {
+        return !!(this.orderStore?.hasOrder?.());
+      },
+      changeOrderStep(value) {
+        if (!this.orderStore || !value) return;
+        this.orderStore.setCurrentStep(value);
+      },
+      cancelOrder() {
+        if (!this.orderStore) return;
+        this.orderStore.clearOrder();
+        this.selectedStep = '';
+      }
+    }));
+    Alpine.data('activeOrderPage', () => ({
+      store: null,
+      init() {
+        this.store = Alpine.store('activeOrder');
+        Promise.resolve(this.store?.ensureData?.()).then(() => {
+          this.store.openCashModalIfNeeded();
+        });
+        this.$watch(() => this.store?.order?.flowId, () => {
+          this.store.openCashModalIfNeeded();
+        });
+        this.$watch(() => this.store?.order?.cashModalShown, () => {
+          this.store.openCashModalIfNeeded();
+        });
       }
     }));
   });
@@ -9792,230 +10421,129 @@ loadCheckoutReviewFromStorage() {
   @keydown.escape.window="close()"
   class="modal"
 >
-  <div class="modal-box w-11/12 max-w-3xl bg-base-200 lg:px-8 lg:py-10">
+  <div class="modal-box w-11/12 max-w-3xl bg-base-200 px-4 lg:px-8 py-6 lg:py-10 flex flex-col overflow-x-hidden">
+    <div class="flex-1 overflow-visible">
+      <!-- Header / confirmation -->
+      <h2 class="text-2xl font-medium text-max-green-500 mb-2">
+        <i class="fa-classic fa-md fa-solid fa-check-circle"></i> Přidáno do košíku
+      </h2>
 
-    <!-- Header / confirmation -->
-    <h2 class="text-2xl font-medium text-max-green-500 mb-2">
-      <i class="fa-classic fa-md fa-solid fa-check-circle"></i> Přidáno do košíku
-    </h2>
+      <!-- Context product -->
+      <template x-if="$store.precart.product">
+        <div x-transition.opacity.duration.200ms class="py-4 w-auto mx-auto items-stretch">
+          <article class="h-full" x-data="precartItem($store.precart.product)">
+            <div class="card card-side h-full relative px-2 items-center bg-base-100 overflow-visible">
+              <!-- BADGES -->
+              <div x-show="product.badges?.length" class="absolute left-2 top-2 z-10 flex flex-col gap-1">
+                <template x-for="(b,i) in (product?.badges || [])" :key="i">
+                  <span class="badge badge-error badge-sm font-semibold" x-text="b"></span>
+                </template>
+              </div>
 
-    <!-- Context product -->
+              <!-- IMAGE (clickable) -->
+              <figure class="w-36 flex items-center justify-center overflow-hidden">
+                <a :href="link('product', { id: product.id })"
+                   @click="close()"
+                   class="block w-full h-full">
+                  <img
+                    :src="imgSrc"
+                    class="object-contain max-h-full w-full h-full"
+                    :alt="product.name"
+                    @error="handleImgError($event)"
+                  />
+                </a>
+              </figure>
 
-    
-    <template x-if="$store.precart.product">
-      <div x-transition.opacity.duration.200ms class="py-4 w-auto mx-auto items-stretch">
-        <article class="h-full" x-data="precartItem($store.precart.product)">
-        <div class="card card-side h-full relative px-2 items-center bg-base-100 overflow-visible">
-          <!-- BADGES -->
-          <div x-show="product.badges?.length" class="absolute left-2 top-2 z-10 flex flex-col gap-1">
-            <template x-for="(b,i) in (product?.badges || [])" :key="i">
-              <span class="badge badge-error badge-sm font-semibold" x-text="b"></span>
-            </template>
-          </div>
+              <!-- BODY -->
+              <div class="card-body min-w-0 flex flex-col">
+                <h3 class="text-xl font-medium">
+                  <a :href="link('product', { id: product.id })"
+                     @click="close()"
+                     class="hover:underline focus:outline-none focus:ring-2 focus:ring-primary/50"
+                     x-text="product.name"></a>
+                </h3>
 
-          <!-- IMAGE (clickable) -->
-          <figure class="w-36 flex items-center justify-center overflow-hidden">
-            <a :href="link('product', { id: product.id })"
-               @click="close()"
-               class="block w-full h-full">
-              <img
-                :src="imgSrc"
-                class="object-contain max-h-full w-full h-full"
-                :alt="product.name"
-                @error="handleImgError($event)"
-              />
-            </a>
-          </figure>
+                <div class="card-actions mt-0 justify-between items-center">
 
-          <!-- BODY -->
-          <div class="card-body min-w-0 flex flex-col">
-            <h3 class="text-xl font-medium">
-              <a :href="link('product', { id: product.id })"
-                 @click="close()"
-                 class="hover:underline focus:outline-none focus:ring-2 focus:ring-primary/50"
-                 x-text="product.name"></a>
-            </h3>
+                  <!-- PRICE with LEGAL TOOLTIP -->
+                  <div
+                    class="tooltip tooltip-right md:tooltip-top cursor-help overflow-visible"
+                    x-init="$store.legal.init()"
+                    x-data="{
+                      get paras(){
+                        const hasDisc = !!(product.discounted_price && product.discounted_price < product.price);
+                        const original = hasDisc ? product.price : product.price;
+                        const discounted = hasDisc ? product.discounted_price : null;
+                        return $store.legal.paragraphsFor({ price: original, discounted_price: discounted });
+                      }
+                    }"
+                  >
+                    <div class="tooltip-content lg:p-3">
+                      <template x-for="(p, idx) in paras" :key="idx">
+                        <p :class="idx > 0 ? 'mt-1 border-t-1 border-base-300/20 pt-1' : ''" x-text="p"></p>
+                      </template>
+                    </div>
 
-            <div class="card-actions mt-0 justify-between items-center">
+                    <div class="flex flex-col leading-tight">
+                      <span
+                        x-show="product.discounted_price && product.discounted_price < product.price"
+                        class="font-bold text-lg text-error underline decoration-dotted underline-offset-4 decoration-max-gray-400"
+                        x-text="koruny(product.discounted_price)"
+                      ></span>
+                      <span
+                        x-show="product.discounted_price && product.discounted_price < product.price"
+                        class="text-sm line-through text-base-content/60 -mt-0.5"
+                        x-text="koruny(product.price)"
+                      ></span>
+                      <span
+                        x-show="!product.discounted_price || !(product.discounted_price < product.price)"
+                        class="font-medium text-lg underline decoration-dotted underline-offset-4 decoration-max-gray-400"
+                        x-text="koruny(product.price)"
+                      ></span>
+                    </div>
+                  </div>
 
-              <!-- PRICE with LEGAL TOOLTIP -->
-              <div
-                class="tooltip tooltip-right md:tooltip-top cursor-help overflow-visible"
-                x-init="$store.legal.init()"
-                x-data="{
-                  get paras(){
-                    const hasDisc = !!(product.discounted_price && product.discounted_price < product.price);
-                    const original = hasDisc ? product.price : product.price; // original comes from product.price in your list
-                    const discounted = hasDisc ? product.discounted_price : null;
-                    return $store.legal.paragraphsFor({ price: original, discounted_price: discounted });
-                  }
-                }"
-              >
-                <div class="tooltip-content lg:p-3">
-                  <template x-for="(p, idx) in paras" :key="idx">
-                    <p :class="idx > 0 ? 'mt-1 border-t-1 border-base-300/20 pt-1' : ''" x-text="p"></p>
+                  <!-- CTA or STEPPER -->
+                  <template x-if="!$store.cart.inCart(product.id)">
+                    <button class="btn btn-primary btn-md font-semibold" @click="$store.cart.add(product)">
+                      Do košíku
+                    </button>
+                  </template>
+                  <template x-if="$store.cart.inCart(product.id)">
+                    <div class="join">
+                      <button class="btn btn-square btn-md join-item"
+                              @click="$store.cart.decrement(product.id)"
+                              aria-label="Odebrat kus">−</button>
+
+                      <input type="text" inputmode="numeric" pattern="[0-9]*"
+                             class="input input-bordered input-md w-10 text-center join-item"
+                             :value="$store.cart.qty(product.id)"
+                             @input="$store.cart.setQty(product.id, $event.target.value.replace(/[^0-9]/g,''))"
+                             @keydown.enter.prevent
+                             aria-label="Počet kusů" />
+
+                      <button class="btn btn-square btn-md join-item"
+                              @click="$store.cart.increment(product.id)"
+                              aria-label="Přidat kus">+</button>
+                    </div>
                   </template>
                 </div>
-
-                <div class="flex flex-col leading-tight">
-                  <span
-                    x-show="product.discounted_price && product.discounted_price < product.price"
-                    class="font-bold text-lg text-error underline decoration-dotted underline-offset-4 decoration-max-gray-400"
-                    x-text="koruny(product.discounted_price)"
-                  ></span>
-                  <span
-                    x-show="product.discounted_price && product.discounted_price < product.price"
-                    class="text-sm line-through text-base-content/60 -mt-0.5"
-                    x-text="koruny(product.price)"
-                  ></span>
-                  <span
-                    x-show="!product.discounted_price || !(product.discounted_price < product.price)"
-                    class="font-medium text-lg underline decoration-dotted underline-offset-4 decoration-max-gray-400"
-                    x-text="koruny(product.price)"
-                  ></span>
-                </div>
               </div>
-
-              <!-- CTA or STEPPER -->
-              <template x-if="!$store.cart.inCart(product.id)">
-                <button class="btn btn-primary btn-md font-semibold" @click="$store.cart.add(product)">
-                  Do košíku
-                </button>
-              </template>
-              <template x-if="$store.cart.inCart(product.id)">
-                <div class="join">
-                  <button class="btn btn-square btn-md join-item"
-                          @click="$store.cart.decrement(product.id)"
-                          aria-label="Odebrat kus">−</button>
-
-                  <input type="text" inputmode="numeric" pattern="[0-9]*"
-                         class="input input-bordered input-md w-10 text-center join-item"
-                         :value="$store.cart.qty(product.id)"
-                         @input="$store.cart.setQty(product.id, $event.target.value.replace(/[^0-9]/g,''))"
-                         @keydown.enter.prevent
-                         aria-label="Počet kusů" />
-
-                  <button class="btn btn-square btn-md join-item"
-                          @click="$store.cart.increment(product.id)"
-                          aria-label="Přidat kus">+</button>
-                </div>
-              </template>
             </div>
-          </div>
+          </article>
         </div>
-      </article>
-    </div>
-  </template>
+      </template>
 
-    <!-- Upsell -->
-    <h4 class="text-sm font-medium my-4">Ostatní k tomuto produktu kupují</h4>
 
-    <div class="grid grid-cols-1 gap-2 max-h-80 overflow-auto">
-      <ul
-        class="max-h-80 overflow-y-auto w-full flex flex-col space-y-1"
-        :id="listId"
-        role="listbox"
-        x-data="{ highlighted: -1, get items(){ return ($store.precart?.recommend?.(8) || []); } }"     
-      >
-        <template x-for="(item, i) in items" :key="item.id">
-          <li
-            :id="itemId(i)"
-            class="w-full rounded-xl bg-white px-2 py-4"
-            role="option"
-            @mouseenter="highlighted = i"
-            :class="i===highlighted ? 'bg-white' : 'hover:bg-base-200'"
-          >
-          <div class="flex w-full items-center gap-3 min-h-12">
-            <a :href="link('product', { id: item.id })"
-               @click.prevent="goDetail(item)"
-               class="flex flex-1 items-center gap-3 min-h-12 min-w-0">
-              <img :src="item.image" alt="" class="w-14 h-14 object-contain rounded" />
-
-              <div class="min-w-0 flex-1">
-                <div class="text-base font-medium truncate" x-text="item.name"></div>
-                <div class="text-sm font-medium text-base-content/60 truncate max-w-5/6" x-text="item.description"></div>
-                <div class="text-xs font-medium text-base-content/60">Sponzorováno</div>
-              </div>
-
-              <!-- price block (desktop only) -->
-              <div class="hidden md:flex">
-                <div
-                  class="tooltip tooltip-left cursor-help"
-                  x-init="$store.legal.init()"
-                  @click.prevent.stop
-                  x-data="{
-                    get paras(){
-                      const hasDisc = !!(item.discounted_price && item.discounted_price < item.price);
-                      const original = item.price;
-                      const discounted = hasDisc ? item.discounted_price : null;
-                      return $store.legal.paragraphsFor({ price: original, discounted_price: discounted });
-                    }
-                  }"
-                >
-                  <div class="tooltip-content lg:p-3">
-                    <template x-for="(p, idx) in paras" :key="idx">
-                      <p :class="idx > 0 ? 'mt-1 border-t-1 border-base-300/20 pt-1' : ''" x-text="p"></p>
-                    </template>
-                  </div>
-                  <div class="flex flex-col leading-tight">
-                    <span
-                      x-show="item.discounted_price && item.discounted_price < item.price"
-                      class="font-bold text-lg text-error underline decoration-dotted underline-offset-4 decoration-max-gray-400"
-                      x-text="koruny(item.discounted_price)"
-                    ></span>
-                    <span
-                      x-show="item.discounted_price && item.discounted_price < item.price"
-                      class="text-sm line-through text-base-content/60 -mt-0.5"
-                      x-text="koruny(item.price)"
-                    ></span>
-                    <span
-                      x-show="!item.discounted_price || !(item.discounted_price < item.price)"
-                      class="font-medium text-base underline decoration-dotted underline-offset-4 decoration-max-gray-400"
-                      x-text="koruny(item.price)"
-                    ></span>
-                  </div>
-                </div>
-              </div>
-            </a>
-
-            <!-- Quick add -->
-            <button
-              type="button"
-              class="hidden md:block btn btn-sm shrink-0 w-16"
-              :class="$store.precart.isQuickAdded(item.id) ? 'btn-ghost btn-disabled text-max-green-500' : ''"
-              @click.prevent.stop="quickAdd(item)"
-              x-text="$store.precart.isQuickAdded(item.id) ? 'Přidáno' : 'Přidat'">
-            </button>
-          </div>
-        </li>
-        </template>
-
-      </ul>
-    </div>
-
-    <!-- Footer / free shipping + actions -->
-    <div class="modal-action grid-cols-2 items-center">
-      <!-- Free shipping bar -->
-      <div class="py-4 free-ship-bar select-none w-3/6 mr-auto">
+     <!--  <div class="py-1 free-ship-bar select-none w-full">
         <div class="flex items-center justify-between mb-2">
           <span class="text-sm font-medium">Doprava zdarma</span>
-
-          <span class="hidden md:block text-sm text-base-content/70" x-show="$store.cart.totalToPay() < $store.cart.freeShipThreshold">
-            Ještě <strong x-text="koruny($store.cart.freeShipMissing())"></strong>
-          </span>
-
-          <span class="text-sm text-success" x-show="$store.cart.totalToPay() >= $store.cart.freeShipThreshold">
-            <i class="fa-classic fa-sm fa-solid fa-check"></i>
-          </span>
         </div>
 
-        <!-- Track -->
-        <div class="relative h-3 rounded-full bg-base-300 overflow-hidden"
+        <div class="relative h-1 rounded-full bg-base-300 overflow-hidden"
              role="progressbar"
              :aria-valuemin="0" :aria-valuemax="100"
              :aria-valuenow="$store.cart.freeShipProgress()">
-
-          <!-- Fill -->
           <div class="fill h-full rounded-full transition-[width] duration-500"
                :class="{
                  'bg-success' : $store.cart.hasFreeShipping(),
@@ -10024,17 +10552,107 @@ loadCheckoutReviewFromStorage() {
                :style="`width: ${$store.cart.freeShipProgress()}%`">
           </div>
         </div>
-      </div>
+      </div>-->
 
-      <!-- Close / go to cart -->
-      <form method="dialog">
+      <!-- Upsell -->
+      <h4 class="text-sm font-medium my-4">Ostatní k tomuto produktu kupují</h4>
+
+      <div class="grid grid-cols-1 gap-2">
+        <ul
+          class="max-h-40 lg:max-h-80 overflow-y-auto w-full flex flex-col space-y-1"
+          :id="listId"
+          role="listbox"
+          x-data="{ highlighted: -1, get items(){ return ($store.precart?.recommend?.(8) || []); } }"     
+        >
+          <template x-for="(item, i) in items" :key="item.id">
+            <li
+              :id="itemId(i)"
+              class="w-full rounded-xl bg-white px-2 py-4"
+              role="option"
+              @mouseenter="highlighted = i"
+              :class="i===highlighted ? 'bg-white' : 'hover:bg-base-200'"
+            >
+            <div class="flex w-full items-center gap-3 min-h-12">
+              <a :href="link('product', { id: item.id })"
+                 @click.prevent="goDetail(item)"
+                 class="flex flex-1 items-center gap-3 min-h-12 min-w-0">
+                <img :src="item.image" alt="" class="w-14 h-14 object-contain rounded" />
+
+                <div class="min-w-0 flex-1">
+                  <div class="text-base font-medium truncate" x-text="item.name"></div>
+                  <div class="text-sm font-medium text-base-content/60 truncate max-w-5/6" x-text="item.description"></div>
+                  <div class="text-xs font-medium text-base-content/40 mt-1 text-[9px]">Sponzorováno</div>
+                </div>
+
+                <!-- price block (desktop only) -->
+                <div class="hidden md:flex">
+                  <div
+                    class="tooltip tooltip-left cursor-help"
+                    x-init="$store.legal.init()"
+                    @click.prevent.stop
+                    x-data="{
+                      get paras(){
+                        const hasDisc = !!(item.discounted_price && item.discounted_price < item.price);
+                        const original = item.price;
+                        const discounted = hasDisc ? item.discounted_price : null;
+                        return $store.legal.paragraphsFor({ price: original, discounted_price: discounted });
+                      }
+                    }"
+                  >
+                    <div class="tooltip-content lg:p-3">
+                      <template x-for="(p, idx) in paras" :key="idx">
+                        <p :class="idx > 0 ? 'mt-1 border-t-1 border-base-300/20 pt-1' : ''" x-text="p"></p>
+                      </template>
+                    </div>
+                    <div class="flex flex-col leading-tight">
+                      <span
+                        x-show="item.discounted_price && item.discounted_price < item.price"
+                        class="font-bold text-lg text-error underline decoration-dotted underline-offset-4 decoration-max-gray-400"
+                        x-text="koruny(item.discounted_price)"
+                      ></span>
+                      <span
+                        x-show="item.discounted_price && item.discounted_price < item.price"
+                        class="text-sm line-through text-base-content/60 -mt-0.5"
+                        x-text="koruny(item.price)"
+                      ></span>
+                      <span
+                        x-show="!item.discounted_price || !(item.discounted_price < item.price)"
+                        class="font-medium text-base underline decoration-dotted underline-offset-4 decoration-max-gray-400"
+                        x-text="koruny(item.price)"
+                      ></span>
+                    </div>
+                  </div>
+                </div>
+              </a>
+
+              <!-- Quick add -->
+              <button
+                type="button"
+                class="hidden md:block btn btn-sm shrink-0 w-16"
+                :class="$store.precart.isQuickAdded(item.id) ? 'btn-ghost btn-disabled text-max-green-500' : ''"
+                @click.prevent.stop="quickAdd(item)"
+                x-text="$store.precart.isQuickAdded(item.id) ? 'Přidáno' : 'Přidat'">
+              </button>
+            </div>
+          </li>
+          </template>
+
+        </ul>
+      </div>
+    </div>
+
+    <!-- Footer actions -->
+    <div class="modal-action w-full flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+      <button type="button" class="btn btn-outline btn-block sm:w-auto" @click="close()">
+        Pokračovat v nákupu
+      </button>
+      <form method="dialog" class="w-full sm:w-auto flex items-center justify-end gap-2">
         <button class="btn btn-md btn-circle btn-ghost absolute right-2 top-2"
                 @click.prevent="close()"
                 aria-label="Zavřít">
           <i class="fa-solid fa-xmark fa-lg text-max-gray-500" aria-hidden="true"></i>
         </button>
-
-        <button class="btn btn-primary" @click.prevent="goCart()">
+        <button class="btn btn-primary btn-block sm:w-auto" @click.prevent="goCart()">
           Přejít do košíku
         </button>
       </form>
