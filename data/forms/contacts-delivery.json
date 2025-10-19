@@ -1,173 +1,163 @@
 [
     {
-        "filedset_id": 1,
-        "fieldset_name": "Kontaktní údaje",
-        "items": 
-            [
-                {
-                    "id": 1,
-                    "type": "text",
-                    "label": "E-mail",
-                    "placeholder": null,
-                    "prefix": null,
-                    "note": null,
-                    "validations": [
-                        {"type": "required", "fails": "Tato položka je povinná"},
-                        {"type": "email", "fails": "Nesprávný formát e-mailu"}
-                    ]
-                },
-                {
-                    "id": 2,
-                    "type": "text",
-                    "label": "Jméno",
-                    "placeholder": null,
-                    "prefix": null,
-                    "note": null,
-                    "validations": [
-                        {"type": "required", "fails": "Tato položka je povinná"}
-                    ]
-                },
-                {
-                    "id": 3,
-                    "type": "text",
-                    "label": "Příjmení",
-                    "placeholder": null,
-                    "prefix": null,
-                    "note": null,
-                    "validations": [
-                        {"type": "required", "fails": "Tato položka je povinná"}
-                    ]
-                },
-                {
-                    "id": 4,
-                    "type": "text",
-                    "label": "Telefonní číslo",
-                    "placeholder": null,
-                    "prefix": "+420",
-                    "note": "Pro kontakt Dr. Max",
-                    "validations": [
-                        {"type": "required", "fails": "Tato položka je povinná"},
-                        {"type": "phone", "fails": "Nesprávný formát telefonu"}
-                    ]
-                }
-            ]
-
-      },
-      {
-        "filedset_id": 2,
-        "fieldset_name": "Doručovací adresa",
-        "items": 
-            [
-                {
-                    "id": 1,
-                    "type": "checkbox_fieldset",
-                    "default": "!checked",
-                    "label": "Zadat podrobnosti k doručení a informace pro kurýra",
-                    "validations": null,
-                    "items":[
-                                {
-                                    "id": 2,
-                                    "type": "address",
-                                    "label": "Adresa pro doručení",
-                                    "placeholder": null,
-                                    "prefix": null,
-                                    "note": "Na tuto adresu Vám zboží doručíme. Na faktuře bude kontaktní adresa.",
-                                    "validations": [
-                                        {"type": "address", "fails": "Nesprávný formát adresy"}
-                                    ]
-                                },
-                                {
-                                    "id": 3,
-                                    "type": "text",
-                                    "label": "Doručit do firmy:",
-                                    "placeholder": null,
-                                    "prefix": null,
-                                    "note": "Nesouvisí s fakturací",
-                                    "validations": null
-                                },                
-                                {
-                                    "id": 4,
-                                    "type": "text",
-                                    "label": "Zásilku převezme - Jméno:",
-                                    "placeholder": null,
-                                    "prefix": null,
-                                    "note": null,
-                                    "validations": null
-                                },
-                                {
-                                    "id": 5,
-                                    "type": "text",
-                                    "label": "Zásilku převezme - Příjmení:",
-                                    "placeholder": null,
-                                    "prefix": null,
-                                    "note": null,
-                                    "validations": null
-                                },
-                                {
-                                    "id": 6,
-                                    "type": "text",
-                                    "label": "Zásilku převezme - Telefonní číslo",
-                                    "placeholder": null,
-                                    "prefix": "+420",
-                                    "note": "Neslouží pro kontakty od Dr. Max",
-                                    "validations": [
-                                        {"type": "phone", "fails": "Nesprávný formát telefonu"}
-                                    ]
-                                },
-                                {
-                                    "id": 7,
-                                    "type": "textarea",
-                                    "label": "Poznámka k objednávce",
-                                    "placeholder": "Doplňující informace",
-                                    "prefix": null,
-                                    "note": null,
-                                    "validations": null
-                                }
-
-                            ]
-                    
-                },             
-                {
-                    "id": 8,
-                    "type": "checkbox_fieldset",
-                    "default": "!checked",
-                    "label": "Zadat firemní údaje",
-                    "validations": null,
-                    "items":[  
-                                {
-                                    "id": 9,
-                                    "type": "text",
-                                    "label": "IČO",
-                                    "placeholder": null,
-                                    "prefix": null,
-                                    "note": null,
-                                    "validations": [
-                                        {"type": "required", "fails": "Tato položka je povinná"}
-                                    ]
-                                },
-                                {
-                                    "id": 10,
-                                    "type": "text",
-                                    "label": "DIČ",
-                                    "placeholder": null,
-                                    "note": null,
-                                    "validations": null
-                                },
-                                {
-                                    "id": 11,
-                                    "type": "text",
-                                    "label": "Společnost",
-                                    "placeholder": "Doplňující informace",
-                                    "prefix": null,
-                                    "note": null,
-                                    "validations": [
-                                        {"type": "required", "fails": "Tato položka je povinná"}
-                                    ]
-                                }
-                            ]
-                            
-                }              
-            ]
-
-      }
-    ]
+        "form_section": "Kontaktní údaje",
+        "fieldset_group": null,
+        "type": "email",
+        "label": "E-mail",
+        "placeholder": null,
+        "prefix": null,
+        "note": null,
+        "validations": [
+            {"type": "required", "fails": "Tato položka je povinná"},
+            {"type": "email", "fails": "Nesprávný formát e-mailu"}
+        ]
+    },
+    {
+        "form_section": "Kontaktní údaje",
+        "fieldset_group": null,
+        "type": "text",
+        "label": "Jméno",
+        "placeholder": null,
+        "prefix": null,
+        "note": null,
+        "validations": [
+            {"type": "required", "fails": "Tato položka je povinná"}
+        ]
+    },
+    {
+        "form_section": "Kontaktní údaje",
+        "fieldset_group": null,
+        "type": "text",
+        "label": "Příjmení",
+        "placeholder": null,
+        "prefix": null,
+        "note": null,
+        "validations": [
+            {"type": "required", "fails": "Tato položka je povinná"}
+        ]
+    },
+    {
+        "form_section": "Kontaktní údaje",
+        "fieldset_group": null,
+        "type": "tel",
+        "label": "Telefonní číslo",
+        "placeholder": null,
+        "prefix": "+420",
+        "note": "Pro kontakt Dr. Max",
+        "validations": [
+            {"type": "required", "fails": "Tato položka je povinná"},
+            {"type": "phone", "fails": "Nesprávný formát telefonu"}
+        ]
+    },
+    {
+        "form_section": "Doručovací adresa",
+        "fieldset_group": "Podrobnosti k doručení",
+        "type": "checkbox_toggle_fieldset",
+        "label": "Zadat podrobnosti k doručení a informace pro kurýra",
+        "validations": null
+    },  
+    {
+        "form_section": "Doručovací adresa",
+        "fieldset_group": "Podrobnosti k doručení",
+        "type": "address",
+        "label": "Adresa pro doručení",
+        "placeholder": null,
+        "prefix": null,
+        "note": "Na tuto adresu Vám zboží doručíme. Na faktuře bude kontaktní adresa.",
+        "validations": [
+            {"type": "address", "fails": "Nesprávný formát adresy"}
+        ]
+    },
+    {
+        "form_section": "Doručovací adresa",
+        "fieldset_group": "Podrobnosti k doručení",
+        "type": "text",
+        "label": "Doručit do firmy:",
+        "placeholder": null,
+        "prefix": null,
+        "note": "Nesouvisí s fakturací",
+        "validations": null
+    },                
+    {
+        "form_section": "Doručovací adresa",
+        "fieldset_group": "Podrobnosti k doručení",
+        "type": "text",
+        "label": "Zásilku převezme - Jméno:",
+        "placeholder": null,
+        "prefix": null,
+        "note": null,
+        "validations": null
+    },
+    {
+        "form_section": "Doručovací adresa",
+        "fieldset_group": "Podrobnosti k doručení",
+        "type": "text",
+        "label": "Zásilku převezme - Příjmení:",
+        "placeholder": null,
+        "prefix": null,
+        "note": null,
+        "validations": null
+    },
+    {
+        "form_section": "Doručovací adresa",
+        "fieldset_group": "Podrobnosti k doručení",
+        "type": "text",
+        "label": "Zásilku převezme - Telefonní číslo",
+        "placeholder": null,
+        "prefix": "+420",
+        "note": "Neslouží pro kontakty od Dr. Max",
+        "validations": [
+            {"type": "phone", "fails": "Nesprávný formát telefonu"}
+        ]
+    },
+    {
+        "form_section": "Doručovací adresa",
+        "fieldset_group": "Podrobnosti k doručení",
+        "type": "textarea",
+        "label": "Poznámka k objednávce",
+        "placeholder": "Doplňující informace",
+        "prefix": null,
+        "note": null,
+        "validations": null
+    },            
+    {
+        "form_section": "Doručovací adresa",
+        "fieldset_group": "Firemní údaje",
+        "type": "checkbox_toggle_fieldset",
+        "label": "Zadat firemní údaje",
+        "validations": null
+    },     
+    {
+        "form_section": "Doručovací adresa",
+        "fieldset_group": "Firemní údaje",
+        "type": "text",
+        "label": "IČO",
+        "placeholder": null,
+        "prefix": null,
+        "note": null,
+        "validations": [
+            {"type": "required", "fails": "Tato položka je povinná"}
+        ]
+    },
+    {
+        "form_section": "Doručovací adresa",
+        "fieldset_group": "Firemní údaje",
+        "type": "text",
+        "label": "DIČ",
+        "placeholder": null,
+        "note": null,
+        "validations": null
+    },
+    {
+        "form_section": "Doručovací adresa",
+        "fieldset_group": "Firemní údaje",
+        "type": "text",
+        "label": "Společnost",
+        "placeholder": "Doplňující informace",
+        "prefix": null,
+        "note": null,
+        "validations": [
+            {"type": "required", "fails": "Tato položka je povinná"}
+        ]
+    }
+]

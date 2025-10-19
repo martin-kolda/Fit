@@ -15,7 +15,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Figtree:ital,wght@0,300..900;1,300..900&display=swap" rel="stylesheet">
-  <script src="https://kit.fontawesome.com/2c7f1c6cae.js" crossorigin="anonymous"></script>   
+  <script src="https://kit.fontawesome.com/2c7f1c6cae.js" crossorigin="anonymous"></script> 
   <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css" />
   <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
   <link rel="stylesheet" href="./theme/max-tokens.css"> 
@@ -135,6 +135,70 @@
 
 <script>
   document.addEventListener('alpine:init', () => {
+    if (!Alpine.store('appConfig')) {
+      const storageKey = 'fit:app-config';
+      const defaults = { showBreakpointBadge: true };
+      const load = () => {
+        if (typeof localStorage === 'undefined') return {};
+        try {
+          const raw = localStorage.getItem(storageKey);
+          if (!raw) return {};
+          const parsed = JSON.parse(raw);
+          return parsed && typeof parsed === 'object' ? parsed : {};
+        } catch (e) {
+          console.warn('config store load failed', e);
+          return {};
+        }
+      };
+      const initial = { ...defaults, ...load() };
+      const emit = (key, value) => {
+        window.dispatchEvent(new CustomEvent('fit:config-change', { detail: { key, value } }));
+      };
+
+      Alpine.store('appConfig', {
+        key: storageKey,
+        defaults,
+        showBreakpointBadge: !!initial.showBreakpointBadge,
+        persist() {
+          if (typeof localStorage === 'undefined') return;
+          const payload = { showBreakpointBadge: !!this.showBreakpointBadge };
+          try {
+            localStorage.setItem(this.key, JSON.stringify(payload));
+          } catch (e) {
+            console.warn('config store persist failed', e);
+          }
+        },
+        set(key, value) {
+          if (!(key in this)) return;
+          const normalized = key === 'showBreakpointBadge' ? !!value : value;
+          if (this[key] === normalized) return;
+          this[key] = normalized;
+          this.persist();
+          emit(key, normalized);
+        },
+        get(key) {
+          if (!(key in this)) return undefined;
+          return this[key];
+        },
+        all() {
+          return { showBreakpointBadge: !!this.showBreakpointBadge };
+        },
+        reset() {
+          Object.keys(this.defaults).forEach((key) => {
+            this.set(key, this.defaults[key]);
+          });
+        }
+      });
+
+      try {
+        if (typeof localStorage !== 'undefined' && !localStorage.getItem(storageKey)) {
+          Alpine.store('appConfig').persist();
+        }
+      } catch (_) {}
+
+      emit('showBreakpointBadge', Alpine.store('appConfig').showBreakpointBadge);
+    }
+
     if (!Alpine.store('precart')) {
       Alpine.store('precart', {
         // state
@@ -726,6 +790,30 @@
   </template>
 </section>
 
+<!-- Top categories grid -->
+<section class="mt-1" x-cloak x-show="categoriesGrid.length">
+  <div class="flex items-center justify-between mb-4">
+    <h3 class="text-lg font-semibold">Top kategorie</h3>
+  </div>
+  <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-7 xl:grid-cols-10 gap-4 gap-y-4">
+    <template x-for="tile in categoriesGrid" :key="tile.slug || `${tile.label}-${tile.image}`">
+      <a :href="link('products')"
+         class="group flex flex-col items-center gap-3 text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 transition-transform duration-200">
+        <div class="w-full max-w-[200px] aspect-square rounded-2xl flex items-center justify-center transition-all duration-200 transform group-hover:-translate-y-1 group-hover:shadow-md"
+             :class="tile.background">
+          <img :src="tile.image"
+               :alt="tile.label"
+               class="max-w-[90%] object-cover transition-transform duration-200 group-hover:scale-105"
+               @error="$event.target.style.opacity=0.3">
+        </div>
+        <span class="text-sm font-medium text-base-content/80 transition-colors duration-200 group-hover:text-base-content"
+              x-text="tile.label"></span>
+      </a>
+    </template>
+  </div>
+</section>
+
+
  <!-- hits of the week -->
  <section class="mt-8">
   <div class="flex items-center justify-between mb-3">
@@ -790,68 +878,6 @@
 
 
 
- <!-- favorites in sale -->
- <section class="mt-8">
-  <div class="flex items-center justify-between mb-3">
-    <h3 class="text-lg font-semibold">Hity týdne</h3>
-  </div>
-
-  <div class="relative group">
-    <!-- indicators (use the same key) -->
-    <div class="pointer-events-none absolute inset-y-0 left-0 w-10 bg-gradient-to-r from-white to-transparent
-                transition-opacity duration-200 z-10"
-         :class="tpStates['hits']?.left ? 'opacity-100' : 'opacity-0'"></div>
-    <div class="pointer-events-none absolute inset-y-0 right-0 w-10 bg-gradient-to-l from-white to-transparent
-                transition-opacity duration-200 z-10"
-         :class="tpStates['hits']?.right ? 'opacity-100' : 'opacity-0'"></div>
-
-    <!-- mobile affordance -->
-    <div class="md:hidden pointer-events-none absolute inset-y-0 right-0 w-10 z-10 transition-opacity"
-         :class="tpStates['hits']?.scrolled ? 'opacity-0' : 'opacity-100'">
-      <div class="h-full bg-gradient-to-l from-base-100 to-transparent"></div>
-      <div class="absolute right-2 top-1/2 -translate-y-1/2 text-base-content/60 animate-pulse select-none">
-        <i class="fa-solid fa-chevron-right fa-lg"></i>
-      </div>
-    </div>
-
-    <!-- scroller: call registerTopStrip with the same key, use $el not $refs -->
-    <div class="overflow-x-auto scrollbar-thin"
-         x-init="registerTopStrip($el, 'hits')">
-      <div class="flex gap-3 snap-x snap-mandatory px-0 pb-5">
-        <template x-for="p in topProductsShuffledFor('saved', 12)" :key="p.id">
-          <!-- card markup unchanged -->
-          <a :href="link('product',{id:p.id})"
-             class="snap-start shrink-0 w-48 sm:w-56 card bg-white hover:shadow-md transition relative">
-            <span x-show="discountPct(p) !== null"
-                  class="absolute left-2 top-2 badge badge-error text-white font-semibold">
-              <span x-text="`-${discountPct(p)}%`"></span>
-            </span>
-            <figure class="p-3 h-40">
-              <img :src="p.image || './images/placeholder.webp'" :alt="p.name"
-                   class="w-full h-full object-cover">
-            </figure>
-            <div class="card-body pt-0 flex flex-col">
-              <div class="text-sm font-medium line-clamp-2 leading-snug min-h-[2.45rem] max-h-[2.45rem]" x-text="p.name"></div>
-              <div class="mt-auto">
-                <div class="text-base font-semibold">
-                  <span x-text="formatPrice(currentPrice(p))"></span>
-                  <span class="ml-2 line-through text-xs opacity-60"
-                        x-show="crossedPrice(p) !== null"
-                        x-text="formatPrice(crossedPrice(p))"></span>
-                </div>
-                <div class="mt-1" x-show="isInStock(p)">
-                  <span class="badge badge-success">Skladem</span>
-                </div>
-              </div>
-            </div>
-          </a>
-        </template>
-      </div>
-    </div>
-  </div>
-</section>
-
-
 <!-- Top brands -->
 <section class="mt-8">
   <div class="flex items-center justify-between mb-3">
@@ -901,6 +927,8 @@
     </div>
   </div>
 </section>
+
+
 
 
 <!-- Magazine blog -->
@@ -1049,6 +1077,67 @@
 </section>
 
 
+ <!-- favorites in sale -->
+ <section class="mt-8">
+  <div class="flex items-center justify-between mb-3">
+    <h3 class="text-lg font-semibold">Vaše uložené</h3>
+  </div>
+
+  <div class="relative group">
+    <!-- indicators (use the same key) -->
+    <div class="pointer-events-none absolute inset-y-0 left-0 w-10 bg-gradient-to-r from-white to-transparent
+                transition-opacity duration-200 z-10"
+         :class="tpStates['hits']?.left ? 'opacity-100' : 'opacity-0'"></div>
+    <div class="pointer-events-none absolute inset-y-0 right-0 w-10 bg-gradient-to-l from-white to-transparent
+                transition-opacity duration-200 z-10"
+         :class="tpStates['hits']?.right ? 'opacity-100' : 'opacity-0'"></div>
+
+    <!-- mobile affordance -->
+    <div class="md:hidden pointer-events-none absolute inset-y-0 right-0 w-10 z-10 transition-opacity"
+         :class="tpStates['hits']?.scrolled ? 'opacity-0' : 'opacity-100'">
+      <div class="h-full bg-gradient-to-l from-base-100 to-transparent"></div>
+      <div class="absolute right-2 top-1/2 -translate-y-1/2 text-base-content/60 animate-pulse select-none">
+        <i class="fa-solid fa-chevron-right fa-lg"></i>
+      </div>
+    </div>
+
+    <!-- scroller: call registerTopStrip with the same key, use $el not $refs -->
+    <div class="overflow-x-auto scrollbar-thin"
+         x-init="registerTopStrip($el, 'hits')">
+      <div class="flex gap-3 snap-x snap-mandatory px-0 pb-5">
+        <template x-for="p in topProductsShuffledFor('saved', 12)" :key="p.id">
+          <!-- card markup unchanged -->
+          <a :href="link('product',{id:p.id})"
+             class="snap-start shrink-0 w-48 sm:w-56 card bg-white hover:shadow-md transition relative">
+            <span x-show="discountPct(p) !== null"
+                  class="absolute left-2 top-2 badge badge-error text-white font-semibold">
+              <span x-text="`-${discountPct(p)}%`"></span>
+            </span>
+            <figure class="p-3 h-40">
+              <img :src="p.image || './images/placeholder.webp'" :alt="p.name"
+                   class="w-full h-full object-cover">
+            </figure>
+            <div class="card-body pt-0 flex flex-col">
+              <div class="text-sm font-medium line-clamp-2 leading-snug min-h-[2.45rem] max-h-[2.45rem]" x-text="p.name"></div>
+              <div class="mt-auto">
+                <div class="text-base font-semibold">
+                  <span x-text="formatPrice(currentPrice(p))"></span>
+                  <span class="ml-2 line-through text-xs opacity-60"
+                        x-show="crossedPrice(p) !== null"
+                        x-text="formatPrice(crossedPrice(p))"></span>
+                </div>
+                <div class="mt-1" x-show="isInStock(p)">
+                  <span class="badge badge-success">Skladem</span>
+                </div>
+              </div>
+            </div>
+          </a>
+        </template>
+      </div>
+    </div>
+  </div>
+</section>
+
   </div>
 </template>
 
@@ -1109,7 +1198,6 @@
          x-data="{ mobileFiltersOpen: false }"
          @keydown.escape.window="mobileFiltersOpen = false">
   <div class="flex flex-wrap items-center justify-between gap-3">
-    <h2 id="filters-heading" class="text-lg font-semibold">Filtry a řazení</h2>
     <div class="flex items-center gap-2">
       <button type="button"
               class="btn btn-outline btn-sm lg:hidden"
@@ -1136,7 +1224,7 @@
          class="fixed inset-0 z-40 bg-base-200/70 backdrop-blur-sm lg:hidden"
          @click.self="mobileFiltersOpen = false"></div>
 
-    <aside class="fixed inset-y-0 left-0 w-5/6 max-w-xs bg-base-100 shadow-xl transform -translate-x-full transition-transform duration-300 ease-out overflow-y-auto z-50 p-6 pb-10 lg:sticky lg:top-24 lg:h-[calc(100vh-8rem)] lg:w-auto lg:max-w-none lg:bg-transparent lg:shadow-none lg:p-5 lg:pb-12 lg:translate-x-0 lg:transform-none lg:overflow-y-auto"
+    <aside class="fixed inset-y-0 left-0 w-5/6 max-w-xs bg-base-100 shadow-xl transform -translate-x-full transition-transform duration-300 ease-out overflow-y-auto z-50 p-6 pb-10 lg:sticky lg:top-24 lg:h-[calc(100vh-8rem)] lg:w-auto lg:max-w-none lg:bg-transparent lg:shadow-none lg:p-0 lg:pb-12 lg:translate-x-0 lg:transform-none lg:overflow-y-auto"
            :class="mobileFiltersOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'">
       <div class="lg:hidden flex items-center justify-between mb-4">
         <h3 class="text-lg font-semibold">Filtry</h3>
@@ -1147,7 +1235,7 @@
 
       <div class="space-y-6 lg:pr-5 lg:pt-2 lg:pb-8">
         <div class="space-y-3">
-          <h3 class="font-semibold text-base">Vyhledávání</h3>
+          <h2 id="filters-heading" class="text-lg font-semibold">Filtry a řazení</h2>
           <label class="input input-bordered items-center gap-2 w-full" aria-label="Vyhledávání">
             <i class="fa-solid fa-magnifying-glass text-max-gray-600"></i>
             <input type="search"
@@ -2857,7 +2945,7 @@ document.addEventListener('alpine:init', () => {
                  :checked="selectedDeliveryId === opt.id"
                  tabindex="-1" />
           <img :src="opt.icon" :alt="opt.name"
-               class="size-11 rounded bg-base-200 object-contain shrink-0"
+               class="size-7 rounded bg-base-200 object-contain shrink-0"
                @error="$event.target.style.opacity=0.3" />
           <div class="min-w-0">
             <div class="font-medium leading-tight">
@@ -2901,7 +2989,7 @@ document.addEventListener('alpine:init', () => {
           </p>
         </template>
         <template x-if="pickupInfo(opt.id) && selectedDeliveryId === opt.id">
-          <p class="mt-2 text-sm text-base-content/80 flex flex-wrap items-center gap-2">
+          <p class="mt-1 text-sm text-base-content/80 flex flex-wrap items-center gap-2">
             <span class="text-base-content/60" x-text="pickupInfo(opt.id).addressLine"></span>
             <button type="button"
                     class="link link-primary text-sm"
@@ -2918,11 +3006,14 @@ document.addEventListener('alpine:init', () => {
           <template x-if="freeShippingActive || opt.price === 0">
             <div class="font-semibold">Zdarma</div>
           </template>
-          <!-- TODO: Price should be updated and from "Od" removed for DODO row, if timeslot is selecte (aka we know the exact price) -->
           <template x-if="!freeShippingActive && opt.price > 0">
             <div>
-              <div class="text-xs tracking-wide font-medium text-base-content/60" x-show="opt.price_from">Od</div>
-              <div class="font-semibold" x-text="formatCZK(opt.price)"></div>
+              <div class="text-xs tracking-wide font-medium text-base-content/60"
+                   x-show="opt.price_from && timeslotPrice(opt.id) === null">
+                Od
+              </div>
+              <div class="font-semibold"
+                   x-text="formatCZK(timeslotPrice(opt.id) !== null ? timeslotPrice(opt.id) : opt.price)"></div>
             </div>
           </template>
         </div>
@@ -2951,7 +3042,7 @@ document.addEventListener('alpine:init', () => {
                  :disabled="isPaymentDisabled(opt.id)"
                  tabindex="-1" />
           <img :src="opt.icon" :alt="opt.name"
-               class="size-11 rounded bg-base-200 object-contain shrink-0"
+               class="size-7 rounded bg-base-200 object-contain shrink-0"
                @error="$event.target.style.opacity=0.3" />
           <div class="min-w-0">
             <div class="font-medium leading-tight">
@@ -2978,13 +3069,8 @@ document.addEventListener('alpine:init', () => {
               <p class="text-sm font-medium text-base-content/70 leading-snug" x-text="opt.description"></p>
             </template>
             <template x-if="benefitInfo(opt.id) && selectedPaymentId === opt.id">
-              <p class="mt-2 text-sm text-base-content/80 flex items-center gap-2">
-                <template x-if="benefitInfo(opt.id)?.image">
-                  <img :src="benefitInfo(opt.id).image"
-                       alt=""
-                       class="w-8 h-8 object-contain rounded bg-base-200"
-                       @error="$event.target.style.opacity=0.3">
-                </template>
+              <p class="mt-1 text-sm text-base-content/80 flex items-center gap-2">
+
                 <i class="fa-solid fa-gift" x-show="!benefitInfo(opt.id)?.image"></i>
                 <span x-text="benefitInfo(opt.id).name"></span>
                 <button type="button"
@@ -3007,21 +3093,18 @@ document.addEventListener('alpine:init', () => {
           </template>
 
           <template x-if="!isPaymentDisabled(opt.id)">
-            <template x-if="selectedDeliveryId === opt.id && timeslotInfo(opt.id)">
-              <div>
-                <div class="font-semibold" x-text="formatCZK(timeslotInfo(opt.id).price)"></div>
-              </div>
+            <template x-if="opt.price === 0">
+              <div class="font-semibold">Zdarma</div>
             </template>
-            <template x-if="!(selectedDeliveryId === opt.id && timeslotInfo(opt.id))">
-              <template x-if="opt.price === 0">
-                <div class="font-semibold">Zdarma</div>
-              </template>
-              <template x-if="opt.price > 0">
-                <div>
-                  <div class="text-xs tracking-wide font-medium text-base-content/60" x-show="opt.price_from">Od</div>
-                  <div class="font-semibold" x-text="formatCZK(opt.price)"></div>
+            <template x-if="opt.price > 0">
+              <div>
+                <div class="text-xs tracking-wide font-medium text-base-content/60"
+                     x-show="opt.price_from && timeslotPrice(opt.id) === null">
+                  Od
                 </div>
-              </template>
+                <div class="font-semibold"
+                     x-text="formatCZK(timeslotPrice(opt.id) !== null ? timeslotPrice(opt.id) : opt.price)"></div>
+              </div>
             </template>
           </template>
         </div>
@@ -3033,18 +3116,16 @@ document.addEventListener('alpine:init', () => {
 
   <!-- Follow-up modal -->
   <dialog x-ref="modal" class="modal" @cancel.prevent="cancelFollowup()">
-    <div class="modal-box w-11/12 max-w-3xl">
+    <div class="modal-box w-11/12 max-w-4xl">
       <button type="button" class="btn btn-xl btn-circle btn-ghost absolute right-3 top-3" @click="cancelFollowup()">✕</button>
 
       <template x-if="currentFollowup?.type === 'timeslot'">
         <div class="space-y-6">
-          <h3 class="text-lg font-semibold" x-text="followupTitle()"></h3>
-
           <template x-if="timeslotModal.step === 'zip'">
             <form class="grid gap-4 py-6" @submit.prevent="submitZip()">
               <label class="text-sm font-medium text-base-content/70 text-center">Zadejte PSČ doručení</label>
               <input type="text"
-                     class="input input-bordered input-lg text-center text-xl tracking-[0.3em]"
+                     class="input input-bordered input-lg text-center text-xl mx-auto tracking-[0.3em]"
                      maxlength="5"
                      autocomplete="postal-code"
                      inputmode="numeric"
@@ -3055,7 +3136,6 @@ document.addEventListener('alpine:init', () => {
               >
               <p class="text-sm text-error text-center min-h-[1.25rem]" x-text="timeslotModal.message"></p>
               <div class="flex justify-center gap-2">
-                <button type="button" class="btn btn-ghost" @click="cancelFollowup()">Zrušit</button>
                 <button type="submit" class="btn btn-primary">Pokračovat</button>
               </div>
             </form>
@@ -3079,25 +3159,61 @@ document.addEventListener('alpine:init', () => {
           </template>
 
           <template x-if="timeslotModal.step === 'slots'">
-            <div class="space-y-6">
-              <div class="flex flex-wrap items-center justify-between gap-3 text-sm text-base-content/70">
-                <span>PSČ: <span class="font-semibold" x-text="timeslotModal.zip"></span></span>
-                <button type="button"
-                        class="link link-primary text-sm"
-                        @click="timeslotModal.step = 'zip'; timeslotModal.message = ''; timeslotModal.days = []; timeslotModal.lookup = {}; timeslotModal.selectedSlotKey = '';">
-                  Změnit PSČ
-                </button>
-              </div>
-
-              <template x-for="day in timeslotModal.days" :key="day.key">
-                <div>
-                  <div class="flex items-center gap-2 mb-3">
-                    <h4 class="text-base font-semibold" x-text="day.display"></h4>
-                    <span class="badge badge-success badge-sm" x-show="day.isTomorrow">Zítra</span>
+            <div class="flex flex-col max-h-128">
+              <div class="flex-1 overflow-y-auto space-y-6 pr-1 lg:hidden">
+                <template x-for="day in timeslotModal.days" :key="day.key">
+                  <div>
+                    <div class="flex items-center gap-2 mb-3">
+                      <h4 class="text-base font-semibold" x-text="day.display"></h4>
+                      <span class="badge badge-success badge-sm" x-show="day.isTomorrow">Zítra</span>
+                    </div>
+                    <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                      <template x-for="slot in day.slots" :key="slot.key">
+                        <label :class="slotClass(slot.key, slot.disabled)" class="flex items-center gap-3">
+                          <input type="radio"
+                                 class="radio radio-secondary"
+                                 name="timeslot"
+                                 :value="slot.key"
+                                 :disabled="slot.disabled"
+                                 :checked="timeslotModal.selectedSlotKey === slot.key"
+                                 @change="selectTimeslot(slot.key)"
+                          >
+                          <span class="font-medium" x-text="slot.label"></span>
+                          <span class="text-sm text-base-content/70" x-show="!slot.disabled" x-text="formatCZK(slot.price)"></span>
+                          <span x-show="slot.disabled" class="text-sm text-base-content/40">
+                            <span class="tooltip tooltip-left" data-tip="Není k dispozici">
+                              <i class="fa-regular fa-circle-info"></i>
+                            </span>
+                          </span>
+                        </label>
+                      </template>
+                    </div>
                   </div>
-                  <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                    <template x-for="slot in day.slots" :key="slot.key">
-                      <label :class="slotClass(slot.key, slot.disabled)">
+                </template>
+              </div>
+              <div class="hidden lg:flex lg:flex-col lg:h-full">
+                <div class="flex overflow-x-auto">
+                  <template x-for="day in timeslotModal.days" :key="`tab-${day.key}`">
+                    <button type="button"
+                            class="relative whitespace-nowrap pr-7 pb-3 pt-2 text-lg font-semibold transition-colors"
+                            :class="timeslotModal.activeDayKey === day.key ? 'text-secondary' : 'text-base-content hover:text-base-content/90'"
+                            @click="setTimeslotDay(day.key)">
+                      <span x-text="day.label"></span>
+                      <span class="text-success text-sm font-medium ml-2" x-show="day.isTomorrow">Zítra</span>
+                      <span class="absolute left-0 right-6 -bottom-[1px] h-1 rounded-full bg-secondary"
+                            x-show="timeslotModal.activeDayKey === day.key"></span>
+                    </button>
+                  </template>
+                </div>
+                <div class="mt-4 space-y-4 overflow-y-auto pr-1"
+                     x-data="{
+                       get activeDay() { return activeTimeslotDay(); },
+                       get slots() { return this.activeDay ? this.activeDay.slots : []; }
+                     }"
+                     x-show="activeDay">
+                  <div class="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+                    <template x-for="slot in slots" :key="`desk-${slot.key}`">
+                      <label :class="slotClass(slot.key, slot.disabled)" class="flex items-center gap-3">
                         <input type="radio"
                                class="radio radio-secondary"
                                name="timeslot"
@@ -3106,24 +3222,29 @@ document.addEventListener('alpine:init', () => {
                                :checked="timeslotModal.selectedSlotKey === slot.key"
                                @change="selectTimeslot(slot.key)"
                         >
-                        <div class="flex items-center gap-3">
-                          <span class="font-semibold" x-text="slot.label"></span>
-                          <span class="text-sm text-base-content/70" x-show="!slot.disabled" x-text="formatCZK(slot.price)"></span>
-                          <span x-show="slot.disabled" class="text-sm text-base-content/40">
-                            <span class="tooltip tooltip-left" data-tip="Není k dispozici">
-                              <i class="fa-regular fa-circle-info"></i>
-                            </span>
+                        <span class="font-medium" x-text="slot.label"></span>
+                        <span class="text-sm text-base-content/70" x-show="!slot.disabled" x-text="formatCZK(slot.price)"></span>
+                        <span x-show="slot.disabled" class="text-sm text-base-content/40">
+                          <span class="tooltip tooltip-left" data-tip="Není k dispozici">
+                            <i class="fa-regular fa-circle-info"></i>
                           </span>
-                        </div>
+                        </span>
                       </label>
                     </template>
                   </div>
                 </div>
-              </template>
+              </div>
 
-              <div class="modal-action pt-2">
-                <button class="btn btn-ghost" type="button" @click="cancelFollowup()">Zrušit</button>
-                <button class="btn btn-primary" type="button" @click="confirmTimeslot()" :disabled="!timeslotModal.selectedSlotKey">Potvrdit termín</button>
+              <div class="mt-4 pt-3 flex flex-wrap items-center justify-between gap-3 bg-base-100">
+                <button class="btn btn-ghost btn-md"
+                        type="button"
+                        @click="timeslotModal.step = 'zip'; timeslotModal.message = ''; timeslotModal.days = []; timeslotModal.lookup = {}; timeslotModal.selectedSlotKey = ''; timeslotModal.activeDayKey = '';">
+                  Změnit PSČ
+                </button>
+                <div class="flex gap-2">
+                  <button class="btn btn-ghost" type="button" @click="cancelFollowup()">Zrušit</button>
+                  <button class="btn btn-primary" type="button" @click="confirmTimeslot()" :disabled="!timeslotModal.selectedSlotKey">Potvrdit termín</button>
+                </div>
               </div>
             </div>
           </template>
@@ -3178,7 +3299,6 @@ document.addEventListener('alpine:init', () => {
 
       <template x-if="currentFollowup?.type && !['timeslot','benefits'].includes(currentFollowup.type)">
         <div>
-          <h3 class="font-bold text-lg" x-text="followupTitle()"></h3>
           <div class="py-3 text-base-content/70">
             <p>Akce není dostupná.</p>
           </div>
@@ -3192,6 +3312,7 @@ document.addEventListener('alpine:init', () => {
       <button type="button">close</button>
     </form>
   </dialog>
+
 </div>
 
 <p class="mt-18 text-sm space-y-3 sm:space-y-0 sm:flex sm:flex-wrap sm:items-center sm:gap-x-6 sm:gap-y-2">
@@ -3247,6 +3368,7 @@ function deliveryPaymentUI() {
       days: [],
       lookup: {},
       selectedSlotKey: '',
+      activeDayKey: '',
       message: ''
     },
     timeslotModalTimer: null,
@@ -3268,8 +3390,12 @@ function deliveryPaymentUI() {
         // restore selections
         const sd = Number(localStorage.getItem('selectedDeliveryId')) || null;
         const sp = Number(localStorage.getItem('selectedPaymentId')) || null;
-        if (sd && this.delivery.some(d => d.id === sd)) this.selectedDeliveryId = sd;
-        if (sp && this.payment.some(p => p.id === sp)) this.selectedPaymentId = sp;
+        if (sd && this.delivery.some(d => d.id === sd)) {
+          this.selectedDeliveryId = sd;
+        }
+        if (sp && this.payment.some(p => p.id === sp)) {
+          this.selectedPaymentId = sp;
+        }
 
         // validate existing combination after restore
         if (this.selectedPaymentId && this.isPaymentDisabled(this.selectedPaymentId)) {
@@ -3278,7 +3404,13 @@ function deliveryPaymentUI() {
 
         this.loadTimeslotSelections();
         this.loadPickupSelections();
+        if (this.selectedDeliveryId) {
+          this.persistDeliveryMeta(this.selectedDeliveryId);
+        }
         this.loadBenefitSelections();
+        if (this.selectedPaymentId) {
+          this.persistPaymentMeta(this.selectedPaymentId);
+        }
         await this.loadBenefitPrograms();
         this._onPickupSelected = (e) => {
           const detail = e.detail || {};
@@ -3359,6 +3491,94 @@ function deliveryPaymentUI() {
       return this.timeslotSelections?.[id] || null;
     },
 
+    timeslotPrice(id) {
+      const info = this.timeslotInfo(id);
+      if (!info || typeof info.price !== 'number') return null;
+      return info.price;
+    },
+
+    ensureActiveTimeslotDay() {
+      const days = Array.isArray(this.timeslotModal?.days) ? this.timeslotModal.days : [];
+      if (!days.length) {
+        this.timeslotModal.activeDayKey = '';
+        return;
+      }
+      const selectedKey = this.timeslotModal.selectedSlotKey;
+      if (selectedKey && this.timeslotModal.lookup?.[selectedKey]) {
+        const info = this.timeslotModal.lookup[selectedKey];
+        const dayKey = info?.day?.key || info?.day?.iso || '';
+        if (dayKey && days.some(d => d.key === dayKey)) {
+          this.timeslotModal.activeDayKey = dayKey;
+          return;
+        }
+      }
+      if (!this.timeslotModal.activeDayKey || !days.some(d => d.key === this.timeslotModal.activeDayKey)) {
+        this.timeslotModal.activeDayKey = days[0].key;
+      }
+    },
+
+    setTimeslotDay(key) {
+      if (!key || this.timeslotModal.activeDayKey === key) return;
+      const exists = (this.timeslotModal.days || []).some(d => d.key === key);
+      if (!exists) return;
+      this.timeslotModal.activeDayKey = key;
+    },
+
+    activeTimeslotDay() {
+      const days = this.timeslotModal.days || [];
+      if (!days.length) return null;
+      const key = this.timeslotModal.activeDayKey;
+      if (key) {
+        const found = days.find(d => d.key === key);
+        if (found) return found;
+      }
+      return days[0] || null;
+    },
+
+    persistDeliveryMeta(id) {
+      const opt = this.delivery.find(d => d.id === id);
+      if (!opt) return;
+      const basePrice = Number(opt.price);
+      const computedFinal = this.timeslotPrice(id);
+      const meta = {
+        id: opt.id,
+        name: opt.name,
+        type: opt.type || '',
+        tooltip: opt.tooltip || null,
+        description: opt.description || null,
+        price: Number.isFinite(basePrice) ? basePrice : 0,
+        priceFrom: !!opt.price_from,
+        followup: opt.followup || null,
+        icon: opt.icon || null,
+        finalPrice: Number.isFinite(computedFinal) ? computedFinal : (Number.isFinite(basePrice) ? basePrice : 0),
+        timeslot: this.timeslotInfo(id),
+        pickup: this.pickupInfo(id)
+      };
+      try { localStorage.setItem('checkout.delivery', JSON.stringify(meta)); }
+      catch (e) { console.warn('Failed to persist delivery meta', e); }
+    },
+
+    persistPaymentMeta(id) {
+      const opt = this.payment.find(p => p.id === id);
+      if (!opt) return;
+      const benefit = this.benefitInfo(id);
+      const basePrice = Number(opt.price);
+      const meta = {
+        id: opt.id,
+        name: opt.name,
+        tooltip: opt.tooltip || null,
+        description: opt.description || null,
+        price: Number.isFinite(basePrice) ? basePrice : 0,
+        finalPrice: Number.isFinite(basePrice) ? basePrice : 0,
+        priceFrom: !!opt.price_from,
+        followup: opt.followup || null,
+        icon: opt.icon || null,
+        benefit: benefit ? { id: benefit.id, name: benefit.name, image: benefit.image || null } : null
+      };
+      try { localStorage.setItem('checkout.payment', JSON.stringify(meta)); }
+      catch (e) { console.warn('Failed to persist payment meta', e); }
+    },
+
     pickupInfo(id) {
       if (!id) return null;
       return this.pickupSelections?.[id] || null;
@@ -3401,6 +3621,7 @@ function deliveryPaymentUI() {
         const { days, lookup } = this.generateTimeslotDays(this.timeslotModal.selectedSlotKey);
         this.timeslotModal.days = days;
         this.timeslotModal.lookup = lookup;
+        this.ensureActiveTimeslotDay();
       }
     },
 
@@ -3421,6 +3642,7 @@ function deliveryPaymentUI() {
         if (!lookup[this.timeslotModal.selectedSlotKey]) {
           this.timeslotModal.selectedSlotKey = '';
         }
+        this.ensureActiveTimeslotDay();
         this.timeslotModal.step = 'slots';
         this.timeslotModalTimer = null;
       }, 1000);
@@ -3430,7 +3652,10 @@ function deliveryPaymentUI() {
       if (!key || !this.timeslotModal.lookup[key]) return;
       const info = this.timeslotModal.lookup[key];
       if (info.slot.disabled) return;
+      const dayKey = info?.day?.key || info?.day?.iso || '';
+      if (dayKey) this.timeslotModal.activeDayKey = dayKey;
       this.timeslotModal.selectedSlotKey = key;
+      this.ensureActiveTimeslotDay();
     },
 
     slotClass(key, disabled) {
@@ -3508,6 +3733,15 @@ function deliveryPaymentUI() {
         const decorated = i === 1 ? 'Zítra' : display;
         const isTomorrow = i === 1;
 
+        const dayMeta = {
+          key: isoDate,
+          iso: isoDate,
+          display,
+          label: shortLabel,
+          decorated,
+          isTomorrow
+        };
+
         const slots = [];
         for (let j = 0; j < 6; j++) {
           const startHour = 8 + j * 2;
@@ -3525,18 +3759,10 @@ function deliveryPaymentUI() {
             endISO: this.buildSlotISO(date, endHour)
           };
           slots.push(slot);
-          lookup[key] = { day: { iso: isoDate, display, label: shortLabel, decorated, isTomorrow }, slot };
+          lookup[key] = { day: dayMeta, slot };
         }
 
-        days.push({
-          key: isoDate,
-          iso: isoDate,
-          display,
-          label: shortLabel,
-          decorated,
-          isTomorrow,
-          slots
-        });
+        days.push({ ...dayMeta, slots });
       }
 
       return { days, lookup };
@@ -3713,6 +3939,7 @@ function deliveryPaymentUI() {
         days: [],
         lookup: {},
         selectedSlotKey: '',
+        activeDayKey: '',
         message: ''
       };
     },
@@ -3818,6 +4045,7 @@ function deliveryPaymentUI() {
       const prev = this.selectedDeliveryId;
       this.selectedDeliveryId = id;
       localStorage.setItem('selectedDeliveryId', String(id));
+      this.persistDeliveryMeta(id);
 
       // Ask #1: if existing payment is now invalid, clear it
       if (this.selectedPaymentId && this.isPaymentDisabled(this.selectedPaymentId)) {
@@ -3830,6 +4058,7 @@ function deliveryPaymentUI() {
     applyPaymentSelection(id) {
       this.selectedPaymentId = id;
       localStorage.setItem('selectedPaymentId', String(id));
+      this.persistPaymentMeta(id);
     },
     clearPaymentSelection(id = null) {
       const target = id ?? this.selectedPaymentId;
@@ -3837,6 +4066,7 @@ function deliveryPaymentUI() {
       if (this.selectedPaymentId === target) {
         this.selectedPaymentId = null;
         localStorage.removeItem('selectedPaymentId');
+        try { localStorage.removeItem('checkout.payment'); } catch (_) {}
       }
       if (this.benefitSelections?.[target]) {
         delete this.benefitSelections[target];
@@ -3850,6 +4080,7 @@ function deliveryPaymentUI() {
       if (this.selectedDeliveryId === target) {
         this.selectedDeliveryId = null;
         localStorage.removeItem('selectedDeliveryId');
+        try { localStorage.removeItem('checkout.delivery'); } catch (_) {}
       }
       if (this.timeslotSelections?.[target]) {
         delete this.timeslotSelections[target];
@@ -3865,7 +4096,6 @@ function deliveryPaymentUI() {
     followupTitle() {
       switch (this.currentFollowup?.type) {
         case 'map': return 'Výběr výdejního místa';
-        case 'timeslot': return 'Výběr časového okna';
         case 'benefits': return 'Výběr benefitní platby';
         default: return 'Akce';
       }
@@ -3894,63 +4124,136 @@ function deliveryPaymentUI() {
 
 <!-- ROUTE == ADDRESSES -->
 <section x-show="is('addresses')" x-cloak>
-  <section class="w-auto md:w-11/12 xl:w-8/12 mx-auto px-4 pt-2 md:pt-12 pb-32">
+  <section class="w-auto md:w-11/12 xl:w-8/12 mx-auto px-4 pt-2 md:pt-12 pb-32" x-init="ensureAddressForm()">
     <h1 class="text-3xl mx-auto mb-6">Adresy</h1>
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
 
-      <fieldset class="border border-base-300 rounded-xl bg-white shadow-sm p-6 py-8 md:p-16 grid grid-cols-1 gap-y-1">
-        <h2 class="text-xl font-medium mb-4 border-1">Kontaktní údaje</h2>
-        <fieldset class="fieldset">
-          <legend class="fieldset-legend text-sm text-max-gray-600">E-mail</legend>
-          <label class="input input-lg w-full">
-            <i class="fa-regular fa-envelope text-max-gray-400"></i>
-            <input type="email" placeholder="" />
-          </label>
+    <template x-if="addressFormLoading">
+      <div class="border border-base-300 rounded-xl bg-white shadow-sm p-6 text-base-content/70">
+        Načítám formulář…
+      </div>
+    </template>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-12" x-show="addressFormLoaded">
+      <template x-for="section in contactFormSections" :key="section.name">
+        <fieldset x-show="shouldShowSection(section.name)"
+                  class="border border-base-300 rounded-xl bg-white shadow-sm p-6 md:px-16 md:py-10 grid grid-cols-1 gap-y-4 place-content-start">
+          <h2 class="text-xl font-medium leading-tight mt-0 mb-4" x-text="section.name"></h2>
+
+          <template x-for="field in section.fields" :key="field.key">
+            <div x-show="isFieldVisible(field)" class="space-y-2">
+              <template x-if="field.isToggle">
+                <div class="py-1">
+                  <label class="flex items-center gap-3 text-base text-base-content/80">
+                    <input type="checkbox"
+                           class="checkbox checkbox-secondary"
+                           x-model="contactFormValues[field.key]"
+                           @change="handleGroupToggle(field.key)">
+                    <span class="leading-tight" x-text="field.label"></span>
+                  </label>
+                  <p class="text-sm text-base-content/70" x-show="field.note" x-text="field.note"></p>
+                </div>
+              </template>
+
+              <template x-if="!field.isToggle">
+                <fieldset class="fieldset">
+                  <legend class="fieldset-legend text-sm text-max-gray-600" x-text="field.label"></legend>
+
+                  <template x-if="field.type === 'textarea'">
+                    <textarea class="textarea textarea-bordered h-28 w-full"
+                              x-bind:placeholder="field.placeholder ?? undefined"
+                              x-model="contactFormValues[field.key]"
+                              @input="handleFieldInput(field.key)"
+                              @blur="handleFieldBlur(field.key)"
+                              :class="contactFormErrors[field.key].length ? 'textarea-error' : ''"></textarea>
+                  </template>
+
+                  <template x-if="field.type === 'address'">
+                    <div class="grid grid-cols-1 gap-3">
+                      <label class="input input-lg w-full" :class="contactFormErrors[field.key].length ? 'input-error' : ''">
+                        <input type="text"
+                               class="grow"
+                               x-bind:placeholder="addressPlaceholder(field, 'street')"
+                               x-model="contactFormValues[field.key].street"
+                               @input="handleFieldInput(field.key)"
+                               @blur="handleFieldBlur(field.key)" />
+                      </label>
+                      <label class="input input-lg w-full">
+                        <input type="text"
+                               class="grow"
+                               x-bind:placeholder="addressPlaceholder(field, 'extra')"
+                               x-model="contactFormValues[field.key].extra"
+                               @input="handleFieldInput(field.key)"
+                               @blur="handleFieldBlur(field.key)" />
+                      </label>
+                      <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <label class="input input-lg w-full" :class="contactFormErrors[field.key].length ? 'input-error' : ''">
+                          <input type="text"
+                                 class="grow"
+                                 x-bind:placeholder="addressPlaceholder(field, 'city')"
+                                 x-model="contactFormValues[field.key].city"
+                                 @input="handleFieldInput(field.key)"
+                                 @blur="handleFieldBlur(field.key)" />
+                        </label>
+                        <label class="input input-lg w-full" :class="contactFormErrors[field.key].length ? 'input-error' : ''">
+                          <input type="text"
+                                 class="grow"
+                                 x-bind:placeholder="addressPlaceholder(field, 'zip')"
+                                 inputmode="numeric"
+                                 maxlength="5"
+                                 x-model="contactFormValues[field.key].zip"
+                                 @input="handleFieldInput(field.key)"
+                                 @blur="handleFieldBlur(field.key)" />
+                        </label>
+                      </div>
+                    </div>
+                  </template>
+
+                  <template x-if="['text','email','tel'].includes(field.type)">
+                    <label class="input input-lg w-full" :class="contactFormErrors[field.key].length ? 'input-error' : ''">
+                      <span class="label" x-show="field.prefix" x-text="field.prefix"></span>
+                      <input :type="field.type === 'tel' ? 'tel' : (field.type === 'email' ? 'email' : 'text')"
+                             class="grow"
+                             x-bind:placeholder="field.placeholder ?? undefined"
+                             x-model="contactFormValues[field.key]"
+                             @input="handleFieldInput(field.key)"
+                             @blur="handleFieldBlur(field.key)" />
+                    </label>
+                  </template>
+
+                  <p class="text-sm text-base-content/70" x-show="field.note" x-text="field.note"></p>
+                  <template x-if="contactFormErrors[field.key].length">
+                    <p class="text-sm text-error" x-text="contactFormErrors[field.key][0]"></p>
+                  </template>
+                </fieldset>
+              </template>
+            </div>
+          </template>
         </fieldset>
-        <fieldset class="fieldset">
-          <legend class="fieldset-legend text-sm text-max-gray-600">Jméno</legend>
-          <label class="input input-lg w-full">
-            <input type="text" placeholder="" />
-          </label>
+      </template>
+
+      <template x-if="isPickupDelivery()">
+        <fieldset class="border border-base-300 rounded-xl bg-white shadow-sm p-6 md:px-16 md:py-10 grid grid-cols-1 gap-y-4 place-content-start">
+          <h2 class="text-xl font-medium leading-tight mt-0 mb-2">Výdejní místo</h2>
+          <template x-if="checkoutDeliveryMeta?.pickup">
+            <div class="space-y-2">
+              <div class="text-base font-semibold" x-text="checkoutDeliveryMeta.pickup.name || 'Vybrané místo'"></div>
+              <p class="text-sm text-base-content/80 whitespace-pre-line" x-text="checkoutDeliveryMeta.pickup.addressLine || ''"></p>
+              <p class="text-sm text-base-content/80" x-show="checkoutDeliveryMeta.pickup.phone">
+                Kontakt: <span class="font-medium" x-text="checkoutDeliveryMeta.pickup.phone"></span>
+              </p>
+            </div>
+          </template>
+          <template x-if="!checkoutDeliveryMeta?.pickup">
+            <p class="text-sm text-base-content/70">
+              Výdejní místo je nastaveno v předchozím kroku.
+            </p>
+          </template>
         </fieldset>
-        <fieldset class="fieldset">
-          <legend class="fieldset-legend text-sm text-max-gray-600">Příjmení</legend>
-          <label class="input input-lg w-full">
-            <input type="text" placeholder="" />
-          </label>
-        </fieldset>
+      </template>
+    </div>
 
-
-      <fieldset class="fieldset">
-        <legend class="fieldset-legend text-sm text-max-gray-600">Telefon</legend>
-        <label class="input input-lg w-full">
-        <span class="label">+420</span>
-        <input type="phone" placeholder="" />
-        </label>
-      </fieldset>
-      
-      </fieldset>
-      <fieldset class="border border-base-300 rounded-xl bg-white shadow-sm p-6 py-8 md:p-16 grid grid-cols-1 gap-y-1">
-        <h2 class="text-xl font-medium mb-4">Doručení a fakturace</h2>
-           <label class="label text-base border-base-300">
-            <input type="checkbox" class="checkbox rounded checkbox-secondary" />
-            Zadat podrobnosti k doručení a informace pro kurýra
-          </label>
-           <label class="label text-base border-base-300">
-            <input type="checkbox" class="checkbox rounded checkbox-secondary" />
-            Zadat firemní údaje
-          </label>          
-          <fieldset class="fieldset">
-            <legend class="fieldset-legend text-sm text-max-gray-600">Poznámka k objednávce</legend>
-            <textarea class="textarea h-24 w-full" placeholder="Např. preferovaná barva produktu"></textarea>
-          </fieldset> 
- 
- 
-      </fieldset>
-
-    </div>  
+    <p class="mt-6 text-sm text-error" x-show="addressFormMessage" x-text="addressFormMessage"></p>
   </section>
-
 
   <!-- Sticky bottom bar -->
   <div class="fixed bottom-0 left-0 right-0 border-t border-base-200 bg-white py-6 z-10">
@@ -3959,8 +4262,8 @@ function deliveryPaymentUI() {
         Zpět</button>
 
       <button class="btn btn-primary btn-lg"
-        :disabled="$store.cart.distinctCount() === 0"
-        @click="location.hash='/purchase-review'">
+        :disabled="$store.cart.distinctCount() === 0 || addressFormLoading"
+        @click="submitAddressForm()">
         Pokračovat <i class="fa-solid fa-arrow-right fa-sm" aria-hidden="true"></i>
       </button>
     </div>
@@ -3971,7 +4274,207 @@ function deliveryPaymentUI() {
 <section x-show="is('purchase-review')" x-cloak>
   <section class="w-auto md:w-11/12 xl:w-8/12 mx-auto px-4 pt-2 md:pt-12 pb-32">
     <h1 class="text-3xl mx-auto mb-6">Kontrola nákupu</h1>
-  
+
+    <template x-if="!checkoutReview">
+      <div class="border border-base-300 rounded-xl bg-white shadow-sm p-6 text-base-content/70">
+        Načítám rekapitulaci…
+      </div>
+    </template>
+
+    <div class="grid grid-cols-1 xl:grid-cols-3 gap-10" x-show="checkoutReview">
+      <div class="xl:col-span-2 space-y-6">
+        <article class="border border-base-300 rounded-xl bg-white shadow-sm p-6 space-y-4">
+          <div class="flex items-center justify-between">
+            <h2 class="text-xl font-medium">Kontaktní údaje</h2>
+            <button class="btn btn-xs btn-link text-secondary" type="button" @click="location.hash='/addresses'">
+              Upravit
+            </button>
+          </div>
+          <template x-if="checkoutReview?.contact?.length">
+            <dl class="grid gap-3">
+              <template x-for="item in checkoutReview.contact" :key="item.label">
+                <div>
+                  <dt class="text-sm text-base-content/60" x-text="item.label"></dt>
+                  <dd class="font-medium whitespace-pre-line" x-text="item.value"></dd>
+                </div>
+              </template>
+            </dl>
+          </template>
+          <p class="text-sm text-base-content/70" x-show="!(checkoutReview?.contact?.length)">
+            Žádné kontaktní údaje zatím nejsou vyplněné.
+          </p>
+        </article>
+
+        <article class="border border-base-300 rounded-xl bg-white shadow-sm p-6 space-y-4">
+          <div class="flex items-center justify-between">
+            <h2 class="text-xl font-medium">Doručení</h2>
+            <button class="btn btn-xs btn-link text-secondary" type="button" @click="location.hash='/delivery-payment'">
+              Změnit
+            </button>
+          </div>
+          <div class="flex items-start justify-between gap-4">
+            <div>
+              <div class="text-lg font-semibold" x-text="checkoutReview?.delivery?.name || 'Doprava nevybrána'"></div>
+              <p class="text-sm text-base-content/70" x-show="checkoutReview?.delivery?.description" x-text="checkoutReview?.delivery?.description"></p>
+              <p class="text-sm text-base-content/80" x-show="checkoutReview?.delivery?.timeslot?.label">
+                Termín: <span class="font-medium" x-text="checkoutReview?.delivery?.timeslot?.label"></span>
+              </p>
+            </div>
+            <div class="text-lg font-semibold">
+              <template x-if="(checkoutReview?.delivery?.finalPrice || 0) === 0">
+                <span>Zdarma</span>
+              </template>
+              <template x-if="(checkoutReview?.delivery?.finalPrice || 0) > 0">
+                <span x-text="formatCZK(checkoutReview?.delivery?.finalPrice || 0)"></span>
+              </template>
+            </div>
+          </div>
+          <template x-if="checkoutReview?.delivery?.pickup">
+            <div class="border border-dashed border-base-300 rounded-lg p-4 space-y-1">
+              <div class="text-sm text-base-content/60 uppercase tracking-wide">Výdejní místo</div>
+              <div class="font-medium" x-text="checkoutReview?.delivery?.pickup?.name || ''"></div>
+              <p class="text-sm text-base-content/80 whitespace-pre-line" x-text="checkoutReview?.delivery?.pickup?.addressLine || ''"></p>
+            </div>
+          </template>
+          <template x-if="checkoutReview?.deliveryDetails?.length">
+            <dl class="grid gap-2">
+              <template x-for="item in checkoutReview.deliveryDetails" :key="item.label">
+                <div>
+                  <dt class="text-sm text-base-content/60" x-text="item.label"></dt>
+                  <dd class="text-sm font-medium whitespace-pre-line" x-text="item.value"></dd>
+                </div>
+              </template>
+            </dl>
+          </template>
+          <template x-if="checkoutReview?.companyDetails?.length">
+            <div class="pt-3 border-t border-base-200">
+              <div class="text-sm text-base-content/60 uppercase tracking-wide mb-2">Firemní údaje</div>
+              <dl class="grid gap-2 text-sm">
+                <template x-for="item in checkoutReview.companyDetails" :key="item.label">
+                  <div>
+                    <dt class="text-base-content/60" x-text="item.label"></dt>
+                    <dd class="font-medium whitespace-pre-line" x-text="item.value"></dd>
+                  </div>
+                </template>
+              </dl>
+            </div>
+          </template>
+        </article>
+
+        <article class="border border-base-300 rounded-xl bg-white shadow-sm p-6 space-y-4">
+          <div class="flex items-center justify-between">
+            <h2 class="text-xl font-medium">Platba</h2>
+            <button class="btn btn-xs btn-link text-secondary" type="button" @click="location.hash='/delivery-payment'">
+              Upravit
+            </button>
+          </div>
+          <div class="flex items-start justify-between gap-4">
+            <div>
+              <div class="text-lg font-semibold" x-text="checkoutReview?.payment?.name || 'Platba nevybrána'"></div>
+              <p class="text-sm text-base-content/70" x-show="checkoutReview?.payment?.description" x-text="checkoutReview?.payment?.description"></p>
+              <p class="text-sm text-base-content/80" x-show="checkoutReview?.payment?.benefit?.name">
+                Benefit: <span class="font-medium" x-text="checkoutReview?.payment?.benefit?.name"></span>
+              </p>
+            </div>
+            <div class="text-lg font-semibold">
+              <template x-if="(checkoutReview?.payment?.finalPrice || 0) === 0">
+                <span>Zdarma</span>
+              </template>
+              <template x-if="(checkoutReview?.payment?.finalPrice || 0) > 0">
+                <span x-text="formatCZK(checkoutReview?.payment?.finalPrice || 0)"></span>
+              </template>
+            </div>
+          </div>
+        </article>
+
+        <article class="border border-base-300 rounded-xl bg-white shadow-sm p-6 space-y-4">
+          <h2 class="text-xl font-medium">Obsah košíku</h2>
+          <template x-if="checkoutReview?.cart?.items?.length">
+            <div class="divide-y divide-base-200">
+              <template x-for="item in checkoutReview.cart.items" :key="item.id">
+                <div class="flex items-start justify-between gap-4 py-3">
+                  <div class="flex items-start gap-3">
+                    <img :src="item.image || './images/placeholder.png'"
+                         alt=""
+                         class="size-12 rounded bg-base-200 object-cover shrink-0" />
+                    <div>
+                      <div class="font-medium" x-text="item.name"></div>
+                      <div class="text-sm text-base-content/60">Ks: <span class="font-semibold" x-text="item.qty"></span></div>
+                    </div>
+                  </div>
+                  <div class="text-right">
+                    <div class="text-sm text-base-content/70" x-text="formatCZK(item.unitPrice)"></div>
+                    <div class="text-base font-semibold" x-text="formatCZK(item.price)"></div>
+                  </div>
+                </div>
+              </template>
+            </div>
+          </template>
+          <p class="text-sm text-base-content/70" x-show="!(checkoutReview?.cart?.items?.length)">
+            Košík je prázdný.
+          </p>
+        </article>
+      </div>
+
+      <aside class="space-y-6">
+        <div class="border border-base-300 rounded-xl bg-white shadow-sm p-6 space-y-3">
+          <h2 class="text-lg font-semibold">Souhrn ceny</h2>
+          <dl class="space-y-2 text-sm">
+            <div class="flex items-center justify-between">
+              <dt>Mezisoučet</dt>
+              <dd class="font-medium" x-text="formatCZK(checkoutReview?.cart?.totals?.subtotal || 0)"></dd>
+            </div>
+            <template x-if="(checkoutReview?.cart?.totals?.discounts || 0) > 0">
+              <div class="flex items-center justify-between text-success">
+                <dt>Slevy</dt>
+                <dd class="font-medium" x-text="'− ' + formatCZK(checkoutReview?.cart?.totals?.discounts || 0)"></dd>
+              </div>
+            </template>
+            <div class="flex items-center justify-between">
+              <dt>Doprava</dt>
+              <dd class="font-medium"
+                  x-text="(checkoutReview?.delivery?.finalPrice || 0) === 0 ? 'Zdarma' : formatCZK(checkoutReview?.delivery?.finalPrice || 0)">
+              </dd>
+            </div>
+            <div class="flex items-center justify-between">
+              <dt>Platba</dt>
+              <dd class="font-medium"
+                  x-text="(checkoutReview?.payment?.finalPrice || 0) === 0 ? 'Zdarma' : formatCZK(checkoutReview?.payment?.finalPrice || 0)">
+              </dd>
+            </div>
+            <hr class="border-base-200">
+            <div class="flex items-center justify-between text-base font-semibold">
+              <dt>Celkem k úhradě</dt>
+              <dd x-text="formatCZK((checkoutReview?.cart?.totals?.toPay || 0) + (checkoutReview?.delivery?.finalPrice || 0) + (checkoutReview?.payment?.finalPrice || 0))"></dd>
+            </div>
+          </dl>
+        </div>
+
+        <div class="border border-base-300 rounded-xl bg-white shadow-sm p-6 space-y-3">
+          <h2 class="text-lg font-semibold">Souhlasy</h2>
+          <label class="flex items-start gap-3 text-sm text-base-content/80">
+            <input type="checkbox" class="checkbox checkbox-secondary mt-1"
+                   x-model="checkoutConsents.terms"
+                   @change="reviewValidationErrors = []">
+            <span>Souhlasím s <a href="#" class="link link-primary">obchodními podmínkami</a>.</span>
+          </label>
+          <label class="flex items-start gap-3 text-sm text-base-content/80">
+            <input type="checkbox" class="checkbox checkbox-secondary mt-1"
+                   x-model="checkoutConsents.privacy"
+                   @change="reviewValidationErrors = []">
+            <span>Souhlasím se zpracováním osobních údajů dle <a href="#" class="link link-primary">zásad ochrany soukromí</a>.</span>
+          </label>
+          <label class="flex items-start gap-3 text-sm text-base-content/70">
+            <input type="checkbox" class="checkbox checkbox-secondary mt-1"
+                   x-model="checkoutConsents.marketing">
+            <span>Chci dostávat novinky a personalizované nabídky (volitelné).</span>
+          </label>
+          <template x-if="reviewValidationErrors.length">
+            <p class="text-sm text-error" x-text="reviewValidationErrors[0]"></p>
+          </template>
+        </div>
+      </aside>
+    </div>
   </section>
 
   <!-- Sticky bottom bar -->
@@ -3981,13 +4484,67 @@ function deliveryPaymentUI() {
         Zpět</button>
 
       <button class="btn btn-primary btn-lg"
-        :disabled="$store.cart.distinctCount() === 0"
-        @click="location.hash='/thank-you'">
-        Pokračovat <i class="fa-solid fa-arrow-right fa-sm" aria-hidden="true"></i>
+        :disabled="$store.cart.distinctCount() === 0 || !checkoutReview"
+        @click="submitPurchaseReview()">
+        Dokončit objednávku <i class="fa-solid fa-arrow-right fa-sm" aria-hidden="true"></i>
       </button>
     </div>
-  </div>  
+  </div>
 </section>
+
+<!-- Paygate simulation modal -->
+<dialog
+  x-ref="paygate"
+  class="modal"
+  @cancel.prevent="paygateManualCancel()">
+  <div class="modal-box w-11/12 max-w-md relative">
+    <button type="button"
+            class="btn btn-sm btn-circle btn-ghost absolute right-3 top-3"
+            @click="paygateManualCancel()"
+            x-show="paygateModal.step === 'intro'">✕</button>
+
+    <template x-if="paygateModal.step === 'intro'">
+      <div class="space-y-5">
+        <div class="space-y-2">
+          <h3 class="text-lg font-semibold">Online platba</h3>
+          <p class="text-sm text-base-content/70">
+            Platba probíhá pouze jako simulace pro potřeby testování použitelnosti. Žádné peníze nebudou stržené.
+          </p>
+        </div>
+        <button type="button"
+                class="btn btn-primary btn-block"
+                @click="startPaygateProcessing()">
+          Zaplatit <span x-text="formatCZK(paygateModal.amount || paygateTotal())"></span>
+        </button>
+        <button type="button"
+                class="btn btn-ghost btn-block"
+                @click="paygateManualCancel()">Zrušit a vrátit se</button>
+      </div>
+    </template>
+
+    <template x-if="paygateModal.step === 'processing'">
+      <div class="py-10 flex flex-col items-center gap-4">
+        <span class="loading loading-spinner loading-lg text-secondary"></span>
+        <p class="text-sm text-base-content/70">Zpracováváme platbu…</p>
+      </div>
+    </template>
+
+    <template x-if="paygateModal.step === 'success'">
+      <div class="py-10 flex flex-col items-center gap-4 text-center">
+        <span class="text-4xl text-success">
+          <i class="fa-solid fa-circle-check"></i>
+        </span>
+        <h3 class="text-lg font-semibold">Platba dokončena</h3>
+        <p class="text-sm text-base-content/70">Pokračujeme k potvrzení objednávky…</p>
+      </div>
+    </template>
+  </div>
+  <form method="dialog"
+        class="modal-backdrop"
+        @click.prevent="paygateModal.step === 'intro' ? paygateManualCancel() : null">
+    <button type="button">close</button>
+  </form>
+</dialog>
 
 <!-- ROUTE == THANK YOU PAGE -->
 <section x-show="is('thank-you')" x-cloak>
@@ -3996,6 +4553,64 @@ function deliveryPaymentUI() {
   
   </section>
 
+</section>
+
+<!-- ROUTE == CONFIG -->
+<section x-show="is('config')" x-cloak x-data="configPage()">
+  <section class="w-auto md:w-11/12 xl:w-8/12 mx-auto px-4 pt-2 md:pt-12 pb-32">
+    <div class="max-w-3xl space-y-6">
+      <header class="space-y-2">
+        <h1 class="text-3xl font-semibold">Konfigurace</h1>
+        <p class="text-base-content/70">Nastavení se ukládá lokálně do prohlížeče pod klíčem <code>fit:app-config</code>.</p>
+      </header>
+
+      <div class="rounded-2xl border border-base-300 bg-white shadow-sm p-6 space-y-4">
+        <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 class="text-lg font-semibold">Breakpoint badge</h2>
+            <p class="text-sm text-base-content/70">
+              Zobrazí v levém dolním rohu aktivní Tailwind breakpoint a šířku okna.
+            </p>
+          </div>
+          <label class="flex items-center gap-3">
+            <input type="checkbox"
+                   class="toggle toggle-primary"
+                   :checked="showBadge"
+                   @change="setBadge($event.target.checked)">
+            <span class="text-sm font-semibold" x-text="showBadge ? 'Zobrazeno' : 'Skryto'"></span>
+          </label>
+        </div>
+      </div>
+      <div class="rounded-2xl border border-base-300 bg-white shadow-sm p-6 space-y-4">
+        <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 class="text-lg font-semibold">Změna stavu aktivní objednávky (TODO)</h2>
+            <p class="text-sm text-base-content/70">
+              Umožní přesunout aktivní objednávku do libovolného stavu dle <code>./data/order-flow.json</code>
+            </p>
+          </div>
+          <label class="flex items-center gap-3">
+            <select class="select" disabled>
+              <option disabled selected>Pick a color</option>
+              <option>Crimson</option>
+              <option>Amber</option>
+              <option>Velvet</option>
+            </select>
+          </label>
+        </div>
+      </div>      
+
+      <div class="rounded-2xl border border-dashed border-base-300 bg-base-100/80 p-4">
+        <h2 class="text-sm font-semibold text-base-content/70 mb-2">Aktuální konfigurace</h2>
+        <pre class="text-xs whitespace-pre-wrap font-mono text-base-content/70" x-text="snapshot"></pre>
+      </div>
+      <p class="text-xs text-base-content/60">
+        <button type="button" class="btn btn-ghost btn-sm" @click="resetAll()">
+          Resetovat vše
+        </button>
+      </p>
+    </div>
+  </section>
 </section>
 
 <!-- ROUTE == MY ACCOUNT ORDER HISTORY -->
@@ -4012,7 +4627,7 @@ function deliveryPaymentUI() {
   <div class="block rounded-2xl bg-base-300 w-full h-12 animate-pulse"></div>  
   <div class="block rounded-2xl bg-base-300 w-full h-12 animate-pulse"></div>  
   <div class="block rounded-2xl bg-base-300 w-full h-12 animate-pulse"></div>
-</div>   
+</div> 
 
     <ul class="timeline timeline-snap-icon timeline-compact timeline-vertical no-start col-span-3">
       <li>
@@ -4409,8 +5024,8 @@ function deliveryPaymentUI() {
             </template>
             <template x-for="item in section.items" :key="item.key">
               <a
-                class="link link-hover block"
-                :class="{'mt-1': true}"
+                class="link link-hover block text-sm"
+                :class="{'mt-4': true}"
                 href="#"
                 @click.prevent="handleItemClick(item)"
                 x-text="item.label"
@@ -5703,6 +6318,7 @@ forms: [],
 consumersList: [],
 navCategories: [],   
 infoLinks: [],       
+categoriesGrid: [],
 
 search: '',
 selectedCategory: '',
@@ -5737,6 +6353,38 @@ detail: null,
 brands: [],
 blogPosts: [],
 
+// checkout form state
+contactFormSchema: [],
+contactFormSections: [],
+contactFormFieldMap: {},
+contactFormValues: {},
+contactFormErrors: {},
+contactFormTouched: {},
+contactFormGroups: {},
+contactFormGroupToggles: {},
+contactFormGroupMembers: {},
+addressFormLoaded: false,
+addressFormLoading: false,
+addressFormSubmitAttempted: false,
+addressFormMessage: '',
+checkoutFormData: null,
+checkoutDeliveryMeta: null,
+checkoutPaymentMeta: null,
+checkoutReview: null,
+checkoutConsents: {
+  terms: false,
+  privacy: false,
+  marketing: false
+},
+reviewValidationErrors: [],
+suppressCartRedirect: false,
+paygateModal: {
+  open: false,
+  step: 'intro',
+  amount: 0,
+  timer: null
+},
+
 
 
 // ---- lifecycle ----
@@ -5766,6 +6414,13 @@ init() {
   // keep page in range if results shrink
   this.$watch(() => this.filteredProducts().length, () => {
     this.page = Math.min(this.page, this.totalPages());
+  });
+
+  this.$watch(() => Alpine.store('cart')?.distinctCount?.(), (count) => {
+    const hasItems = Number(count) > 0;
+    if (!this.suppressCartRedirect && !hasItems && ['delivery-payment', 'addresses', 'purchase-review'].includes(this.route)) {
+      this.redirectToCartIfEmpty();
+    }
   });
 
   // 3) Load data
@@ -5877,6 +6532,24 @@ brandsShuffledFor(key, count = 18) {
   return this._brandCacheMap[key].slice(0, count);
 },
 async loadData() {
+  const slugify = (str = '') => {
+    return String(str || '')
+      .normalize('NFKD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '') || '';
+  };
+  const normalizeGridTile = (tile = {}) => {
+    const label = String(tile.label || '').trim();
+    const slug = String(tile.slug || '').trim() || slugify(label || tile.image || '');
+    return {
+      image: String(tile.image || '').trim(),
+      label,
+      background: String(tile.background || 'bg-base-200').trim(),
+      slug
+    };
+  };
   try {
     const res = await fetch('data/products.json');
     this.products = await res.json();
@@ -5909,12 +6582,33 @@ async loadData() {
     }
 
     // 👉 optional data
-    const [cats, links] = await Promise.allSettled([
+    const [cats, links, grid] = await Promise.allSettled([
       fetch('data/categories.json').then(r => r.ok ? r.json() : []),
       fetch('data/links.json').then(r => r.ok ? r.json() : []),
+      fetch('./categories-grid.json').then(r => r.ok ? r.json() : [])
     ]);
     this.navCategories = (cats.status === 'fulfilled'  && Array.isArray(cats.value))  ? cats.value  : [];
     this.infoLinks     = (links.status === 'fulfilled' && Array.isArray(links.value)) ? links.value : [];
+    if (grid.status === 'fulfilled' && Array.isArray(grid.value)) {
+      const slugCount = new Map();
+      this.categoriesGrid = grid.value
+        .map(normalizeGridTile)
+        .filter(item => item.image && item.label)
+        .map(item => {
+          let slug = item.slug || slugify(item.label || item.image);
+          if (!slug) slug = Math.random().toString(36).slice(2, 8);
+          if (slugCount.has(slug)) {
+            const next = slugCount.get(slug) + 1;
+            slugCount.set(slug, next);
+            slug = `${slug}-${next}`;
+          } else {
+            slugCount.set(slug, 1);
+          }
+          return { ...item, slug };
+        });
+    } else {
+      this.categoriesGrid = [];
+    }
 
     // ---- HOMEPAGE derived data (lightweight heuristics) ----
     // pick top categories by product count
@@ -5934,12 +6628,33 @@ async loadData() {
   } catch (e) {
     console.error('Failed to load products.json', e);
     try {
-      const [cats, links] = await Promise.allSettled([
+      const [cats, links, grid] = await Promise.allSettled([
         fetch('data/categories.json').then(r => r.ok ? r.json() : []),
         fetch('data/links.json').then(r => r.ok ? r.json() : []),
+        fetch('./categories-grid.json').then(r => r.ok ? r.json() : [])
       ]);
       this.navCategories = (cats.status === 'fulfilled'  && Array.isArray(cats.value))  ? cats.value  : [];
       this.infoLinks     = (links.status === 'fulfilled' && Array.isArray(links.value)) ? links.value : [];
+      if (grid.status === 'fulfilled' && Array.isArray(grid.value)) {
+        const slugCount = new Map();
+        this.categoriesGrid = grid.value
+          .map(normalizeGridTile)
+          .filter(item => item.image && item.label)
+          .map(item => {
+            let slug = item.slug || slugify(item.label || item.image);
+            if (!slug) slug = Math.random().toString(36).slice(2, 8);
+            if (slugCount.has(slug)) {
+              const next = slugCount.get(slug) + 1;
+              slugCount.set(slug, next);
+              slug = `${slug}-${next}`;
+            } else {
+              slugCount.set(slug, 1);
+            }
+            return { ...item, slug };
+          });
+      } else {
+        this.categoriesGrid = [];
+      }
       await this.loadBlog();
     } catch {}
   } finally {
@@ -6044,6 +6759,7 @@ link(name, params = {}) {
   if (name === 'home')    return '/';
   if (name === 'product') return `#/product/${params.id}${params.tab ? '/' + params.tab : ''}`;
   if (name === 'cart')    return '#/cart';
+  if (name === 'config')  return '#/config';
   if (name === 'delivery-payment') return '#/delivery-payment';
   if (name === 'addresses') return '#/addresses';
   if (name === 'purchase-review') return '#/purchase-review';
@@ -6180,6 +6896,9 @@ is(nameOrArr) {
 // ---- router ----
 _onRoute() {
   const prevRoute = this.route;
+  if (this.paygateModal?.open) {
+    this.closePaygate(false);
+  }
 
   // if there's no hash (or just "#") -> HOME
   const emptyOrHome = !location.hash || location.hash === '#';
@@ -6213,32 +6932,62 @@ _onRoute() {
       this._scrollToTopSoon();
       break;
 
+    case 'config':
+      if (prevRoute === 'products') this._saveScroll('products');
+      this.route = 'config';
+      this.params = {};
+      this._scrollToTopSoon();
+      break;
+
     case 'delivery-payment':
+      if (this.redirectToCartIfEmpty()) return;
       if (prevRoute === 'products') this._saveScroll('products');
       this.route = 'delivery-payment';
       this.params = {};
       this._scrollToTopSoon();
       break;
 
-      case 'addresses':
+    case 'addresses':
+      if (this.redirectToCartIfEmpty()) return;
       if (prevRoute === 'products') this._saveScroll('products');
       this.route = 'addresses';
       this.params = {};
       this._scrollToTopSoon();
+      this.loadCheckoutMeta();
+      if (this.addressFormLoaded) {
+        this.hydrateAddressFormValues();
+      } else {
+        Promise.resolve(this.ensureAddressForm()).then(() => this.hydrateAddressFormValues());
+      }
       break;
 
-      case 'purchase-review':
+    case 'purchase-review':
+      if (this.redirectToCartIfEmpty()) return;
       if (prevRoute === 'products') this._saveScroll('products');
       this.route = 'purchase-review';
       this.params = {};
       this._scrollToTopSoon();
+      this.loadCheckoutMeta();
+      this.loadCheckoutReviewFromStorage();
+      const ensure = this.addressFormLoaded ? Promise.resolve() : this.ensureAddressForm();
+      ensure.then(() => this.refreshCheckoutReview());
+      this.resetCheckoutConsents();
       break;
 
-      case 'thank-you':
+    case 'thank-you':
       if (prevRoute === 'products') this._saveScroll('products');
       this.route = 'thank-you';
       this.params = {};
       this._scrollToTopSoon();
+      this.closePaygate(false);
+      const cartStore = Alpine.store('cart');
+      if (cartStore?.distinctCount?.() > 0) {
+        this.suppressCartRedirect = true;
+        cartStore.clear();
+      }
+      this.checkoutReview = null;
+      try { localStorage.removeItem('checkout.review'); } catch (_) {}
+      this.suppressCartRedirect = false;
       break;
       
       case 'my-account':
@@ -6554,6 +7303,634 @@ rangeLabel() {
   const start = this.showCount + (this.page - 2) * this.pageSize + 1;
   const end = Math.min(this.showCount + (this.page - 1) * this.pageSize, total);
   return `${start}–${end} z ${total}`;
+},
+
+// ---- checkout form helpers ----
+async ensureAddressForm() {
+  if (this.addressFormLoaded || this.addressFormLoading) return;
+  this.addressFormLoading = true;
+  try {
+    const res = await fetch('data/forms/contacts-delivery.json', { cache: 'no-store' });
+    const schema = await res.json();
+    this.contactFormSchema = Array.isArray(schema) ? schema : [];
+    this.initAddressForm(this.contactFormSchema);
+  } catch (e) {
+    console.warn('contacts-delivery.json load failed', e);
+    this.contactFormSchema = [];
+    this.initAddressForm([]);
+  } finally {
+    this.addressFormLoading = false;
+  }
+},
+
+loadCheckoutMeta() {
+  const parse = (key) => {
+    try {
+      const raw = localStorage.getItem(key);
+      return raw ? JSON.parse(raw) : null;
+    } catch (e) {
+      console.warn(`Failed to parse ${key}`, e);
+      return null;
+    }
+  };
+  this.checkoutDeliveryMeta = parse('checkout.delivery');
+  this.checkoutPaymentMeta = parse('checkout.payment');
+},
+
+cartHasItems() {
+  const cart = Alpine.store('cart');
+  if (!cart || typeof cart.distinctCount !== 'function') return false;
+  return cart.distinctCount() > 0;
+},
+
+redirectToCartIfEmpty() {
+  if (this.cartHasItems()) return false;
+  if (location.hash !== '#/cart' && location.hash !== '/cart') {
+    location.hash = '/cart';
+  } else {
+    this.route = 'cart';
+    this.params = {};
+    this._scrollToTopSoon();
+  }
+  return true;
+},
+
+initAddressForm(schema = []) {
+  const existingKeys = new Set();
+  this.contactFormSections = [];
+  this.contactFormFieldMap = {};
+  this.contactFormValues = {};
+  this.contactFormErrors = {};
+  this.contactFormTouched = {};
+  this.contactFormGroups = {};
+  this.contactFormGroupToggles = {};
+  this.contactFormGroupMembers = {};
+  this.addressFormMessage = '';
+  this.addressFormSubmitAttempted = false;
+
+  schema.forEach((raw, idx) => {
+    const sectionName = raw?.form_section || 'Ostatní';
+    let section = this.contactFormSections.find(sec => sec.name === sectionName);
+    if (!section) {
+      section = { name: sectionName, fields: [] };
+      this.contactFormSections.push(section);
+    }
+    const key = this.normalizeFieldKey(raw?.label || raw?.type || `field-${idx}`, idx, existingKeys);
+    existingKeys.add(key);
+    const field = {
+      key,
+      type: raw?.type || 'text',
+      label: raw?.label || '',
+      placeholder: raw?.placeholder || '',
+      prefix: raw?.prefix || null,
+      note: raw?.note || null,
+      validations: Array.isArray(raw?.validations) ? raw.validations : [],
+      section: sectionName,
+      groupKey: raw?.fieldset_group || null,
+      isToggle: raw?.type === 'checkbox_toggle_fieldset'
+    };
+    section.fields.push(field);
+    this.contactFormFieldMap[key] = field;
+    this.contactFormErrors[key] = [];
+    this.contactFormTouched[key] = false;
+    if (field.isToggle && field.groupKey) {
+      this.contactFormGroupToggles[field.groupKey] = key;
+      this.contactFormGroups[field.groupKey] = false;
+    } else if (field.groupKey) {
+      if (!this.contactFormGroupMembers[field.groupKey]) this.contactFormGroupMembers[field.groupKey] = [];
+      this.contactFormGroupMembers[field.groupKey].push(key);
+    }
+    this.contactFormValues[key] = this.defaultFieldValue(field);
+  });
+
+  const saved = this.loadSavedAddressForm();
+  this.checkoutFormData = saved;
+  const savedValues = saved.values || {};
+  const savedGroups = saved.groups || {};
+
+  Object.entries(this.contactFormFieldMap).forEach(([key, field]) => {
+    if (field.isToggle && field.groupKey) {
+      const boolVal = typeof savedGroups[field.groupKey] === 'boolean'
+        ? savedGroups[field.groupKey]
+        : !!savedValues[key];
+      this.contactFormGroups[field.groupKey] = boolVal;
+      this.contactFormValues[key] = boolVal;
+    } else if (field.groupKey && !(field.groupKey in this.contactFormGroups)) {
+      this.contactFormGroups[field.groupKey] = false;
+    }
+
+    if (field.type === 'address') {
+      this.contactFormValues[key] = this.normalizeAddressValue(savedValues[key] ?? this.contactFormValues[key]);
+    } else if (!field.isToggle && Object.prototype.hasOwnProperty.call(savedValues, key)) {
+      this.contactFormValues[key] = savedValues[key];
+    }
+  });
+
+  this.addressFormLoaded = true;
+},
+
+normalizeFieldKey(label, idx, existingSet = new Set()) {
+  const base = String(label || `field-${idx}`)
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+  const seed = base || `field-${idx}`;
+  let key = seed;
+  let counter = 1;
+  while (existingSet.has(key)) {
+    key = `${seed}-${counter++}`;
+  }
+  return key;
+},
+
+defaultFieldValue(field) {
+  if (!field) return '';
+  switch (field.type) {
+    case 'checkbox_toggle_fieldset':
+    case 'checkbox':
+      return false;
+    case 'textarea':
+    case 'text':
+    case 'email':
+    case 'tel':
+      return '';
+    case 'address':
+      return { street: '', extra: '', city: '', zip: '' };
+    default:
+      return '';
+  }
+},
+
+normalizeAddressValue(val) {
+  if (val && typeof val === 'object') {
+    return {
+      street: String(val.street ?? val.line1 ?? '').trim(),
+      extra: String(val.extra ?? val.line2 ?? '').trim(),
+      city: String(val.city ?? '').trim(),
+      zip: String(val.zip ?? '').trim()
+    };
+  }
+  if (typeof val === 'string') {
+    return { street: val.trim(), extra: '', city: '', zip: '' };
+  }
+  return { street: '', extra: '', city: '', zip: '' };
+},
+
+addressPlaceholder(field, part) {
+  if (!field || field.type !== 'address') return undefined;
+  const ph = field.placeholder;
+  if (ph && typeof ph === 'object') {
+    const val = ph?.[part];
+    return val ? String(val) : undefined;
+  }
+  if (typeof ph === 'string') {
+    return ph;
+  }
+  return undefined;
+},
+
+loadSavedAddressForm() {
+  try {
+    const raw = localStorage.getItem('checkout.addressForm');
+    const parsed = raw ? JSON.parse(raw) : null;
+    if (!parsed || typeof parsed !== 'object') return { values: {}, groups: {} };
+    return {
+      values: parsed.values && typeof parsed.values === 'object' ? parsed.values : {},
+      groups: parsed.groups && typeof parsed.groups === 'object' ? parsed.groups : {},
+      timestamp: parsed.timestamp || null
+    };
+  } catch (e) {
+    console.warn('Failed to load saved address form', e);
+    return { values: {}, groups: {} };
+  }
+},
+
+hydrateAddressFormValues() {
+  if (!this.addressFormLoaded) return;
+  const saved = this.loadSavedAddressForm();
+  this.checkoutFormData = saved;
+  this.addressFormSubmitAttempted = false;
+  this.addressFormMessage = '';
+  const values = saved.values || {};
+  const groups = saved.groups || {};
+  Object.entries(this.contactFormFieldMap).forEach(([key, field]) => {
+    if (field.isToggle && field.groupKey) {
+      const boolVal = typeof groups[field.groupKey] === 'boolean'
+        ? groups[field.groupKey]
+        : !!values[key];
+      this.contactFormGroups[field.groupKey] = boolVal;
+      this.contactFormValues[key] = boolVal;
+    } else if (field.type === 'address') {
+      this.contactFormValues[key] = this.normalizeAddressValue(values[key] ?? this.contactFormValues[key]);
+    } else if (!field.isToggle && Object.prototype.hasOwnProperty.call(values, key)) {
+      this.contactFormValues[key] = values[key];
+    }
+    this.contactFormErrors[key] = [];
+    this.contactFormTouched[key] = false;
+  });
+},
+
+persistAddressForm() {
+  const cloneValues = JSON.parse(JSON.stringify(this.contactFormValues));
+  const payload = {
+    values: cloneValues,
+    groups: { ...this.contactFormGroups },
+    timestamp: Date.now()
+  };
+  try {
+    localStorage.setItem('checkout.addressForm', JSON.stringify(payload));
+  } catch (e) {
+    console.warn('Failed to persist address form', e);
+  }
+  this.checkoutFormData = payload;
+},
+
+isPickupDelivery() {
+  const meta = this.checkoutDeliveryMeta;
+  if (!meta) return false;
+  const type = String(meta.type || '').toLowerCase();
+  if (type === 'pickup') return true;
+  if (!type && meta.pickup) return true;
+  return false;
+},
+
+shouldShowSection(name) {
+  if (!name) return true;
+  const normalized = String(name).trim().toLowerCase();
+  if (normalized === 'doručovací adresa') {
+    return !this.isPickupDelivery();
+  }
+  return true;
+},
+
+isFieldVisible(field) {
+  if (!field) return false;
+  if (!this.shouldShowSection(field.section)) return false;
+  if (field.isToggle) return true;
+  if (!field.groupKey) return true;
+  return !!this.contactFormGroups[field.groupKey];
+},
+
+isFieldActive(field) {
+  if (!field || field.isToggle) return false;
+  if (!this.shouldShowSection(field.section)) return false;
+  if (!field.groupKey) return true;
+  return !!this.contactFormGroups[field.groupKey];
+},
+
+handleGroupToggle(fieldKey) {
+  const field = this.contactFormFieldMap[fieldKey];
+  if (!field || !field.groupKey) return;
+  const value = !!this.contactFormValues[fieldKey];
+  this.contactFormGroups[field.groupKey] = value;
+  if (!value) {
+    (this.contactFormGroupMembers[field.groupKey] || []).forEach(memberKey => {
+      this.contactFormErrors[memberKey] = [];
+      if (!this.addressFormSubmitAttempted) this.contactFormTouched[memberKey] = false;
+    });
+  } else if (this.addressFormSubmitAttempted) {
+    (this.contactFormGroupMembers[field.groupKey] || []).forEach(memberKey => this.validateFieldByKey(memberKey));
+  }
+},
+
+handleFieldBlur(fieldKey) {
+  this.contactFormTouched[fieldKey] = true;
+  this.validateFieldByKey(fieldKey);
+},
+
+handleFieldInput(fieldKey) {
+  if (this.addressFormMessage) this.addressFormMessage = '';
+  if (this.addressFormSubmitAttempted || this.contactFormTouched[fieldKey]) {
+    this.validateFieldByKey(fieldKey);
+  }
+},
+
+computeFieldErrors(field) {
+  if (!this.isFieldActive(field)) return [];
+  const value = this.contactFormValues[field.key];
+  const errors = [];
+  const rules = Array.isArray(field.validations) ? field.validations : [];
+  const textValue = typeof value === 'string' ? value.trim() : value;
+
+  for (const rule of rules) {
+    const msg = rule?.fails || 'Zkontrolujte hodnotu';
+    switch (rule?.type) {
+      case 'required': {
+        let ok = true;
+        if (field.type === 'address') {
+          const addr = this.normalizeAddressValue(value);
+          ok = !!(addr.street && addr.city && addr.zip);
+        } else if (typeof value === 'boolean') {
+          ok = value;
+        } else if (Array.isArray(value)) {
+          ok = value.length > 0;
+        } else {
+          ok = String(textValue || '').length > 0;
+        }
+        if (!ok) errors.push(msg);
+        break;
+      }
+      case 'email': {
+        const v = String(value || '').trim();
+        if (v && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)) {
+          errors.push(msg);
+        }
+        break;
+      }
+      case 'phone': {
+        const digits = String(value || '').replace(/\D+/g, '');
+        if (digits && digits.length !== 9) {
+          errors.push(msg);
+        }
+        break;
+      }
+      case 'address': {
+        const addr = this.normalizeAddressValue(value);
+        const zipPlain = addr.zip.replace(/\s+/g, '');
+        if (!(addr.street && addr.city && /^\d{5}$/.test(zipPlain))) {
+          errors.push(msg);
+        }
+        break;
+      }
+      default:
+        break;
+    }
+  }
+  return Array.from(new Set(errors));
+},
+
+validateFieldByKey(fieldKey) {
+  const field = this.contactFormFieldMap[fieldKey];
+  if (!field) return [];
+  const errs = this.computeFieldErrors(field);
+  this.contactFormErrors[fieldKey] = errs;
+  return errs;
+},
+
+validateAllFields() {
+  let ok = true;
+  this.contactFormSections.forEach(section => {
+    if (!this.shouldShowSection(section.name)) return;
+    section.fields.forEach(field => {
+      if (field.isToggle) return;
+      const errs = this.validateFieldByKey(field.key);
+      if (errs.length) ok = false;
+    });
+  });
+  return ok;
+},
+
+submitAddressForm() {
+  if (!this.addressFormLoaded) return;
+  this.addressFormSubmitAttempted = true;
+  Object.keys(this.contactFormTouched).forEach(key => { this.contactFormTouched[key] = true; });
+  const valid = this.validateAllFields();
+  if (!valid) {
+    this.addressFormMessage = 'Zkontrolujte zvýrazněné údaje ve formuláři.';
+    return;
+  }
+  this.addressFormMessage = '';
+  this.persistAddressForm();
+  this.refreshCheckoutReview();
+  this.resetCheckoutConsents();
+  location.hash = '/purchase-review';
+},
+
+formatAddressDisplay(val) {
+  const addr = this.normalizeAddressValue(val);
+  const parts = [];
+  if (addr.street) parts.push(addr.street);
+  if (addr.extra) parts.push(addr.extra);
+  const cityLine = [addr.zip, addr.city].filter(Boolean).join(' ');
+  if (cityLine) parts.push(cityLine);
+  return parts.join('\n');
+},
+
+formatFieldValue(field, value) {
+  if (!field) return '';
+  if (field.type === 'address') {
+    return this.formatAddressDisplay(value);
+  }
+  if (field.type === 'tel' && field.prefix) {
+    const trimmed = String(value || '').trim();
+    if (!trimmed) return '';
+    return `${field.prefix} ${trimmed}`;
+  }
+  return String(value ?? '').trim();
+},
+
+sectionSummary(sectionName, saved = null) {
+  const data = saved || this.checkoutFormData || this.loadSavedAddressForm();
+  const section = this.contactFormSections.find(sec => sec.name === sectionName);
+  if (!section) return [];
+  const values = data.values || {};
+  const groups = data.groups || {};
+
+  return section.fields
+    .filter(field => {
+      if (field.isToggle) return false;
+      if (field.groupKey && !groups[field.groupKey]) return false;
+      const formatted = this.formatFieldValue(field, values[field.key]);
+      return formatted.length > 0;
+    })
+    .map(field => ({
+      label: field.label,
+      value: this.formatFieldValue(field, values[field.key])
+    }));
+},
+
+groupSummary(groupName, saved = null) {
+  const data = saved || this.checkoutFormData || this.loadSavedAddressForm();
+  const groups = data.groups || {};
+  if (!groups[groupName]) return [];
+  const values = data.values || {};
+  const keys = this.contactFormGroupMembers[groupName] || [];
+  return keys
+    .map(key => this.contactFormFieldMap[key])
+    .filter(Boolean)
+    .map(field => ({
+      label: field.label,
+      value: this.formatFieldValue(field, values[field.key])
+    }))
+    .filter(entry => entry.value.length > 0);
+},
+
+checkoutCartSummary() {
+  const cart = Alpine.store('cart');
+  if (!cart) {
+    return { items: [], totals: { subtotal: 0, discounts: 0, toPay: 0 } };
+  }
+  const items = cart.list().map(it => ({
+    id: it.id,
+    name: it.product?.name || it.name || '',
+    qty: it.qty,
+    price: cart._linePrice(it),
+    unitPrice: it.price,
+    image: it.image
+  }));
+  return {
+    items,
+    totals: {
+      subtotal: cart.subtotal(),
+      discounts: cart.promoDiscount(),
+      toPay: cart.totalToPay()
+    }
+  };
+},
+
+isSelectedPaymentOnline() {
+  const name = (this.checkoutReview?.payment?.name || this.checkoutPaymentMeta?.name || '').toLowerCase();
+  const patterns = ['kartou online', 'benefitní kartou online'];
+  return patterns.some(label => name.includes(label));
+},
+
+paygateTotal() {
+  const toNumber = (value) => {
+    const num = Number(value);
+    return Number.isFinite(num) ? num : 0;
+  };
+  const cartTotal = toNumber(this.checkoutReview?.cart?.totals?.toPay || 0);
+  const delivery = toNumber(this.checkoutReview?.delivery?.finalPrice || 0);
+  const payment = toNumber(this.checkoutReview?.payment?.finalPrice || 0);
+  const total = cartTotal + delivery + payment;
+  return total > 0 ? total : 0;
+},
+
+openPaygate() {
+  if (this.paygateModal.open) return;
+  if (this.route !== 'purchase-review') {
+    this.finalizePurchase();
+    return;
+  }
+  this.refreshCheckoutReview();
+  const amount = this.paygateTotal();
+  if (amount <= 0) {
+    this.paygateModal.open = false;
+    this.paygateModal.step = 'intro';
+    this.paygateModal.amount = 0;
+    this.finalizePurchase();
+    return;
+  }
+  this.paygateModal.amount = amount;
+  this.paygateModal.step = 'intro';
+  this.paygateModal.open = true;
+  this.$nextTick(() => this.$refs.paygate?.showModal?.());
+},
+
+startPaygateProcessing() {
+  if (this.paygateModal.step !== 'intro') return;
+  this.paygateModal.step = 'processing';
+  if (this.paygateModal.timer) {
+    clearTimeout(this.paygateModal.timer);
+    this.paygateModal.timer = null;
+  }
+  this.paygateModal.timer = setTimeout(() => {
+    this.paygateModal.step = 'success';
+    if (this.paygateModal.timer) {
+      clearTimeout(this.paygateModal.timer);
+      this.paygateModal.timer = null;
+    }
+    this.paygateModal.timer = setTimeout(() => {
+      this.closePaygate(true);
+    }, 2000);
+  }, 2000);
+},
+
+closePaygate(proceed = false) {
+  if (this.paygateModal.timer) {
+    clearTimeout(this.paygateModal.timer);
+    this.paygateModal.timer = null;
+  }
+  if (this.paygateModal.open) {
+    this.$refs.paygate?.close?.();
+  }
+  this.paygateModal.open = false;
+  this.paygateModal.step = 'intro';
+  this.paygateModal.amount = 0;
+  if (proceed) {
+    this.finalizePurchase();
+  }
+},
+
+paygateManualCancel() {
+  if (this.paygateModal.step !== 'intro') return;
+  this.closePaygate(false);
+},
+
+finalizePurchase() {
+  if (this.paygateModal.open || this.paygateModal.step !== 'intro' || this.paygateModal.amount !== 0) {
+    this.closePaygate(false);
+  }
+  this.reviewValidationErrors = [];
+  this.suppressCartRedirect = true;
+  const cart = Alpine.store('cart');
+  cart?.clear?.();
+  this.checkoutReview = null;
+  try { localStorage.removeItem('checkout.review'); } catch (_) {}
+  location.hash = '/thank-you';
+},
+
+refreshCheckoutReview() {
+  this.loadCheckoutMeta();
+  if (!this.addressFormLoaded && !this.contactFormSections.length && this.contactFormSchema.length) {
+    this.initAddressForm(this.contactFormSchema);
+  }
+  const saved = this.checkoutFormData || this.loadSavedAddressForm();
+  this.checkoutFormData = saved;
+  const review = {
+    contact: this.sectionSummary('Kontaktní údaje', saved),
+    deliveryDetails: this.groupSummary('Podrobnosti k doručení', saved),
+    companyDetails: this.groupSummary('Firemní údaje', saved),
+    delivery: this.checkoutDeliveryMeta,
+    payment: this.checkoutPaymentMeta,
+    cart: this.checkoutCartSummary()
+  };
+  this.checkoutReview = review;
+  try { localStorage.setItem('checkout.review', JSON.stringify(review)); }
+  catch (e) { console.warn('Failed to persist checkout review', e); }
+  return review;
+},
+
+formatCZK(value) {
+  const num = Number(value);
+  if (!Number.isFinite(num)) return '0 Kč';
+  return new Intl.NumberFormat('cs-CZ', { maximumFractionDigits: 0 }).format(num) + '\u00A0Kč';
+},
+
+resetCheckoutConsents() {
+  this.checkoutConsents = { terms: false, privacy: false, marketing: false };
+  this.reviewValidationErrors = [];
+},
+
+purchaseReviewReady() {
+  return !!(this.checkoutConsents.terms && this.checkoutConsents.privacy);
+},
+
+submitPurchaseReview() {
+  if (!this.purchaseReviewReady()) {
+    this.reviewValidationErrors = ['Potvrďte souhlas s obchodními podmínkami a zásadami zpracování osobních údajů.'];
+    return;
+  }
+  this.reviewValidationErrors = [];
+  if (this.isSelectedPaymentOnline()) {
+    this.openPaygate();
+    return;
+  }
+  this.finalizePurchase();
+},
+
+loadCheckoutReviewFromStorage() {
+  try {
+    const raw = localStorage.getItem('checkout.review');
+    const parsed = raw ? JSON.parse(raw) : null;
+    if (parsed && typeof parsed === 'object') {
+      this.checkoutReview = parsed;
+    }
+  } catch (e) {
+    console.warn('Failed to load checkout review', e);
+  }
 }
 
 })),
@@ -7608,6 +8985,43 @@ rangeLabel() {
     });
   });
   </script>
+<script>
+  document.addEventListener('alpine:init', () => {
+    Alpine.data('configPage', () => ({
+      store: null,
+      init() {
+        this.store = Alpine.store('appConfig');
+      },
+      get showBadge() {
+        return !!(this.store?.get ? this.store.get('showBreakpointBadge') : this.store?.showBreakpointBadge);
+      },
+      setBadge(value) {
+        if (!this.store) return;
+        if (typeof this.store.set === 'function') {
+          this.store.set('showBreakpointBadge', !!value);
+        } else {
+          this.store.showBreakpointBadge = !!value;
+          this.store.persist?.();
+        }
+      },
+      resetAll() {
+        if (typeof this.store?.reset === 'function') {
+          this.store.reset();
+        } else {
+          this.setBadge(this.store?.defaults?.showBreakpointBadge ?? true);
+        }
+      },
+      get snapshot() {
+        try {
+          const payload = this.store?.all?.() ?? { showBreakpointBadge: this.showBadge };
+          return JSON.stringify(payload, null, 2);
+        } catch {
+          return '';
+        }
+      }
+    }));
+  });
+</script>
   <script defer>
     (() => {
       const register = () => {
@@ -7711,14 +9125,14 @@ rangeLabel() {
     isActive(i) { return this.index === i; },
 
     go(i) {
-      if (!this.count()) return;
-      const n = this.count();
-      const nextIndex = ((i % n) + n) % n;
-      if (nextIndex !== this.index) {
-        this.index = nextIndex;
-        this.bumpAnimNonce();  // replay entry animations on newly active slide
-      }
-      this.resetAutoplay();
+     // if (!this.count()) return;
+     // const n = this.count();
+     // const nextIndex = ((i % n) + n) % n;
+     // if (nextIndex !== this.index) {
+     //   this.index = nextIndex;
+     //   this.bumpAnimNonce();  // replay entry animations on newly active slide
+     // }
+     // this.resetAutoplay();
     },
     next() { this.go(this.index + 1); },
     prev() { this.go(this.index - 1); },
@@ -8924,6 +10338,93 @@ function precartModal() {
     },
   };
 }
+</script>
+
+<!-- Tailwind breakpoint badge (dev helper) -->
+<div
+  id="tw-breakpoint-indicator"
+  class="fixed bottom-4 left-4 z-[9999] flex items-center gap-2 rounded-full border border-base-300 bg-base-100/90 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-base-content shadow-lg pointer-events-none select-none backdrop-blur">
+  <span aria-hidden="true" class="inline-flex h-2 w-2 rounded-full bg-success animate-pulse"></span>
+  <span data-label>base</span>
+  <span data-width class="font-normal lowercase text-base-content/70">(0px)</span>
+</div>
+<script>
+  (() => {
+    const badge = document.getElementById('tw-breakpoint-indicator');
+    if (!badge) return;
+    const STORAGE_KEY = 'fit:app-config';
+    const SETTING_KEY = 'showBreakpointBadge';
+    const DEFAULT_VISIBLE = true;
+    const labelEl = badge.querySelector('[data-label]');
+    const widthEl = badge.querySelector('[data-width]');
+    const breakpoints = [
+      { name: '2xl', min: 1536 },
+      { name: 'xl', min: 1280 },
+      { name: 'lg', min: 1024 },
+      { name: 'md', min: 768 },
+      { name: 'sm', min: 640 }
+    ];
+    const maxOnly = { name: 'xs', max: 413 };
+    const baseName = 'base';
+    const readVisibility = () => {
+      if (typeof localStorage === 'undefined') return DEFAULT_VISIBLE;
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return DEFAULT_VISIBLE;
+        const parsed = JSON.parse(raw);
+        const value = parsed && typeof parsed === 'object' ? parsed[SETTING_KEY] : undefined;
+        return typeof value === 'boolean' ? value : DEFAULT_VISIBLE;
+      } catch (e) {
+        console.warn('badge visibility read failed', e);
+        return DEFAULT_VISIBLE;
+      }
+    };
+    const applyVisibility = (show) => {
+      badge.classList.toggle('hidden', !show);
+      badge.setAttribute('aria-hidden', show ? 'false' : 'true');
+      badge.dataset.visible = show ? '1' : '0';
+    };
+    let visible = readVisibility();
+    applyVisibility(visible);
+
+    const resolve = (width) => {
+      if (width <= maxOnly.max) return maxOnly.name;
+      for (const bp of breakpoints) {
+        if (width >= bp.min) return bp.name;
+      }
+      return baseName;
+    };
+
+    const update = () => {
+      const width = Math.round(window.innerWidth || document.documentElement.clientWidth || 0);
+      labelEl.textContent = resolve(width);
+      widthEl.textContent = `(${width}px)`;
+    };
+
+    update();
+    window.addEventListener('resize', update, { passive: true });
+    window.addEventListener('orientationchange', update, { passive: true });
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('resize', update, { passive: true });
+    }
+
+    const setVisible = (value) => {
+      const show = !!value;
+      if (visible === show) return;
+      visible = show;
+      applyVisibility(visible);
+    };
+
+    window.addEventListener('fit:config-change', (event) => {
+      if (!event || event.detail?.key !== SETTING_KEY) return;
+      setVisible(event.detail.value);
+    });
+
+    window.addEventListener('storage', (event) => {
+      if (event.key !== STORAGE_KEY) return;
+      setVisible(readVisibility());
+    });
+  })();
 </script>
 
 

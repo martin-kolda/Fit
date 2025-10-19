@@ -39,7 +39,8 @@
           "items": [
             { "name": "O dopravě, platbě, reklamaci", "iconSet": "fa-regular", "icon": "box-isometric-tape", "linkMenuId": 7 },
             { "name": "Média", "iconSet": "fa-regular", "icon": "share-nodes", "linkMenuId": 5 },
-            { "name": "Česko, čeština", "iconSet": "custom", "icon": "empty", "linkMenuId": 6 }
+            { "name": "Česko, čeština", "iconSet": "custom", "icon": "empty", "linkMenuId": 6 },
+            { "name": "Konfigurace", "iconSet": "fa-regular", "icon": "sliders", "route": "config" }
           ]
         }
       ]

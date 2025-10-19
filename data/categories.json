@@ -39,7 +39,7 @@
         "name": "Jak vybrat vitamíny?",
         "route": "content/how-to-choose-vitamins",
         "appearance": {
-            "icon": "fa-solid fa-lightbulb",
+            "icon": "fa-regular fa-newspaper",
             "backgroundToken": "max-blue-100",
             "iconToken": "max-blue-500",
             "iconClass": "text-lg md:text-2xl"
