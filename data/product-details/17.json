@@ -1,0 +1,79 @@
+{
+  "id": "sinupret-50",
+  "name": "Sinupret 50 obalených tablet",
+  "registeredMedicament": true,
+  "brand": "Sinupret",
+  "productLine": "Sinupret",
+  "reviews": {
+    "average": 0.0,
+    "count": 0
+  },
+  "perex": "Rostlinný lék podporující tvorbu hlenu a jeho odkašlávání při akutním zánětu dutin a horních dýchacích cest. Vhodný pro dospělé a děti od 6 let.",
+  "category": "Léky na zánět dutin",
+  "stock": "Skladem",
+  "pharmacyStock": "256",
+  "SKU": "50099128",
+  "badges": [],
+  "images": [
+    "./images/sinupret-50-tablet.webp"
+  ],
+  "price": 245,
+  "discounted_price": 245,
+  "comparison_id": 6,
+  "variants": [
+    {
+      "id": "50tbl",
+      "name": "Sinupret 50 obalených tablet",
+      "label": "50 tablet",
+      "price": 245,
+      "discounted_price": 245
+    }
+  ],
+  "description": "<div class='text-md'>\n<h3 class='text-lg font-bold pb-4'>Úvod</h3>\n<div><p><strong>Sinupret</strong> je rostlinný léčivý přípravek, který zvyšuje tvorbu hlenu a usnadňuje jeho vykašlávání. Používá se při akutním a chronickém zánětu vedlejších nosních dutin a zánětech horních dýchacích cest. Je vhodný pro dospělé a děti od 6 let.</p></div>\n</div>\n<div class='text'>\n<h3 class='text-lg font-bold pb-4 pt-6'>Dávkování</h3>\n<div><p>Dospělí a dospívající od 12&nbsp;let užívají <strong>2 tablety 3× denně</strong>. Děti ve věku 6–11&nbsp;let užívají 1 tabletu 3× denně. Obvyklá délka léčby je 7–14&nbsp;dnů, při přetrvávajících potížích je možné léčbu prodloužit po konzultaci s lékařem.</p></div>\n</div>\n<div class='text'>\n<h3 class='text-lg font-bold pb-4 pt-6'>Složení</h3>\n<div><p>Každá tableta obsahuje suché rostlinné výtažky: hořec žlutý (<em>Gentianae radix</em>) 6&nbsp;mg, prvosenka jarní (<em>Primulae flos</em>) 18&nbsp;mg, šťovík kyselý (<em>Rumicis herba</em>) 18&nbsp;mg, černý bez (<em>Sambuci flos</em>) 18&nbsp;mg a sporýš lékařský (<em>Verbenae herba</em>) 18&nbsp;mg. Pomocné látky zahrnují laktózu, glukózu a škrob.</p></div>\n</div>\n<div class='text'>\n<h3 class='text-lg font-bold pb-4 pt-6'>Upozornění</h3>\n<div><p>Není určeno pro děti mladší 6 let. Pokud příznaky přetrvávají déle než 7 dní nebo se zhoršují, vyhledejte lékaře. Přípravek obsahuje laktózu; osoby s nesnášenlivostí cukrů by se měly poradit s lékařem před jeho užíváním.</p></div>\n</div>",
+  "parameters": [
+    {
+      "name": "Léková forma",
+      "value": "Obalené tablety"
+    },
+    {
+      "name": "Počet",
+      "value": "50 tablet"
+    },
+    {
+      "name": "Výrobce",
+      "value": "Bionorica"
+    },
+    {
+      "name": "Kód SÚKL",
+      "value": "207264"
+    },
+    {
+      "name": "EAN",
+      "value": "4029799119843"
+    }
+  ],
+  "availability": [
+    {
+      "location": "Praha – Václavské nám.",
+      "status": "Skladem do 2 h"
+    },
+    {
+      "location": "Brno – Česká",
+      "status": "Skladem zítra"
+    }
+  ],
+  "payment": [
+    {
+      "method": "Online kartou",
+      "note": "Zdarma"
+    },
+    {
+      "method": "Dobírka",
+      "note": "+39 Kč"
+    },
+    {
+      "method": "Hotově na pobočce",
+      "note": "Zdarma"
+    }
+  ]
+}

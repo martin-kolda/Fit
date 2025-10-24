@@ -5091,8 +5091,6 @@ function deliveryPaymentUI() {
         <h1 class="text-3xl mb-2">Aktivní objednávka</h1>
         <template x-if="$store.activeOrder.hasOrder()">
           <p class="text-base text-base-content/70">
-            Sledujeme průběh pro
-            <span class="font-semibold" x-text="$store.activeOrder.orderLabel()"></span>.
             Číslo objednávky:
             <span class="underline underline-offset-4 decoration-4 decoration-max-blue-500"
                   x-text="$store.activeOrder.formattedOrderNumber()"></span>
@@ -5136,11 +5134,11 @@ function deliveryPaymentUI() {
                 <div class="w-10 h-10 m-1 rounded-full border-2 border-max-gray-200 bg-white"></div>
               </template>
             </div>
-            <div class="timeline-end md:mb-6 text-base space-y-1">
-              <time class="font-medium text-sm text-primary block"
+            <div class="timeline-end text-base space-y-0 !ml-4">
+              <time class="font-medium text-sm text-primary block mt-4"
                     x-show="item.timestamp"
                     x-text="item.timestamp"></time>
-              <div class="text-lg font-bold" x-text="item.headline"></div>
+              <div class="text-lg font-medium mt-2" x-text="item.headline"></div>
               <div class="text-base text-base-content/80 leading-relaxed"
                    x-show="item.description"
                    x-html="item.description"></div>
@@ -5357,11 +5355,8 @@ function deliveryPaymentUI() {
     </button>
 
     <div class="relative flex-1 overflow-hidden pointer-events-none">
-      <div class="absolute inset-0 px-4 py-4 md:py-6 pointer-events-auto">
-        <div class="grid grid-cols-1 md:grid-cols-12 gap-4 items-stretch h-full">
-
-        <!-- Mobile tabs -->
-        <div class="md:hidden col-span-12 mt-16">
+      <div class="absolute inset-0 px-4 pt-12 pb-4 md:pt-6 md:pb-6 pointer-events-auto flex flex-col gap-4">
+        <div class="md:hidden flex-shrink-0">
           <div class="join w-full">
             <input class="join-item btn btn-block flex-1"
                    type="radio" name="maplist" aria-label="Mapa"
@@ -5372,11 +5367,13 @@ function deliveryPaymentUI() {
           </div>
         </div>
 
+        <div class="grid flex-1 min-h-0 grid-cols-1 md:grid-cols-12 gap-4 items-stretch">
+
         <!-- LEFT COLUMN (hidden on <lg unless 'list' tab is selected on mobile) -->
-          <aside class="min-h-0 col-span-12 lg:col-span-3"
+          <aside class="min-h-0 col-span-12 lg:col-span-3 flex flex-col"
           x-show="isLg || mode==='list'">
-          <div class="bg-white border border-base-300 rounded-xl xl:p-8 p-4 h-full overflow-y-auto">
-            <h1 class="text-3xl mx-auto mt-4 pb-4">Lékárny a boxy</h1>
+          <div class="bg-white border border-base-300 rounded-xl xl:p-8 p-4 flex-1 flex flex-col overflow-hidden">
+            <h1 class="text-3xl mx-auto mt-2 md:mt-4 pb-4">Lékárny a boxy</h1>
 
             <!-- Search -->
             <div class="pb-4">
@@ -5416,7 +5413,7 @@ function deliveryPaymentUI() {
             x-text="`Zobrazuji ${filtered.length} z ${all.length}`"></p>
 
             <!-- List -->
-            <div class="overflow-x-auto">
+            <div class="overflow-x-auto overflow-y-auto flex-1 min-h-0">
               <table class="table">
                 <tbody>
                   <template x-for="p in filtered" :key="p.id">
@@ -5450,9 +5447,9 @@ function deliveryPaymentUI() {
         </aside>
 
         <!-- RIGHT: MAP -->
-        <main class="min-h-0 col-span-12 lg:col-span-9" x-data="mapPane()" x-init="boot()" x-effect="onVisibilityChange(isLg || mode==='map')" x-show="isLg || mode==='map'">
+        <main class="min-h-0 col-span-12 lg:col-span-9 flex flex-col" x-data="mapPane()" x-init="boot()" x-effect="onVisibilityChange(isLg || mode==='map')" x-show="isLg || mode==='map'">
   
-          <div x-ref="wrap" class="relative rounded-xl border border-base-300 h-full min-h-[600px] overflow-hidden">
+          <div x-ref="wrap" class="relative flex-1 rounded-xl border border-base-300 min-h-0 md:min-h-[600px] overflow-hidden">
 
             <!-- Overlay (desktop / tablet) -->
             <div x-show="selected"

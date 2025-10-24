@@ -1,0 +1,79 @@
+{
+  "id": "ibalgin-rapidcaps-30",
+  "name": "Ibalgin Rapidcaps 400 mg 30 měkkých tobolek",
+  "registeredMedicament": true,
+  "brand": "Ibalgin",
+  "productLine": "Rapidcaps",
+  "reviews": {
+    "average": 0.0,
+    "count": 0
+  },
+  "perex": "Měkké kapsle s ibuprofenem rychle ulevují od bolesti různého původu a snižují horečku. Vhodné pro dospělé a dospívající od 12 let.",
+  "category": "Bolest",
+  "stock": "Skladem",
+  "pharmacyStock": "221",
+  "SKU": "50132370",
+  "badges": [],
+  "images": [
+    "./images/ibalgin-rapidcaps.webp"
+  ],
+  "price": 159,
+  "discounted_price": 159,
+  "comparison_id": 11,
+  "variants": [
+    {
+      "id": "30ks",
+      "name": "Ibalgin Rapidcaps 400 mg 30 měkkých tobolek",
+      "label": "30 tobolek",
+      "price": 159,
+      "discounted_price": 159
+    }
+  ],
+  "description": "<div class='text-md'>\n<h3 class='text-lg font-bold pb-4'>Úvod</h3>\n<div><p><strong>Ibalgin Rapidcaps</strong> obsahuje ibuprofen, který rychle tlumí bolest hlavy, migrénu, bolesti zubů, zad, svalů a kloubů a snižuje horečku. Díky měkké želatinové kapsli se léčivá látka uvolňuje rychleji než z klasických tablet.</p></div>\n</div>\n<div class='text'>\n<h3 class='text-lg font-bold pb-4 pt-6'>Dávkování</h3>\n<div><p>Dospělí a dospívající nad 12&nbsp;let (hmotnost &gt; 40&nbsp;kg) užívají <strong>1 kapsli s&nbsp;vodou až 3× denně</strong>. Mezi jednotlivými dávkami ponechejte odstup minimálně 4 hodiny a nepřekračujte celkovou dávku 3&nbsp;kapsle denně. Přípravek je určen pouze ke krátkodobému užívání.</p></div>\n</div>\n<div class='text'>\n<h3 class='text-lg font-bold pb-4 pt-6'>Složení</h3>\n<div><p>Každá měkká tobolka obsahuje ibuprofenum 400&nbsp;mg a pomocné látky: makrogol&nbsp;600, želatina, sorbitol, čištěná voda, oxid železitý (barvivo) a další látky umožňující rychlé uvolnění léčiva.</p></div>\n</div>\n<div class='text'>\n<h3 class='text-lg font-bold pb-4 pt-6'>Upozornění</h3>\n<div><p>Není určeno pro děti do 12&nbsp;let ani pro osoby s žaludečními vředy nebo krvácivými chorobami. Užívejte po jídle a zapijte dostatečným množstvím tekutin. Nepoužívejte v těhotenství (zejména ve 3. trimestru) a při kojení bez porady s lékařem.</p></div>\n</div>",
+  "parameters": [
+    {
+      "name": "Léková forma",
+      "value": "Měkké tobolky"
+    },
+    {
+      "name": "Počet",
+      "value": "30 tobolek"
+    },
+    {
+      "name": "Výrobce",
+      "value": "Sanofi"
+    },
+    {
+      "name": "Kód SÚKL",
+      "value": "254097"
+    },
+    {
+      "name": "EAN",
+      "value": "3664798005660"
+    }
+  ],
+  "availability": [
+    {
+      "location": "Praha – Václavské nám.",
+      "status": "Skladem do 2 h"
+    },
+    {
+      "location": "Brno – Česká",
+      "status": "Skladem zítra"
+    }
+  ],
+  "payment": [
+    {
+      "method": "Online kartou",
+      "note": "Zdarma"
+    },
+    {
+      "method": "Dobírka",
+      "note": "+39 Kč"
+    },
+    {
+      "method": "Hotově na pobočce",
+      "note": "Zdarma"
+    }
+  ]
+}

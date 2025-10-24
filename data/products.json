@@ -9,7 +9,13 @@
     "stock": "Skladem",
     "badges": [],
     "benefitPayment": true,
-    "consumers": ["Pro kojence", "Pro batolata", "Pro větší děti", "Pro dospělé", "Pro kojící & těhotné"],
+    "consumers": [
+      "Pro kojence",
+      "Pro batolata",
+      "Pro větší děti",
+      "Pro dospělé",
+      "Pro kojící & těhotné"
+    ],
     "form": "Mast, gel"
   },
   {
@@ -17,13 +23,22 @@
     "name": "Boiron Oscillococcinum perorální granule 30x1 g",
     "price": 659,
     "discounted_price": 527,
-    "badges": ["Sleva 29%", "Dárek"],
+    "badges": [
+      "Sleva 29%",
+      "Dárek"
+    ],
     "image": "./images/oscillo.webp",
     "description": "Homeopatický léčivý přípravek tradičně užívaný k prevenci a léčbě chřipkových stavů (horečka, zimnice, bolest hlavy a svalů, únava).",
     "category": "Homeopatika",
     "stock": "Skladem",
     "benefitPayment": true,
-    "consumers": ["Pro kojence", "Pro batolata", "Pro větší děti", "Pro dospělé", "Pro kojící & těhotné"],
+    "consumers": [
+      "Pro kojence",
+      "Pro batolata",
+      "Pro větší děti",
+      "Pro dospělé",
+      "Pro kojící & těhotné"
+    ],
     "form": "Sáčky, granule"
   },
   {
@@ -36,7 +51,10 @@
     "stock": "Skladem",
     "badges": [],
     "benefitPayment": true,
-    "consumers": ["Pro větší děti", "Pro dospělé"],
+    "consumers": [
+      "Pro větší děti",
+      "Pro dospělé"
+    ],
     "form": "Tablety, pastilky, tobolky"
   },
   {
@@ -48,9 +66,14 @@
     "description": "Lék proti bolesti a horečce s obsahem paracetamolu. Vhodný při chřipce a nachlazení, bolestech hlavy či zubů.",
     "category": "Bolest hlavy a migréna",
     "stock": "Skladem",
-    "badges": ["Sleva 29%"],
+    "badges": [
+      "Sleva 29%"
+    ],
     "benefitPayment": true,
-    "consumers": ["Pro větší děti", "Pro dospělé"],
+    "consumers": [
+      "Pro větší děti",
+      "Pro dospělé"
+    ],
     "form": "Tablety, pastilky, tobolky"
   },
   {
@@ -62,9 +85,13 @@
     "description": "Horký nápoj na příznaky chřipky a nachlazení (horečka, bolest hlavy, bolest v krku, ucpaný nos).",
     "category": "Chřipka, nachlazení",
     "stock": "Skladem",
-    "badges": ["Sleva 6%"],
+    "badges": [
+      "Sleva 6%"
+    ],
     "benefitPayment": true,
-    "consumers": ["Pro dospělé"],
+    "consumers": [
+      "Pro dospělé"
+    ],
     "form": "Sáčky, granule"
   },
   {
@@ -77,7 +104,10 @@
     "stock": "Skladem",
     "badges": [],
     "benefitPayment": true,
-    "consumers": ["Pro větší děti", "Pro dospělé"],
+    "consumers": [
+      "Pro větší děti",
+      "Pro dospělé"
+    ],
     "form": "Tablety, pastilky, tobolky"
   },
   {
@@ -90,7 +120,12 @@
     "stock": "Skladem",
     "badges": [],
     "benefitPayment": true,
-    "consumers": ["Pro batolata", "Pro větší děti", "Pro dospělé", "Pro kojící & těhotné"],
+    "consumers": [
+      "Pro batolata",
+      "Pro větší děti",
+      "Pro dospělé",
+      "Pro kojící & těhotné"
+    ],
     "form": "Kapky"
   },
   {
@@ -103,7 +138,11 @@
     "stock": "Skladem",
     "badges": [],
     "benefitPayment": true,
-    "consumers": ["Pro větší děti", "Pro dospělé", "Pro kojící & těhotné"],
+    "consumers": [
+      "Pro větší děti",
+      "Pro dospělé",
+      "Pro kojící & těhotné"
+    ],
     "form": "Sprej"
   },
   {
@@ -116,7 +155,10 @@
     "stock": "Skladem",
     "badges": [],
     "benefitPayment": true,
-    "consumers": ["Pro větší děti", "Pro dospělé"],
+    "consumers": [
+      "Pro větší děti",
+      "Pro dospělé"
+    ],
     "form": "Sáčky, granule"
   },
   {
@@ -129,7 +171,10 @@
     "stock": "Skladem",
     "badges": [],
     "benefitPayment": true,
-    "consumers": ["Pro větší děti", "Pro dospělé"],
+    "consumers": [
+      "Pro větší děti",
+      "Pro dospělé"
+    ],
     "form": "Tablety, pastilky, tobolky"
   },
   {
@@ -142,7 +187,11 @@
     "stock": "Skladem",
     "badges": [],
     "benefitPayment": true,
-    "consumers": ["Pro větší děti", "Pro dospělé", "Pro kojící & těhotné"],
+    "consumers": [
+      "Pro větší děti",
+      "Pro dospělé",
+      "Pro kojící & těhotné"
+    ],
     "form": "Tablety, pastilky, tobolky"
   },
   {
@@ -155,7 +204,212 @@
     "stock": "Skladem",
     "badges": [],
     "benefitPayment": true,
-    "consumers": ["Pro větší děti", "Pro dospělé"],
+    "consumers": [
+      "Pro větší děti",
+      "Pro dospělé"
+    ],
     "form": "Tablety, pastilky, tobolky"
+  },
+  {
+    "id": 13,
+    "name": "Dolgit NEURO 30 tobolek",
+    "price": 129,
+    "image": "./images/dolgit-neuro.webp",
+    "description": "Potravina pro zvláštní lékařské účely s uridinem a vitaminy B pro dietní řízení neuropatií a neurodegenerativních onemocnění.",
+    "category": "Výživa v nemoci",
+    "stock": "Skladem",
+    "badges": [
+      "Akce -24%"
+    ],
+    "benefitPayment": false,
+    "consumers": [
+      "Pro dospělé"
+    ],
+    "form": "Tobolky"
+  },
+  {
+    "id": 14,
+    "name": "Kaloba perorální kapky 50 ml",
+    "price": 269,
+    "image": "./images/kaloba-50ml.webp",
+    "description": "Rostlinné kapky s extraktem z kořene pelargonie pro léčbu akutní bronchitidy, uvolňují hlen a usnadňují vykašlávání.",
+    "category": "Kašel",
+    "stock": "Skladem",
+    "badges": [],
+    "benefitPayment": true,
+    "consumers": [
+      "Pro děti",
+      "Pro dospělé"
+    ],
+    "form": "Kapky"
+  },
+  {
+    "id": 15,
+    "name": "Olynth HA 1 mg/ml nosní sprej, roztok 10 ml",
+    "price": 119,
+    "image": "./images/olynth-ha.webp",
+    "description": "Nosní sprej s xylometazolinem a kyselinou hyaluronovou rychle uvolňuje ucpaný nos a zvlhčuje sliznici.",
+    "category": "Nosní kapky, spreje a masti",
+    "stock": "Skladem",
+    "badges": [
+      "Akce -5%"
+    ],
+    "benefitPayment": true,
+    "consumers": [
+      "Pro větší děti",
+      "Pro dospívající",
+      "Pro dospělé"
+    ],
+    "form": "Sprej"
+  },
+  {
+    "id": 16,
+    "name": "Aspirin 500 mg 20 tablet",
+    "price": 155,
+    "image": "./images/aspirin-500mg.webp",
+    "description": "Tablety s kyselinou acetylsalicylovou snižují horečku a tlumí bolest hlavy, zubů a svalů.",
+    "category": "Bolest a horečka",
+    "stock": "Skladem",
+    "badges": [],
+    "benefitPayment": true,
+    "consumers": [
+      "Pro dospívající",
+      "Pro dospělé"
+    ],
+    "form": "Tablety"
+  },
+  {
+    "id": 17,
+    "name": "Sinupret 50 obalených tablet",
+    "price": 245,
+    "image": "./images/sinupret-50-tablet.webp",
+    "description": "Rostlinný lék zlepšuje tvorbu hlenu a usnadňuje jeho vykašlávání při zánětu dutin.",
+    "category": "Léky na zánět dutin",
+    "stock": "Skladem",
+    "badges": [],
+    "benefitPayment": true,
+    "consumers": [
+      "Pro děti",
+      "Pro dospívající",
+      "Pro dospělé"
+    ],
+    "form": "Tablety"
+  },
+  {
+    "id": 18,
+    "name": "Cerviron 10 vaginálních čípků",
+    "price": 255,
+    "image": "./images/cerviron-ovuly.webp",
+    "description": "Vaginální čípky s přírodními extrakty a bismutem vytvářejí ochranný film a podporují hojení poševní sliznice.",
+    "category": "Gynekologické obtíže",
+    "stock": "Skladem",
+    "badges": [
+      "Akce -17%"
+    ],
+    "benefitPayment": false,
+    "consumers": [
+      "Pro ženy"
+    ],
+    "form": "Vaginální čípky"
+  },
+  {
+    "id": 19,
+    "name": "Muconasal Plus nosní sprej 10 ml",
+    "price": 119,
+    "image": "./images/muconasal-plus.webp",
+    "description": "Nosní sprej s tramazolinum rychle uvolňuje ucpaný nos při nachlazení a alergické rýmě.",
+    "category": "Nosní kapky, spreje a masti",
+    "stock": "Skladem",
+    "badges": [],
+    "benefitPayment": true,
+    "consumers": [
+      "Pro děti",
+      "Pro dospívající",
+      "Pro dospělé"
+    ],
+    "form": "Sprej"
+  },
+  {
+    "id": 20,
+    "name": "Voltaren Forte 20 mg/g gel 180 g",
+    "price": 399,
+    "image": "./images/voltaren-forte.webp",
+    "description": "Gel s diclofenacem pro úlevu od bolesti svalů a kloubů, tlumí zánět a otok až na 12 hodin.",
+    "category": "Bolest kloubů, svalů",
+    "stock": "Skladem",
+    "badges": [
+      "Akce -20%"
+    ],
+    "benefitPayment": true,
+    "consumers": [
+      "Pro dospívající",
+      "Pro dospělé"
+    ],
+    "form": "Gel"
+  },
+  {
+    "id": 21,
+    "name": "Dr. Max Xylomax 1 mg/ml nosní sprej 10 ml",
+    "price": 99,
+    "image": "./images/xylomax-1mg.webp",
+    "description": "Nosní sprej rychle uvolňuje ucpaný nos a snižuje otok sliznice u dospělých a dětí od 12 let.",
+    "category": "Nosní kapky, spreje a masti",
+    "stock": "Skladem",
+    "badges": [],
+    "benefitPayment": true,
+    "consumers": [
+      "Pro dospívající",
+      "Pro dospělé"
+    ],
+    "form": "Sprej"
+  },
+  {
+    "id": 22,
+    "name": "Ibalgin Rapidcaps 400 mg 30 měkkých tobolek",
+    "price": 159,
+    "image": "./images/ibalgin-rapidcaps.webp",
+    "description": "Měkké kapsle s ibuprofenem pro rychlou úlevu od bolesti a snížení horečky.",
+    "category": "Bolest",
+    "stock": "Skladem",
+    "badges": [],
+    "benefitPayment": true,
+    "consumers": [
+      "Pro dospívající",
+      "Pro dospělé"
+    ],
+    "form": "Kapsle"
+  },
+  {
+    "id": 23,
+    "name": "Hyal‑Drop Multi oční kapky 10 ml",
+    "price": 199,
+    "image": "./images/hyal-drop-multi.webp",
+    "description": "Oční kapky bez konzervačních látek zvlhčují oči i kontaktní čočky a poskytují rychlou úlevu od suchých očí.",
+    "category": "Oční kapky",
+    "stock": "Skladem",
+    "badges": [
+      "Akce -7%"
+    ],
+    "benefitPayment": false,
+    "consumers": [
+      "Pro dospělé"
+    ],
+    "form": "Oční kapky"
+  },
+  {
+    "id": 24,
+    "name": "Otrivin Menthol 1 mg/ml nosní sprej, roztok 10 ml",
+    "price": 155,
+    "image": "./images/otrivin-menthol.webp",
+    "description": "Nosní sprej s xylometazolinum, mentholem a eukalyptolem uvolňuje ucpaný nos až na 12 hodin.",
+    "category": "Nosní kapky, spreje a masti",
+    "stock": "Skladem",
+    "badges": [],
+    "benefitPayment": true,
+    "consumers": [
+      "Pro dospívající",
+      "Pro dospělé"
+    ],
+    "form": "Sprej"
   }
 ]

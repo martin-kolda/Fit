@@ -1,0 +1,79 @@
+{
+  "id": "muconasal-plus-10",
+  "name": "Muconasal Plus nosní sprej 10 ml",
+  "registeredMedicament": true,
+  "brand": "Muconasal",
+  "productLine": "Muconasal",
+  "reviews": {
+    "average": 0.0,
+    "count": 0
+  },
+  "perex": "Nosní sprej s tramazolini hydrochloridem rychle uvolňuje ucpaný nos při nachlazení a alergické rýmě. Účinek trvá až 10 hodin.",
+  "category": "Nosní kapky, spreje a masti",
+  "stock": "Skladem",
+  "pharmacyStock": "211",
+  "SKU": "50133760",
+  "badges": [],
+  "images": [
+    "./images/muconasal-plus.webp"
+  ],
+  "price": 119,
+  "discounted_price": 119,
+  "comparison_id": 8,
+  "variants": [
+    {
+      "id": "10ml",
+      "name": "Muconasal Plus nosní sprej 10 ml",
+      "label": "10 ml",
+      "price": 119,
+      "discounted_price": 119
+    }
+  ],
+  "description": "<div class='text-md'>\n<h3 class='text-lg font-bold pb-4'>Úvod</h3>\n<div><p><strong>Muconasal Plus</strong> je nosní sprej, který obsahuje tramazolini hydrochloridum. Rychle snižuje otok nosní sliznice a uvolňuje ucpaný nos při nachlazení a alergické rýmě. Účinek nastupuje během několika minut a trvá až 10 hodin.</p></div>\n</div>\n<div class='text'>\n<h3 class='text-lg font-bold pb-4 pt-6'>Dávkování</h3>\n<div><p>Dospělí a děti od 6&nbsp;let aplikují <strong>1 vstřik do každé nosní dírky podle potřeby, maximálně 4× denně</strong>. Doba léčby by neměla přesáhnout 5–7 dnů u dospělých a 3 dny u dětí. Po ukončení léčby je vhodná několika denní pauza.</p></div>\n</div>\n<div class='text'>\n<h3 class='text-lg font-bold pb-4 pt-6'>Složení</h3>\n<div><p>Léčivou látkou je tramazolini hydrochloridum (1&nbsp;mg/ml). Pomocné látky: čištěná voda, glycerol, sorbitol, benzalkonium-chlorid a dihydrogenfosforečnan sodný.</p></div>\n</div>\n<div class='text'>\n<h3 class='text-lg font-bold pb-4 pt-6'>Upozornění</h3>\n<div><p>Nepoužívejte u dětí mladších 6 let ani v prvním trimestru těhotenství. Nepřekračujte doporučenou délku léčby – dlouhodobé užívání může způsobit poškození nosní sliznice. Před použitím si přečtěte příbalový leták.</p></div>\n</div>",
+  "parameters": [
+    {
+      "name": "Léková forma",
+      "value": "Nosní sprej"
+    },
+    {
+      "name": "Objem",
+      "value": "10 ml"
+    },
+    {
+      "name": "Výrobce",
+      "value": "Muconasal"
+    },
+    {
+      "name": "Kód SÚKL",
+      "value": "258022"
+    },
+    {
+      "name": "EAN",
+      "value": "8595116523533"
+    }
+  ],
+  "availability": [
+    {
+      "location": "Praha – Václavské nám.",
+      "status": "Skladem do 2 h"
+    },
+    {
+      "location": "Brno – Česká",
+      "status": "Skladem zítra"
+    }
+  ],
+  "payment": [
+    {
+      "method": "Online kartou",
+      "note": "Zdarma"
+    },
+    {
+      "method": "Dobírka",
+      "note": "+39 Kč"
+    },
+    {
+      "method": "Hotově na pobočce",
+      "note": "Zdarma"
+    }
+  ]
+}

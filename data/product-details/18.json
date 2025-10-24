@@ -1,0 +1,77 @@
+{
+  "id": "cerviron-10",
+  "name": "Cerviron 10 vaginálních čípků",
+  "registeredMedicament": false,
+  "brand": "Cerviron",
+  "productLine": "Cerviron",
+  "reviews": {
+    "average": 0.0,
+    "count": 0
+  },
+  "perex": "Vaginální čípky s přírodními extrakty a bismutem vytvářejí ochranný film na poševní sliznici a podporují hojení při vaginálních infekcích.",
+  "category": "Gynekologické obtíže",
+  "stock": "Skladem",
+  "pharmacyStock": "178",
+  "SKU": "50179411",
+  "badges": [
+    "Akce -17%"
+  ],
+  "images": [
+    "./images/cerviron-ovuly.webp"
+  ],
+  "price": 305,
+  "discounted_price": 255,
+  "comparison_id": 7,
+  "variants": [
+    {
+      "id": "10ks",
+      "name": "Cerviron 10 vaginálních čípků",
+      "label": "10 čípků",
+      "price": 305,
+      "discounted_price": 255
+    }
+  ],
+  "description": "<div class='text-md'>\n<h3 class='text-lg font-bold pb-4'>Úvod</h3>\n<div><p><strong>Cerviron</strong> je zdravotnický prostředek ve formě vaginálních čípků. Obsahuje přírodní extrakty z mateřídoušky, měsíčku, kurkumy a zlatobýlu, bismutový subgalát, kolagen a hexylresorcinol. Čípky vytvářejí ochranný film na vaginální sliznici, který brání průniku patogenů a podporuje její hojení.</p></div>\n</div>\n<div class='text'>\n<h3 class='text-lg font-bold pb-4 pt-6'>Dávkování</h3>\n<div><p>Vložte <strong>jednu čípek denně</strong> hluboko do pochvy, nejlépe večer před spaním, po skončení menstruace. Kúra trvá 10–15&nbsp;dnů a lze ji opakovat podle potřeby nebo doporučení lékaře.</p></div>\n</div>\n<div class='text'>\n<h3 class='text-lg font-bold pb-4 pt-6'>Složení</h3>\n<div><p>Jedna vaginální ovule obsahuje bismutum subgallatum 300&nbsp;mg, kolagen 100&nbsp;mg, hexylresorcinol 5&nbsp;mg a směs rostlinných extraktů (mateřídouška, měsíček lékařský, kurkuma, zlatobýl kanadský, šalvěj, jehlice, heřmánek a další).</p></div>\n</div>\n<div class='text'>\n<h3 class='text-lg font-bold pb-4 pt-6'>Upozornění</h3>\n<div><p>Nepoužívejte při známé přecitlivělosti na některou složku přípravku. Cerviron může snižovat účinnost latexových kondomů a pesarů, proto během kúry zvolte jinou metodu antikoncepce. Není vhodný pro těhotné ženy. Uchovávejte mimo dosah dětí.</p></div>\n</div>",
+  "parameters": [
+    {
+      "name": "Léková forma",
+      "value": "Vaginální čípky"
+    },
+    {
+      "name": "Počet",
+      "value": "10 čípků"
+    },
+    {
+      "name": "Výrobce",
+      "value": "PharmaM"
+    },
+    {
+      "name": "EAN",
+      "value": "5944757500176"
+    }
+  ],
+  "availability": [
+    {
+      "location": "Praha – Václavské nám.",
+      "status": "Skladem do 2 h"
+    },
+    {
+      "location": "Brno – Česká",
+      "status": "Skladem zítra"
+    }
+  ],
+  "payment": [
+    {
+      "method": "Online kartou",
+      "note": "Zdarma"
+    },
+    {
+      "method": "Dobírka",
+      "note": "+39 Kč"
+    },
+    {
+      "method": "Hotově na pobočce",
+      "note": "Zdarma"
+    }
+  ]
+}

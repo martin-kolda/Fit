@@ -1,0 +1,77 @@
+{
+  "id": "dolgit-neuro-30",
+  "name": "Dolgit NEURO 30 tobolek",
+  "registeredMedicament": false,
+  "brand": "Dolgit",
+  "productLine": "Dolgit",
+  "reviews": {
+    "average": 3.0,
+    "count": 4
+  },
+  "perex": "Potravina pro zvláštní lékařské účely s uridinem a vitaminy B k dietnímu řízení neuropatií a neurodegenerativních onemocnění.",
+  "category": "Výživa v nemoci",
+  "stock": "Skladem",
+  "pharmacyStock": "110",
+  "SKU": "50181372",
+  "badges": [
+    "Akce -24%"
+  ],
+  "images": [
+    "./images/dolgit-neuro.webp"
+  ],
+  "price": 169,
+  "discounted_price": 129,
+  "comparison_id": 2,
+  "variants": [
+    {
+      "id": "30tb",
+      "name": "Dolgit NEURO 30 tobolek",
+      "label": "30 tobolek",
+      "price": 169,
+      "discounted_price": 129
+    }
+  ],
+  "description": "<div class='text-md'>\n<h3 class='text-lg font-bold pb-4'>Úvod</h3>\n<div><p><strong>Dolgit NEURO</strong> je potravina pro zvláštní lékařské účely určená k dietnímu řízení neuropatií a neurodegenerativních onemocnění. Obsahuje uridin monofosfát a vitaminy skupiny B, které přispívají k normální činnosti nervového systému a pomáhají regenerovat nervovou tkáň.</p></div>\n</div>\n<div class='text'>\n<h3 class='text-lg font-bold pb-4 pt-6'>Dávkování</h3>\n<div><p>Užívejte <strong>1 tobolku denně</strong> nejlépe během jídla. Po měsíci užívání se doporučuje měsíční pauza; kúru je možné opakovat. Přípravek užívejte pod dohledem lékaře a nepřekračujte doporučené dávkování.</p></div>\n</div>\n<div class='text'>\n<h3 class='text-lg font-bold pb-4 pt-6'>Složení</h3>\n<div><p>Jedna tobolka obsahuje uridin monofosfát 50&nbsp;mg, vitamín&nbsp;B<sub>2</sub> 2&nbsp;mg, vitamín&nbsp;B<sub>6</sub> 4&nbsp;mg a vitamín&nbsp;B<sub>12</sub> 3,5&nbsp;µg. Pomocné látky: maltodextrin, želatina, magnesium-stearát, oxid titaničitý a barviva.</p></div>\n</div>\n<div class='text'>\n<h3 class='text-lg font-bold pb-4 pt-6'>Upozornění</h3>\n<div><p>Přípravek je určen k užívání pod lékařským dohledem a není určen jako jediný zdroj výživy. Není vhodný pro děti a těhotné nebo kojící ženy. Nepřekračujte doporučenou denní dávku. Uchovávejte mimo dosah dětí a mimo dosah přímého slunečního světla.</p></div>\n</div>",
+  "parameters": [
+    {
+      "name": "Léková forma",
+      "value": "Tobolky"
+    },
+    {
+      "name": "Počet",
+      "value": "30 tobolek"
+    },
+    {
+      "name": "Výrobce",
+      "value": "Dolgit"
+    },
+    {
+      "name": "Kód EAN",
+      "value": "4016369651681"
+    }
+  ],
+  "availability": [
+    {
+      "location": "Praha – Václavské nám.",
+      "status": "Skladem do 2 h"
+    },
+    {
+      "location": "Brno – Česká",
+      "status": "Skladem zítra"
+    }
+  ],
+  "payment": [
+    {
+      "method": "Online kartou",
+      "note": "Zdarma"
+    },
+    {
+      "method": "Dobírka",
+      "note": "+39 Kč"
+    },
+    {
+      "method": "Hotově na pobočce",
+      "note": "Zdarma"
+    }
+  ]
+}

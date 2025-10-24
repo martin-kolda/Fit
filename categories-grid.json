@@ -85,9 +85,9 @@
   },
   {
     "image": "./images/categories-grid/liceni.webp",
-    "label": "Alergie",
+    "label": "Líčení",
     "background": "bg-max-gray-100",
-    "slug": "alergie-3"
+    "slug": "liceni"
   },
   {
     "image": "./images/categories-grid/obleceni.webp",
@@ -139,7 +139,7 @@
   },
   {
     "image": "./images/categories-grid/zazivani.webp",
-    "label": "Távení",
+    "label": "Trávení",
     "background": "bg-max-gray-100",
     "slug": "taveni"
   },
