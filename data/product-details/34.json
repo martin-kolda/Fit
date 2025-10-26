@@ -1,0 +1,59 @@
+{
+  "id": 34,
+  "name": "Dr. Max Larymed pomeranč a med 3 mg 20 pastilek",
+  "registeredMedicament": true,
+  "brand": "Dr. Max",
+  "productLine": "Larymed",
+  "reviews": {
+    "rating": 0.0,
+    "count": 0
+  },
+  "perex": "Pastilky Larymed s příchutí pomeranče a medu zmírňují bolest v krku a působí protizánětlivě.",
+  "category": "Bolest v krku",
+  "stock": "Skladem na e-shopu",
+  "pharmacyStock": "ve 0 lékárnách",
+  "SKU": "50167598",
+  "badges": [],
+  "images": [
+    "./images/larymed.webp"
+  ],
+  "price": 159,
+  "discounted_price": 159,
+  "comparison_id": null,
+  "variants": [
+    {
+      "id": "20pas",
+      "name": "Dr. Max Larymed pomeranč a med 3 mg 20 pastilek",
+      "label": "20 pastilek",
+      "price": 159,
+      "discounted_price": 159
+    }
+  ],
+  "description": "<h2>Úvod</h2>\n<p>Pastilky Larymed s příchutí pomeranče a medu obsahují benzydamin, který má protizánětlivý a místně anestetický účinek. Ulevují od bolesti v krku.</p>\n<h2>Dávkování</h2>\n<p>Dospělí, dospívající a děti od 6 let nechávají rozpustit 1 pastilku v ústech až 3× denně. Nepřekračujte 3 pastilky za 24 hodin a neužívejte déle než 7 dnů.</p>\n<h2>Složení</h2>\n<p>Jedna pastilka obsahuje benzydamini hydrochloridum 3 mg (ekvivalent benzydaminum 2,68 mg) a pomocné látky: isomalt, kyselinu citronovou, aspartam, chinolinovou žluť, pomerančové a medové aroma.</p>\n<h2>Upozornění</h2>\n<p>Léčivý přípravek. Nepřekračujte doporučené dávkování. Obsahuje isomalt a aspartam; není vhodné pro osoby s fenylketonurií.</p>",
+  "parameters": [
+    {
+      "name": "Léčivá látka",
+      "value": "benzydamini hydrochloridum 3 mg"
+    },
+    {
+      "name": "Forma",
+      "value": "Pastilky"
+    },
+    {
+      "name": "Velikost balení",
+      "value": "20 pastilek"
+    },
+    {
+      "name": "Výrobce",
+      "value": "Dr. Max"
+    },
+    {
+      "name": "EAN",
+      "value": "8595566454180"
+    },
+    {
+      "name": "Farmakoterapeutická skupina",
+      "value": "Antiseptika a lokální protizánětlivé léky"
+    }
+  ]
+}

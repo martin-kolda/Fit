@@ -1,0 +1,14 @@
+[
+  { "name": "eRecept", "iconSet": "fa-solid", "icon": "file-medical", "description": "Zistite dostupnosť lieku a rezervujte si eRecept online", "route": "info" },
+  { "name": "Kontaktná linka: 0800 60 60 70", "iconSet": "fa-solid", "icon": "phone-volume", "description": "Zákaznícka linka je vám k dispozícii v pracovné dni 8:00–17:00", "route": "info" },
+  { "name": "Karta výhod", "iconSet": "fa-solid", "icon": "id-card", "description": "Aké benefity prináša Karta výhod a ako ju získať", "route": "info" },
+  { "name": "Darčekové poukážky", "iconSet": "fa-solid", "icon": "gift", "description": "Darujte nákupnú poukážku do Dr. Max", "route": "info" },
+  { "name": "Doprava a platba", "iconSet": "fa-solid", "icon": "truck-fast", "description": "Všetko o spôsoboch dopravy a možnostiach platby", "route": "info" },
+  { "name": "Stav objednávky a zásielka", "iconSet": "fa-solid", "icon": "box-open", "description": "Zistite, kde je váš balík a kedy vám ho doručíme", "route": "info" },
+  { "name": "Lekárne a výdajné boxy", "iconSet": "fa-solid", "icon": "store", "description": "Mapa viac než 500 lekární a ďalších výdajných miest", "route": "info" },
+  { "name": "Môj účet", "iconSet": "fa-solid", "icon": "user", "description": "Spravujte svoje údaje, históriu objednávok a uložené produkty", "route": "info" },
+  { "name": "Všetko o nákupe", "iconSet": "fa-solid", "icon": "circle-info", "description": "Obchodné a rezervačné podmienky a ďalšie informácie", "route": "info" },
+  { "name": "Reklamácie a vrátenie tovaru", "iconSet": "fa-solid", "icon": "arrow-rotate-left", "description": "Potrebujete niečo reklamovať? Žiadny problém", "route": "info" },
+  { "name": "Opýtajte sa lekárnika", "iconSet": "fa-solid", "icon": "comments", "description": "Odborné otázky zodpovieme spravidla do 48 hodín", "route": "info" },
+  { "name": "E-mail", "iconSet": "fa-solid", "icon": "envelope", "description": "Napíšte nám na info@drmax.sk", "route": "info" }
+]

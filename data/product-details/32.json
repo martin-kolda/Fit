@@ -1,0 +1,59 @@
+{
+  "id": 32,
+  "name": "Paralen Grip Chřipka a kašel 24 tablet",
+  "registeredMedicament": true,
+  "brand": "Paralen",
+  "productLine": "Paralen Grip",
+  "reviews": {
+    "rating": 0.0,
+    "count": 0
+  },
+  "perex": "Paralen Grip kombinuje paracetamol a fenylefrin k úlevě od horečky, bolesti a ucpaného nosu při chřipce.",
+  "category": "Chřipka a nachlazení",
+  "stock": "Skladem na e-shopu",
+  "pharmacyStock": "ve 0 lékárnách",
+  "SKU": "50165328",
+  "badges": [],
+  "images": [
+    "./images/paralen-grip.webp"
+  ],
+  "price": 169,
+  "discounted_price": 169,
+  "comparison_id": null,
+  "variants": [
+    {
+      "id": "24tbl",
+      "name": "Paralen Grip Chřipka a kašel 24 tablet",
+      "label": "24 tablet",
+      "price": 169,
+      "discounted_price": 169
+    }
+  ],
+  "description": "<h2>Úvod</h2>\n<p>Paralen Grip je kombinovaný přípravek určený k léčbě příznaků chřipky a nachlazení. Zmírňuje bolest a horečku díky paracetamolu a snižuje překrvení nosní sliznice díky fenylefrinu.</p>\n<h2>Dávkování</h2>\n<p>Dospělí a dospívající od 15 let užívají 1–2 tablety každých 4–6 hodin podle potřeby. Nepřekračujte 6 tablet za 24 hodin. Přípravek není vhodný pro děti do 12 let.</p>\n<h2>Složení</h2>\n<p>Jedna tableta obsahuje paracetamolum 500 mg, phenylephrini hydrochloridum 6,1 mg a pomocné látky (škrob, PVP, stearan hořečnatý aj.).</p>\n<h2>Upozornění</h2>\n<p>Léčivý přípravek. Nepřekračujte doporučené dávkování a neužívejte současně jiné léky obsahující paracetamol. Nevhodné pro osoby s hypertenzí nebo onemocněním srdce.</p>",
+  "parameters": [
+    {
+      "name": "Léčivá látka",
+      "value": "paracetamolum 500 mg, phenylephrini hydrochloridum 6,1 mg"
+    },
+    {
+      "name": "Forma",
+      "value": "Tablety"
+    },
+    {
+      "name": "Velikost balení",
+      "value": "24 tablet"
+    },
+    {
+      "name": "Výrobce",
+      "value": "Paralen"
+    },
+    {
+      "name": "EAN",
+      "value": "8595116532832"
+    },
+    {
+      "name": "Farmakoterapeutická skupina",
+      "value": "Analgetika a nosní dekongestiva"
+    }
+  ]
+}

@@ -6,7 +6,7 @@
       "background": "absolute inset-0 w-full h-full object-cover z-0",
       "background_color": "background-color: linear-gradient(229deg, #78BE20 19.56%, #356B09 102.2%, rgba(0, 0, 0, 0.00) 102.21%)",
       "layer_1": { "image": "absolute z-1 -bottom-64 opacity-10 left-128 w-28 sm:w-16 lg:w-164 rotate-90", "entry_animation": null},
-      "layer_2": { "image": "absolute z-2 hidden xl:block lg:-bottom-2 xl:-bottom-1 2xl:-bottom-24 xl:right-94 2xl:right-126 w-20 md:w-36 lg:w-48 xl:w-60 2xl:w-82", "entry_animation": null},
+      "layer_2": { "image": "absolute z-2 hidden xl:block lg:-bottom-2 xl:-bottom-1 2xl:-bottom-24 xl:right-90 2xl:right-126 w-20 md:w-36 lg:w-48 xl:w-60 2xl:w-82", "entry_animation": null},
       "layer_3": { "image": "absolute z-3 top-30 2xl:top-20 -right-24 max-[413px]:-right-32 sm:-right-4 2xl:-right-8 w-80 2xl:w-90 reflection", "entry_animation": null},
       "layer_4": { "image": "absolute z-4 top-12 2xl:top-4 -right-40 max-[413px]:-right-50 sm:-right-20 lg:right-20 2xl:right-40 w-80 2xl:w-90 reflection", "entry_animation": null},
       "layer_5": { "image": "absolute z-5 top-6 lg:top-12 right-6 lg:right-12 w-22 md:w-28 2xl:w-32 slide-in-right", "entry_animation": "slide-in-right"},

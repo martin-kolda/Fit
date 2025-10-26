@@ -1,0 +1,59 @@
+{
+  "id": 33,
+  "name": "Dr. Max Paracetamol 500 mg 20 tablet",
+  "registeredMedicament": true,
+  "brand": "Dr. Max",
+  "productLine": "Paracetamol",
+  "reviews": {
+    "rating": 0.0,
+    "count": 0
+  },
+  "perex": "Paracetamol Dr. Max 500 mg ulevuje od mírné až středně silné bolesti a snižuje horečku.",
+  "category": "Bolest hlavy a migréna",
+  "stock": "Skladem na e-shopu",
+  "pharmacyStock": "ve 0 lékárnách",
+  "SKU": "50130906",
+  "badges": [],
+  "images": [
+    "./images/paracetamol.webp"
+  ],
+  "price": 35,
+  "discounted_price": 35,
+  "comparison_id": null,
+  "variants": [
+    {
+      "id": "20tbl",
+      "name": "Dr. Max Paracetamol 500 mg 20 tablet",
+      "label": "20 tablet",
+      "price": 35,
+      "discounted_price": 35
+    }
+  ],
+  "description": "<h2>Úvod</h2>\n<p>Paracetamol Dr. Max 500 mg je lék proti bolesti a horečce vhodný pro dospělé a děti od 6 let.</p>\n<h2>Dávkování</h2>\n<p>Dospělí a dospívající od 15 let užívají 1–2 tablety několikrát denně s odstupem minimálně 4 hodin, maximálně 8 tablet za 24 hodin. Děti od 6 let užívají ½–1 tabletu s odstupem minimálně 6 hodin.</p>\n<h2>Složení</h2>\n<p>Jedna tableta obsahuje paracetamolum 500 mg a pomocné látky: kukuřičný škrob, povidon, kroskarmelosu sodnou, mikrokrystalickou celulózu a oxid křemičitý.</p>\n<h2>Upozornění</h2>\n<p>Léčivý přípravek. Nepřekračujte doporučené dávkování. Nepodávejte dětem mladším 6 let. Osoby s onemocněním jater nebo ledvin by měly užívání konzultovat s lékařem.</p>",
+  "parameters": [
+    {
+      "name": "Léčivá látka",
+      "value": "paracetamolum 500 mg"
+    },
+    {
+      "name": "Forma",
+      "value": "Tablety"
+    },
+    {
+      "name": "Velikost balení",
+      "value": "20 tablet"
+    },
+    {
+      "name": "Výrobce",
+      "value": "Dr. Max"
+    },
+    {
+      "name": "EAN",
+      "value": "8595566453096"
+    },
+    {
+      "name": "Farmakoterapeutická skupina",
+      "value": "Analgetika a antipyretika"
+    }
+  ]
+}

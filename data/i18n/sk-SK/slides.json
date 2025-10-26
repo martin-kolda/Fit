@@ -1,0 +1,32 @@
+[
+  {
+    "id": 1,
+    "banner_template_id": 1,
+    "title": "Jesenný výpredaj",
+    "text": { "long": "Zľavy až 30 % na doplnky stravy Dr. Max", "short": "Zľavy až 30 %" },
+    "background": "./images/banners/default-bg.jpg",
+    "layer_1": "./images/banners/losange.webp",
+    "layer_2": "./images/banners/pharmacist-sk.webp",
+    "layer_3": "./images/banners/lutein.webp",
+    "layer_4": "./images/banners/magnesium.webp",
+    "layer_5": "./images/banners/sleva.png",
+    "layer_6": null,
+    "cta": { "button": "Nakúpiť", "link": "#/products", "icon": "fa-solid fa-arrow-right"},
+    "legal": { "button": "Podmienky akcie", "text": "Výživové doplnky. Ponuka platí na vybrané produkty z e-shopu drmax.sk do 30.10. alebo do vypredania zásob. Zľavu nie je možné kombinovať s inými akčnými ponukami. Kompletné podmienky akcie na www.drmax.sk/podmienky-akcie"}
+  },
+  {
+    "id": 2,
+    "banner_template_id": 2,
+    "title": "Darček pred Vianocami",
+    "text": { "long": "ku každému nákupu", "short": "Darček pre vás" },
+    "background": "./images/banners/white-bg.jpg",
+    "layer_1": "./images/banners/losange.webp",
+    "layer_2": "./images/banners/pharmacist.webp",
+    "layer_3": "./images/banners/lutein.webp",
+    "layer_4": "./images/banners/magnesium.webp",
+    "layer_5": "./images/banners/darek.png",
+    "layer_6": null,
+    "cta": { "button": "To chcem!", "link": "#/products", "icon": "fa-solid fa-stars"},
+    "legal": { "button": "Podmienky akcie", "text": "Ponuka platí na celý sortiment e-shopu drmax.sk do 31.12. alebo do vypredania zásob. Zľavu nie je možné kombinovať s inými akčnými ponukami. Kompletné podmienky akcie na www.drmax.sk/podmienky-akcie"}
+  }
+]

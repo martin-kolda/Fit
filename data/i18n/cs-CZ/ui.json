@@ -1,0 +1,58 @@
+{
+  "header": {
+    "languageMenu": {
+      "label": "Jazyk",
+      "options": {
+        "cs-CZ": "Čeština",
+        "en-EU": "English",
+        "sk-SK": "Slovenština"
+      }
+    },
+    "links": {
+      "map": "Mapa lékáren a boxů"
+    },
+    "search": {
+      "ariaLabel": "Vyhledávání",
+      "placeholder": "Hledej dle názvu",
+      "recent": "Naposledy hledané",
+      "startTyping": "Začněte psát váš dotaz…",
+      "noResults": "Žádné výsledky",
+      "badges": {
+        "product": "Produkt",
+        "category": "Kategorie",
+        "info": "Info"
+      }
+    },
+    "actions": {
+      "menu": {
+        "aria": "Otevřít menu",
+        "label": "Menu"
+      },
+      "activeOrder": {
+        "aria": "Otevřít aktivní objednávku",
+        "label": "Aktivní objednávka"
+      },
+      "saved": {
+        "aria": "Otevřít moje uložené",
+        "label": "Moje uložené"
+      },
+      "account": {
+        "aria": "Otevřít můj účet",
+        "label": "Můj účet"
+      },
+      "cart": {
+        "aria": "Otevřít košík",
+        "label": "Košík"
+      },
+      "phone": {
+        "aria": "Zavolat na infolinku"
+      }
+    },
+    "nav": {
+      "browseCategories": "Procházet kategorie"
+    }
+  },
+  "banners": {
+    "legalLink": "Podmínky akce"
+  }
+}

@@ -183,13 +183,13 @@
           "name": null,
           "type": "language",
           "items": [
-            { "name": "Česko", "iconSet": "custom", "icon": "check", "value": "cs" },
-            { "name": "English", "iconSet": "custom", "icon": "empty", "value": "en" },
-            { "name": "Slovensko", "iconSet": "custom", "icon": "empty", "value": "sk" },
-            { "name": "Polsko", "iconSet": "custom", "icon": "empty", "value": "pl" },
-            { "name": "Rumunsko", "iconSet": "custom", "icon": "empty", "value": "ro" },
-            { "name": "Itálie", "iconSet": "custom", "icon": "empty", "value": "it" },
-            { "name": "Srbsko", "iconSet": "custom", "icon": "empty", "value": "rs" }
+            { "name": "Česko", "iconSet": "custom", "icon": "check", "value": "cs-CZ" },
+            { "name": "English", "iconSet": "custom", "icon": "empty", "value": "en-EU" },
+            { "name": "Slovensko", "iconSet": "custom", "icon": "empty", "value": "sk-SK" },
+            { "name": "Polsko", "iconSet": "custom", "icon": "empty", "value": "pl-PL" },
+            { "name": "Rumunsko", "iconSet": "custom", "icon": "empty", "value": "ro-RO" },
+            { "name": "Itálie", "iconSet": "custom", "icon": "empty", "value": "it-IT" },
+            { "name": "Srbsko", "iconSet": "custom", "icon": "empty", "value": "sr-RS" }
           ]
         }
       ]
@@ -287,5 +287,4 @@
       ]
     }
   ]
-
 

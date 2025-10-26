@@ -1,0 +1,61 @@
+{
+  "id": 31,
+  "name": "Dr. Max Parapyrex 500 mg 30 tablet",
+  "registeredMedicament": true,
+  "brand": "Dr. Max",
+  "productLine": "Parapyrex",
+  "reviews": {
+    "rating": 0.0,
+    "count": 0
+  },
+  "perex": "Parapyrex 500 mg s paracetamolem snižuje horečku a ulevuje od bolesti.",
+  "category": "Bolest a horečka",
+  "stock": "Skladem na e-shopu",
+  "pharmacyStock": "ve 0 lékárnách",
+  "SKU": "50164217",
+  "badges": [
+    "Ušetříte"
+  ],
+  "images": [
+    "./images/parapyrex.webp"
+  ],
+  "price": 49,
+  "discounted_price": 39,
+  "comparison_id": null,
+  "variants": [
+    {
+      "id": "30tbl",
+      "name": "Dr. Max Parapyrex 500 mg 30 tablet",
+      "label": "30 tablet",
+      "price": 49,
+      "discounted_price": 39
+    }
+  ],
+  "description": "<h2>Úvod</h2>\n<p>Parapyrex 500 mg tablety obsahují paracetamol, který tlumí mírnou až středně silnou bolest a snižuje horečku.</p>\n<h2>Dávkování</h2>\n<p>Dospělí a dospívající od 15 let užívají 1–2 tablety až 4× denně podle potřeby. Interval mezi dávkami musí být minimálně 4 hodiny. Nepřekračujte 8 tablet za 24 hodin.</p>\n<h2>Složení</h2>\n<p>Jedna tableta obsahuje paracetamolum 500 mg a pomocné látky: mikrokrystalickou celulózu, kukuřičný škrob, stearan hořečnatý a další.</p>\n<h2>Upozornění</h2>\n<p>Léčivý přípravek. Nepřekračujte doporučené dávkování. Nevhodné pro děti do 6 let. Při onemocnění jater nebo ledvin konzultujte užívání s lékařem.</p>",
+  "parameters": [
+    {
+      "name": "Léčivá látka",
+      "value": "paracetamolum 500 mg"
+    },
+    {
+      "name": "Forma",
+      "value": "Tablety"
+    },
+    {
+      "name": "Velikost balení",
+      "value": "30 tablet"
+    },
+    {
+      "name": "Výrobce",
+      "value": "Dr. Max"
+    },
+    {
+      "name": "EAN",
+      "value": "8595566455811"
+    },
+    {
+      "name": "Farmakoterapeutická skupina",
+      "value": "Analgetika a antipyretika"
+    }
+  ]
+}

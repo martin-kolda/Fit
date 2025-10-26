@@ -134,10 +134,231 @@
   </style>
 
 <script>
+  (function (global) {
+    const DEFAULT_LOCALE = 'cs-CZ';
+    const FALLBACK_LOCALE = 'cs-CZ';
+    const DEFAULT_CURRENCY = 'CZK';
+    const LOCALES = {
+      'cs-CZ': {
+        code: 'cs-CZ',
+        nativeName: 'Čeština',
+        englishName: 'Czech',
+        shortLabel: 'CS',
+        currency: 'CZK',
+        icon: './icons/languages/Cz.svg'
+      },
+      'en-EU': {
+        code: 'en-EU',
+        nativeName: 'English',
+        englishName: 'English',
+        shortLabel: 'EN',
+        currency: 'EUR',
+        icon: './icons/languages/En.svg'
+      },
+      'sk-SK': {
+        code: 'sk-SK',
+        nativeName: 'Slovenčina',
+        englishName: 'Slovak',
+        shortLabel: 'SK',
+        currency: 'EUR',
+        icon: './icons/languages/Sk.svg'
+      }
+    };
+    const NAMESPACES = ['ui'];
+    const FALLBACK_MARK = '•';
+
+    const isPlainObject = (value) => Object.prototype.toString.call(value) === '[object Object]';
+
+    const deepClone = (value) => {
+      if (Array.isArray(value)) return value.map((item) => deepClone(item));
+      if (isPlainObject(value)) {
+        return Object.keys(value).reduce((acc, key) => {
+          acc[key] = deepClone(value[key]);
+          return acc;
+        }, {});
+      }
+      return value;
+    };
+
+    const deepMerge = (target, source) => {
+      if (Array.isArray(target) && Array.isArray(source)) {
+        const result = target.slice();
+        source.forEach((value, idx) => {
+          if (isPlainObject(value) && isPlainObject(result[idx])) {
+            result[idx] = deepMerge(result[idx], value);
+          } else if (Array.isArray(value) && Array.isArray(result[idx])) {
+            result[idx] = deepMerge(result[idx], value);
+          } else {
+            result[idx] = deepClone(value);
+          }
+        });
+        return result;
+      }
+      if (isPlainObject(target) && isPlainObject(source)) {
+        const result = { ...target };
+        Object.keys(source).forEach((key) => {
+          const srcVal = source[key];
+          if (Array.isArray(srcVal)) {
+            const base = Array.isArray(result[key]) ? result[key] : [];
+            result[key] = deepMerge(base, srcVal);
+          } else if (isPlainObject(srcVal)) {
+            const base = isPlainObject(result[key]) ? result[key] : {};
+            result[key] = deepMerge(base, srcVal);
+          } else {
+            result[key] = srcVal;
+          }
+        });
+        return result;
+      }
+      if (Array.isArray(source)) return deepMerge([], source);
+      if (isPlainObject(source)) return deepMerge({}, source);
+      return source;
+    };
+
+    const root = typeof globalThis !== 'undefined' ? globalThis : (typeof window !== 'undefined' ? window : {});
+
+    const fetchJson = async (url, fallback = {}) => {
+      try {
+        const res = await fetch(url, { cache: 'no-store' });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        if (data && (Array.isArray(data) || typeof data === 'object')) return data;
+        return Array.isArray(fallback) ? [] : (isPlainObject(fallback) ? {} : fallback);
+      } catch (err) {
+        console.warn('[i18n] Failed to load', url, err);
+        if (Array.isArray(fallback)) return [];
+        if (isPlainObject(fallback)) return {};
+        return fallback;
+      }
+    };
+
+    const normalizeDataPath = (path = '') => {
+      const raw = String(path || '').replace(/^\.\//, '');
+      if (raw.startsWith('data/')) return raw;
+      return raw ? `data/${raw}` : 'data/';
+    };
+
+    const buildDataUrl = (path) => {
+      const normalized = normalizeDataPath(path);
+      return normalized.startsWith('./') ? normalized : `./${normalized}`;
+    };
+
+    const localizedDataPath = (path, locale) => {
+      const normalized = normalizeDataPath(path);
+      const rest = normalized.slice('data/'.length);
+      return `data/i18n/${locale}/${rest}`;
+    };
+
+    async function loadDataFile(path, options = {}) {
+      const opts = options && typeof options === 'object' ? options : {};
+      const locale = opts.locale
+        || (root.Alpine && typeof root.Alpine.store === 'function'
+          ? root.Alpine.store('i18n')?.locale
+          : null)
+        || DEFAULT_LOCALE;
+
+      const normalized = normalizeDataPath(path);
+      const baseUrl = buildDataUrl(normalized);
+      let base = await fetchJson(baseUrl, null);
+      if (base == null) base = [];
+      if (!locale || locale === DEFAULT_LOCALE) return base;
+
+      const overlayUrl = buildDataUrl(localizedDataPath(normalized, locale));
+      const overlay = await fetchJson(overlayUrl, null);
+      if (Array.isArray(base)) {
+        if (Array.isArray(overlay) && overlay.length) return overlay;
+        return base;
+      }
+      if (isPlainObject(base)) {
+        if (overlay && isPlainObject(overlay) && Object.keys(overlay).length) {
+          return overlay;
+        }
+        return base;
+      }
+      return overlay ?? base;
+    }
+
+    const cache = new Map();
+
+    async function loadNamespace(locale, namespace) {
+      const key = `${locale}::${namespace}`;
+      const existing = cache.get(key);
+      if (existing) return existing;
+      const loader = fetchJson(`./data/i18n/${locale}/${namespace}.json`)
+        .then((payload) => {
+          const normalized = payload && typeof payload === 'object' ? payload : {};
+          cache.set(key, normalized);
+          return normalized;
+        })
+        .catch((err) => {
+          console.warn('[i18n] Namespace load failed', locale, namespace, err);
+          cache.delete(key);
+          return {};
+        });
+      cache.set(key, loader);
+      return loader;
+    }
+
+    async function loadLocale(locale, namespaces = NAMESPACES) {
+      const unique = Array.from(new Set(namespaces.length ? namespaces : NAMESPACES));
+      const results = await Promise.all(unique.map((ns) => loadNamespace(locale, ns)));
+      return results.reduce((acc, bundle, idx) => {
+        const ns = unique[idx];
+        acc[ns] = deepMerge(acc[ns] || {}, bundle);
+        return acc;
+      }, {});
+    }
+
+    function walkBundle(bundle, path) {
+      const parts = path.split('.');
+      let cursor = bundle;
+      for (const part of parts) {
+        if (cursor == null) return undefined;
+        cursor = cursor[part];
+      }
+      return cursor;
+    }
+
+    root.__fitI18n = {
+      defaultLocale: DEFAULT_LOCALE,
+      fallbackLocale: FALLBACK_LOCALE,
+      defaultCurrency: DEFAULT_CURRENCY,
+      locales: LOCALES,
+      namespaces: NAMESPACES,
+      fallbackMark: FALLBACK_MARK,
+      cache,
+      loadNamespace,
+      loadLocale,
+      deepMerge,
+      walkBundle,
+      fetchJson,
+      loadData: loadDataFile,
+      dataPath: {
+        normalize: normalizeDataPath,
+        localized: localizedDataPath
+      }
+    };
+  })(window);
+</script>
+
+<script>
   document.addEventListener('alpine:init', () => {
+    if (!Alpine.store('money')) {
+      Alpine.store('money', {
+        tick: 0,
+        bump() {
+          this.tick = (this.tick + 1) % Number.MAX_SAFE_INTEGER;
+        }
+      });
+    }
+
     if (!Alpine.store('appConfig')) {
       const storageKey = 'fit:app-config';
-      const defaults = { showBreakpointBadge: true };
+      const defaults = {
+        showBreakpointBadge: true,
+        locale: (window.__fitI18n && window.__fitI18n.defaultLocale) || 'cs-CZ',
+        currency: (window.__fitI18n && window.__fitI18n.defaultCurrency) || 'CZK'
+      };
       const load = () => {
         if (typeof localStorage === 'undefined') return {};
         try {
@@ -159,9 +380,15 @@
         key: storageKey,
         defaults,
         showBreakpointBadge: !!initial.showBreakpointBadge,
+        locale: String(initial.locale || defaults.locale),
+        currency: String(initial.currency || defaults.currency),
         persist() {
           if (typeof localStorage === 'undefined') return;
-          const payload = { showBreakpointBadge: !!this.showBreakpointBadge };
+          const payload = {
+            showBreakpointBadge: !!this.showBreakpointBadge,
+            locale: this.locale,
+            currency: this.currency
+          };
           try {
             localStorage.setItem(this.key, JSON.stringify(payload));
           } catch (e) {
@@ -170,7 +397,10 @@
         },
         set(key, value) {
           if (!(key in this)) return;
-          const normalized = key === 'showBreakpointBadge' ? !!value : value;
+          let normalized = value;
+          if (key === 'showBreakpointBadge') normalized = !!value;
+          if (key === 'locale') normalized = String(value || defaults.locale);
+          if (key === 'currency') normalized = String(value || defaults.currency);
           if (this[key] === normalized) return;
           this[key] = normalized;
           this.persist();
@@ -181,7 +411,11 @@
           return this[key];
         },
         all() {
-          return { showBreakpointBadge: !!this.showBreakpointBadge };
+          return {
+            showBreakpointBadge: !!this.showBreakpointBadge,
+            locale: this.locale,
+            currency: this.currency
+          };
         },
         reset() {
           Object.keys(this.defaults).forEach((key) => {
@@ -196,8 +430,678 @@
         }
       } catch (_) {}
 
-      emit('showBreakpointBadge', Alpine.store('appConfig').showBreakpointBadge);
+      const cfgStore = Alpine.store('appConfig');
+      emit('showBreakpointBadge', cfgStore.showBreakpointBadge);
+      emit('locale', cfgStore.locale);
+      emit('currency', cfgStore.currency);
     }
+
+    if (!Alpine.store('i18n')) {
+      const configStore = Alpine.store('appConfig');
+      const boot = window.__fitI18n || {};
+      const localeMap = boot.locales || {};
+      const fallbackLocale = boot.fallbackLocale || 'cs-CZ';
+      const requestedNamespaces = new Set(Array.isArray(boot.namespaces) ? boot.namespaces : []);
+
+      const resolveLocale = (value) => {
+        const normalized = String(value || '').trim();
+        if (normalized && localeMap[normalized]) return normalized;
+        return fallbackLocale;
+      };
+
+      const store = {
+        locales: localeMap,
+        fallbackLocale,
+        fallbackHint: boot.fallbackMark || '•',
+        requestedNamespaces,
+        locale: resolveLocale(configStore?.get('locale') ?? boot.defaultLocale),
+        currency: String(configStore?.get('currency') ?? boot.defaultCurrency ?? 'CZK'),
+        bundles: {},
+        currencyConfig: null,
+        localeConfigs: null,
+        _configListener: null,
+        async init() {
+          await Promise.all([
+            this.ensureCurrencyConfig(),
+            this.ensureLocaleConfig()
+          ]);
+          const namespaces = Array.from(this.requestedNamespaces);
+          await this.ensureLocaleBundle(this.locale, namespaces);
+          if (this.fallbackLocale !== this.locale) {
+            await this.ensureLocaleBundle(this.fallbackLocale, namespaces);
+          }
+          if (!this._configListener) {
+            this._configListener = (event) => {
+              const detail = event?.detail;
+              if (!detail) return;
+              if (detail.key === 'locale') {
+                const value = resolveLocale(detail.value);
+                if (this.locale !== value) {
+                  this.setLocale(value, { persist: false });
+                }
+              } else if (detail.key === 'currency') {
+                const code = String(detail.value || '').trim();
+                if (code && this.currency !== code) {
+                  this.setCurrency(code, { persist: false, forceEvent: true });
+                }
+              }
+            };
+            window.addEventListener('fit:config-change', this._configListener);
+          }
+        },
+        listLocales() {
+          return Object.keys(this.locales).map((code) => ({
+            code,
+            ...this.locales[code]
+          }));
+        },
+        getLocaleMeta(code) {
+          const meta = this.locales[code];
+          if (!meta) return null;
+          return { code, ...meta };
+        },
+        async ensureLocaleBundle(locale, namespaces) {
+          const list = Array.from(new Set((namespaces && namespaces.length) ? namespaces : Array.from(this.requestedNamespaces)));
+          if (!list.length) return;
+          const storage = this.bundles[locale] || (this.bundles[locale] = {});
+          const tasks = list
+            .filter((ns) => !storage[ns])
+            .map(async (ns) => {
+              try {
+                const data = await window.__fitI18n.loadNamespace(locale, ns);
+                storage[ns] = window.__fitI18n.deepMerge({}, data);
+              } catch (err) {
+                console.warn('[i18n] failed to load namespace', locale, ns, err);
+                storage[ns] = {};
+              }
+            });
+          await Promise.all(tasks);
+        },
+        requestNamespace(namespace) {
+          if (!namespace) return;
+          this.requestedNamespaces.add(namespace);
+          this.ensureLocaleBundle(this.locale, [namespace]);
+          if (this.fallbackLocale !== this.locale) {
+            this.ensureLocaleBundle(this.fallbackLocale, [namespace]);
+          }
+        },
+        async ensureCurrencyConfig() {
+          if (this.currencyConfig) return this.currencyConfig;
+          try {
+            const res = await fetch('./data/pricing/currencies.json', { cache: 'no-store' });
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            const json = await res.json();
+            this.currencyConfig = json && typeof json === 'object' ? json : null;
+          } catch (err) {
+            console.warn('[i18n] currency config load failed', err);
+            this.currencyConfig = null;
+          }
+          return this.currencyConfig;
+        },
+        async ensureLocaleConfig() {
+          if (this.localeConfigs) return this.localeConfigs;
+          try {
+            const res = await fetch('./data/locales/config.json', { cache: 'no-store' });
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            const json = await res.json();
+            this.localeConfigs = json && typeof json === 'object' ? json : {};
+          } catch (err) {
+            console.warn('[i18n] locale config load failed', err);
+            this.localeConfigs = {};
+          }
+          return this.localeConfigs;
+        },
+        configFor(locale = this.locale) {
+          const configs = this.localeConfigs || {};
+          const base = configs.default || {};
+          const specific = configs[locale] || {};
+          const mergedBase = window.__fitI18n.deepMerge({}, base);
+          return window.__fitI18n.deepMerge(mergedBase, specific);
+        },
+        resolveConfig(path, options = {}) {
+          const opts = typeof options === 'object' ? options : {};
+          const locale = opts.locale || this.locale;
+          const fallback = opts.fallback;
+          if (!this.localeConfigs) {
+            this.ensureLocaleConfig();
+          }
+          if (!path) {
+            return this.configFor(locale);
+          }
+          const parts = String(path).split('.');
+          let cursor = this.configFor(locale);
+          for (const part of parts) {
+            if (cursor != null && Object.prototype.hasOwnProperty.call(cursor, part)) {
+              cursor = cursor[part];
+            } else {
+              return fallback;
+            }
+          }
+          return cursor === undefined ? fallback : cursor;
+        },
+        lookup(locale, key) {
+          const bundle = this.bundles[locale];
+          if (!bundle) return undefined;
+          for (const ns of this.requestedNamespaces) {
+            if (!bundle[ns]) continue;
+            const value = window.__fitI18n.walkBundle(bundle[ns], key);
+            if (value !== undefined) return value;
+          }
+          return undefined;
+        },
+        interpolate(template, params = {}) {
+          if (typeof template !== 'string') return template;
+          return template.replace(/\{(\w+)\}/g, (_, token) => (
+            Object.prototype.hasOwnProperty.call(params, token) ? params[token] : `{${token}}`
+          ));
+        },
+        t(key, fallbackText, params = {}) {
+          if (!key) return fallbackText ?? '';
+          const primary = this.lookup(this.locale, key);
+          if (primary !== undefined) return this.interpolate(primary, params);
+          const fallback = this.lookup(this.fallbackLocale, key);
+          if (fallback !== undefined) {
+            return this.interpolate(fallback, params) + this.fallbackHint;
+          }
+          const fallbackValue = fallbackText != null ? fallbackText : key;
+          return this.interpolate(fallbackValue, params) + this.fallbackHint;
+        },
+        getCurrencyMeta(code) {
+          const config = this.currencyConfig || {};
+          const currencies = config.currencies || {};
+          return currencies[code] || null;
+        },
+        convert(value, { fromCurrency, toCurrency } = {}) {
+          const config = this.currencyConfig;
+          const base = config?.baseCurrency || 'CZK';
+          const from = fromCurrency || base;
+          const to = toCurrency || this.currency;
+          const numeric = Number(value);
+          if (!Number.isFinite(numeric)) return 0;
+          if (!config || from === to) return numeric;
+          const currencies = config.currencies || {};
+          const fromMeta = currencies[from];
+          const toMeta = currencies[to];
+          const fromRate = Number(fromMeta?.rate || (from === base ? 1 : 0));
+          const toRate = Number(toMeta?.rate || (to === base ? 1 : 0));
+          let baseValue = numeric;
+          if (from !== base) {
+            if (!fromRate) return numeric;
+            baseValue = numeric / fromRate;
+          }
+          if (to === base) return baseValue;
+          if (!toRate) return baseValue;
+          return baseValue * toRate;
+        },
+        applyRounding(value, currencyMeta) {
+          const rounding = Number(currencyMeta?.rounding || 0);
+          if (rounding && rounding > 0) {
+            const factor = 1 / rounding;
+            return Math.round(value * factor) / factor;
+          }
+          const digits = Number.isInteger(currencyMeta?.minorUnits) ? currencyMeta.minorUnits : 2;
+          const factor = Math.pow(10, Math.max(0, digits));
+          return Math.round(value * factor) / factor;
+        },
+        formatCurrency(value, { currency, fromCurrency, locale } = {}) {
+          const target = currency || this.currency;
+          const meta = this.getCurrencyMeta(target);
+          const converted = this.convert(value, { fromCurrency, toCurrency: target });
+          const rounded = this.applyRounding(converted, meta);
+          const resolvedLocale = locale || meta?.locale || this.locale || 'cs-CZ';
+          try {
+            const formatter = new Intl.NumberFormat(resolvedLocale, {
+              style: 'currency',
+              currency: target,
+              maximumFractionDigits: meta?.minorUnits ?? 2,
+              minimumFractionDigits: meta?.minorUnits ?? 0
+            });
+            return formatter.format(rounded);
+          } catch (err) {
+            console.warn('[i18n] currency format failed', err);
+            const symbol = meta?.symbol || target;
+            const formatted = rounded.toFixed(meta?.minorUnits ?? 2);
+            return meta?.symbolPosition === 'before'
+              ? `${symbol}\u00A0${formatted}`
+              : `${formatted}\u00A0${symbol}`;
+          }
+        },
+        async setLocale(code, options = {}) {
+          const opts = typeof options === 'object' ? options : {};
+          const persist = opts.persist !== false;
+          const next = resolveLocale(code);
+          if (this.locale === next) {
+            if (persist) this.persist({ locale: true, currency: false });
+            return;
+          }
+          await this.ensureLocaleConfig();
+          await this.ensureLocaleBundle(next);
+          if (this.fallbackLocale && this.fallbackLocale !== next) {
+            await this.ensureLocaleBundle(this.fallbackLocale);
+          }
+          this.locale = next;
+          const defaultCurrency = this.locales[next]?.currency;
+          if (defaultCurrency) {
+            this.setCurrency(defaultCurrency, { persist, forceEvent: true });
+          } else if (persist) {
+            this.persist({ locale: false, currency: true });
+          }
+          if (persist) this.persist({ locale: true, currency: false });
+          const namespaces = Array.from(this.requestedNamespaces);
+          this.ensureLocaleBundle(this.locale, namespaces);
+          if (this.fallbackLocale !== this.locale) {
+            this.ensureLocaleBundle(this.fallbackLocale, namespaces);
+          }
+          window.dispatchEvent(new CustomEvent('fit:locale-change', { detail: { locale: this.locale } }));
+          if (!defaultCurrency) {
+            window.dispatchEvent(new CustomEvent('fit:currency-change', { detail: { currency: this.currency } }));
+          }
+        },
+        setCurrency(code, options = {}) {
+          const opts = typeof options === 'object' ? options : {};
+          const persist = opts.persist !== false;
+          const forceEvent = !!opts.forceEvent;
+          const normalized = String(code || '').trim();
+          if (!normalized) return false;
+          const changed = this.currency !== normalized;
+          this.currency = normalized;
+          if (persist) this.persist({ locale: false, currency: true });
+          if (changed || forceEvent) {
+            window.dispatchEvent(new CustomEvent('fit:currency-change', { detail: { currency: this.currency } }));
+          }
+          return changed;
+        },
+        persist({ locale = true, currency = true } = {}) {
+          if (locale) configStore?.set?.('locale', this.locale);
+          if (currency) configStore?.set?.('currency', this.currency);
+        }
+      };
+
+      Alpine.store('i18n', store);
+      store.init();
+
+      if (typeof window !== 'undefined') {
+    window.t = (key, fallback, params) => Alpine.store('i18n').t(key, fallback, params);
+    window.fitLocaleStore = () => Alpine.store('i18n');
+  }
+    const getAlpine = () => {
+      if (typeof globalThis !== 'undefined' && globalThis.Alpine) return globalThis.Alpine;
+      if (typeof window !== 'undefined' && window.Alpine) return window.Alpine;
+      return null;
+    };
+
+    const ensureI18nStore = () => {
+      const AlpineRef = getAlpine();
+      if (AlpineRef && typeof AlpineRef.store === 'function') {
+        try { return AlpineRef.store('i18n'); }
+        catch { return null; }
+      }
+      return null;
+    };
+
+    const fallbackFormat = (value, currency) => {
+      const cur = currency || DEFAULT_CURRENCY;
+      try {
+        return new Intl.NumberFormat('cs-CZ', { style: 'currency', currency: cur, maximumFractionDigits: 0 }).format(Number(value || 0));
+      } catch {
+        return `${Number(value || 0)} ${cur}`;
+      }
+    };
+
+    const moneyApi = {
+      format(value, opts = {}) {
+        const store = ensureI18nStore();
+        const baseCurrency = (window.__fitI18n && window.__fitI18n.defaultCurrency) || DEFAULT_CURRENCY;
+        const fromCurrency = opts.fromCurrency || baseCurrency;
+        const targetCurrency = opts.currency || store?.currency || baseCurrency;
+        let moneyTick;
+        const AlpineRef = getAlpine();
+        if (AlpineRef && typeof AlpineRef.store === 'function') {
+          try { moneyTick = AlpineRef.store('money')?.tick; }
+          catch { moneyTick = undefined; }
+        }
+        void moneyTick;
+        if (store && typeof store.formatCurrency === 'function') {
+          try {
+            return store.formatCurrency(Number(value || 0), {
+              fromCurrency,
+              currency: targetCurrency,
+              locale: opts.locale
+            });
+          } catch (e) {
+            console.warn('[money] format failed', e);
+          }
+        }
+        return fallbackFormat(value, targetCurrency);
+      },
+      convert(value, opts = {}) {
+        const numeric = Number(value || 0);
+        const store = ensureI18nStore();
+        const baseCurrency = (window.__fitI18n && window.__fitI18n.defaultCurrency) || DEFAULT_CURRENCY;
+        const fromCurrency = opts.fromCurrency || baseCurrency;
+        const toCurrency = opts.toCurrency || opts.currency || store?.currency || baseCurrency;
+        if (!store || typeof store.convert !== 'function') return numeric;
+        try {
+          return store.convert(numeric, { fromCurrency, toCurrency });
+        } catch (e) {
+          console.warn('[money] convert failed', e);
+          return numeric;
+        }
+      },
+      toBase(value, opts = {}) {
+        const store = ensureI18nStore();
+        const baseCurrency = (window.__fitI18n && window.__fitI18n.defaultCurrency) || DEFAULT_CURRENCY;
+        const fromCurrency = opts.fromCurrency || store?.currency || baseCurrency;
+        return this.convert(value, { fromCurrency, toCurrency: baseCurrency });
+      }
+    };
+
+    const globalRoot = (typeof globalThis !== 'undefined') ? globalThis : (typeof window !== 'undefined' ? window : {});
+    globalRoot.__fitMoney = moneyApi;
+    globalRoot.formatCurrency = (value, opts) => moneyApi.format(value, opts);
+    globalRoot.convertCurrency = (value, opts) => moneyApi.convert(value, opts);
+    }
+
+    if (!Alpine.store('contacts')) {
+      const sanitizePhone = (raw) => {
+        if (!raw) return '';
+        const trimmed = String(raw).trim();
+        const digits = trimmed.replace(/[^0-9+]/g, '');
+        if (!digits) return '';
+        return digits.startsWith('+') ? '+' + digits.replace(/^\++/, '') : digits;
+      };
+
+      const normalizeList = (payload, locale) => {
+        if (!payload) return [];
+        if (Array.isArray(payload)) {
+          return payload
+            .map((item, idx) => {
+              const src = item && typeof item === 'object' ? item : {};
+              const name = src.name != null ? String(src.name).trim() : '';
+              const description = src.description != null ? String(src.description).trim() : '';
+              const phone = src.phone != null ? String(src.phone).trim() : '';
+              const email = src.email != null ? String(src.email).trim() : '';
+              const route = src.route != null ? String(src.route).trim() : '';
+              const icon = src.icon != null ? String(src.icon).trim() : '';
+              return {
+                id: src.id != null ? String(src.id).trim() : `contact-${idx}`,
+                name,
+                description,
+                phone: phone || null,
+                email: email || null,
+                route: route || null,
+                icon: icon || null,
+                primary: !!src.primary
+              };
+            })
+            .filter(item => item.name || item.phone || item.email || item.route);
+        }
+        if (typeof payload === 'object') {
+          const keys = [
+            locale,
+            locale?.toLowerCase?.(),
+            locale?.split?.('-')?.[0],
+            locale?.split?.('-')?.[0]?.toLowerCase?.(),
+            'default',
+            'DEFAULT'
+          ].filter(Boolean);
+          for (const key of keys) {
+            if (Object.prototype.hasOwnProperty.call(payload, key)) {
+              const nested = payload[key];
+              const normalized = normalizeList(nested, locale);
+              if (normalized.length) return normalized;
+            }
+          }
+        }
+        return [];
+      };
+
+      const buildSources = (locale) => {
+        const sources = [];
+        const normalized = String(locale || '').trim();
+        const lower = normalized.toLowerCase();
+        const lang = normalized.split('-')[0];
+        const langLower = lang ? lang.toLowerCase() : '';
+        if (normalized) {
+          sources.push(`./data/contacts.${normalized}.json`);
+          sources.push(`./data/contacts-${normalized}.json`);
+          sources.push(`./data/contacts/${normalized}.json`);
+        }
+        if (lower && lower !== normalized) {
+          sources.push(`./data/contacts.${lower}.json`);
+          sources.push(`./data/contacts-${lower}.json`);
+          sources.push(`./data/contacts/${lower}.json`);
+        }
+        if (lang) {
+          sources.push(`./data/contacts.${lang}.json`);
+          sources.push(`./data/contacts-${lang}.json`);
+          sources.push(`./data/contacts/${lang}.json`);
+        }
+        if (langLower && langLower !== lang) {
+          sources.push(`./data/contacts.${langLower}.json`);
+          sources.push(`./data/contacts-${langLower}.json`);
+          sources.push(`./data/contacts/${langLower}.json`);
+        }
+        sources.push('./data/contacts.json');
+        return Array.from(new Set(sources));
+      };
+
+      const resolvePrimary = (items) => {
+        if (!Array.isArray(items) || !items.length) return null;
+        const explicit = items.find(item => item.primary);
+        if (explicit) return explicit;
+        const both = items.find(item => item.phone && item.email);
+        if (both) return both;
+        const withPhone = items.find(item => item.phone);
+        if (withPhone) return withPhone;
+        const withEmail = items.find(item => item.email);
+        if (withEmail) return withEmail;
+        return items[0];
+      };
+
+      const toPhoneHref = (phone) => {
+        const sanitized = sanitizePhone(phone);
+        if (!sanitized) return null;
+        const digitsOnly = sanitized.startsWith('+') ? sanitized : sanitized.replace(/[^0-9]/g, '');
+        if (!digitsOnly) return null;
+        return `tel:${digitsOnly}`;
+      };
+
+      const toEmailHref = (email) => {
+        if (!email) return null;
+        const trimmed = String(email).trim();
+        if (!trimmed) return null;
+        return `mailto:${trimmed}`;
+      };
+
+      const toRouteHref = (route) => {
+        if (!route) return null;
+        const trimmed = String(route).trim();
+        if (!trimmed) return null;
+        if (/^(https?:)?\/\//i.test(trimmed)) return trimmed;
+        if (trimmed.startsWith('/')) return trimmed;
+        if (trimmed.startsWith('#')) return trimmed;
+        return `#/${trimmed.replace(/^#?\/?/, '')}`;
+      };
+
+      const store = {
+        locale: null,
+        items: [],
+        primaryId: null,
+        status: 'idle',
+        error: null,
+        source: null,
+        open: false,
+        _pending: null,
+        get primary() {
+          if (!this.primaryId) return resolvePrimary(this.items);
+          return this.items.find(item => item.id === this.primaryId) || resolvePrimary(this.items);
+        },
+        get primaryPhone() {
+          return this.primary?.phone || null;
+        },
+        get primaryPhoneHref() {
+          return toPhoneHref(this.primary?.phone) || null;
+        },
+        get primaryEmail() {
+          return this.primary?.email || null;
+        },
+        get primaryEmailHref() {
+          return toEmailHref(this.primary?.email) || null;
+        },
+        async init() {
+          const localeStore = Alpine.store('i18n');
+          const initialLocale = localeStore?.locale || localeStore?.fallbackLocale || (window.__fitI18n && window.__fitI18n.defaultLocale) || 'cs-CZ';
+          await this.load(initialLocale);
+          window.addEventListener('fit:locale-change', (event) => {
+            const next = event?.detail?.locale;
+            if (!next) return;
+            if (next === this.locale) return;
+            this.load(next);
+          });
+        },
+        async load(locale) {
+          const target = String(locale || '').trim() || this.locale || (window.__fitI18n && window.__fitI18n.defaultLocale) || 'cs-CZ';
+          if (this._pending && this.locale === target) return this._pending;
+          this.locale = target;
+          this.status = 'loading';
+          this.error = null;
+          const candidates = buildSources(target);
+          const task = (async () => {
+            let lastError = null;
+            for (const url of candidates) {
+              try {
+                const res = await fetch(url, { cache: 'no-store' });
+                if (!res.ok) {
+                  if (res.status === 404) continue;
+                  throw new Error(`HTTP ${res.status}`);
+                }
+                const json = await res.json();
+                const list = normalizeList(json, target);
+                this.items = Array.isArray(list) ? list : [];
+                this.primaryId = resolvePrimary(this.items)?.id || null;
+                this.source = url;
+                this.status = 'ready';
+                this.error = null;
+                if (!this.items.length) {
+                  console.warn('[contacts] loaded empty contact list from', url);
+                }
+                return this.items;
+              } catch (err) {
+                lastError = err;
+              }
+            }
+            this.items = [];
+            this.primaryId = null;
+            this.source = null;
+            this.status = 'error';
+            this.error = lastError ? String(lastError.message || lastError) : 'Failed to load contacts';
+            console.warn('[contacts] load failed', lastError);
+            return [];
+          })().finally(() => {
+            this._pending = null;
+          });
+          this._pending = task;
+          return task;
+        },
+        ensureLoaded() {
+          if (this.status === 'idle' || this.status === 'error') {
+            return this.load(this.locale);
+          }
+          return this._pending || Promise.resolve(this.items);
+        },
+        phoneHref(contact) {
+          return toPhoneHref(contact?.phone);
+        },
+        emailHref(contact) {
+          return toEmailHref(contact?.email);
+        },
+        routeHref(contact) {
+          return toRouteHref(contact?.route);
+        },
+        openModal() {
+          this.open = true;
+        },
+        closeModal() {
+          this.open = false;
+        },
+        toggleModal() {
+          this.open = !this.open;
+        }
+      };
+
+      Alpine.store('contacts', store);
+      store.init();
+    }
+
+    Alpine.data('localeSwitcher', () => ({
+      get store() { return Alpine.store('i18n'); },
+      init() {
+        this.store?.requestNamespace?.('ui');
+      },
+      get availableLocales() {
+        return this.store?.listLocales?.() || [];
+      },
+      get activeMeta() {
+        return this.store?.getLocaleMeta?.(this.store?.locale) || null;
+      },
+      activeLabel() {
+        const meta = this.activeMeta;
+        const fallback = meta?.nativeName || meta?.englishName || meta?.code || '';
+        if (meta?.code && typeof this.store?.t === 'function') {
+          return this.store.t(`header.languageMenu.options.${meta.code}`, fallback);
+        }
+        return fallback;
+      },
+      optionLabel(code) {
+        const meta = this.store?.getLocaleMeta?.(code);
+        const fallback = meta?.nativeName || meta?.englishName || code;
+        if (typeof this.store?.t === 'function') {
+          return this.store.t(`header.languageMenu.options.${code}`, fallback);
+        }
+        return fallback;
+      },
+      optionIcon(code) {
+        return this.store?.getLocaleMeta?.(code)?.icon || '';
+      },
+      isActive(code) {
+        return (this.store?.locale || '') === code;
+      },
+      select(code) {
+        this.store?.setLocale?.(code);
+      }
+    }));
+
+    Alpine.data('contactQuickAction', () => ({
+      get store() { return Alpine.store('contacts'); },
+      get i18n() { return Alpine.store('i18n'); },
+      init() {
+        this.store?.ensureLoaded?.();
+      },
+      get phoneLabel() {
+        return this.store?.primaryPhone || this.i18n?.resolveConfig?.('contact.phone.display') || '';
+      },
+      get contactName() {
+        return this.store?.primary?.name || '';
+      },
+      get hasPhone() {
+        return !!this.phoneLabel;
+      },
+      openModal() {
+        const ensure = this.store?.ensureLoaded?.();
+        if (ensure && typeof ensure.then === 'function') {
+          ensure.finally(() => this.store?.openModal?.());
+        } else {
+          this.store?.openModal?.();
+        }
+      },
+      closeModal() {
+        this.store?.closeModal?.();
+      },
+      get isOpen() {
+        return !!this.store?.open;
+      }
+    }));
 
     if (!Alpine.store('precart')) {
       Alpine.store('precart', {
@@ -846,23 +1750,44 @@
         }
       };
 
-      Alpine.store('activeOrder', activeOrderStore);
-      activeOrderStore.restore();
-    } else {
-      Alpine.store('activeOrder').restore?.();
-    }
+  Alpine.store('activeOrder', activeOrderStore);
+  activeOrderStore.restore();
+} else {
+  Alpine.store('activeOrder').restore?.();
+}
+
+    window.addEventListener('fit:currency-change', () => {
+      try {
+        Alpine.store('money')?.bump?.();
+      } catch (e) {
+        console.warn('money tick bump failed', e);
+      }
+    });
+  });
+
+  window.addEventListener('fit:locale-change', () => {
+    Alpine.store('menu')?.refreshForLocale?.();
   });
   </script>
 </head>
 
 <body class="bg-base-200 overflow-x-hidden" x-data="storeApp()">
   <!-- TOP-BAR LOGO + SEARCH -->
-<div class="navbar md:p-6 p-2 pt-4 pb-2 bg-base-100 overflow-x-hidden">
+<div class="navbar md:p-6 p-2 pt-4 pb-2 bg-base-100 overflow-visible">
   <!-- left: menu + logo + (desktop) search -->
   <div class="flex flex-1 items-center gap-3 md:gap-4 min-w-0">
     <button class="btn btn-primary w-[46px] h-[46px] btn-lg btn-square max-gradient inline-flex md:hidden shrink-0"
+            aria-label="Otevřít menu"
+            :aria-label="t('header.actions.menu.aria', 'Otevřít menu')"
+            title="Menu"
+            :title="t('header.actions.menu.label', 'Menu')"
             @click="$store.menu.openAt()">
-      <img alt="Menu" class="relative h-[26px] w-[27px]" src="./icons/Bars.svg" />
+      <img
+        alt="Menu"
+        :alt="t('header.actions.menu.label', 'Menu')"
+        class="relative h-[26px] w-[27px]"
+        src="./icons/Bars.svg"
+      />
     </button>
 
     <a href="/" @click.prevent="go('home')">
@@ -893,6 +1818,7 @@
           x-ref="anchor"
           class="input p-4 input-bordered rounded-full max-w-2xl items-center gap-2 w-full h-[46px] md:h-[56px] max-input-gradient"
           aria-label="Vyhledávání"
+          :aria-label="t('header.search.ariaLabel', 'Vyhledávání')"
         >
           <i class="fa-classic fa-xl fa-regular fa-search text-max-gray-600"></i>
     
@@ -901,6 +1827,7 @@
             type="search"
             class="grow text-lg min-w-0"
             placeholder="Hledej dle názvu"
+            :placeholder="t('header.search.placeholder', 'Hledej dle názvu')"
             x-model.debounce.150ms="q"
             @focus="onFocus()"
             @input="onInput()"
@@ -927,11 +1854,19 @@
               :id="listId" role="listbox"
             >
               <template x-if="recentItems().length">
-                <li class="px-2 py-1 text-xs font-semibold text-base-content/60">Naposledy hledané</li>
+                <li
+                  class="px-2 py-1 text-xs font-semibold text-base-content/60"
+                  x-text="t('header.search.recent', 'Naposledy hledané')"
+                >
+                  Naposledy hledané
+                </li>
               </template>
 
               <template x-if="!recentItems().length">
-                <li class="w-full px-2 py-3 text-base text-center text-max-gray-400">
+                <li
+                  class="w-full px-2 py-3 text-base text-center text-max-gray-400"
+                  x-text="t('header.search.startTyping', 'Začněte psát váš dotaz…')"
+                >
                   Začněte psát váš dotaz…
                 </li>
               </template>
@@ -966,7 +1901,14 @@
                     </div>
               
                     <!-- small type badge (optional) -->
-                    <span class="badge badge-ghost badge-sm shrink-0" x-text="item.t === 'product' ? 'Produkt' : (item.t==='category' ? 'Kategorie' : 'Info')"></span>
+                    <span
+                      class="badge badge-ghost badge-sm shrink-0"
+                      x-text="item.t === 'product'
+                        ? t('header.search.badges.product', 'Produkt')
+                        : (item.t==='category'
+                          ? t('header.search.badges.category', 'Kategorie')
+                          : t('header.search.badges.info', 'Info'))"
+                    ></span>
                   </a>
                 </li>
               </template>
@@ -980,7 +1922,10 @@
                 :id="listId" role="listbox"
               >
                 <template x-if="!suggestions().length">
-                  <li class="w-full px-2 py-3 text-base text-center text-max-gray-400">
+                  <li
+                    class="w-full px-2 py-3 text-base text-center text-max-gray-400"
+                    x-text="t('header.search.noResults', 'Žádné výsledky')"
+                  >
                     Žádné výsledky
                   </li>
                 </template>
@@ -1015,7 +1960,14 @@
                       </div>
                 
                       <!-- small type badge (optional) -->
-                      <span class="badge badge-ghost badge-sm shrink-0" x-text="item.t === 'product' ? 'Produkt' : (item.t==='category' ? 'Kategorie' : 'Info')"></span>
+                      <span
+                        class="badge badge-ghost badge-sm shrink-0"
+                        x-text="item.t === 'product'
+                          ? t('header.search.badges.product', 'Produkt')
+                          : (item.t==='category'
+                            ? t('header.search.badges.category', 'Kategorie')
+                            : t('header.search.badges.info', 'Info'))"
+                      ></span>
                     </a>
                   </li>
                 </template>
@@ -1028,41 +1980,103 @@
   </div>
 
   <!-- TOP-BAR QUICK ACTIONS (desktop only) -->
-  <div class="hidden md:flex md:px-4">
-    <button type="button" class="btn btn-link hidden lg:flex items-center gap-2 p-2 md:p-4 group no-underline hover:!no-underline focus-visible:!no-underline">
+  <div class="hidden md:flex md:px-4 relative z-[1500]">
+    <button
+      type="button"
+      class="btn btn-link hidden lg:flex items-center gap-2 p-2 md:p-4 group no-underline hover:!no-underline focus-visible:!no-underline"
+      aria-label="Mapa lékáren a boxů"
+      :aria-label="t('header.links.map', 'Mapa lékáren a boxů')"
+      @click="location.hash='/map'"
+    >
       <i class="fa-classic fa-xl fa-solid fa-map-location-dot"></i>
-      <span class="hidden xl:block underline-offset-2 decoration-1 decoration-current group-hover:underline group-focus-visible:underline text-secondary">
-        <a href="#/map">Mapa lékáren a boxů</a>
+      <span
+        class="hidden xl:block underline-offset-2 decoration-1 decoration-current group-hover:underline group-focus-visible:underline text-secondary"
+        x-text="t('header.links.map', 'Mapa lékáren a boxů')"
+      >
+        Mapa lékáren a boxů
       </span>
     </button>
 
-    <div class="dropdown dropdown-start">
-      <button type="button" class="btn btn-link hidden md:flex items-center gap-2 p-2 md:p-4 group no-underline hover:!no-underline focus-visible:!no-underline">
-        <img alt="Language" class="relative h-[26px] w-[27px]" src="./icons/languages/En.svg" />
-        <span class="hidden 2xl:block underline-offset-2 decoration-1 decoration-current group-hover:underline group-focus-visible:underline text-secondary">
+    <div class="dropdown dropdown-start relative" x-data="localeSwitcher()">
+      <button
+        type="button"
+        class="btn btn-link hidden md:flex items-center gap-2 p-2 md:p-4 group no-underline hover:!no-underline focus-visible:!no-underline"
+        :aria-label="t('header.languageMenu.label', 'Jazyk')"
+      >
+        <img
+          class="relative h-[26px] w-[27px]"
+          :alt="activeLabel() || 'Language'"
+          :src="activeMeta?.icon || './icons/languages/En.svg'"
+          src="./icons/languages/En.svg"
+        />
+        <span
+          class="hidden 2xl:block underline-offset-2 decoration-1 decoration-current group-hover:underline group-focus-visible:underline text-secondary"
+          x-text="activeLabel()"
+        >
           English
         </span>
         <i class="fa-classic fa-md fa-solid fa-chevron-down"></i>
       </button>
       <ul tabindex="0" class="menu menu-compact dropdown-content mt-3 p-2 shadow bg-base-100 rounded-box w-52">
-        <li><a><i class="fa-classic fa-md fa-solid fa-empty"></i> English</a></li>
-        <li><a><i class="fa-classic fa-md fa-solid fa-empty"></i> Polski</a></li>
-        <li><a><i class="fa-classic fa-md fa-solid fa-check"></i> Česky</a></li>
+        <template x-for="locale in availableLocales" :key="locale.code">
+          <li>
+            <button
+              type="button"
+              class="flex items-center w-full gap-3 px-3 py-2 rounded-lg transition hover:bg-base-200 focus-visible:outline-none focus-visible:ring focus-visible:ring-primary/40 text-left"
+              @click="select(locale.code)"
+            >
+              <img
+                class="h-5 w-5 rounded-full object-contain"
+                :src="optionIcon(locale.code) || './icons/languages/En.svg'"
+                :alt="optionLabel(locale.code)"
+              />
+              <span class="flex-1" x-text="optionLabel(locale.code)">
+                English
+              </span>
+              <i
+                class="fa-classic fa-md fa-solid"
+                :class="isActive(locale.code) ? 'fa-check text-primary' : 'fa-empty text-base-content/40'"
+              ></i>
+            </button>
+          </li>
+        </template>
       </ul>
     </div>
 
-    <button type="button" class="btn btn-link hidden md:flex items-center gap-2 p-2 md:p-4 group no-underline hover:!no-underline focus-visible:!no-underline">
-      <i class="fa-classic fa-xl fa-solid fa-phone"></i>
-      <span class="hidden lg:block underline-offset-2 decoration-1 decoration-current group-hover:underline group-focus-visible:underline text-secondary">
-        516 770 100
-      </span>
-    </button>
+    <div class="hidden md:flex" x-data="contactQuickAction()">
+      <div
+        class="tooltip tooltip-bottom"
+        data-tip="Show more"
+        :data-tip="t('header.actions.phone.tooltip', 'Show more')"
+      >
+        <button
+          type="button"
+          class="btn btn-link items-center gap-2 p-2 md:p-4 group no-underline hover:!no-underline focus-visible:!no-underline"
+          @click="openModal()"
+          aria-label="Zobrazit kontaktní možnosti"
+          :aria-label="t('header.actions.phone.aria', 'Zobrazit kontaktní možnosti')"
+          aria-haspopup="dialog"
+          aria-expanded="false"
+          :aria-expanded="isOpen ? 'true' : 'false'"
+        >
+          <i class="fa-classic fa-xl fa-solid fa-phone"></i>
+          <span
+            class="hidden lg:block underline-offset-2 decoration-1 decoration-current group-hover:underline group-focus-visible:underline text-secondary"
+            x-text="phoneLabel || t('header.actions.phone.fallback', 'Kontakty')"
+          >
+            Kontakty
+          </span>
+        </button>
+      </div>
+    </div>
   </div>
 
   <!-- TOP-BAR BUTTONS + CART (mobile + desktop) -->
   <div class="flex gap-2 flex-none">
     <button class="btn btn-primary w-12 h-12 btn-lg btn-square max-gradient-gray hidden md:block"
     aria-label="Otevřít aktivní objednávku" title="Aktivní objednávka"
+    :aria-label="t('header.actions.activeOrder.aria', 'Otevřít aktivní objednávku')"
+    :title="t('header.actions.activeOrder.label', 'Aktivní objednávka')"
     @click="location.hash='/active-order'"
     >
       <i class="fa-classic fa-xl fa-regular fa-truck-fast text-gray-700 max-embos-v-gray"></i>
@@ -1070,13 +2084,17 @@
 
     <button class="btn btn-primary w-12 h-12 btn-lg btn-square max-gradient" 
     aria-label="Otevřít moje uložené" title="Moje uložené"
+    :aria-label="t('header.actions.saved.aria', 'Otevřít moje uložené')"
+    :title="t('header.actions.saved.label', 'Moje uložené')"
     @click="location.hash='/my-saved'"
     >
       <i class="fa-classic fa-xl fa-regular fa-heart text-white max-embos-v"></i>
     </button>
 
     <button class="btn btn-primary w-12 h-12 btn-lg btn-square max-gradient" 
-    aria-label="Otevřít můk účet" title="Můj účet"
+    aria-label="Otevřít můj účet" title="Můj účet"
+    :aria-label="t('header.actions.account.aria', 'Otevřít můj účet')"
+    :title="t('header.actions.account.label', 'Můj účet')"
     @click="location.hash='/my-account'"
     >
       <i class="fa-classic fa-xl fa-regular fa-user-circle text-white max-embos-v"></i>
@@ -1085,6 +2103,8 @@
     <button
     class="btn btn-primary btn-squish w-12 h-12 btn-lg btn-square max-gradient indicator"
     aria-label="Otevřít košík" title="Košík"
+    :aria-label="t('header.actions.cart.aria', 'Otevřít košík')"
+    :title="t('header.actions.cart.label', 'Košík')"
     @click="location.hash='/cart'"
     @pointerdown="$el.classList.add('is-squishing')"
     @animationend="requestAnimationFrame(()=> $el.classList.remove('is-squishing'))"
@@ -1111,6 +2131,7 @@
     type="button"
     class="input input-lg px-4 input-bordered rounded-full max-w-2xl items-center gap-2 w-full text-left max-input-gradient"
     aria-label="Vyhledávání"
+    :aria-label="t('header.search.ariaLabel', 'Vyhledávání')"
     @pointerdown="
       window.__msGhost = $refs.msGhost;                // stash a reference
       $refs.msGhost && $refs.msGhost.focus({ preventScroll:true }); // pop keyboard
@@ -1118,7 +2139,12 @@
     "
   >
     <i class="fa-classic fa-regular fa-search text-max-gray-600"></i>
-    <span class="grow min-w-0 text-base-content/60">Hledej dle názvu</span>
+    <span
+      class="grow min-w-0 text-base-content/60"
+      x-text="t('header.search.placeholder', 'Hledej dle názvu')"
+    >
+      Hledej dle názvu
+    </span>
   </button>
 
   <!-- Invisible but focusable 'ghost' input to trigger the keyboard -->
@@ -1153,7 +2179,12 @@
             @click="handleDrawerClick()"
           >
             <i class="fa-solid fa-bars"></i>
-            <span class="whitespace-nowrap" x-text="drawerItem?.label || 'Procházet kategorie'"></span>
+            <span
+              class="whitespace-nowrap"
+              x-text="drawerItem?.translationKey
+                ? t(drawerItem.translationKey, drawerItem?.label || 'Procházet kategorie')
+                : (drawerItem?.label || t('header.nav.browseCategories', 'Procházet kategorie'))"
+            ></span>
           </button>
         </template>
 
@@ -1246,7 +2277,7 @@
                     class="btn btn-link btn-sm absolute"
                     :class="cls(slide,'legal_link')"
                     @click.stop.prevent="openModal(slide)">
-              <span x-text="slide.legal?.linkLabel || 'Podmínky akce'"></span>
+              <span x-text="slide.legal?.linkLabel || t('banners.legalLink', 'Podmínky akce')"></span>
             </button>
 
             <!-- layers -->
@@ -1515,86 +2546,31 @@
 </section>
 
 <!-- Reasons to buy -->
-<section class="mt-8">
+<section class="mt-8" x-data="rtbStrip()" x-init="init()">
   <h3 class="text-lg font-semibold mb-3">Proč nakoupit u Dr. Max</h3>
-  <div x-data="{ scrolled:false }" class="relative">
+  <div class="relative">
     <div
       x-ref="rail"
-      @scroll.passive="scrolled = $event.target.scrollLeft > 8"
+      @scroll.passive="handleScroll($event)"
       class="flex gap-2 overflow-x-auto snap-x snap-mandatory pb-5
              md:overflow-visible md:grid md:grid-cols-4 md:gap-3 md:snap-none md:pb-0"
     >
-
-      <!-- Tile -->
-      <div class="shrink-0 w-[calc(50%-0.75rem)] snap-start
-                  md:w-auto md:shrink md:col-span-1 md:contents">
-        <a href="#" @click.prevent
-           class="block h-full rounded-xl bg-white p-3 hover:shadow-md transition
-                  focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40">
-          <div class="flex h-full flex-col gap-3 xl:flex-row xl:items-center xl:gap-4">
-            <div class="rounded-xl overflow-hidden grid place-items-center xl:w-32 xl:h-32 xl:shrink-0">
-              <img src="./images/rtbs/free-shipping.webp" alt="" class="w-auto object-contain">
+      <template x-for="(item, idx) in items" :key="`${item.img || idx}`">
+        <div class="shrink-0 w-[calc(50%-0.75rem)] snap-start md:w-auto md:shrink md:col-span-1 md:contents">
+          <a href="#" @click.prevent
+             class="block h-full rounded-xl bg-white p-3 hover:shadow-md transition
+                    focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40">
+            <div class="flex h-full flex-col gap-3 xl:flex-row xl:items-center xl:gap-4">
+              <div class="rounded-xl overflow-hidden grid place-items-center xl:w-32 xl:h-32 xl:shrink-0">
+                <img :src="item.img" :alt="item.alt || ''" class="w-auto object-contain">
+              </div>
+              <span class="text-base font-medium text-center xl:text-left [&_b]:text-max-green-600" x-html="item.label"></span>
             </div>
-            <span class="text-base font-medium text-center xl:text-left [&_b]:text-max-green-600">
-              <b>Doprava ZDARMA</b> od 399 Kč pro přihlášené
-            </span>
-          </div>
-        </a>
-      </div>
-
-      <!-- Tile -->
-      <div class="shrink-0 w-[calc(50%-0.75rem)] snap-start
-                  md:w-auto md:shrink md:col-span-1 md:contents">
-        <a href="#" @click.prevent
-           class="block h-full rounded-xl bg-white p-3 hover:shadow-md transition
-                  focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40">
-          <div class="flex h-full flex-col gap-3 xl:flex-row xl:items-center xl:gap-4">
-            <div class="rounded-xl overflow-hidden grid place-items-center xl:w-32 xl:h-32 xl:shrink-0">
-              <img src="./images/rtbs/private-label.webp" alt="" class="w-auto object-contain">
-            </div>
-            <span class="text-base font-medium text-center xl:text-left [&_b]:text-max-green-600">
-              Široká nabídka <b>produktů značky Dr. Max</b>
-            </span>
-          </div>
-        </a>
-      </div>
-
-      <!-- Tile -->
-      <div class="shrink-0 w-[calc(50%-0.75rem)] snap-start
-                  md:w-auto md:shrink md:col-span-1 md:contents">
-        <a href="#" @click.prevent
-           class="block h-full rounded-xl bg-white p-3 hover:shadow-md transition
-                  focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40">
-          <div class="flex h-full flex-col gap-3 xl:flex-row xl:items-center xl:gap-4">
-            <div class="rounded-xl overflow-hidden grid place-items-center xl:w-32 xl:h-32 xl:shrink-0">
-              <img src="./images/rtbs/loyalty-program.webp" alt="" class="w-auto object-contain">
-            </div>
-            <span class="text-base font-medium text-center xl:text-left [&_b]:text-max-green-600">
-              Kopa výhod <b>věrnostního programu Dr. Max</b>
-            </span>
-          </div>
-        </a>
-      </div>
-      <!-- Tile -->
-      <div class="shrink-0 w-[calc(50%-0.75rem)] snap-start
-                  md:w-auto md:shrink md:col-span-1 md:contents">
-        <a href="#" @click.prevent
-           class="block h-full rounded-xl bg-white p-3 hover:shadow-md transition
-                  focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40">
-          <div class="flex h-full flex-col gap-3 xl:flex-row xl:items-center xl:gap-4">
-            <div class="rounded-xl overflow-hidden grid place-items-center xl:w-32 xl:h-32 xl:shrink-0">
-              <img src="./images/rtbs/mobile-app.webp" alt="" class="w-auto object-contain">
-            </div>
-            <span class="text-base font-medium text-center xl:text-left [&_b]:text-max-green-600">
-              <b>Mobilní aplikace</b> plná užitečných funkcí
-            </span>
-          </div>
-        </a>
-      </div>      
-
+          </a>
+        </div>
+      </template>
     </div>
 
-    <!-- Scroll affordance (mobile only): gradient + chevron, fades after first scroll -->
     <div class="md:hidden pointer-events-none absolute inset-y-0 right-0 w-10 z-10 transition-opacity"
          :class="scrolled ? 'opacity-0' : 'opacity-100'">
       <div class="h-full bg-gradient-to-l from-base-100 to-transparent"></div>
@@ -1673,55 +2649,10 @@
 <!-- ROUTE == PRODUCTS -->
 <section x-show="is('products')" x-cloak>
 
-<!-- CATEGORIES GRID -->
-<div x-data="categoriesList" x-cloak class="sm:w-11/12 lg:w-10/12 mx-auto">
-  <!-- BREADCRUMBS -->
-  <div class="breadcrumbs hidden md:block text-sm mx-auto px-4 pt-6">
-    <ul>
-      <li>Domů</li>
-      <li><a href="#/products">Zdraví a léky</a></li>
-    </ul>
-  </div>
-  <h1 class="text-3xl mx-auto mt-4 px-4 pb-4">Zdraví a léky</h1>
-
-  <div class="grid gap-2 md:gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 p-4">
-    <template x-for="cat in categories" :key="cat.name">
-      <a class="card card-side items-center shadow-sm hover:shadow-md bg-white transition cursor-pointer h-14 md:h-auto"
-         :href="hrefFor(cat)"
-         @click="handleClick(cat, $event)">
-        <figure class="p-2 shrink-0">
-          <div class="h-10 md:h-16 w-10 md:w-16 rounded overflow-hidden grid place-content-center"
-               :class="squareClass(cat)"
-               :style="squareStyle(cat)">
-            <template x-if="isIconTile(cat)">
-              <i :class="iconClass(cat)"
-                 :style="iconStyle(cat)"></i>
-            </template>
-            <template x-if="!isIconTile(cat)">
-              <img
-                :src="imageUrl(cat)"
-                :alt="cat.name"
-                class="h-full w-full object-contain"
-                @error="$event.target.src = fallback"
-              />
-            </template>
-          </div>
-        </figure>
-
-        <div class="card-body min-w-0 pl-1">
-          <h2 class="card-title block truncate max-w-full text-base font-medium"
-              :title="cat.name"
-              x-text="cat.name"></h2>
-        </div>
-      </a>
-    </template>
-  </div>
-</div>
-
 
 <!-- FILTERS -->
 <section aria-labelledby="filters-heading"
-         class="lg:w-10/12 sm:w-11/12 mx-auto px-4 pt-6"
+         class="w-11/12 mx-auto px-4 pt-8"
          x-data="{ mobileFiltersOpen: false }"
          @keydown.escape.window="mobileFiltersOpen = false">
   <div class="flex flex-wrap items-center justify-between gap-3">
@@ -1732,26 +2663,18 @@
         <i class="fa-solid fa-filter"></i>
         <span>Filtry</span>
       </button>
-      <button type="button"
-              class="btn btn-sm btn-outline hidden lg:inline-flex border-max-blue-500 text-max-blue-600"
-              @click="clearFilters()"
-              x-show="hasActiveFilters()"
-              x-cloak
-              x-transition.opacity>
-        Vymazat filtry
-        <span class="badge badge-error badge-sm ml-2" x-show="activeFiltersCount() > 0" x-text="activeFiltersCount()"></span>
-      </button>
+
     </div>
   </div>
 
-  <div class="mt-6 lg:grid lg:grid-cols-[minmax(260px,320px)_1fr] lg:gap-6 relative">
+  <div class="lg:grid lg:grid-cols-[minmax(260px,320px)_1fr] lg:gap-6 relative">
     <div x-cloak
          x-show="mobileFiltersOpen"
          x-transition.opacity
          class="fixed inset-0 z-40 bg-base-200/70 backdrop-blur-sm lg:hidden"
          @click.self="mobileFiltersOpen = false"></div>
 
-    <aside class="fixed inset-y-0 left-0 w-5/6 max-w-xs bg-base-100 shadow-xl transform -translate-x-full transition-transform duration-300 ease-out overflow-y-auto z-50 p-6 pb-10 lg:sticky lg:top-24 lg:h-[calc(100vh-8rem)] lg:w-5/6 lg:max-w-none lg:bg-transparent lg:shadow-none lg:p-0 lg:pb-12 lg:translate-x-0 lg:transform-none lg:overflow-y-auto mb-10"
+    <aside class="fixed inset-y-0 left-0 w-5/6 max-w-xs bg-base-100 shadow-xl transform -translate-x-full transition-transform duration-300 ease-out overflow-y-auto z-50 p-6 pb-10 lg:relative lg:inset-auto lg:w-full lg:max-w-none lg:bg-transparent lg:shadow-none lg:p-0 lg:pb-12 lg:translate-x-0 lg:transform-none lg:overflow-visible mb-10"
            :class="mobileFiltersOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'">
       <div class="lg:hidden flex items-center justify-between mb-4">
         <h3 class="text-lg font-semibold">Filtry</h3>
@@ -1761,8 +2684,134 @@
       </div>
 
       <div class="space-y-6 lg:pr-12 lg:pt-2 lg:pb-8 mb-10">
+
+
+        <div class="space-y-3" x-data="{ showAllCategories: false, limit: 6 }">
+          <h3 class="font-semibold text-base">Kategorie</h3>
+          <div class="space-y-2">
+            <label class="label cursor-pointer justify-start gap-2 text-max-gray-800 w-full">
+              <input type="radio" name="cat" class="radio radio-sm radio-secondary" value="" x-model="selectedCategory">
+              <span>Všechny kategorie</span>
+            </label>
+            <template x-for="c in categories.slice(0, limit)" :key="'cat-'+c">
+              <label class="label cursor-pointer justify-start gap-2 text-max-gray-800 w-full">
+                <input type="radio" name="cat" class="radio radio-sm radio-secondary" :value="c" x-model="selectedCategory">
+                <span x-text="c"></span>
+              </label>
+            </template>
+            <div x-show="showAllCategories"
+                 class="overflow-hidden"
+                 x-transition:enter="transition-all ease-out duration-200"
+                 x-transition:enter-start="max-h-0 opacity-0"
+                 x-transition:enter-end="max-h-96 opacity-100"
+                 x-transition:leave="transition-all ease-in duration-150"
+                 x-transition:leave-start="max-h-96 opacity-100"
+                 x-transition:leave-end="max-h-0 opacity-0">
+              <template x-for="c in categories.slice(limit)" :key="'cat-more-'+c">
+                <label class="label cursor-pointer justify-start gap-2 text-max-gray-800 w-full">
+                  <input type="radio" name="cat" class="radio radio-sm radio-secondary" :value="c" x-model="selectedCategory">
+                  <span x-text="c"></span>
+                </label>
+              </template>
+            </div>
+          </div>
+          <div class="pt-1">
+            <button type="button"
+                    class="btn btn-ghost btn-xs px-0"
+                    x-show="categories.length > limit"
+                    @click="showAllCategories = !showAllCategories">
+              <span x-text="showAllCategories ? 'Méně' : 'Více'"></span>
+              <i class="fa-solid fa-chevron-down ml-1 transition-transform"
+                 :class="showAllCategories ? 'rotate-180' : ''"></i>
+            </button>
+          </div>
+        </div>
+
+        <div class="space-y-3" x-data="{ showAllForms: false, limit: 6 }">
+          <h3 class="font-semibold text-base">Forma</h3>
+          <div class="space-y-2">
+            <label class="label cursor-pointer justify-start gap-2 text-max-gray-800 w-full">
+              <input type="radio" name="form" class="radio radio-sm radio-secondary" value="" x-model="selectedForm">
+              <span>Všechny typy</span>
+            </label>
+            <template x-for="f in forms.slice(0, limit)" :key="'form-'+f">
+              <label class="label cursor-pointer justify-start gap-2 text-max-gray-800 w-full">
+                <input type="radio" name="form" class="radio radio-sm radio-secondary" :value="f" x-model="selectedForm">
+                <span x-text="f"></span>
+              </label>
+            </template>
+            <div x-show="showAllForms"
+                 class="overflow-hidden"
+                 x-transition:enter="transition-all ease-out duration-200"
+                 x-transition:enter-start="max-h-0 opacity-0"
+                 x-transition:enter-end="max-h-96 opacity-100"
+                 x-transition:leave="transition-all ease-in duration-150"
+                 x-transition:leave-start="max-h-96 opacity-100"
+                 x-transition:leave-end="max-h-0 opacity-0">
+              <template x-for="f in forms.slice(limit)" :key="'form-more-'+f">
+                <label class="label cursor-pointer justify-start gap-2 text-max-gray-800 w-full">
+                  <input type="radio" name="form" class="radio radio-sm radio-secondary" :value="f" x-model="selectedForm">
+                  <span x-text="f"></span>
+                </label>
+              </template>
+            </div>
+          </div>
+          <div class="pt-1" x-show="forms.length > limit" x-cloak>
+            <button type="button"
+                    class="btn btn-ghost btn-xs px-0"
+                    @click="showAllForms = !showAllForms">
+              <span x-text="showAllForms ? 'Méně' : 'Více'"></span>
+              <i class="fa-solid fa-chevron-down ml-1 transition-transform"
+                 :class="showAllForms ? 'rotate-180' : ''"></i>
+            </button>
+          </div>
+        </div>
+
+        <div class="space-y-3" x-data="{ showAllConsumers: false, limit: 8 }">
+          <h3 class="font-semibold text-base">Vhodné pro</h3>
+          <div class="space-y-2">
+            <template x-for="opt in consumersList.slice(0, limit)" :key="'cons-'+opt">
+              <label class="label cursor-pointer justify-start gap-2 text-max-gray-800 w-full">
+                <input type="checkbox"
+                       class="checkbox checkbox-sm checkbox-secondary rounded-[4px]"
+                       :value="opt"
+                       :checked="selectedConsumers.includes(opt)"
+                       @change="toggleConsumer(opt)" />
+                <span x-text="opt"></span>
+              </label>
+            </template>
+            <div x-show="showAllConsumers"
+                 class="overflow-hidden"
+                 x-transition:enter="transition-all ease-out duration-200"
+                 x-transition:enter-start="max-h-0 opacity-0"
+                 x-transition:enter-end="max-h-96 opacity-100"
+                 x-transition:leave="transition-all ease-in duration-150"
+                 x-transition:leave-start="max-h-96 opacity-100"
+                 x-transition:leave-end="max-h-0 opacity-0">
+              <template x-for="opt in consumersList.slice(limit)" :key="'cons-more-'+opt">
+                <label class="label cursor-pointer justify-start gap-2 text-max-gray-800 w-full">
+                  <input type="checkbox"
+                         class="checkbox checkbox-sm checkbox-secondary rounded-[4px]"
+                         :value="opt"
+                         :checked="selectedConsumers.includes(opt)"
+                         @change="toggleConsumer(opt)" />
+                  <span x-text="opt"></span>
+                </label>
+              </template>
+            </div>
+          </div>
+          <div class="pt-1" x-show="consumersList.length > limit" x-cloak>
+            <button type="button"
+                    class="btn btn-ghost btn-xs px-0"
+                    @click="showAllConsumers = !showAllConsumers">
+              <span x-text="showAllConsumers ? 'Méně' : 'Více'"></span>
+              <i class="fa-solid fa-chevron-down ml-1 transition-transform"
+                 :class="showAllConsumers ? 'rotate-180' : ''"></i>
+            </button>
+          </div>
+        </div>
+
         <div class="space-y-3">
-          <h2 id="filters-heading" class="text-lg font-semibold">Filtry a řazení</h2>
           <label class="input input-bordered items-center gap-2 w-full mt-4" aria-label="Vyhledávání">
             <i class="fa-solid fa-magnifying-glass text-max-gray-600"></i>
             <input type="search"
@@ -1777,7 +2826,7 @@
             <h3 class="font-semibold text-base">Cena</h3>
             <button type="button" class="btn btn-xs btn-ghost"
                     x-show="_priceRangeActive()" x-cloak
-                    @click="priceMin = priceBounds.min; priceMax = priceBounds.max; activePriceRangeIndex = null">
+                    @click="resetPriceFilter()">
               Reset
             </button>
           </div>
@@ -1793,14 +2842,25 @@
               <span x-text="formatPrice(priceMin ?? priceBounds.min)"></span>
               <span x-text="formatPrice(priceMax ?? priceBounds.max)"></span>
             </div>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              <template x-for="(range, idx) in priceQuickRanges" :key="`pr-${idx}`">
-                <button type="button"
-                        class="btn btn-sm w-full"
-                        :class="activePriceRangeIndex === idx ? 'btn-secondary' : 'btn-outline'"
-                        @click="applyPriceQuickRange(idx)">
-                  <span x-text="priceRangeLabel(range)"></span>
-                </button>
+            <div class="space-y-2">
+              <label class="label cursor-pointer justify-start gap-2 text-max-gray-800 w-full">
+                <input type="radio"
+                       name="priceQuick"
+                       class="radio radio-sm radio-secondary"
+                       :checked="activePriceRangeIndex === null"
+                       @change="resetPriceFilter()">
+                <span>Libovolná cena</span>
+              </label>
+              <template x-for="(maxValue, idx) in priceQuickRanges" :key="`pr-${idx}`">
+                <label class="label cursor-pointer justify-start gap-2 text-max-gray-800 w-full">
+                  <input type="radio"
+                         name="priceQuick"
+                         class="radio radio-sm radio-secondary"
+                         :value="idx"
+                         :checked="activePriceRangeIndex === idx"
+                         @change="applyPriceQuickRange(idx)">
+                  <span x-text="priceUpToLabel(maxValue)"></span>
+                </label>
               </template>
             </div>
           </div>
@@ -1809,83 +2869,16 @@
           </div>
         </div>
 
-        <div class="space-y-3" x-data="{ showAllCategories: false, limit: 6 }">
-          <h3 class="font-semibold text-base">Kategorie</h3>
-          <div class="grid grid-cols-1 gap-2">
-            <label class="label cursor-pointer justify-start gap-2 text-max-gray-800">
-              <input type="radio" name="cat" class="radio radio-sm radio-secondary" value="" x-model="selectedCategory">
-              <span>Všechny kategorie</span>
-            </label>
-            <template x-for="c in (showAllCategories ? categories : categories.slice(0, limit))" :key="'cat-'+c">
-              <label class="label cursor-pointer justify-start gap-2 text-max-gray-800">
-                <input type="radio" name="cat" class="radio radio-sm radio-secondary" :value="c" x-model="selectedCategory">
-                <span x-text="c"></span>
-              </label>
-            </template>
-          </div>
-          <div class="pt-1">
-            <button type="button"
-                    class="btn btn-ghost btn-xs px-0"
-                    x-show="categories.length > limit"
-                    @click="showAllCategories = !showAllCategories">
-              <span x-text="showAllCategories ? 'Méně' : 'Více'"></span>
-              <i class="fa-solid fa-chevron-down ml-1 transition-transform"
-                 :class="showAllCategories ? 'rotate-180' : ''"></i>
-            </button>
-          </div>
-        </div>
-
-        <div class="space-y-3">
-          <h3 class="font-semibold text-base">Forma</h3>
-          <div class="grid grid-cols-1 gap-2 max-h-48 overflow-auto pr-1">
-            <label class="label cursor-pointer justify-start gap-2 text-max-gray-800">
-              <input type="radio" name="form" class="radio radio-sm radio-secondary" value="" x-model="selectedForm">
-              <span>Všechny typy</span>
-            </label>
-            <template x-for="f in forms" :key="'form-'+f">
-              <label class="label cursor-pointer justify-start gap-2 text-max-gray-800">
-                <input type="radio" name="form" class="radio radio-sm radio-secondary" :value="f" x-model="selectedForm">
-                <span x-text="f"></span>
-              </label>
-            </template>
-          </div>
-        </div>
-
-        <div class="space-y-3">
-          <h3 class="font-semibold text-base">Vhodné pro</h3>
-          <div class="grid grid-cols-1 gap-2 max-h-56 overflow-auto pr-1">
-            <template x-for="opt in consumersList" :key="'cons-'+opt">
-              <label class="label cursor-pointer justify-start gap-2 text-max-gray-800">
-                <input type="checkbox"
-                       class="checkbox checkbox-sm checkbox-secondary rounded-[4px]"
-                       :value="opt"
-                       :checked="selectedConsumers.includes(opt)"
-                       @change="toggleConsumer(opt)" />
-                <span x-text="opt"></span>
-              </label>
-            </template>
-          </div>
-        </div>
-
-        <div class="space-y-3">
-          <h3 class="font-semibold text-base">Možnosti</h3>
-          <div class="grid grid-cols-1 gap-2">
-            <label class="label cursor-pointer justify-start gap-2 text-max-gray-800 w-full">
-              <input type="checkbox" class="checkbox checkbox-sm checkbox-secondary rounded-[4px]" x-model="onlyInStock">
-              <span>Pouze skladem</span>
-            </label>
-            <label class="label cursor-pointer justify-start gap-2 text-max-gray-800 w-full">
-              <input type="checkbox" class="checkbox checkbox-sm checkbox-secondary rounded-[4px]" x-model="benefitOnly">
-              <span>Lze platit benefity</span>
-            </label>
-            <label class="label cursor-pointer justify-start gap-2 text-max-gray-800 w-full">
-              <input type="checkbox" class="checkbox checkbox-sm checkbox-secondary rounded-[4px]" x-model="onlyDiscounted">
-              <span>Produkty v akci</span>
-            </label>
-          </div>
-        </div>
       </div>
-
+      <button type="button"
+              class="btn btn-sm btn-outline hidden lg:inline-flex border-max-blue-500 text-max-blue-600"
+              @click="clearFilters()"
+              x-show="hasActiveFilters()"
+              x-cloak
+              x-transition.opacity>
+        Vymazat filtry
+        <span class="badge badge-error badge-sm ml-2" x-show="activeFiltersCount() > 0" x-text="activeFiltersCount()"></span>
+      </button>
       <button type="button"
               class="btn btn-outline btn-sm w-full mt-6 lg:hidden"
               @click="clearFilters(); mobileFiltersOpen = false"
@@ -1898,46 +2891,170 @@
     </aside>
 
     <div class="space-y-6">
-      <div class="flex flex-wrap items-center justify-between gap-3">
-        <div class="flex items-center gap-3">
-          <h2 class="text-lg font-semibold">
-            Výpis produktů:
-            <span class="ml-1 font-semibold" x-text="filteredCount()"></span>
-          </h2>
-          <button type="button"
-                  class="btn btn-sm btn-outline border-max-blue-500 text-max-blue-600 lg:hidden"
-                  @click="clearFilters(); mobileFiltersOpen = false"
-                  x-show="hasActiveFilters()"
-                  x-cloak
-                  x-transition.opacity>
-            Vymazat filtry
-            <span class="badge badge-error badge-sm ml-2" x-show="activeFiltersCount() > 0" x-text="activeFiltersCount()"></span>
-          </button>
-        </div>
-        <div class="flex items-center gap-2 w-full sm:w-auto">
-          <label class="text-sm font-medium hidden sm:block">Řadit dle</label>
-          <select class="select select-bordered select-sm sm:select-md w-full sm:w-56"
-                  x-model="sortOrder">
-            <option value="">Doporučeno</option>
-            <option value="priceAsc">Cena ↑</option>
-            <option value="priceDesc">Cena ↓</option>
-            <option value="alphaAsc">Abecedně A–Z</option>
-            <option value="alphaDesc">Abecedně Z–A</option>
-          </select>
+      <div class="space-y-3">
+        <nav class="breadcrumbs hidden md:block text-sm" aria-label="drobečková navigace">
+          <ul>
+            <li>Domů</li>
+            <li><a href="#/products">Zdraví a léky</a></li>
+          </ul>
+        </nav>
+        <h1 class="text-3xl font-semibold">Zdraví a léky <span class="text-max-gray-400 font-normal">(<span x-text="filteredCount()"></span>)</span></h1>
+      </div>
+      <div class="sticky top-0 z-30 bg-base-200 border-b border-base-200 py-3">
+        <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div class="flex flex-wrap items-center gap-2">
+            <button type="button"
+                    class="btn btn-md rounded-full transition-colors"
+                    :class="onlyInStock ? 'btn-secondary text-white' : 'btn-outline btn-secondary'"
+                    :aria-pressed="onlyInStock"
+                    @click="onlyInStock = !onlyInStock">
+              <span class="flex items-center gap-2">
+                <span>Pouze skladem</span>
+                <i class="fa-solid fa-xmark text-xs" x-show="onlyInStock" x-cloak></i>
+              </span>
+            </button>
+            <button type="button"
+                    class="btn btn-md rounded-full transition-colors"
+                    :class="benefitOnly ? 'btn-secondary text-white' : 'btn-outline btn-secondary'"
+                    :aria-pressed="benefitOnly"
+                    @click="benefitOnly = !benefitOnly">
+              <span class="flex items-center gap-2">
+                <span>Lze platit benefity</span>
+                <i class="fa-solid fa-xmark text-xs" x-show="benefitOnly" x-cloak></i>
+              </span>
+            </button>
+            <button type="button"
+                    class="btn btn-md rounded-full transition-colors"
+                    :class="onlyDiscounted ? 'btn-secondary text-white' : 'btn-outline btn-secondary'"
+                    :aria-pressed="onlyDiscounted"
+                    @click="onlyDiscounted = !onlyDiscounted">
+              <span class="flex items-center gap-2">
+                <span>Produkty v akci</span>
+                <i class="fa-solid fa-xmark text-xs" x-show="onlyDiscounted" x-cloak></i>
+              </span>
+            </button>
+            <template x-if="selectedCategory">
+              <button type="button"
+                      class="btn btn-md rounded-full transition-colors btn-secondary text-white"
+                      @click="selectedCategory = ''">
+                <span class="flex items-center gap-2">
+                  <span x-text="selectedCategory"></span>
+                  <i class="fa-solid fa-xmark text-xs"></i>
+                </span>
+              </button>
+            </template>
+            <template x-if="selectedForm">
+              <button type="button"
+                      class="btn btn-md rounded-full transition-colors btn-secondary text-white"
+                      @click="selectedForm = ''">
+                <span class="flex items-center gap-2">
+                  <span x-text="selectedForm"></span>
+                  <i class="fa-solid fa-xmark text-xs"></i>
+                </span>
+              </button>
+            </template>
+            <template x-for="cons in selectedConsumers" :key="'cons-chip-'+cons">
+              <button type="button"
+                      class="btn btn-md rounded-full transition-colors btn-secondary text-white"
+                      @click="toggleConsumer(cons)">
+                <span class="flex items-center gap-2">
+                  <span x-text="cons"></span>
+                  <i class="fa-solid fa-xmark text-xs"></i>
+                </span>
+              </button>
+            </template>
+            <template x-if="_priceRangeActive()">
+              <button type="button"
+                      class="btn btn-md rounded-full transition-colors btn-secondary text-white"
+                      @click="resetPriceFilter()">
+                <span class="flex items-center gap-2">
+                  <span x-text="priceFilterChipLabel()"></span>
+                  <i class="fa-solid fa-xmark text-xs"></i>
+                </span>
+              </button>
+            </template>
+          </div>
+          <div class="w-full sm:w-auto">
+            <div class="dropdown dropdown-end w-full sm:w-auto" x-data="{ open: false }" @click.outside="open = false" @keydown.escape.window="open = false">
+              <div class="relative">
+                <button type="button"
+                        class="btn btn-md rounded-full transition-colors w-full sm:w-auto justify-between"
+                        :class="sortOrder ? 'btn-secondary text-white pr-12' : 'btn-outline btn-secondary pr-10'"
+                        @click="open = !open"
+                        :aria-expanded="open"
+                        aria-haspopup="listbox">
+                  <span class="flex items-center gap-2">
+                    <i class="fa-solid fa-arrow-down-arrow-up"></i>
+                    <span x-text="sortButtonLabel()"></span>
+                  </span>
+                  <i class="fa-solid fa-chevron-down text-xs opacity-70 transition-transform"
+                     :class="open ? 'rotate-180' : ''"
+                     x-show="!sortOrder"
+                     aria-hidden="true"></i>
+                </button>
+                <button type="button"
+                        x-show="sortOrder"
+                        x-cloak
+                        class="absolute right-2 top-1/2 -translate-y-1/2 btn btn-xs btn-circle btn-ghost text-white/80 hover:text-white hover:bg-white/20 focus-visible:outline-none focus-visible:ring focus-visible:ring-white/40"
+                        @click.stop="sortOrder = ''; open = false"
+                        aria-label="Zrušit řazení">
+                  <i class="fa-solid fa-xmark"></i>
+                </button>
+              </div>
+              <ul x-cloak
+                  x-show="open"
+                  x-transition.opacity.duration.150ms
+                  class="menu menu-compact dropdown-content mt-3 p-2 shadow-lg bg-base-100 rounded-box min-w-[14rem]">
+                <li class="px-3 py-2 text-xs uppercase tracking-wide text-base-content/60 cursor-default select-none">
+                  Řadit dle
+                </li>
+                <template x-for="opt in sortOptions()" :key="opt.value">
+                  <li>
+                    <button type="button"
+                            class="flex w-full items-center justify-between gap-3 rounded-lg px-3 py-2 text-sm transition focus-visible:outline-none focus-visible:ring focus-visible:ring-primary/40"
+                            :class="sortOrder === opt.value ? 'bg-secondary text-white' : 'hover:bg-base-200'"
+                            @click="sortOrder = opt.value; open = false">
+                      <span x-text="opt.label"></span>
+                      <i class="fa-solid fa-check text-white"
+                         x-show="sortOrder === opt.value"
+                         aria-hidden="true"></i>
+                    </button>
+                  </li>
+                </template>
+              </ul>
+            </div>
+          </div>
         </div>
       </div>
 
-      <div x-show="isLoading" class="flex justify-center py-8" aria-live="polite" aria-busy="true">
-        <span class="loading loading-spinner loading-lg"></span>
+      <div x-show="isLoading"
+           x-transition.opacity.duration.150ms
+           class="py-4"
+           aria-live="polite"
+           aria-busy="true">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 animate-pulse">
+          <template x-for="n in skeletonPlaceholderCount()" :key="`skeleton-${n}`">
+            <div class="card h-full bg-base-100 border-max-gray-400">
+              <div class="h-50"></div>
+              <div class="card-body space-y-3">
+                <div class="h-4 bg-base-200 rounded w-3/4"></div>
+                <div class="h-3 bg-base-200 rounded w-full"></div>
+                <div class="h-3 bg-base-200 rounded w-5/6"></div>
+                <div class="mt-4 flex items-center justify-between">
+                  <div class="h-6 bg-base-200 rounded w-20"></div>
+                  <div class="h-9 bg-base-200 rounded w-24"></div>
+                </div>
+              </div>
+            </div>
+          </template>
+        </div>
       </div>
-
-
 
       <div x-show="!isLoading"
            x-transition.opacity.duration.200ms
            x-cloak
-           class="py-1 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-        <template x-for="product in pagedProducts()" :key="product.id">
+           class="py-1 px-px grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
+        <template x-for="(product, idx) in pagedProducts()" :key="product?.id ? `${product.id}-${idx}` : idx">
           <article class="h-full">
             <div class="card h-full bg-base-100 shadow relative">
               <div x-show="product.badges?.length" class="absolute left-2 top-2 z-10 flex flex-col gap-1">
@@ -1972,13 +3089,13 @@
                     <div class="flex flex-col leading-tight">
                       <span x-show="product.discounted_price && product.discounted_price < product.price"
                             class="font-bold text-lg text-error underline decoration-dotted underline-offset-4 decoration-max-gray-400"
-                            x-text="`${product.discounted_price} Kč`"></span>
+                            x-text="formatPrice(product.discounted_price)"></span>
                       <span x-show="product.discounted_price && product.discounted_price < product.price"
                             class="text-sm line-through text-base-content/60 -mt-0.5"
-                            x-text="`${product.price} Kč`"></span>
+                            x-text="formatPrice(product.price)"></span>
                       <span x-show="!product.discounted_price || !(product.discounted_price < product.price)"
                             class="font-bold text-lg underline decoration-dotted underline-offset-4 decoration-max-gray-400"
-                            x-text="`${product.price} Kč`"></span>
+                            x-text="formatPrice(product.price)"></span>
                     </div>
                   </div>
                   <template x-if="!$store.cart.inCart(product.id)">
@@ -2019,7 +3136,7 @@
       </div>
 
       <div x-show="!isLoading && (totalPages() > 1 || canLoadMoreFirstPage())"
-           class="mt-2 flex items-center justify-between gap-4 flex-wrap p-4">
+           class="mt-2 flex items-center justify-between gap-4 flex-wrap py-4">
         <div class="text-sm opacity-70">
           <span x-text="rangeLabel()"></span>
         </div>
@@ -2027,7 +3144,7 @@
           <button class="btn btn-md join-item" :class="{'btn-disabled': page === 1}"
                   @click="page = Math.max(1, page - 1)" aria-label="Předchozí stránka">«</button>
           <template x-for="n in pagesToShow()" :key="`p-${n}-${page}`">
-            <button class="btn btn-md join-item"
+            <button class="btn btn-md join-item font-medium"
                     :class="{'btn-active': n === page, 'btn-disabled': n === '…'}"
                     @click="if(n !== '…') page = n"
                     x-text="n === '…' ? '…' : n"
@@ -2040,13 +3157,52 @@
           <span x-text="loadMoreLabel()"></span>
         </button>
       </div>
+      <!-- CATEGORIES GRID -->
+      <div x-data="categoriesList" x-cloak class="w-full mx-auto pt-14">
+        <h2 class="font-semibold mb-4">Inspirace</h2>
+        <div class="grid gap-2 md:gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">    
+          <template x-for="cat in categories" :key="cat.name">
+            <a class="card card-side items-center shadow-sm hover:shadow-md bg-white transition cursor-pointer h-14 md:h-auto"
+              :href="hrefFor(cat)"
+              @click="handleClick(cat, $event)">
+              <figure class="p-2 shrink-0">
+                <div class="h-10 md:h-16 w-10 md:w-16 rounded overflow-hidden grid place-content-center"
+                    :class="squareClass(cat)"
+                    :style="squareStyle(cat)">
+                  <template x-if="isIconTile(cat)">
+                    <i :class="iconClass(cat)"
+                      :style="iconStyle(cat)"></i>
+                  </template>
+                  <template x-if="!isIconTile(cat)">
+                    <img
+                      :src="imageUrl(cat)"
+                      :alt="cat.name"
+                      class="h-full w-full object-contain"
+                      @error="$event.target.src = fallback"
+                    />
+                  </template>
+                </div>
+              </figure>
 
-      <div class="py-4 mb-10 text-sm leading-relaxed">
-        V kategorii Zdraví a léky naleznete volně prodejné léčivé přípravky, které pomáhají při různých obtížích. Jsou to například léky proti bolesti, při rýmě či kašli, na zvýšenou teplotu nebo při chřipce a nachlazení. Léčbu těmito přípravky zvládnete sami doma. V případě opakujících se nebo déle přetrvávajících obtíží je vždy na místě vyhledat pomoc lékaře. O vhodném léku se nejprve poraďte s lékárníkem.
+              <div class="card-body min-w-0 pl-1">
+                <h2 class="card-title block truncate max-w-full text-base font-medium"
+                    :title="cat.name"
+                    x-text="cat.name"></h2>
+              </div>
+            </a>
+          </template>
+        </div>
+      </div>
+
+      <div class="py-4 mb-10">
+        <h2 class="font-semibold mb-4">Zdraví a léky</h2>
+        <span class="text-sm leading-relaxed"></span>V kategorii Zdraví a léky naleznete volně prodejné léčivé přípravky, které pomáhají při různých obtížích. Jsou to například léky proti bolesti, při rýmě či kašli, na zvýšenou teplotu nebo při chřipce a nachlazení. Léčbu těmito přípravky zvládnete sami doma. V případě opakujících se nebo déle přetrvávajících obtíží je vždy na místě vyhledat pomoc lékaře. O vhodném léku se nejprve poraďte s lékárníkem.</span>
       </div>
     </div>
   </div>
 </section>
+
+
 
 </section>
 
@@ -2256,7 +3412,7 @@
           <input type="checkbox" />
           <div class="collapse-title font-medium text-lg text-max-gray-600 inline-flex gap-3 items-center"><i class="fa-classic fa-md fa-solid fa-truck-fast"></i>Jak získat dopravu zdrama?</div>
           <div class="collapse-content text-md flex gap-3 items-center">
-            Doprava zdarma při nákupu nad 1 500 Kč. Limit pro přihlášené je 399 Kč
+            <span>Doprava zdarma při nákupu nad <span x-text="formatPrice(1500)"></span>. Limit pro přihlášené je <span x-text="formatPrice(399)"></span></span>
             <button class="btn btn-secondary btn-md">Přihlásit se</button>
           </div>
         </div>
@@ -2264,7 +3420,7 @@
           <input type="checkbox" />
           <div class="collapse-title font-medium text-lg text-max-gray-600 inline-flex gap-3 items-center"><i class="fa-classic fa-md fa-solid fa-badge-percent"></i>Máte možnost získat slevu 13%</div>
           <div class="collapse-content text-md flex gap-3 items-center">
-            Staňte se členem věrnostního programu Dr. Max a získejte produkt za 108 Kč (sleva 13%)
+            <span>Staňte se členem věrnostního programu Dr. Max a získejte produkt za <span x-text="formatPrice(108)"></span> (sleva 13%)</span>
             <button class="btn btn-secondary btn-md">Přihlásit se</button>
           </div>
         </div>
@@ -3247,8 +4403,7 @@
   function cartPage() {
     return {
       koruny(v) {
-        try { return (Math.round(Number(v)) || 0).toLocaleString('cs-CZ') + ' Kč'; }
-        catch { return v + ' Kč'; }
+        return window.__fitMoney.format(v, { fromCurrency: 'CZK' });
       },
       calcCouponValue(store) {
         const sub = store.subtotal();
@@ -4014,7 +5169,7 @@ function deliveryPaymentUI() {
       return d ? `„${d.name}“ tuto platbu neumožňuje.` : 'Tato platba není dostupná pro vybranou dopravu.';
     },
     formatCZK(value) {
-      return new Intl.NumberFormat('cs-CZ', { maximumFractionDigits: 0 }).format(value) + '\u00A0Kč';
+      return window.__fitMoney.format(value, { fromCurrency: 'CZK' });
     },
     formatPickupAddress(addr) {
       if (!addr) return '';
@@ -5205,6 +6360,42 @@ function deliveryPaymentUI() {
         </div>
       </div>
       <div class="rounded-2xl border border-base-300 bg-white shadow-sm p-6 space-y-4">
+        <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+          <div class="max-w-xl">
+            <h2 class="text-lg font-semibold">Výchozí jazyk a měna</h2>
+            <p class="text-sm text-base-content/70">
+              Určuje, v jaké lokalizaci a měně se prototyp otevře. Změna se ihned uloží do <code>fit:app-config</code>.
+            </p>
+          </div>
+          <div class="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+            <label class="flex flex-col gap-2 w-full sm:w-52">
+              <span class="text-xs font-semibold uppercase tracking-wide text-base-content/50">Výchozí jazyk</span>
+              <select
+                class="select select-bordered w-full"
+                :value="localeCode"
+                @change="changeLocale($event.target.value)"
+              >
+                <template x-for="option in localeOptions" :key="option.code">
+                  <option :value="option.code" x-text="localeLabel(option)"></option>
+                </template>
+              </select>
+            </label>
+            <label class="flex flex-col gap-2 w-full sm:w-40">
+              <span class="text-xs font-semibold uppercase tracking-wide text-base-content/50">Výchozí měna</span>
+              <select
+                class="select select-bordered w-full"
+                :value="currencyCode"
+                @change="changeCurrency($event.target.value)"
+              >
+                <template x-for="option in currencyOptions" :key="option.code">
+                  <option :value="option.code" x-text="currencyLabel(option)"></option>
+                </template>
+              </select>
+            </label>
+          </div>
+        </div>
+      </div>
+      <div class="rounded-2xl border border-base-300 bg-white shadow-sm p-6 space-y-4">
         <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h2 class="text-lg font-semibold">
@@ -5340,8 +6531,10 @@ function deliveryPaymentUI() {
 <template x-if="is('map')">
   <section x-cloak
            x-data="pickupMapUI({
-             jsonUrl: './data/map-points.json',
-             enableClustering: true
+             jsonUrl: ($store.i18n.resolveConfig('map.points', { fallback: 'data/map-points.json' }) || 'data/map-points.json'),
+             enableClustering: true,
+             defaultCenter: (Alpine.store('i18n')?.resolveConfig('map.center') || [50.0755, 14.4378]),
+             defaultZoom: Number(Alpine.store('i18n')?.resolveConfig('map.zoom') || 12)
            })"
            x-init="init()"
            class="fixed inset-0 z-[80] flex flex-col bg-base-200/95 backdrop-blur-sm"
@@ -5599,20 +6792,38 @@ function deliveryPaymentUI() {
       <p class="text-sm opacity-70">© 2025 Dr. Max — All rights reserved</p>
   
       <!-- contact row -->
-      <address class="not-italic mt-2">
+      <address class="not-italic mt-2" x-init="$store.contacts.ensureLoaded?.()">
         <p class="flex flex-wrap items-center gap-y-2 gap-x-6">
-          <a href="tel:+420516770100"
-             class="group inline-flex items-center gap-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 rounded">
+          <a
+            href="tel:516770100"
+            :href="$store.contacts.primaryPhoneHref || $store.i18n.resolveConfig('contact.phone.href') || 'tel:516770100'"
+            @click="!($store.contacts.primaryPhoneHref || $store.i18n.resolveConfig('contact.phone.href')) && $event.preventDefault()"
+            class="group inline-flex items-center gap-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 rounded"
+            :aria-disabled="!($store.contacts.primaryPhoneHref || $store.i18n.resolveConfig('contact.phone.href'))"
+            aria-disabled="false"
+          >
             <i class="fa-solid fa-phone fa-sm" aria-hidden="true"></i>
-            <span class="group-hover:underline group-focus-visible:underline underline-offset-2">
-              +420 516 770 100
+            <span
+              class="group-hover:underline group-focus-visible:underline underline-offset-2"
+              x-text="$store.contacts.primaryPhone || $store.i18n.resolveConfig('contact.phone.display') || '516 770 100'"
+            >
+              516 770 100
             </span>
           </a>
-  
-          <a href="mailto:info@drmax.cz"
-             class="group inline-flex items-center gap-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 rounded">
+
+          <a
+            href="mailto:info@drmax.cz"
+            :href="$store.contacts.primaryEmailHref || ($store.contacts.primaryEmail ? `mailto:${$store.contacts.primaryEmail}` : 'mailto:info@drmax.cz')"
+            @click="!($store.contacts.primaryEmail || $store.contacts.primaryEmailHref) && $event.preventDefault()"
+            class="group inline-flex items-center gap-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 rounded"
+            :aria-disabled="!($store.contacts.primaryEmail || $store.contacts.primaryEmailHref)"
+            aria-disabled="false"
+          >
             <i class="fa-solid fa-envelope fa-sm" aria-hidden="true"></i>
-            <span class="group-hover:underline group-focus-visible:underline underline-offset-2">
+            <span
+              class="group-hover:underline group-focus-visible:underline underline-offset-2"
+              x-text="$store.contacts.primaryEmail || 'info@drmax.cz'"
+            >
               info@drmax.cz
             </span>
           </a>
@@ -6291,8 +7502,7 @@ this.$nextTick(() => requestAnimationFrame(focusRealInput));
     },
 
     formatPrice(v) {
-      const n = this._n(v);
-      return new Intl.NumberFormat('cs-CZ').format(n) + ' Kč';
+      return window.__fitMoney.format(v, { fromCurrency: 'CZK' });
     },
 
     // ================================
@@ -6845,14 +8055,15 @@ this.$nextTick(() => requestAnimationFrame(focusRealInput));
     },
 
     unitPriceText(p){
-      const v = Number(p?.volume ?? 0);
-      if (!v) return '—';
-      const num = new Intl.NumberFormat('cs-CZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(this.pricePerUnit(p));
-      return `${num} Kč / ${this.unitLabel(p)}`;
+  const v = Number(p?.volume ?? 0);
+  if (!v) return '—';
+  const perUnitBase = this.pricePerUnit(p);
+  const formatted = window.__fitMoney.format(perUnitBase, { fromCurrency: 'CZK' });
+  return `${formatted} / ${this.unitLabel(p)}`;
     },
 
     fmtPrice(v){
-      return new Intl.NumberFormat('cs-CZ', { style: 'currency', currency: 'CZK', maximumFractionDigits: 0 }).format(Number(v||0));
+      return window.__fitMoney.format(v, { fromCurrency: 'CZK' });
     },
 
     shortDesc(txt, n = 120){
@@ -6866,7 +8077,7 @@ this.$nextTick(() => requestAnimationFrame(focusRealInput));
     Alpine.data('storeApp', () => ({
 
 // persisted prefs
-locale: Alpine.$persist('cs').as('locale'),
+locale: Alpine.$persist('cs-CZ').as('locale'),
 
 // state
 products: [],
@@ -6896,6 +8107,7 @@ _filterTimer: null,
 page: 1,
 pageSize: 8,
 showCount: 8,
+skeletonBaseCount: 8,
 _initialDataLoaded: false,
 
 // router
@@ -6980,6 +8192,26 @@ init() {
     }
   });
 
+  this._onLocaleChange = () => {
+    this.reloadLocalizedContent();
+  };
+  window.addEventListener('fit:locale-change', this._onLocaleChange);
+  this._onResize = () => this.updateResponsivePagination();
+  window.addEventListener('resize', this._onResize);
+  this.updateResponsivePagination(true);
+  if (this.$el) {
+    this.$el.addEventListener('alpine:destroy', () => {
+      if (this._onLocaleChange) {
+        window.removeEventListener('fit:locale-change', this._onLocaleChange);
+        this._onLocaleChange = null;
+      }
+      if (this._onResize) {
+        window.removeEventListener('resize', this._onResize);
+        this._onResize = null;
+      }
+    });
+  }
+
   // 3) Load data
   this.loadData().then(() => {
     // set initial catalog once data exists
@@ -7017,10 +8249,65 @@ async loadBrands() {
   }
 },
 
+slugify(str = '') {
+  return String(str || '')
+    .normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '') || '';
+},
+normalizeGridTile(tile = {}) {
+  const label = String(tile.label || '').trim();
+  const slug = String(tile.slug || '').trim() || this.slugify(label || tile.image || '');
+  return {
+    image: String(tile.image || '').trim(),
+    label,
+    background: String(tile.background || 'bg-base-200').trim(),
+    slug
+  };
+},
+setCategoriesGridFrom(source) {
+  if (!Array.isArray(source)) {
+    this.categoriesGrid = [];
+    return;
+  }
+  const slugCount = new Map();
+  this.categoriesGrid = source
+    .map(tile => this.normalizeGridTile(tile))
+    .filter(item => item.image && item.label)
+    .map(item => {
+      let slug = item.slug || this.slugify(item.label || item.image);
+      if (!slug) slug = Math.random().toString(36).slice(2, 8);
+      if (slugCount.has(slug)) {
+        const next = slugCount.get(slug) + 1;
+        slugCount.set(slug, next);
+        slug = `${slug}-${next}`;
+      } else {
+        slugCount.set(slug, 1);
+      }
+      return { ...item, slug };
+    });
+},
+async reloadLocalizedContent() {
+  try {
+    const [categoriesData, linksData, gridData] = await Promise.all([
+      window.__fitI18n.loadData('data/categories.json'),
+      window.__fitI18n.loadData('data/links.json'),
+      window.__fitI18n.loadData('data/categories-grid.json')
+    ]);
+    this.navCategories = Array.isArray(categoriesData) ? categoriesData : [];
+    this.infoLinks = Array.isArray(linksData) ? linksData : [];
+    this.setCategoriesGridFrom(Array.isArray(gridData) ? gridData : []);
+  } catch (err) {
+    console.warn('reloadLocalizedContent failed', err);
+  }
+  await this.loadBlog();
+},
+
 async loadBlog() {
   try {
-    const res = await fetch('data/blog.json', { cache: 'no-store' });
-    const arr = await res.json();
+    const arr = await window.__fitI18n.loadData('data/blog.json');
     this.blogPosts = Array.isArray(arr)
       ? arr.filter(post => post?.title && post?.image)
       : [];
@@ -7089,24 +8376,6 @@ brandsShuffledFor(key, count = 18) {
   return this._brandCacheMap[key].slice(0, count);
 },
 async loadData() {
-  const slugify = (str = '') => {
-    return String(str || '')
-      .normalize('NFKD')
-      .replace(/[\u0300-\u036f]/g, '')
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/^-+|-+$/g, '') || '';
-  };
-  const normalizeGridTile = (tile = {}) => {
-    const label = String(tile.label || '').trim();
-    const slug = String(tile.slug || '').trim() || slugify(label || tile.image || '');
-    return {
-      image: String(tile.image || '').trim(),
-      label,
-      background: String(tile.background || 'bg-base-200').trim(),
-      slug
-    };
-  };
   try {
     const res = await fetch('data/products.json');
     this.products = await res.json();
@@ -7130,7 +8399,7 @@ async loadData() {
       this.priceBounds = { min: 0, max: normalizedMax };
       this.priceMin = 0;
       this.priceMax = normalizedMax;
-      this.priceQuickRanges = this.buildPriceQuickRanges(priceValues, normalizedMax);
+      this.priceQuickRanges = this.buildPriceQuickRanges(rawMin, rawMax, normalizedMax);
     } else {
       this.priceBounds = { min: 0, max: 0 };
       this.priceMin = 0;
@@ -7139,33 +8408,14 @@ async loadData() {
     }
 
     // 👉 optional data
-    const [cats, links, grid] = await Promise.allSettled([
-      fetch('data/categories.json').then(r => r.ok ? r.json() : []),
-      fetch('data/links.json').then(r => r.ok ? r.json() : []),
-      fetch('./categories-grid.json').then(r => r.ok ? r.json() : [])
+    const categoriesJson = await window.__fitI18n.loadData('data/categories.json');
+    this.navCategories = Array.isArray(categoriesJson) ? categoriesJson : [];
+    const [linksData, gridData] = await Promise.all([
+      window.__fitI18n.loadData('data/links.json'),
+      window.__fitI18n.loadData('data/categories-grid.json')
     ]);
-    this.navCategories = (cats.status === 'fulfilled'  && Array.isArray(cats.value))  ? cats.value  : [];
-    this.infoLinks     = (links.status === 'fulfilled' && Array.isArray(links.value)) ? links.value : [];
-    if (grid.status === 'fulfilled' && Array.isArray(grid.value)) {
-      const slugCount = new Map();
-      this.categoriesGrid = grid.value
-        .map(normalizeGridTile)
-        .filter(item => item.image && item.label)
-        .map(item => {
-          let slug = item.slug || slugify(item.label || item.image);
-          if (!slug) slug = Math.random().toString(36).slice(2, 8);
-          if (slugCount.has(slug)) {
-            const next = slugCount.get(slug) + 1;
-            slugCount.set(slug, next);
-            slug = `${slug}-${next}`;
-          } else {
-            slugCount.set(slug, 1);
-          }
-          return { ...item, slug };
-        });
-    } else {
-      this.categoriesGrid = [];
-    }
+    this.infoLinks = Array.isArray(linksData) ? linksData : [];
+    this.setCategoriesGridFrom(Array.isArray(gridData) ? gridData : []);
 
     // ---- HOMEPAGE derived data (lightweight heuristics) ----
     // pick top categories by product count
@@ -7185,39 +8435,47 @@ async loadData() {
   } catch (e) {
     console.error('Failed to load products.json', e);
     try {
-      const [cats, links, grid] = await Promise.allSettled([
-        fetch('data/categories.json').then(r => r.ok ? r.json() : []),
-        fetch('data/links.json').then(r => r.ok ? r.json() : []),
-        fetch('./categories-grid.json').then(r => r.ok ? r.json() : [])
+      const categoriesJson = await window.__fitI18n.loadData('data/categories.json');
+      this.navCategories = Array.isArray(categoriesJson) ? categoriesJson : [];
+      const [linksData, gridData] = await Promise.all([
+        window.__fitI18n.loadData('data/links.json'),
+        window.__fitI18n.loadData('data/categories-grid.json')
       ]);
-      this.navCategories = (cats.status === 'fulfilled'  && Array.isArray(cats.value))  ? cats.value  : [];
-      this.infoLinks     = (links.status === 'fulfilled' && Array.isArray(links.value)) ? links.value : [];
-      if (grid.status === 'fulfilled' && Array.isArray(grid.value)) {
-        const slugCount = new Map();
-        this.categoriesGrid = grid.value
-          .map(normalizeGridTile)
-          .filter(item => item.image && item.label)
-          .map(item => {
-            let slug = item.slug || slugify(item.label || item.image);
-            if (!slug) slug = Math.random().toString(36).slice(2, 8);
-            if (slugCount.has(slug)) {
-              const next = slugCount.get(slug) + 1;
-              slugCount.set(slug, next);
-              slug = `${slug}-${next}`;
-            } else {
-              slugCount.set(slug, 1);
-            }
-            return { ...item, slug };
-          });
-      } else {
-        this.categoriesGrid = [];
-      }
+      this.infoLinks = Array.isArray(linksData) ? linksData : [];
+      this.setCategoriesGridFrom(Array.isArray(gridData) ? gridData : []);
       await this.loadBlog();
     } catch {}
   } finally {
     this._initialDataLoaded = true;
     this.isLoading = false;
   }
+},
+
+updateResponsivePagination(force = false) {
+  const nextSize = this._responsivePageSize();
+  const prevSize = this.pageSize;
+  if (!force && nextSize === prevSize) return;
+  this.pageSize = nextSize;
+  this.skeletonBaseCount = nextSize;
+  if (force || this.page === 1) {
+    this.showCount = nextSize;
+  } else if (this.showCount < nextSize) {
+    this.showCount = nextSize;
+  } else if (prevSize !== nextSize && prevSize > 0) {
+    const pagesCovered = Math.ceil(this.showCount / prevSize);
+    this.showCount = pagesCovered * nextSize;
+  }
+},
+_responsivePageSize() {
+  const width = window.innerWidth || document.documentElement.clientWidth || 0;
+  if (width >= 1536) return 10;      // 5 cols * 2 rows
+  if (width >= 1280) return 8;       // 4 cols * 2 rows
+  if (width >= 1024) return 6;       // 3 cols * 2 rows
+  if (width >= 640)  return 4;       // 2 cols * 2 rows
+  return 4;
+},
+skeletonPlaceholderCount() {
+  return Math.max(this.skeletonBaseCount || this.pageSize || 4, 4);
 },
 
 // ---- scroll manager ----
@@ -7253,36 +8511,58 @@ optionsLabel() {
   if (this.onlyDiscounted)  on.push('V akci');
   return on.length ? this.truncate(on.join(', ')) : 'Možnosti';
 },
-buildPriceQuickRanges(rawMin, rawMax, normalizedMax) {
-  const ranges = [];
-  const min = Math.floor(Math.min(rawMin, normalizedMax) / 10) * 10;
-  const max = Math.ceil(Math.max(rawMax, min) / 10) * 10;
-  if (!(Number.isFinite(min) && Number.isFinite(max)) || max <= min) return ranges;
+buildPriceQuickRanges(_rawMin, rawMax, normalizedMax) {
+  const maxBound = Math.ceil(Number(normalizedMax) || 0);
+  if (!Number.isFinite(maxBound) || maxBound <= 0) return [];
   const segments = 4;
-  const span = max - min;
-  const step = Math.max(10, Math.ceil(span / segments / 10) * 10);
-  let start = min;
-  for (let i = 0; i < segments; i++) {
-    let end = i === segments - 1 ? max : Math.min(max, start + step);
-    if (end < start) end = start;
-    ranges.push({
-      min: Math.max(0, Math.floor(start / 10) * 10),
-      max: Math.ceil(end / 10) * 10
-    });
-    start = end + 1;
+  const step = Math.max(10, Math.ceil(maxBound / segments / 10) * 10);
+  const values = [];
+  for (let i = 1; i <= segments; i++) {
+    const candidate = Math.min(maxBound, step * i);
+    if (!Number.isFinite(candidate) || candidate <= 0) continue;
+    if (!values.includes(candidate)) values.push(candidate);
+    if (candidate >= maxBound) break;
   }
-  const deduped = [];
-  for (const r of ranges) {
-    if (!deduped.length || deduped[deduped.length - 1].min !== r.min || deduped[deduped.length - 1].max !== r.max) {
-      deduped.push(r);
-    }
-  }
-  return deduped;
+  return values;
 },
-priceRangeLabel(range) {
-  if (!range) return '';
-  const fmt = v => new Intl.NumberFormat('cs-CZ').format(Math.round(Number(v) || 0));
-  return `${fmt(range.min)} – ${fmt(range.max)} Kč`;
+_formatPriceRangeLabel(minValue, maxValue) {
+  if (!this.priceBounds) return '';
+  const minBound = Number(this.priceBounds.min ?? 0);
+  const maxBound = Number(this.priceBounds.max ?? 0);
+  if (!Number.isFinite(minBound) || !Number.isFinite(maxBound)) return '';
+  const min = Number.isFinite(Number(minValue)) ? Number(minValue) : minBound;
+  const max = Number.isFinite(Number(maxValue)) ? Number(maxValue) : maxBound;
+  const formatter = new Intl.NumberFormat('cs-CZ', {
+    style: 'currency',
+    currency: 'CZK',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0
+  });
+  const fmt = v => formatter.format(Math.max(0, Math.round(v)));
+  const hasMin = min > minBound;
+  const hasMax = max < maxBound;
+  if (hasMin && hasMax) return `${fmt(min)} – ${fmt(max)}`;
+  if (hasMin) return `Od ${fmt(min)}`;
+  if (hasMax) return `Do ${fmt(max)}`;
+  return `${fmt(minBound)} – ${fmt(maxBound)}`;
+},
+priceUpToLabel(maxValue) {
+  if (!Number.isFinite(Number(maxValue))) return '';
+  const formatter = new Intl.NumberFormat('cs-CZ', {
+    style: 'currency',
+    currency: 'CZK',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0
+  });
+  return `Do ${formatter.format(Math.max(0, Math.round(Number(maxValue))))}`;
+},
+priceFilterChipLabel() {
+  if (this.activePriceRangeIndex !== null) {
+    const maxVal = this.priceQuickRanges?.[this.activePriceRangeIndex];
+    if (Number.isFinite(Number(maxVal))) return this.priceUpToLabel(maxVal);
+  }
+  if (!this._priceRangeActive()) return '';
+  return this._formatPriceRangeLabel(this.priceMin, this.priceMax);
 },
 
 // ---- homepage helpers (images/logos; adapt paths as needed) ----
@@ -7350,8 +8630,7 @@ initStripe(el, leftKey = 'tpShowLeft', rightKey = 'tpShowRight') {
 
 // --- Pricing helpers (supports discounted_price from your feed) ---
 formatPrice(v) {
-  const n = Number(v || 0);
-  return n.toLocaleString('cs-CZ') + ' Kč';
+  return window.__fitMoney.format(v, { fromCurrency: 'CZK' });
 },
 currentPrice(p) {
   return (p?.discounted_price != null) ? Number(p.discounted_price) : Number(p?.price || 0);
@@ -7640,6 +8919,7 @@ async loadDetail(id) {
 
 // ---- filter helpers ----
 _priceRangeActive() {
+  if (this.activePriceRangeIndex !== null) return true;
   if (!this.priceBounds) return false;
   const minBound = Number(this.priceBounds.min ?? 0);
   const maxBound = Number(this.priceBounds.max ?? 0);
@@ -7669,16 +8949,35 @@ clampPrice(value, which = 'min') {
     if (this.priceMin !== lower) this.priceMin = lower;
   }
 },
+resetPriceFilter() {
+  this.activePriceRangeIndex = null;
+  if (!this.priceBounds) return;
+  const minBound = Number(this.priceBounds.min ?? 0);
+  const maxBound = Number(this.priceBounds.max ?? minBound);
+  if (Number.isFinite(minBound)) this.priceMin = minBound;
+  if (Number.isFinite(maxBound)) this.priceMax = maxBound;
+},
 filteredCount() { return this.filteredProducts().length; },
 
+sortOptions() {
+  return [
+    { value: 'priceAsc', label: 'Od nejlevnějšího' },
+    { value: 'priceDesc', label: 'Od nejdražšího' },
+    { value: 'alphaAsc', label: 'Abecedně A–Z' },
+    { value: 'alphaDesc', label: 'Abecedně Z–A' }
+  ];
+},
+sortOptionLabel(value) {
+  const entry = this.sortOptions().find(opt => opt.value === value);
+  return entry ? entry.label : 'Řadit dle';
+},
+sortButtonLabel() {
+  return this.sortOrder ? this.sortOptionLabel(this.sortOrder) : 'Řadit dle';
+},
 sortLabel() {
-  switch (this.sortOrder) {
-    case 'priceAsc':  return 'Řadit dle: Cena ↑';
-    case 'priceDesc': return 'Řadit dle: Cena ↓';
-    case 'alphaAsc':  return 'Řadit dle: Abecedně A–Z';
-    case 'alphaDesc': return 'Řadit dle: Abecedně Z–A';
-    default:          return 'Řadit dle: Doporučeno';
-  }
+  return this.sortOrder
+    ? `Řadit dle: ${this.sortOptionLabel(this.sortOrder)}`
+    : 'Řadit dle: Doporučeno';
 },
 toggleConsumer(val) {
   const i = this.selectedConsumers.indexOf(val);
@@ -7687,26 +8986,25 @@ toggleConsumer(val) {
   this.selectedConsumers = [...this.selectedConsumers]; // normalize
 },
 applyPriceQuickRange(idx) {
-  const range = this.priceQuickRanges?.[idx];
-  if (!range) {
-    this.activePriceRangeIndex = null;
-    if (this.priceBounds) {
-      this.priceMin = this.priceBounds.min;
-      this.priceMax = this.priceBounds.max;
-    }
+  if (idx === null || typeof idx === 'undefined') {
+    this.resetPriceFilter();
     return;
   }
-  if (this.activePriceRangeIndex === idx) {
-    this.activePriceRangeIndex = null;
-    if (this.priceBounds) {
-      this.priceMin = this.priceBounds.min;
-      this.priceMax = this.priceBounds.max;
-    }
-  } else {
-    this.activePriceRangeIndex = idx;
-    this.priceMin = Number(range.min);
-    this.priceMax = Number(range.max);
+  const index = Number(idx);
+  if (!Number.isFinite(index) || index < 0) {
+    this.resetPriceFilter();
+    return;
   }
+  const maxVal = Number(this.priceQuickRanges?.[index]);
+  if (!Number.isFinite(maxVal) || !this.priceBounds) {
+    this.resetPriceFilter();
+    return;
+  }
+  const minBound = Number(this.priceBounds.min ?? 0);
+  const maxBound = Number(this.priceBounds.max ?? maxVal);
+  this.activePriceRangeIndex = index;
+  this.priceMin = Number.isFinite(minBound) ? minBound : 0;
+  this.priceMax = Math.min(maxVal, Number.isFinite(maxBound) ? maxBound : maxVal);
 },
 
 hasActiveFilters() {
@@ -7742,23 +9040,17 @@ clearFilters() {
   this.benefitOnly = false;
   this.onlyDiscounted = false;
   this.sortOrder = '';
-  this.activePriceRangeIndex = null;
-  if (this.priceBounds) {
-    this.priceMin = this.priceBounds.min;
-    this.priceMax = this.priceBounds.max;
-  }
+  this.resetPriceFilter();
 },
 
 // ---- loader delay ----
 scheduleDisplayDelay() {
-  if (!this._initialDataLoaded) {
-    this.isLoading = true;
-    clearTimeout(this._filterTimer);
-    this._filterTimer = setTimeout(() => { this.isLoading = false; }, 750);
-  } else {
-    clearTimeout(this._filterTimer);
+  clearTimeout(this._filterTimer);
+  this.isLoading = true;
+  const delay = this._initialDataLoaded ? 1000 : 1000;
+  this._filterTimer = setTimeout(() => {
     this.isLoading = false;
-  }
+  }, delay);
 },
 
 // ---- filtering/sorting ----
@@ -8483,8 +9775,8 @@ refreshCheckoutReview() {
 
 formatCZK(value) {
   const num = Number(value);
-  if (!Number.isFinite(num)) return '0 Kč';
-  return new Intl.NumberFormat('cs-CZ', { maximumFractionDigits: 0 }).format(num) + '\u00A0Kč';
+  if (!Number.isFinite(num)) return window.__fitMoney.format(0, { fromCurrency: 'CZK' });
+  return window.__fitMoney.format(num, { fromCurrency: 'CZK' });
 },
 
 resetCheckoutConsents() {
@@ -8535,20 +9827,30 @@ loadCheckoutReviewFromStorage() {
     loading: false,
     error: null,
 
+    _currentLocale: null,
     async load(url = 'data/menus.json') {
+      const locale = (Alpine.store('i18n')?.locale) || window.__fitI18n.defaultLocale;
+      if (this._currentLocale && this._currentLocale !== locale) {
+        this.menus = [];
+      }
       if (this.menus.length) return;
       this.loading = true; this.error = null;
       try {
-        const res = await fetch(url);
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const raw = await res.json();
-        this.menus = this.normalize(raw);
+        const raw = await window.__fitI18n.loadData(url, { locale });
+        this.menus = Array.isArray(raw) ? this.normalize(raw) : [];
+        this._currentLocale = locale;
+        window.dispatchEvent(new CustomEvent('fit:menu-loaded', { detail: { locale } }));
       } catch (e) {
         console.error('menu load failed', e);
         this.error = 'Nepodařilo se načíst menu.';
       } finally {
         this.loading = false;
       }
+    },
+
+    refreshForLocale() {
+      this.menus = [];
+      this.load();
     },
 
     // Accepts either my camelCase schema or your snake_case + single-string icon
@@ -8830,12 +10132,23 @@ loadCheckoutReviewFromStorage() {
     };
     const prague = [50.0755, 14.4378];
     const placeholderImg = './images/pup-photos/placeholder.webp';
+    const normalizedCenter = Array.isArray(cfg?.defaultCenter) && cfg.defaultCenter.length === 2
+      ? cfg.defaultCenter.map((value, idx) => {
+          const num = Number(value);
+          return Number.isFinite(num) ? num : prague[idx];
+        })
+      : prague;
+    const normalizedZoom = Number.isFinite(Number(cfg?.defaultZoom))
+      ? Number(cfg.defaultZoom)
+      : 12;
   
     return {
       // CONFIG
       jsonUrl: cfg?.jsonUrl || './data/map-points.json',
       tracestrackKey: cfg?.tracestrackKey || '',
       enableClustering: !!cfg?.enableClustering,
+      defaultCenter: normalizedCenter,
+      defaultZoom: normalizedZoom,
 
       // STATE
       map: null,
@@ -8905,7 +10218,7 @@ loadCheckoutReviewFromStorage() {
           this.renderMarkers();
 
           this.withMap(m => {
-            m.setView([50.0755, 14.4378], 12);
+            m.setView(this.defaultCenter, this.defaultZoom);
             setTimeout(() => m.invalidateSize(false), 0);
           });
   
@@ -9023,9 +10336,9 @@ loadCheckoutReviewFromStorage() {
       },
   
       async loadData() {
-        const res = await fetch(this.jsonUrl);
-        const json = await res.json();
-        this.all = json.map(p => {
+        const json = await window.__fitI18n.loadData(this.jsonUrl);
+        const source = Array.isArray(json) ? json : [];
+        this.all = source.map(p => {
           const type = (p.type || '').toLowerCase();
           const entry = {
             ...p,
@@ -9430,6 +10743,46 @@ loadCheckoutReviewFromStorage() {
     };
   }
   </script>
+<script>
+  function rtbStrip() {
+    return {
+      items: [],
+      scrolled: false,
+      _onLocale: null,
+      async init() {
+        await this.load();
+        this._onLocale = () => this.load();
+        window.addEventListener('fit:locale-change', this._onLocale);
+        if (this.$el) {
+          this.$el.addEventListener('alpine:destroy', () => {
+            if (this._onLocale) {
+              window.removeEventListener('fit:locale-change', this._onLocale);
+              this._onLocale = null;
+            }
+          });
+        }
+      },
+      async load() {
+        try {
+          const data = await window.__fitI18n.loadData('data/rtbs.json');
+          this.items = Array.isArray(data) ? data : [];
+        } catch (err) {
+          console.warn('rtbs load failed', err);
+          this.items = [];
+        }
+        this.$nextTick(() => {
+          if (this.$refs?.rail) {
+            this.handleScroll({ target: this.$refs.rail });
+          }
+        });
+      },
+      handleScroll(event) {
+        const left = event?.target?.scrollLeft || 0;
+        this.scrolled = left > 8;
+      }
+    };
+  }
+</script>
 
 <script>
   // Recompute map size right after the route settles
@@ -9462,7 +10815,7 @@ loadCheckoutReviewFromStorage() {
     return p?.discounted_price && p.discounted_price < p.price;
   }
   function replaceWildcards(str, { price, dateStr }) {
-    return str
+    return String(str || '')
       .replaceAll('{{PRICE}}', String(price))
       .replaceAll('{{DATE}}', dateStr);
   }
@@ -9471,38 +10824,50 @@ loadCheckoutReviewFromStorage() {
     //preloads legal texts for legal tooltips
     Alpine.store('legal', {
       loaded: false,
+      _bound: false,
+      _locale: null,
       base: { legal_always: '', legal_extended: { price_info: '', date_info: '' } },
-  
+
       async init() {
-        if (this.loaded) return;
+        const locale = (Alpine.store('i18n')?.locale) || (window.__fitI18n?.defaultLocale) || 'cs-CZ';
+        if (this.loaded && this._locale === locale) return;
         try {
-          const res = await fetch('./data/legal.json', { cache: 'no-store' });
-          const arr = await res.json();
+          const arr = await window.__fitI18n.loadData('data/legal.json', { locale });
           // file structure is an array with one object
-          this.base = Array.isArray(arr) && arr[0] ? arr[0] : this.base; // :contentReference[oaicite:1]{index=1}
+          this.base = Array.isArray(arr) && arr[0] ? arr[0] : this.base;
           this.loaded = true;
+          this._locale = locale;
         } catch (e) {
           console.warn('Failed to load legal.json', e);
-          this.loaded = true; // fail-safe; show nothing rather than block UI
+          this.loaded = true;
+          this._locale = locale;
+        }
+        if (!this._bound) {
+          window.addEventListener('fit:locale-change', () => {
+            this.loaded = false;
+            this.init();
+          });
+          this._bound = true;
         }
       },
-  
+
       paragraphsFor(product) {
         const always = this.base?.legal_always || '';
         const ext = this.base?.legal_extended || {};
         const list = [];
   
         if (always) list.push(always);
-  
+
         if (isDiscounted(product)) {
           const dateStr = formatCZDate(randomDateWithinLast(30));
+          const formattedPrice = window.__fitMoney.format(product.price, { fromCurrency: 'CZK' });
           const priceInfo = ext.price_info
-            ? replaceWildcards(ext.price_info, { price: product.price, dateStr })
+            ? replaceWildcards(ext.price_info, { price: formattedPrice, dateStr })
             : '';
           const dateInfo = ext.date_info
-            ? replaceWildcards(ext.date_info, { price: product.price, dateStr })
+            ? replaceWildcards(ext.date_info, { price: formattedPrice, dateStr })
             : '';
-  
+
           if (priceInfo) list.push(priceInfo);
           if (dateInfo) list.push(dateInfo);
         }
@@ -9578,10 +10943,14 @@ loadCheckoutReviewFromStorage() {
     Alpine.data('configPage', () => ({
       store: null,
       orderStore: null,
+      localeStore: null,
+      defaultLocale: (window.__fitI18n && window.__fitI18n.defaultLocale) || 'cs-CZ',
+      defaultCurrency: (window.__fitI18n && window.__fitI18n.defaultCurrency) || 'CZK',
       selectedStep: '',
       init() {
         this.store = Alpine.store('appConfig');
         this.orderStore = Alpine.store('activeOrder');
+        this.localeStore = Alpine.store('i18n');
         Promise.resolve(this.orderStore?.ensureData?.());
         this.selectedStep = this.orderStore?.order?.currentStepId || '';
         this.$watch(() => this.orderStore?.order, () => {
@@ -9590,6 +10959,7 @@ loadCheckoutReviewFromStorage() {
         this.$watch(() => this.orderStore?.order?.currentStepId, (value) => {
           this.selectedStep = value || '';
         });
+        Promise.resolve(this.localeStore?.ensureCurrencyConfig?.());
       },
       get showBadge() {
         return !!(this.store?.get ? this.store.get('showBreakpointBadge') : this.store?.showBreakpointBadge);
@@ -9602,6 +10972,56 @@ loadCheckoutReviewFromStorage() {
           this.store.showBreakpointBadge = !!value;
           this.store.persist?.();
         }
+      },
+      get localeCode() {
+        return this.localeStore?.locale || this.defaultLocale;
+      },
+      get localeOptions() {
+        return this.localeStore?.listLocales?.() || [];
+      },
+      localeLabel(option) {
+        if (!option) return '';
+        const fallback = option.nativeName || option.englishName || option.code;
+        return typeof window.t === 'function'
+          ? t('header.languageMenu.options.' + option.code, fallback)
+          : fallback;
+      },
+      changeLocale(value) {
+        const code = String(value || '').trim();
+        if (!code) return;
+        this.localeStore?.setLocale?.(code);
+      },
+      get currencyCode() {
+        return this.localeStore?.currency || this.defaultCurrency;
+      },
+      get currencyOptions() {
+        const list = [];
+        const store = this.localeStore;
+        const config = store?.currencyConfig || {};
+        const currencies = config.currencies || {};
+        const seen = new Set();
+        const pushMeta = (code) => {
+          if (!code || seen.has(code)) return;
+          const meta = currencies[code] || {};
+          list.push({ code, ...meta });
+          seen.add(code);
+        };
+        pushMeta(config.baseCurrency || this.defaultCurrency);
+        Object.keys(currencies).forEach(pushMeta);
+        if (!list.length) {
+          pushMeta(this.currencyCode);
+        }
+        return list;
+      },
+      currencyLabel(option) {
+        if (!option) return '';
+        const symbol = option.symbol && option.symbol !== option.code ? ` (${option.symbol})` : '';
+        return `${option.code}${symbol}`;
+      },
+      changeCurrency(value) {
+        const code = String(value || '').trim();
+        if (!code) return;
+        this.localeStore?.setCurrency?.(code);
       },
       resetAll() {
         if (typeof this.store?.reset === 'function') {
@@ -9944,8 +11364,9 @@ loadCheckoutReviewFromStorage() {
     onKeydown(e) { if (e.key === 'ArrowLeft') this.prev(); if (e.key === 'ArrowRight') this.next(); },
 
     async loadData() {
+      const locale = Alpine.store('i18n')?.locale || window.__fitI18n?.defaultLocale || 'cs-CZ';
       const [slides, tpls] = await Promise.all([
-        fetch('data/slides.json').then(r => r.json()).catch(() => []),
+        window.__fitI18n.loadData('data/slides.json', { locale }),
         fetch('data/banner_templates.json').then(r => r.json()).catch(() => []),
       ]);
 
@@ -9971,6 +11392,14 @@ loadCheckoutReviewFromStorage() {
 
       await this.loadData();
       this.startAutoplay();
+      window.addEventListener('fit:locale-change', () => {
+        this.loadData().then(() => {
+          this.index = Math.min(this.index, Math.max(0, this.count() - 1));
+          this.measure();
+          this.stopAutoplay();
+          this.startAutoplay();
+        });
+      });
 
       // Hover pause (desktop)
       this.$root.addEventListener('mouseenter', () => this.stopAutoplay(), { passive: true });
@@ -10182,7 +11611,7 @@ loadCheckoutReviewFromStorage() {
                       <div class="rounded-xl border border-base-300 p-3 bg-gradient-to-br from-base-100 to-base-200">
                         <div class="flex items-center justify-between">
                           <img src="./images/logoDrmax.svg" alt="Dr. Max" class="h-6">
-                          <span class="text-xs font-semibold text-success">Celková úspora: 123 Kč</span>
+                          <span class="text-xs font-semibold text-success">Celková úspora: <span x-text="formatPrice(123)"></span></span>
                         </div>
                         <div class="mt-3 text-center">
                           <div class="font-mono text-lg tracking-widest">1234 5678 9012</div>
@@ -10197,10 +11626,26 @@ loadCheckoutReviewFromStorage() {
                   <!-- special: language list (radio-like) -->
                   <template x-if="sec.type === 'language'">
                     <div class="divide-y divide-base-200 bg-base-100 rounded-lg mx-2">
-                      <template x-for="(it, i) in (sec.items || [])" :key="'lang-'+i">
-                        <button class="w-full text-left py-3 px-3 flex items-center gap-3 hover:bg-base-200/60 transition">
-                          <i :class="it.icon === 'check' ? 'fa-solid fa-circle-check text-success' : 'fa-regular fa-circle text-base-content/40'"></i>
-                          <span class="font-medium" x-text="it.name"></span>
+                      <template x-for="locale in ($store.i18n?.listLocales?.() || [])" :key="'lang-'+locale.code">
+                        <button
+                          class="w-full text-left py-3 px-3 flex items-center gap-3 hover:bg-base-200/60 transition"
+                          @click.stop.prevent="$store.i18n?.setLocale?.(locale.code)"
+                        >
+                          <i
+                            :class="$store.i18n?.locale === locale.code
+                              ? 'fa-solid fa-circle-check text-success'
+                              : 'fa-regular fa-circle text-base-content/40'"
+                          ></i>
+                          <div class="flex-1">
+                            <div class="font-medium"
+                              x-text="t('header.languageMenu.options.' + locale.code, locale.nativeName || locale.englishName || locale.code)">
+                            </div>
+                            <div
+                              x-show="locale.currency"
+                              class="text-xs text-base-content/60 mt-0.5"
+                              x-text="locale.currency"
+                            ></div>
+                          </div>
                         </button>
                       </template>
                     </div>
@@ -10403,6 +11848,121 @@ loadCheckoutReviewFromStorage() {
     </section>
   </div>
 </template>
+
+<!-- CONTACTS MODAL -->
+<dialog
+  id="contact_modal"
+  x-data="contactModal()"
+  x-ref="dlg"
+  x-effect="
+    const s = $store.contacts;
+    if (s && s.open) { $refs.dlg.open || $refs.dlg.showModal(); }
+    else if ($refs.dlg.open) { $refs.dlg.close(); }
+  "
+  @click.self="close()"
+  @keydown.escape.window="close()"
+  @close.prevent="close()"
+  class="modal"
+  aria-labelledby="contact_modal_title"
+>
+  <div class="modal-box w-11/12 max-w-3xl bg-base-200 px-4 lg:px-8 py-6 lg:py-8">
+    <div class="flex items-start justify-between gap-4">
+      <div>
+        <h2 id="contact_modal_title" class="text-2xl font-semibold" x-text="t('header.actions.phone.modalTitle', 'Kontaktujte nás')">
+          Kontaktujte nás
+        </h2>
+        <p class="text-sm text-base-content/70 mt-1" x-text="t('header.actions.phone.modalSubtitle', 'Vyberte si preferovaný způsob komunikace.')">
+          Vyberte si preferovaný způsob komunikace.
+        </p>
+      </div>
+      <button
+        type="button"
+        class="btn btn-sm btn-circle btn-ghost"
+        @click="close()"
+        aria-label="Zavřít kontakty"
+        :aria-label="t('header.actions.phone.close', 'Zavřít kontakty')"
+      >
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+
+    <div class="mt-6">
+      <div class="flex items-center gap-3 text-base-content/70" x-show="isLoading" x-cloak>
+        <span class="loading loading-spinner loading-sm"></span>
+        <span x-text="t('header.actions.phone.loading', 'Načítáme kontakty…')">Načítáme kontakty…</span>
+      </div>
+
+      <div class="alert alert-warning mt-4" x-show="hasError" x-cloak role="alert">
+        <i class="fa-solid fa-triangle-exclamation"></i>
+        <span x-text="errorMessage || t('header.actions.phone.error', 'Kontakty se nepodařilo načíst. Zkuste to prosím znovu.')">
+          Kontakty se nepodařilo načíst. Zkuste to prosím znovu.
+        </span>
+      </div>
+
+      <div x-show="!isLoading && !hasError" x-cloak>
+        <template x-if="items.length">
+          <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 mt-4">
+            <template x-for="contact in items" :key="contact.id">
+              <article
+                class="card bg-base-100 border border-base-300/40 shadow-sm h-full transition hover:border-primary/60 focus-within:border-primary/60"
+                :class="$store.contacts.primary?.id === contact.id ? 'border-primary/60 ring-1 ring-primary/40' : ''"
+              >
+                <div class="card-body p-4 flex flex-col gap-4">
+                  <div class="flex items-start gap-3">
+                    <span class="w-12 h-12 rounded-full bg-primary/10 text-primary grid place-items-center flex-none">
+                      <i :class="contact.icon || 'fa-regular fa-address-card'"></i>
+                    </span>
+                    <div class="flex-1 min-w-0">
+                      <h3 class="text-lg font-semibold leading-snug" x-text="contact.name"></h3>
+                      <p class="text-sm text-base-content/70 mt-1" x-text="contact.description"></p>
+                    </div>
+                  </div>
+                  <div class="space-y-2">
+                    <template x-if="contact.phone">
+                      <a
+                        class="btn btn-sm btn-outline btn-primary w-full justify-start gap-2"
+                        :href="phoneHref(contact) || '#'"
+                        @click="phoneHref(contact) ? close() : $event.preventDefault()"
+                      >
+                        <i class="fa-solid fa-phone"></i>
+                        <span x-text="contact.phone"></span>
+                      </a>
+                    </template>
+                    <template x-if="contact.email">
+                      <a
+                        class="btn btn-sm btn-outline btn-primary w-full justify-start gap-2"
+                        :href="emailHref(contact) || '#'"
+                        @click="emailHref(contact) ? close() : $event.preventDefault()"
+                      >
+                        <i class="fa-solid fa-envelope"></i>
+                        <span x-text="contact.email"></span>
+                      </a>
+                    </template>
+                    <template x-if="routeHref(contact)">
+                      <a
+                        class="btn btn-sm btn-outline w-full justify-start gap-2"
+                        :href="routeHref(contact)"
+                        @click="handleRoute(contact, $event)"
+                      >
+                        <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                        <span x-text="t('header.actions.phone.route', 'Přejít na stránku')">Přejít na stránku</span>
+                      </a>
+                    </template>
+                  </div>
+                </div>
+              </article>
+            </template>
+          </div>
+        </template>
+        <p class="mt-4 text-sm text-base-content/70" x-show="!items.length">
+          <span x-text="t('header.actions.phone.empty', 'Momentálně nejsou dostupné žádné kontakty.')">
+            Momentálně nejsou dostupné žádné kontakty.
+          </span>
+        </p>
+      </div>
+    </div>
+  </div>
+</dialog>
 
 <!-- PRE-BASKET MODAL -->
 <dialog
@@ -10713,6 +12273,11 @@ function topNav() {
     async init() {
       await Alpine.store('menu').load();
       this.extractItems();
+      this._onMenuLoaded = () => {
+        this.extractItems();
+        this.scheduleMeasure();
+      };
+      window.addEventListener('fit:menu-loaded', this._onMenuLoaded);
       this.setupMediaWatcher();
       this.$nextTick(() => {
         this.setupResizeObserver();
@@ -10725,6 +12290,7 @@ function topNav() {
       if (this._mq && this._mqHandler) this._mq.removeEventListener('change', this._mqHandler);
       if (this._ro) this._ro.disconnect();
       if (this._raf) cancelAnimationFrame(this._raf);
+      if (this._onMenuLoaded) window.removeEventListener('fit:menu-loaded', this._onMenuLoaded);
     },
 
     setupMediaWatcher() {
@@ -10762,12 +12328,30 @@ function topNav() {
 
       const highlightsRaw = Array.isArray(highlightSection.items) ? highlightSection.items.slice() : [];
       let drawer = null;
-      const drawerIndex = highlightsRaw.findIndex(it => String(it.name || '').toLowerCase().includes('procházet kategorie'));
+      const normalizeName = (value) => String(value || '').toLowerCase().replace(/\s*•$/, '').trim();
+      const drawerLabels = (() => {
+        const base = 'Procházet kategorie';
+        const translated = typeof window.t === 'function'
+          ? window.t('header.nav.browseCategories', base)
+          : base;
+        const english = 'Browse categories';
+        const names = [base, translated, english]
+          .map(normalizeName)
+          .filter(Boolean);
+        return Array.from(new Set(names));
+      })();
+      const drawerIndex = highlightsRaw.findIndex((it) => {
+        const name = normalizeName(it?.name);
+        return drawerLabels.some(label => label && name.includes(label));
+      });
       if (drawerIndex >= 0) {
         drawer = highlightsRaw.splice(drawerIndex, 1)[0];
       }
       if (!drawer) {
-        drawer = { name: 'Procházet kategorie', linkMenuId: 2 };
+        const fallbackName = typeof window.t === 'function'
+          ? window.t('header.nav.browseCategories', 'Procházet kategorie')
+          : 'Procházet kategorie';
+        drawer = { name: fallbackName, linkMenuId: 2, _i18nKey: 'header.nav.browseCategories' };
       }
       this.drawerItem = this.normalizeItem(drawer, 'drawer', true, 0);
       this.highlightItems = highlightsRaw.map((item, idx) => this.normalizeItem(item, 'highlight', false, idx));
@@ -10785,7 +12369,8 @@ function topNav() {
         linkMenuId: raw?.linkMenuId ?? null,
         route: raw?.route ?? '',
         key,
-        isDrawer
+        isDrawer,
+        translationKey: raw?._i18nKey || null
       };
     },
 
@@ -10861,6 +12446,16 @@ function pageFooter() {
     async init() {
       await Alpine.store('menu').load();
       this.buildColumns();
+      this._onMenuLoaded = () => this.buildColumns();
+      window.addEventListener('fit:menu-loaded', this._onMenuLoaded);
+      if (this.$el) {
+        this.$el.addEventListener('alpine:destroy', () => {
+          if (this._onMenuLoaded) {
+            window.removeEventListener('fit:menu-loaded', this._onMenuLoaded);
+            this._onMenuLoaded = null;
+          }
+        });
+      }
     },
 
     buildColumns() {
@@ -10914,6 +12509,43 @@ function pageFooter() {
   };
 }
 
+function contactModal() {
+  return {
+    get store() { return Alpine.store('contacts'); },
+    get items() { return this.store?.items || []; },
+    get isLoading() { return (this.store?.status || '') === 'loading'; },
+    get hasError() { return (this.store?.status || '') === 'error'; },
+    get errorMessage() { return this.store?.error || ''; },
+    phoneHref(contact) { return this.store?.phoneHref(contact) || null; },
+    emailHref(contact) { return this.store?.emailHref(contact) || null; },
+    routeHref(contact) { return this.store?.routeHref(contact) || null; },
+    close() {
+      this.store?.closeModal?.();
+    },
+    handleRoute(contact, event) {
+      const href = this.routeHref(contact);
+      if (!href) {
+        event?.preventDefault?.();
+        return;
+      }
+      if (event && (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || event.button === 1)) {
+        return;
+      }
+      event?.preventDefault?.();
+      this.close();
+      if (/^(https?:)?\/\//i.test(href) || href.startsWith('/')) {
+        window.location.href = href;
+        return;
+      }
+      if (href.startsWith('#')) {
+        window.location.hash = href;
+        return;
+      }
+      window.location.href = href;
+    }
+  };
+}
+
 function precartModal() {
   const randId = Math.random().toString(36).slice(2, 9);
   return {
@@ -10923,9 +12555,16 @@ function precartModal() {
 
     // price formatter; fallback if global isn't present
     koruny(v) {
+      if (window.__fitMoney) return window.__fitMoney.format(v, { fromCurrency: 'CZK' });
       if (window.koruny) return window.koruny(v);
-      try { return new Intl.NumberFormat('cs-CZ', { style: 'currency', currency: 'CZK', maximumFractionDigits: 0 }).format(v); }
-      catch { return `${v} Kč`; }
+      try {
+        const currency = (window.__fitI18n && window.__fitI18n.defaultCurrency) || 'CZK';
+        return new Intl.NumberFormat('cs-CZ', { style: 'currency', currency, maximumFractionDigits: 0 }).format(v);
+      }
+      catch {
+        const currency = (window.__fitI18n && window.__fitI18n.defaultCurrency) || 'CZK';
+        return `${v} ${currency}`;
+      }
     },
 
     // link builder; use your existing global link() if available

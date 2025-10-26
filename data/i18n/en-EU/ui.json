@@ -1,0 +1,58 @@
+{
+  "header": {
+    "languageMenu": {
+      "label": "Language",
+      "options": {
+        "cs-CZ": "Czech",
+        "en-EU": "English",
+        "sk-SK": "Slovak"
+      }
+    },
+    "links": {
+      "map": "Pharmacy & pickup map"
+    },
+    "search": {
+      "ariaLabel": "Search",
+      "placeholder": "Search by name",
+      "recent": "Recently searched",
+      "startTyping": "Start typing your query…",
+      "noResults": "No results",
+      "badges": {
+        "product": "Product",
+        "category": "Category",
+        "info": "Info"
+      }
+    },
+    "actions": {
+      "menu": {
+        "aria": "Open menu",
+        "label": "Menu"
+      },
+      "activeOrder": {
+        "aria": "Open active order",
+        "label": "Active order"
+      },
+      "saved": {
+        "aria": "Open saved items",
+        "label": "Saved items"
+      },
+      "account": {
+        "aria": "Open my account",
+        "label": "My account"
+      },
+      "cart": {
+        "aria": "Open cart",
+        "label": "Cart"
+      },
+      "phone": {
+        "aria": "Call customer support"
+      }
+    },
+    "nav": {
+      "browseCategories": "Browse categories"
+    }
+  },
+  "banners": {
+    "legalLink": "Promotion terms"
+  }
+}

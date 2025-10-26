@@ -1,0 +1,65 @@
+{
+  "id": 30,
+  "name": "Dr. Max Ambroxol 30 mg/5 ml sirup 100 ml",
+  "registeredMedicament": true,
+  "brand": "Dr. Max",
+  "productLine": "Ambroxol",
+  "reviews": {
+    "rating": 0.0,
+    "count": 0
+  },
+  "perex": "Ambroxol Dr. Max sirup zkapalňuje hustý hlen a usnadňuje vykašlávání při kašli.",
+  "category": "Kašel",
+  "stock": "Skladem na e-shopu",
+  "pharmacyStock": "ve 0 lékárnách",
+  "SKU": "50136031",
+  "badges": [
+    "Ušetříte 20 %"
+  ],
+  "images": [
+    "./images/ambroxol.webp"
+  ],
+  "price": 149,
+  "discounted_price": 119,
+  "comparison_id": null,
+  "variants": [
+    {
+      "id": "100ml",
+      "name": "Dr. Max Ambroxol 30 mg/5 ml sirup 100 ml",
+      "label": "100 ml",
+      "price": 149,
+      "discounted_price": 119
+    }
+  ],
+  "description": "<h2>Úvod</h2>\n<p>Ambroxol sirup obsahuje mukolytikum ambroxol, které zkapalňuje hlen v dýchacích cestách a usnadňuje vykašlávání. Je určen k léčbě vlhkého kašle.</p>\n<h2>Dávkování</h2>\n<p>Dospělí a dospívající od 12 let užívají 5 ml sirupu 3× denně, lze zvýšit na 10 ml 2× denně. Děti 6–12 let 2,5 ml 2–3× denně, děti 2–5 let 1,25 ml 3× denně. Nepoužívejte déle než 10 dnů bez konzultace s lékařem.</p>\n<h2>Složení</h2>\n<p>Obsahuje ambroxoli hydrochloridum 6 mg v 1 ml sirupu a pomocné látky: sorbitol, glycerol, kyselinu citronovou, benzoan sodný, červené barvivo a jahodové aroma.</p>\n<h2>Upozornění</h2>\n<p>Léčivý přípravek. Nepřekračujte doporučené dávkování. Přípravek je určen pro dospělé a děti od 2 let. Po otevření spotřebujte do 6 měsíců.</p>",
+  "parameters": [
+    {
+      "name": "Léčivá látka",
+      "value": "ambroxoli hydrochloridum 30 mg/5 ml"
+    },
+    {
+      "name": "Forma",
+      "value": "Sirup"
+    },
+    {
+      "name": "Velikost balení",
+      "value": "100 ml"
+    },
+    {
+      "name": "Výrobce",
+      "value": "Dr. Max"
+    },
+    {
+      "name": "SUKL kód",
+      "value": "229190"
+    },
+    {
+      "name": "EAN",
+      "value": "8595566453640"
+    },
+    {
+      "name": "Farmakoterapeutická skupina",
+      "value": "Mukolytika"
+    }
+  ]
+}
