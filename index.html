@@ -2655,17 +2655,6 @@
          class="w-11/12 mx-auto px-4 pt-8"
          x-data="{ mobileFiltersOpen: false }"
          @keydown.escape.window="mobileFiltersOpen = false">
-  <div class="flex flex-wrap items-center justify-between gap-3">
-    <div class="flex items-center gap-2">
-      <button type="button"
-              class="btn btn-outline btn-sm lg:hidden"
-              @click="mobileFiltersOpen = true">
-        <i class="fa-solid fa-filter"></i>
-        <span>Filtry</span>
-      </button>
-
-    </div>
-  </div>
 
   <div class="lg:grid lg:grid-cols-[minmax(260px,320px)_1fr] lg:gap-6 relative">
     <div x-cloak
@@ -2674,7 +2663,7 @@
          class="fixed inset-0 z-40 bg-base-200/70 backdrop-blur-sm lg:hidden"
          @click.self="mobileFiltersOpen = false"></div>
 
-    <aside class="fixed inset-y-0 left-0 w-5/6 max-w-xs bg-base-100 shadow-xl transform -translate-x-full transition-transform duration-300 ease-out overflow-y-auto z-50 p-6 pb-10 lg:relative lg:inset-auto lg:w-full lg:max-w-none lg:bg-transparent lg:shadow-none lg:p-0 lg:pb-12 lg:translate-x-0 lg:transform-none lg:overflow-visible mb-10"
+    <aside class="fixed inset-y-0 left-0 w-5/6 max-w-xs bg-base-100 shadow-xl transform -translate-x-full transition-transform duration-300 ease-out overflow-y-auto z-50 p-6 pb-10 lg:relative lg:inset-auto lg:w-full lg:max-w-none lg:bg-transparent lg:shadow-none lg:p-0 lg:pb-12 lg:translate-x-0 lg:transform-none lg:overflow-visible"
            :class="mobileFiltersOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'">
       <div class="lg:hidden flex items-center justify-between mb-4">
         <h3 class="text-lg font-semibold">Filtry</h3>
@@ -2683,7 +2672,83 @@
         </button>
       </div>
 
-      <div class="space-y-6 lg:pr-12 lg:pt-2 lg:pb-8 mb-10">
+      <div class="lg:hidden space-y-2 mb-6" x-data>
+        <h4 class="text-sm font-semibold text-base-content/70">Rychlé filtry</h4>
+        <div class="flex flex-wrap gap-2">
+          <button type="button"
+                  class="btn btn-sm rounded-full transition-colors"
+                  :class="onlyInStock ? 'btn-secondary text-white' : 'btn-outline btn-secondary'"
+                  :aria-pressed="onlyInStock"
+                  @click="onlyInStock = !onlyInStock">
+            <span class="flex items-center gap-2">
+              <span>Pouze skladem</span>
+              <i class="fa-solid fa-xmark text-xs" x-show="onlyInStock" x-cloak></i>
+            </span>
+          </button>
+          <button type="button"
+                  class="btn btn-sm rounded-full transition-colors"
+                  :class="benefitOnly ? 'btn-secondary text-white' : 'btn-outline btn-secondary'"
+                  :aria-pressed="benefitOnly"
+                  @click="benefitOnly = !benefitOnly">
+            <span class="flex items-center gap-2">
+              <span>Lze platit benefity</span>
+              <i class="fa-solid fa-xmark text-xs" x-show="benefitOnly" x-cloak></i>
+            </span>
+          </button>
+          <button type="button"
+                  class="btn btn-sm rounded-full transition-colors"
+                  :class="onlyDiscounted ? 'btn-secondary text-white' : 'btn-outline btn-secondary'"
+                  :aria-pressed="onlyDiscounted"
+                  @click="onlyDiscounted = !onlyDiscounted">
+            <span class="flex items-center gap-2">
+              <span>Produkty v akci</span>
+              <i class="fa-solid fa-xmark text-xs" x-show="onlyDiscounted" x-cloak></i>
+            </span>
+          </button>
+          <template x-if="selectedCategory">
+            <button type="button"
+                    class="btn btn-sm rounded-full transition-colors btn-secondary text-white"
+                    @click="selectedCategory = ''">
+              <span class="flex items-center gap-2">
+                <span x-text="selectedCategory"></span>
+                <i class="fa-solid fa-xmark text-xs"></i>
+              </span>
+            </button>
+          </template>
+          <template x-if="selectedForm">
+            <button type="button"
+                    class="btn btn-sm rounded-full transition-colors btn-secondary text-white"
+                    @click="selectedForm = ''">
+              <span class="flex items-center gap-2">
+                <span x-text="selectedForm"></span>
+                <i class="fa-solid fa-xmark text-xs"></i>
+              </span>
+            </button>
+          </template>
+          <template x-for="cons in selectedConsumers" :key="'cons-chip-mobile-'+cons">
+            <button type="button"
+                    class="btn btn-sm rounded-full transition-colors btn-secondary text-white"
+                    @click="toggleConsumer(cons)">
+              <span class="flex items-center gap-2">
+                <span x-text="cons"></span>
+                <i class="fa-solid fa-xmark text-xs"></i>
+              </span>
+            </button>
+          </template>
+          <template x-if="_priceRangeActive()">
+            <button type="button"
+                    class="btn btn-sm rounded-full transition-colors btn-secondary text-white"
+                    @click="resetPriceFilter()">
+              <span class="flex items-center gap-2">
+                <span x-text="priceFilterChipLabel()"></span>
+                <i class="fa-solid fa-xmark text-xs"></i>
+              </span>
+            </button>
+          </template>
+        </div>
+      </div>
+
+      <div class="space-y-6 lg:pr-12 lg:pt-2 lg:pb-8">
 
 
         <div class="space-y-3" x-data="{ showAllCategories: false, limit: 6 }">
@@ -2901,93 +2966,106 @@
         <h1 class="text-3xl font-semibold">Zdraví a léky <span class="text-max-gray-400 font-normal">(<span x-text="filteredCount()"></span>)</span></h1>
       </div>
       <div class="sticky top-0 z-30 bg-base-200 border-b border-base-200 py-3">
-        <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div class="flex flex-wrap items-center gap-2">
-            <button type="button"
-                    class="btn btn-md rounded-full transition-colors"
-                    :class="onlyInStock ? 'btn-secondary text-white' : 'btn-outline btn-secondary'"
-                    :aria-pressed="onlyInStock"
-                    @click="onlyInStock = !onlyInStock">
-              <span class="flex items-center gap-2">
-                <span>Pouze skladem</span>
-                <i class="fa-solid fa-xmark text-xs" x-show="onlyInStock" x-cloak></i>
-              </span>
-            </button>
-            <button type="button"
-                    class="btn btn-md rounded-full transition-colors"
-                    :class="benefitOnly ? 'btn-secondary text-white' : 'btn-outline btn-secondary'"
-                    :aria-pressed="benefitOnly"
-                    @click="benefitOnly = !benefitOnly">
-              <span class="flex items-center gap-2">
-                <span>Lze platit benefity</span>
-                <i class="fa-solid fa-xmark text-xs" x-show="benefitOnly" x-cloak></i>
-              </span>
-            </button>
-            <button type="button"
-                    class="btn btn-md rounded-full transition-colors"
-                    :class="onlyDiscounted ? 'btn-secondary text-white' : 'btn-outline btn-secondary'"
-                    :aria-pressed="onlyDiscounted"
-                    @click="onlyDiscounted = !onlyDiscounted">
-              <span class="flex items-center gap-2">
-                <span>Produkty v akci</span>
-                <i class="fa-solid fa-xmark text-xs" x-show="onlyDiscounted" x-cloak></i>
-              </span>
-            </button>
-            <template x-if="selectedCategory">
+        <div class="flex flex-wrap items-center gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div class="flex items-center justify-between gap-2">
+            <div class="relative flex lg:hidden">
               <button type="button"
-                      class="btn btn-md rounded-full transition-colors btn-secondary text-white"
-                      @click="selectedCategory = ''">
+                      class="btn btn-md rounded-full btn-secondary"
+                      @click="mobileFiltersOpen = true">
+                <i class="fa-solid fa-filter"></i>
+                <span>Filtry</span>
+              </button>
+              <span class="absolute -top-1 -right-1 block h-2.5 w-2.5 rounded-full bg-error"
+                    x-show="hasActiveFilters()"
+                    x-cloak
+                    aria-hidden="true"></span>
+            </div>
+
+            <div class="hidden md:flex flex-wrap items-center gap-2">
+              <button type="button"
+                      class="btn btn-md rounded-full transition-colors"
+                      :class="onlyInStock ? 'btn-secondary text-white' : 'btn-outline btn-secondary'"
+                      :aria-pressed="onlyInStock"
+                      @click="onlyInStock = !onlyInStock">
                 <span class="flex items-center gap-2">
-                  <span x-text="selectedCategory"></span>
-                  <i class="fa-solid fa-xmark text-xs"></i>
+                  <span>Pouze skladem</span>
+                  <i class="fa-solid fa-xmark text-xs" x-show="onlyInStock" x-cloak></i>
                 </span>
               </button>
-            </template>
-            <template x-if="selectedForm">
               <button type="button"
-                      class="btn btn-md rounded-full transition-colors btn-secondary text-white"
-                      @click="selectedForm = ''">
+                      class="btn btn-md rounded-full transition-colors"
+                      :class="benefitOnly ? 'btn-secondary text-white' : 'btn-outline btn-secondary'"
+                      :aria-pressed="benefitOnly"
+                      @click="benefitOnly = !benefitOnly">
                 <span class="flex items-center gap-2">
-                  <span x-text="selectedForm"></span>
-                  <i class="fa-solid fa-xmark text-xs"></i>
+                  <span>Lze platit benefity</span>
+                  <i class="fa-solid fa-xmark text-xs" x-show="benefitOnly" x-cloak></i>
                 </span>
               </button>
-            </template>
-            <template x-for="cons in selectedConsumers" :key="'cons-chip-'+cons">
               <button type="button"
-                      class="btn btn-md rounded-full transition-colors btn-secondary text-white"
-                      @click="toggleConsumer(cons)">
+                      class="btn btn-md rounded-full transition-colors"
+                      :class="onlyDiscounted ? 'btn-secondary text-white' : 'btn-outline btn-secondary'"
+                      :aria-pressed="onlyDiscounted"
+                      @click="onlyDiscounted = !onlyDiscounted">
                 <span class="flex items-center gap-2">
-                  <span x-text="cons"></span>
-                  <i class="fa-solid fa-xmark text-xs"></i>
+                  <span>Produkty v akci</span>
+                  <i class="fa-solid fa-xmark text-xs" x-show="onlyDiscounted" x-cloak></i>
                 </span>
               </button>
-            </template>
-            <template x-if="_priceRangeActive()">
-              <button type="button"
-                      class="btn btn-md rounded-full transition-colors btn-secondary text-white"
-                      @click="resetPriceFilter()">
-                <span class="flex items-center gap-2">
-                  <span x-text="priceFilterChipLabel()"></span>
-                  <i class="fa-solid fa-xmark text-xs"></i>
-                </span>
-              </button>
-            </template>
+              <template x-if="selectedCategory">
+                <button type="button"
+                        class="btn btn-md rounded-full transition-colors btn-secondary text-white"
+                        @click="selectedCategory = ''">
+                  <span class="flex items-center gap-2">
+                    <span x-text="selectedCategory"></span>
+                    <i class="fa-solid fa-xmark text-xs"></i>
+                  </span>
+                </button>
+              </template>
+              <template x-if="selectedForm">
+                <button type="button"
+                        class="btn btn-md rounded-full transition-colors btn-secondary text-white"
+                        @click="selectedForm = ''">
+                  <span class="flex items-center gap-2">
+                    <span x-text="selectedForm"></span>
+                    <i class="fa-solid fa-xmark text-xs"></i>
+                  </span>
+                </button>
+              </template>
+              <template x-for="cons in selectedConsumers" :key="'cons-chip-'+cons">
+                <button type="button"
+                        class="btn btn-md rounded-full transition-colors btn-secondary text-white"
+                        @click="toggleConsumer(cons)">
+                  <span class="flex items-center gap-2">
+                    <span x-text="cons"></span>
+                    <i class="fa-solid fa-xmark text-xs"></i>
+                  </span>
+                </button>
+              </template>
+              <template x-if="_priceRangeActive()">
+                <button type="button"
+                        class="btn btn-md rounded-full transition-colors btn-secondary text-white"
+                        @click="resetPriceFilter()">
+                  <span class="flex items-center gap-2">
+                    <span x-text="priceFilterChipLabel()"></span>
+                    <i class="fa-solid fa-xmark text-xs"></i>
+                  </span>
+                </button>
+              </template>
+            </div>
           </div>
-          <div class="w-full sm:w-auto">
-            <div class="dropdown dropdown-end w-full sm:w-auto" x-data="{ open: false }" @click.outside="open = false" @keydown.escape.window="open = false">
+          <div class="flex-shrink-0">
+            <div class="dropdown dropdown-end" x-data="{ open: false }" @click.outside="open = false" @keydown.escape.window="open = false">
               <div class="relative">
                 <button type="button"
-                        class="btn btn-md rounded-full transition-colors w-full sm:w-auto justify-between"
-                        :class="sortOrder ? 'btn-secondary text-white pr-12' : 'btn-outline btn-secondary pr-10'"
+                        class="btn btn-md rounded-full transition-colors flex items-center gap-2"
+                        :class="sortOrder ? 'btn-secondary text-white pr-10' : 'btn-outline btn-secondary pr-4'"
                         @click="open = !open"
                         :aria-expanded="open"
                         aria-haspopup="listbox">
-                  <span class="flex items-center gap-2">
-                    <i class="fa-solid fa-arrow-down-arrow-up"></i>
-                    <span x-text="sortButtonLabel()"></span>
-                  </span>
-                  <i class="fa-solid fa-chevron-down text-xs opacity-70 transition-transform"
+                  <i class="fa-solid fa-arrow-down-arrow-up"></i>
+                  <span x-text="sortButtonLabel()"></span>
+                  <i class="fa-solid fa-chevron-down text-xs opacity-70 transition-transform ml-1"
                      :class="open ? 'rotate-180' : ''"
                      x-show="!sortOrder"
                      aria-hidden="true"></i>
@@ -2995,7 +3073,7 @@
                 <button type="button"
                         x-show="sortOrder"
                         x-cloak
-                        class="absolute right-2 top-1/2 -translate-y-1/2 btn btn-xs btn-circle btn-ghost text-white/80 hover:text-white hover:bg-white/20 focus-visible:outline-none focus-visible:ring focus-visible:ring-white/40"
+                        class="absolute right-1.5 top-1/2 -translate-y-1/2 btn btn-xs btn-circle btn-ghost text-white/80 hover:text-white hover:bg-white/20 focus-visible:outline-none focus-visible:ring focus-visible:ring-white/40"
                         @click.stop="sortOrder = ''; open = false"
                         aria-label="Zrušit řazení">
                   <i class="fa-solid fa-xmark"></i>
@@ -8532,13 +8610,7 @@ _formatPriceRangeLabel(minValue, maxValue) {
   if (!Number.isFinite(minBound) || !Number.isFinite(maxBound)) return '';
   const min = Number.isFinite(Number(minValue)) ? Number(minValue) : minBound;
   const max = Number.isFinite(Number(maxValue)) ? Number(maxValue) : maxBound;
-  const formatter = new Intl.NumberFormat('cs-CZ', {
-    style: 'currency',
-    currency: 'CZK',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0
-  });
-  const fmt = v => formatter.format(Math.max(0, Math.round(v)));
+  const fmt = v => this._formatCurrencyValue(Math.max(0, v));
   const hasMin = min > minBound;
   const hasMax = max < maxBound;
   if (hasMin && hasMax) return `${fmt(min)} – ${fmt(max)}`;
@@ -8548,13 +8620,7 @@ _formatPriceRangeLabel(minValue, maxValue) {
 },
 priceUpToLabel(maxValue) {
   if (!Number.isFinite(Number(maxValue))) return '';
-  const formatter = new Intl.NumberFormat('cs-CZ', {
-    style: 'currency',
-    currency: 'CZK',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0
-  });
-  return `Do ${formatter.format(Math.max(0, Math.round(Number(maxValue))))}`;
+  return `Do ${this._formatCurrencyValue(Math.max(0, Number(maxValue)))}`;
 },
 priceFilterChipLabel() {
   if (this.activePriceRangeIndex !== null) {
@@ -8563,6 +8629,10 @@ priceFilterChipLabel() {
   }
   if (!this._priceRangeActive()) return '';
   return this._formatPriceRangeLabel(this.priceMin, this.priceMax);
+},
+_formatCurrencyValue(value) {
+  const num = Number(value ?? 0);
+  return window.__fitMoney.format(num, { fromCurrency: 'CZK' });
 },
 
 // ---- homepage helpers (images/logos; adapt paths as needed) ----
