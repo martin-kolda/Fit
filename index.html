@@ -1980,7 +1980,7 @@
   </div>
 
   <!-- TOP-BAR QUICK ACTIONS (desktop only) -->
-  <div class="hidden md:flex md:px-4 relative z-[1500]">
+  <div class="hidden md:flex md:px-4 relative">
     <button
       type="button"
       class="btn btn-link hidden lg:flex items-center gap-2 p-2 md:p-4 group no-underline hover:!no-underline focus-visible:!no-underline"
@@ -2663,17 +2663,18 @@
          class="fixed inset-0 z-40 bg-base-200/70 backdrop-blur-sm lg:hidden"
          @click.self="mobileFiltersOpen = false"></div>
 
-    <aside class="fixed inset-y-0 left-0 w-5/6 max-w-xs bg-base-100 shadow-xl transform -translate-x-full transition-transform duration-300 ease-out overflow-y-auto z-50 p-6 pb-10 lg:relative lg:inset-auto lg:w-full lg:max-w-none lg:bg-transparent lg:shadow-none lg:p-0 lg:pb-12 lg:translate-x-0 lg:transform-none lg:overflow-visible"
+    <aside class="fixed inset-y-0 left-0 w-5/6 max-w-xs bg-base-100 shadow-xl transform -translate-x-full transition-transform duration-300 ease-out overflow-hidden z-50 lg:relative lg:inset-auto lg:w-full lg:max-w-none lg:bg-transparent lg:shadow-none lg:p-0 lg:pb-12 lg:translate-x-0 lg:transform-none lg:overflow-visible"
            :class="mobileFiltersOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'">
-      <div class="lg:hidden flex items-center justify-between mb-4">
+      <div class="h-full flex flex-col">
+        <div class="lg:hidden flex items-center justify-between p-6 pb-4">
         <h3 class="text-lg font-semibold">Filtry</h3>
         <button type="button" class="btn btn-sm btn-ghost" @click="mobileFiltersOpen = false">
           <i class="fa-solid fa-xmark"></i>
         </button>
       </div>
 
-      <div class="lg:hidden space-y-2 mb-6" x-data>
-        <h4 class="text-sm font-semibold text-base-content/70">Rychlé filtry</h4>
+        <div class="lg:hidden space-y-2 px-6" x-data>
+        <h4 class="text-base font-semibold text-base-content">Rychlé filtry</h4>
         <div class="flex flex-wrap gap-2">
           <button type="button"
                   class="btn btn-sm rounded-full transition-colors"
@@ -2748,7 +2749,8 @@
         </div>
       </div>
 
-      <div class="space-y-6 lg:pr-12 lg:pt-2 lg:pb-8">
+        <div class="flex-1 overflow-y-auto px-6 py-6 lg:px-0 lg:pb-8 lg:pt-2">
+        <div class="space-y-6 lg:pr-12">
 
 
         <div class="space-y-3" x-data="{ showAllCategories: false, limit: 6 }">
@@ -2935,24 +2937,36 @@
         </div>
 
       </div>
-      <button type="button"
-              class="btn btn-sm btn-outline hidden lg:inline-flex border-max-blue-500 text-max-blue-600"
-              @click="clearFilters()"
-              x-show="hasActiveFilters()"
-              x-cloak
-              x-transition.opacity>
-        Vymazat filtry
-        <span class="badge badge-error badge-sm ml-2" x-show="activeFiltersCount() > 0" x-text="activeFiltersCount()"></span>
-      </button>
-      <button type="button"
-              class="btn btn-outline btn-sm w-full mt-6 lg:hidden"
-              @click="clearFilters(); mobileFiltersOpen = false"
-              x-show="hasActiveFilters()"
-              x-cloak
-              x-transition.opacity>
-        Vymazat filtry
-        <span class="badge badge-error badge-sm ml-2" x-show="activeFiltersCount() > 0" x-text="activeFiltersCount()"></span>
-      </button>
+        </div>
+      <div class="hidden lg:flex justify-end">
+        <button type="button"
+                class="btn btn-outline btn-secondary"
+                @click="clearFilters()"
+                x-show="hasActiveFilters()"
+                x-cloak
+                x-transition.opacity>
+          Vymazat filtry
+        </button>
+      </div>
+
+        <div class="lg:hidden px-6 pt-4">
+          <button type="button"
+                  class="btn btn-outline btn-secondary btn-sm w-full"
+                  @click="clearFilters(); mobileFiltersOpen = false"
+                  x-show="hasActiveFilters()"
+                  x-cloak
+                  x-transition.opacity>
+            Vymazat filtry
+          </button>
+        </div>
+        <div class="lg:hidden px-6 pb-6 pt-2 bg-base-100 border-t border-base-200">
+          <button type="button"
+                  class="btn btn-primary btn-md w-full"
+                  @click="mobileFiltersOpen = false">
+            <span>Zobrazit <span x-text="filteredCount()"></span> výsledků</span>
+          </button>
+        </div>
+      </div>
     </aside>
 
     <div class="space-y-6">
