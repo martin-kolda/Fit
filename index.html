@@ -2667,14 +2667,15 @@
            :class="mobileFiltersOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'">
       <div class="h-full flex flex-col">
         <div class="lg:hidden flex items-center justify-between p-6 pb-4">
-        <h3 class="text-lg font-semibold">Filtry</h3>
+        <h3 class="text-lg font-semibold" x-text="t('routes.products.filters.drawerTitle', 'Filtry')"></h3>
         <button type="button" class="btn btn-sm btn-ghost" @click="mobileFiltersOpen = false">
           <i class="fa-solid fa-xmark"></i>
         </button>
       </div>
 
         <div class="lg:hidden space-y-2 px-6" x-data>
-        <h4 class="text-base font-semibold text-base-content">Rychlé filtry</h4>
+        <h4 class="text-base font-semibold text-base-content"
+            x-text="t('routes.products.quickFilters.title', 'Rychlé filtry')"></h4>
         <div class="flex flex-wrap gap-2">
           <button type="button"
                   class="btn btn-sm rounded-full transition-colors"
@@ -2682,7 +2683,7 @@
                   :aria-pressed="onlyInStock"
                   @click="onlyInStock = !onlyInStock">
             <span class="flex items-center gap-2">
-              <span>Pouze skladem</span>
+              <span x-text="t('routes.products.quickFilters.inStock', 'Pouze skladem')"></span>
               <i class="fa-solid fa-xmark text-xs" x-show="onlyInStock" x-cloak></i>
             </span>
           </button>
@@ -2692,7 +2693,7 @@
                   :aria-pressed="benefitOnly"
                   @click="benefitOnly = !benefitOnly">
             <span class="flex items-center gap-2">
-              <span>Lze platit benefity</span>
+              <span x-text="t('routes.products.quickFilters.benefit', 'Lze platit benefity')"></span>
               <i class="fa-solid fa-xmark text-xs" x-show="benefitOnly" x-cloak></i>
             </span>
           </button>
@@ -2702,7 +2703,7 @@
                   :aria-pressed="onlyDiscounted"
                   @click="onlyDiscounted = !onlyDiscounted">
             <span class="flex items-center gap-2">
-              <span>Produkty v akci</span>
+              <span x-text="t('routes.products.quickFilters.discounted', 'Produkty v akci')"></span>
               <i class="fa-solid fa-xmark text-xs" x-show="onlyDiscounted" x-cloak></i>
             </span>
           </button>
@@ -2754,11 +2755,12 @@
 
 
         <div class="space-y-3" x-data="{ showAllCategories: false, limit: 6 }">
-          <h3 class="font-semibold text-base">Kategorie</h3>
+          <h3 class="font-semibold text-base"
+              x-text="t('routes.products.filters.sections.categories.title', 'Kategorie')"></h3>
           <div class="space-y-2">
             <label class="label cursor-pointer justify-start gap-2 text-max-gray-800 w-full">
               <input type="radio" name="cat" class="radio radio-sm radio-secondary" value="" x-model="selectedCategory">
-              <span>Všechny kategorie</span>
+              <span x-text="t('routes.products.filters.sections.categories.all', 'Všechny kategorie')"></span>
             </label>
             <template x-for="c in categories.slice(0, limit)" :key="'cat-'+c">
               <label class="label cursor-pointer justify-start gap-2 text-max-gray-800 w-full">
@@ -2787,7 +2789,7 @@
                     class="btn btn-ghost btn-xs px-0"
                     x-show="categories.length > limit"
                     @click="showAllCategories = !showAllCategories">
-              <span x-text="showAllCategories ? 'Méně' : 'Více'"></span>
+              <span x-text="showAllCategories ? t('routes.products.filters.expand.less', 'Méně') : t('routes.products.filters.expand.more', 'Více')"></span>
               <i class="fa-solid fa-chevron-down ml-1 transition-transform"
                  :class="showAllCategories ? 'rotate-180' : ''"></i>
             </button>
@@ -2795,11 +2797,12 @@
         </div>
 
         <div class="space-y-3" x-data="{ showAllForms: false, limit: 6 }">
-          <h3 class="font-semibold text-base">Forma</h3>
+          <h3 class="font-semibold text-base"
+              x-text="t('routes.products.filters.sections.forms.title', 'Forma')"></h3>
           <div class="space-y-2">
             <label class="label cursor-pointer justify-start gap-2 text-max-gray-800 w-full">
               <input type="radio" name="form" class="radio radio-sm radio-secondary" value="" x-model="selectedForm">
-              <span>Všechny typy</span>
+              <span x-text="t('routes.products.filters.sections.forms.all', 'Všechny typy')"></span>
             </label>
             <template x-for="f in forms.slice(0, limit)" :key="'form-'+f">
               <label class="label cursor-pointer justify-start gap-2 text-max-gray-800 w-full">
@@ -2827,7 +2830,7 @@
             <button type="button"
                     class="btn btn-ghost btn-xs px-0"
                     @click="showAllForms = !showAllForms">
-              <span x-text="showAllForms ? 'Méně' : 'Více'"></span>
+              <span x-text="showAllForms ? t('routes.products.filters.expand.less', 'Méně') : t('routes.products.filters.expand.more', 'Více')"></span>
               <i class="fa-solid fa-chevron-down ml-1 transition-transform"
                  :class="showAllForms ? 'rotate-180' : ''"></i>
             </button>
@@ -2835,7 +2838,8 @@
         </div>
 
         <div class="space-y-3" x-data="{ showAllConsumers: false, limit: 8 }">
-          <h3 class="font-semibold text-base">Vhodné pro</h3>
+          <h3 class="font-semibold text-base"
+              x-text="t('routes.products.filters.sections.consumers.title', 'Vhodné pro')"></h3>
           <div class="space-y-2">
             <template x-for="opt in consumersList.slice(0, limit)" :key="'cons-'+opt">
               <label class="label cursor-pointer justify-start gap-2 text-max-gray-800 w-full">
@@ -2871,7 +2875,7 @@
             <button type="button"
                     class="btn btn-ghost btn-xs px-0"
                     @click="showAllConsumers = !showAllConsumers">
-              <span x-text="showAllConsumers ? 'Méně' : 'Více'"></span>
+              <span x-text="showAllConsumers ? t('routes.products.filters.expand.less', 'Méně') : t('routes.products.filters.expand.more', 'Více')"></span>
               <i class="fa-solid fa-chevron-down ml-1 transition-transform"
                  :class="showAllConsumers ? 'rotate-180' : ''"></i>
             </button>
@@ -2879,10 +2883,11 @@
         </div>
 
         <div class="space-y-3">
-          <label class="input input-bordered items-center gap-2 w-full mt-4" aria-label="Vyhledávání">
+          <label class="input input-bordered items-center gap-2 w-full mt-4"
+                 :aria-label="t('header.search.ariaLabel', 'Vyhledávání')">
             <i class="fa-solid fa-magnifying-glass text-max-gray-600"></i>
             <input type="search"
-                   placeholder="Filtruj dle názvu"
+                   :placeholder="t('routes.products.filters.search.placeholder', 'Filtruj dle názvu')"
                    class="grow min-w-0"
                    x-model.debounce.300ms="search" />
           </label>
@@ -2890,11 +2895,12 @@
 
         <div class="space-y-3">
           <div class="flex items-center justify-between">
-            <h3 class="font-semibold text-base">Cena</h3>
+            <h3 class="font-semibold text-base"
+                x-text="t('routes.products.filters.sections.price.title', 'Cena')"></h3>
             <button type="button" class="btn btn-xs btn-ghost"
                     x-show="_priceRangeActive()" x-cloak
                     @click="resetPriceFilter()">
-              Reset
+              <span x-text="t('routes.products.filters.sections.price.reset', 'Reset')"></span>
             </button>
           </div>
           <div class="space-y-4" x-show="priceBounds.max > priceBounds.min" x-cloak>
@@ -2916,7 +2922,7 @@
                        class="radio radio-sm radio-secondary"
                        :checked="activePriceRangeIndex === null"
                        @change="resetPriceFilter()">
-                <span>Libovolná cena</span>
+                <span x-text="t('routes.products.filters.sections.price.any', 'Libovolná cena')"></span>
               </label>
               <template x-for="(maxValue, idx) in priceQuickRanges" :key="`pr-${idx}`">
                 <label class="label cursor-pointer justify-start gap-2 text-max-gray-800 w-full">
@@ -2931,8 +2937,8 @@
               </template>
             </div>
           </div>
-          <div class="text-sm text-base-content/60" x-show="priceBounds.max <= priceBounds.min">
-            Ceny nejsou k dispozici.
+          <div class="text-sm text-base-content/60" x-show="priceBounds.max <= priceBounds.min"
+               x-text="t('routes.products.filters.sections.price.unavailable', 'Ceny nejsou k dispozici.')">
           </div>
         </div>
 
@@ -2945,49 +2951,50 @@
                 x-show="hasActiveFilters()"
                 x-cloak
                 x-transition.opacity>
-          Vymazat filtry
+          <span x-text="t('routes.products.actions.clearFilters', 'Vymazat filtry')"></span>
         </button>
       </div>
 
         <div class="lg:hidden px-6 pt-4">
           <button type="button"
-                  class="btn btn-outline btn-secondary btn-sm w-full"
+                  class="btn btn-outline btn-secondary btn-lg w-full"
                   @click="clearFilters(); mobileFiltersOpen = false"
                   x-show="hasActiveFilters()"
                   x-cloak
                   x-transition.opacity>
-            Vymazat filtry
+            <span x-text="t('routes.products.actions.clearFilters', 'Vymazat filtry')"></span>
           </button>
         </div>
-        <div class="lg:hidden px-6 pb-6 pt-2 bg-base-100 border-t border-base-200">
+        <div class="lg:hidden px-6 pb-6 pt-4 bg-base-100 border-t border-base-200">
           <button type="button"
-                  class="btn btn-primary btn-md w-full"
+                  class="btn btn-primary btn-lg w-full"
                   @click="mobileFiltersOpen = false">
-            <span>Zobrazit <span x-text="filteredCount()"></span> výsledků</span>
+            <span x-text="t('routes.products.actions.showResults', 'Zobrazit {count} výsledků', { count: filteredCount() })"></span>
           </button>
         </div>
       </div>
     </aside>
-
-    <div class="space-y-6">
       <div class="space-y-3">
         <nav class="breadcrumbs hidden md:block text-sm" aria-label="drobečková navigace">
           <ul>
-            <li>Domů</li>
-            <li><a href="#/products">Zdraví a léky</a></li>
+            <li x-text="t('routes.products.breadcrumbs.home', 'Domů')"></li>
+            <li><a href="#/products" x-text="t('routes.products.breadcrumbs.current', 'Zdraví a léky')"></a></li>
           </ul>
         </nav>
-        <h1 class="text-3xl font-semibold">Zdraví a léky <span class="text-max-gray-400 font-normal">(<span x-text="filteredCount()"></span>)</span></h1>
+        <h1 class="text-3xl font-semibold">
+          <span x-text="t('routes.products.title', 'Zdraví a léky')"></span>
+          <span class="text-max-gray-400 font-normal">(<span x-text="filteredCount()"></span>)</span>
+        </h1>
       </div>
       <div class="sticky top-0 z-30 bg-base-200 border-b border-base-200 py-3">
         <div class="flex flex-wrap items-center gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div class="flex items-center justify-between gap-2">
             <div class="relative flex lg:hidden">
               <button type="button"
-                      class="btn btn-md rounded-full btn-secondary"
+                      class="btn btn-md rounded-full btn-outline btn-secondary"
                       @click="mobileFiltersOpen = true">
                 <i class="fa-solid fa-filter"></i>
-                <span>Filtry</span>
+                <span x-text="t('routes.products.actions.toggleFilters', 'Filtry')"></span>
               </button>
               <span class="absolute -top-1 -right-1 block h-2.5 w-2.5 rounded-full bg-error"
                     x-show="hasActiveFilters()"
@@ -3002,7 +3009,7 @@
                       :aria-pressed="onlyInStock"
                       @click="onlyInStock = !onlyInStock">
                 <span class="flex items-center gap-2">
-                  <span>Pouze skladem</span>
+                  <span x-text="t('routes.products.quickFilters.inStock', 'Pouze skladem')"></span>
                   <i class="fa-solid fa-xmark text-xs" x-show="onlyInStock" x-cloak></i>
                 </span>
               </button>
@@ -3012,7 +3019,7 @@
                       :aria-pressed="benefitOnly"
                       @click="benefitOnly = !benefitOnly">
                 <span class="flex items-center gap-2">
-                  <span>Lze platit benefity</span>
+                  <span x-text="t('routes.products.quickFilters.benefit', 'Lze platit benefity')"></span>
                   <i class="fa-solid fa-xmark text-xs" x-show="benefitOnly" x-cloak></i>
                 </span>
               </button>
@@ -3022,7 +3029,7 @@
                       :aria-pressed="onlyDiscounted"
                       @click="onlyDiscounted = !onlyDiscounted">
                 <span class="flex items-center gap-2">
-                  <span>Produkty v akci</span>
+                  <span x-text="t('routes.products.quickFilters.discounted', 'Produkty v akci')"></span>
                   <i class="fa-solid fa-xmark text-xs" x-show="onlyDiscounted" x-cloak></i>
                 </span>
               </button>
@@ -3097,8 +3104,8 @@
                   x-show="open"
                   x-transition.opacity.duration.150ms
                   class="menu menu-compact dropdown-content mt-3 p-2 shadow-lg bg-base-100 rounded-box min-w-[14rem]">
-                <li class="px-3 py-2 text-xs uppercase tracking-wide text-base-content/60 cursor-default select-none">
-                  Řadit dle
+                <li class="px-3 py-2 text-xs uppercase tracking-wide text-base-content/60 cursor-default select-none"
+                    x-text="t('routes.products.sorting.label', 'Řadit dle')">
                 </li>
                 <template x-for="opt in sortOptions()" :key="opt.value">
                   <li>
@@ -3192,23 +3199,23 @@
                   </div>
                   <template x-if="!$store.cart.inCart(product.id)">
                     <button class="btn btn-primary btn-md font-semibold" @click="$store.cart.add(product)">
-                      Do košíku
+                      <span x-text="t('routes.products.cart.add', 'Do košíku')"></span>
                     </button>
                   </template>
                   <template x-if="$store.cart.inCart(product.id)">
                     <div class="join">
                       <button class="btn btn-square btn-md join-item"
                               @click="$store.cart.decrement(product.id)"
-                              aria-label="Odebrat kus">−</button>
+                              :aria-label="t('routes.products.cart.decrementAria', 'Odebrat kus')">−</button>
                       <input type="text" inputmode="numeric" pattern="[0-9]*"
                              class="input input-bordered input-md w-10 text-center join-item"
                              :value="$store.cart.qty(product.id)"
                              @input="$store.cart.setQty(product.id, $event.target.value)"
                              @keydown.enter.prevent
-                             aria-label="Počet kusů" />
+                             :aria-label="t('routes.products.cart.quantityAria', 'Počet kusů')" />
                       <button class="btn btn-square btn-md join-item"
                               @click="$store.cart.increment(product.id)"
-                              aria-label="Přidat kus">+</button>
+                              :aria-label="t('routes.products.cart.incrementAria', 'Přidat kus')">+</button>
                     </div>
                   </template>
                 </div>
@@ -3223,8 +3230,9 @@
         </template>
       </div>
 
-      <div x-show="!isLoading && filteredProducts().length === 0" class="py-16 text-center opacity-70">
-        Nic jsme nenašli pro zadané filtrování.
+      <div x-show="!isLoading && filteredProducts().length === 0"
+           class="py-16 text-center opacity-70"
+           x-text="t('routes.products.results.empty', 'Nic jsme nenašli pro zadané filtrování.')">
       </div>
 
       <div x-show="!isLoading && (totalPages() > 1 || canLoadMoreFirstPage())"
@@ -3462,7 +3470,7 @@
               <!-- ADD / STEPPER -->
               <template x-if="!$store.cart.inCart(product.id)">
                 <button class="btn btn-primary btn-lg font-medium" @click="$store.cart.add(product)">
-                  Do košíku
+                  <span x-text="t('routes.products.cart.add', 'Do košíku')"></span>
                 </button>
               </template>
 
@@ -3471,17 +3479,18 @@
                   <div class="join">
                     <button class="btn btn-square btn-lg join-item"
                             @click="$store.cart.decrement(product.id)"
-                            aria-label="Odebrat kus">−</button>
+                            :aria-label="t('routes.products.cart.decrementAria', 'Odebrat kus')">−</button>
 
                     <input type="text" inputmode="numeric" pattern="[0-9]*"
                           class="input input-bordered input-lg w-12 text-center join-item"
                           :value="$store.cart.qty(product.id)"
                           @input="$store.cart.setQty(product.id, $event.target.value)"
-                          @keydown.enter.prevent aria-label="Počet kusů" />
+                          @keydown.enter.prevent
+                          :aria-label="t('routes.products.cart.quantityAria', 'Počet kusů')" />
 
                     <button class="btn btn-square btn-lg join-item"
                             @click="$store.cart.increment(product.id)"
-                            aria-label="Přidat kus">+</button>
+                            :aria-label="t('routes.products.cart.incrementAria', 'Přidat kus')">+</button>
                   </div>
 
                   <div class="flex items-center gap-2">
@@ -3884,27 +3893,28 @@
           <div class="pt-2">
             <!-- ADD / STEPPER -->
             <template x-if="!$store.cart.inCart(product.id)">
-              <button class="btn btn-primary btn-md font-medium" @click="$store.cart.add(product)">
-                Do košíku
-              </button>
+                  <button class="btn btn-primary btn-md font-medium" @click="$store.cart.add(product)">
+                    <span x-text="t('routes.products.cart.add', 'Do košíku')"></span>
+                  </button>
             </template>
 
             <template x-if="$store.cart.inCart(product.id)">
               <div class="flex items-center gap-4" x-data="qtyBlinker(product.id)">
                 <div class="join">
-                  <button class="btn btn-square btn-md join-item"
-                          @click="$store.cart.decrement(product.id)"
-                          aria-label="Odebrat kus">−</button>
+                    <button class="btn btn-square btn-md join-item"
+                            @click="$store.cart.decrement(product.id)"
+                            :aria-label="t('routes.products.cart.decrementAria', 'Odebrat kus')">−</button>
 
                   <input type="text" inputmode="numeric" pattern="[0-9]*"
                         class="input input-bordered input-md w-12 text-center join-item"
                         :value="$store.cart.qty(product.id)"
                         @input="$store.cart.setQty(product.id, $event.target.value)"
-                        @keydown.enter.prevent aria-label="Počet kusů" />
+                          @keydown.enter.prevent
+                          :aria-label="t('routes.products.cart.quantityAria', 'Počet kusů')" />
 
                   <button class="btn btn-square btn-md join-item"
-                          @click="$store.cart.increment(product.id)"
-                          aria-label="Přidat kus">+</button>
+                            @click="$store.cart.increment(product.id)"
+                            :aria-label="t('routes.products.cart.incrementAria', 'Přidat kus')">+</button>
                 </div>
 
               </div>
@@ -4097,7 +4107,7 @@
               <!-- Controls: stepper + subtotal + remove -->
               <div class="mt-3 flex items-center justify-between gap-3">
                 <div class="join">
-                  <button class="btn btn-square btn-md join-item" @click="$store.cart.decrement(it.id)" aria-label="Odebrat kus">−</button>
+                  <button class="btn btn-square btn-md join-item" @click="$store.cart.decrement(it.id)" :aria-label="t('routes.products.cart.decrementAria', 'Odebrat kus')">−</button>
                   <input
                   type="text" inputmode="numeric" pattern="[0-9]*"
                   class="input input-bordered input-md w-12 text-center join-item px-0 tabular-nums"
@@ -4105,7 +4115,7 @@
                   @input="$store.cart.setQty(it.id, $event.target.value.replace(/[^0-9]/g,''))"
                   @keydown.enter.prevent
                   />
-                  <button class="btn btn-square btn-md join-item" @click="$store.cart.increment(it.id)" aria-label="Přidat kus">+</button>
+                  <button class="btn btn-square btn-md join-item" @click="$store.cart.increment(it.id)" :aria-label="t('routes.products.cart.incrementAria', 'Přidat kus')">+</button>
                 </div>
 
                 <div class="text-right">
@@ -8593,15 +8603,20 @@ truncate(str, max = 34) {
   return s.length > max ? s.slice(0, max - 1) + '…' : s;
 },
 consumersLabel() {
-  if (!this.selectedConsumers.length) return 'Vhodné pro';
+  if (!this.selectedConsumers.length) {
+    return window.t('routes.products.filters.sections.consumers.title', 'Vhodné pro');
+  }
   return this.truncate(this.selectedConsumers.join(', '));
 },
 optionsLabel() {
   const on = [];
-  if (this.onlyInStock)     on.push('Skladem');
-  if (this.benefitOnly)     on.push('Benefity');
-  if (this.onlyDiscounted)  on.push('V akci');
-  return on.length ? this.truncate(on.join(', ')) : 'Možnosti';
+  if (this.onlyInStock)     on.push(window.t('routes.products.quickFilters.inStock', 'Pouze skladem'));
+  if (this.benefitOnly)     on.push(window.t('routes.products.quickFilters.benefit', 'Lze platit benefity'));
+  if (this.onlyDiscounted)  on.push(window.t('routes.products.quickFilters.discounted', 'Produkty v akci'));
+  if (!on.length) {
+    return window.t('routes.products.quickFilters.summary.default', 'Možnosti');
+  }
+  return this.truncate(on.join(', '));
 },
 buildPriceQuickRanges(_rawMin, rawMax, normalizedMax) {
   const maxBound = Math.ceil(Number(normalizedMax) || 0);
@@ -8627,14 +8642,32 @@ _formatPriceRangeLabel(minValue, maxValue) {
   const fmt = v => this._formatCurrencyValue(Math.max(0, v));
   const hasMin = min > minBound;
   const hasMax = max < maxBound;
-  if (hasMin && hasMax) return `${fmt(min)} – ${fmt(max)}`;
-  if (hasMin) return `Od ${fmt(min)}`;
-  if (hasMax) return `Do ${fmt(max)}`;
-  return `${fmt(minBound)} – ${fmt(maxBound)}`;
+  if (hasMin && hasMax) {
+    return window.t('routes.products.filters.sections.price.range.between', '{min} – {max}', {
+      min: fmt(min),
+      max: fmt(max)
+    });
+  }
+  if (hasMin) {
+    return window.t('routes.products.filters.sections.price.range.from', 'Od {value}', {
+      value: fmt(min)
+    });
+  }
+  if (hasMax) {
+    return window.t('routes.products.filters.sections.price.range.to', 'Do {value}', {
+      value: fmt(max)
+    });
+  }
+  return window.t('routes.products.filters.sections.price.range.full', '{min} – {max}', {
+    min: fmt(minBound),
+    max: fmt(maxBound)
+  });
 },
 priceUpToLabel(maxValue) {
   if (!Number.isFinite(Number(maxValue))) return '';
-  return `Do ${this._formatCurrencyValue(Math.max(0, Number(maxValue)))}`;
+  return window.t('routes.products.filters.sections.price.range.to', 'Do {value}', {
+    value: this._formatCurrencyValue(Math.max(0, Number(maxValue)))
+  });
 },
 priceFilterChipLabel() {
   if (this.activePriceRangeIndex !== null) {
@@ -9044,24 +9077,28 @@ resetPriceFilter() {
 filteredCount() { return this.filteredProducts().length; },
 
 sortOptions() {
+  const label = (key, fallback) => window.t(`routes.products.sorting.options.${key}`, fallback);
   return [
-    { value: 'priceAsc', label: 'Od nejlevnějšího' },
-    { value: 'priceDesc', label: 'Od nejdražšího' },
-    { value: 'alphaAsc', label: 'Abecedně A–Z' },
-    { value: 'alphaDesc', label: 'Abecedně Z–A' }
+    { value: 'priceAsc', label: label('priceAsc', 'Od nejlevnějšího') },
+    { value: 'priceDesc', label: label('priceDesc', 'Od nejdražšího') },
+    { value: 'alphaAsc', label: label('alphaAsc', 'Abecedně A–Z') },
+    { value: 'alphaDesc', label: label('alphaDesc', 'Abecedně Z–A') }
   ];
 },
 sortOptionLabel(value) {
   const entry = this.sortOptions().find(opt => opt.value === value);
-  return entry ? entry.label : 'Řadit dle';
+  return entry ? entry.label : window.t('routes.products.sorting.label', 'Řadit dle');
 },
 sortButtonLabel() {
-  return this.sortOrder ? this.sortOptionLabel(this.sortOrder) : 'Řadit dle';
+  return this.sortOrder
+    ? this.sortOptionLabel(this.sortOrder)
+    : window.t('routes.products.sorting.label', 'Řadit dle');
 },
 sortLabel() {
+  const base = window.t('routes.products.sorting.label', 'Řadit dle');
   return this.sortOrder
-    ? `Řadit dle: ${this.sortOptionLabel(this.sortOrder)}`
-    : 'Řadit dle: Doporučeno';
+    ? `${base}: ${this.sortOptionLabel(this.sortOrder)}`
+    : `${base}: ${window.t('routes.products.sorting.options.default', 'Doporučeno')}`;
 },
 toggleConsumer(val) {
   const i = this.selectedConsumers.indexOf(val);
@@ -9209,7 +9246,9 @@ loadMore() {
 loadMoreLabel() {
   const remaining = this.filteredProducts().length - this.showCount;
   const n = Math.min(this.pageSize, Math.max(0, remaining));
-  return n ? `Načíst dalších ${n} produktů` : 'Vše načteno';
+  return n
+    ? window.t('routes.products.results.loadMore', 'Načíst dalších {count} produktů', { count: n })
+    : window.t('routes.products.results.loaded', 'Vše načteno');
 },
 totalPages() {
   const total = this.filteredProducts().length;
@@ -12147,25 +12186,25 @@ loadCheckoutReviewFromStorage() {
                   <!-- CTA or STEPPER -->
                   <template x-if="!$store.cart.inCart(product.id)">
                     <button class="btn btn-primary btn-md font-semibold" @click="$store.cart.add(product)">
-                      Do košíku
+                      <span x-text="t('routes.products.cart.add', 'Do košíku')"></span>
                     </button>
                   </template>
                   <template x-if="$store.cart.inCart(product.id)">
                     <div class="join">
                       <button class="btn btn-square btn-md join-item"
                               @click="$store.cart.decrement(product.id)"
-                              aria-label="Odebrat kus">−</button>
+                              :aria-label="t('routes.products.cart.decrementAria', 'Odebrat kus')">−</button>
 
                       <input type="text" inputmode="numeric" pattern="[0-9]*"
                              class="input input-bordered input-md w-10 text-center join-item"
                              :value="$store.cart.qty(product.id)"
                              @input="$store.cart.setQty(product.id, $event.target.value.replace(/[^0-9]/g,''))"
                              @keydown.enter.prevent
-                             aria-label="Počet kusů" />
+                             :aria-label="t('routes.products.cart.quantityAria', 'Počet kusů')" />
 
                       <button class="btn btn-square btn-md join-item"
                               @click="$store.cart.increment(product.id)"
-                              aria-label="Přidat kus">+</button>
+                              :aria-label="t('routes.products.cart.incrementAria', 'Přidat kus')">+</button>
                     </div>
                   </template>
                 </div>
