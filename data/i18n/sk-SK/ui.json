@@ -54,5 +54,84 @@
   },
   "banners": {
     "legalLink": "Podmienky akcie"
+  },
+  "routes": {
+    "products": {
+      "title": "Zdravie a lieky",
+      "breadcrumbs": {
+        "home": "Domov",
+        "current": "Zdravie a lieky"
+      },
+      "actions": {
+        "toggleFilters": "Filtre",
+        "clearFilters": "Vymazať filtre",
+        "showResults": "Zobraziť {count} výsledkov"
+      },
+      "quickFilters": {
+        "title": "Rýchle filtre",
+        "inStock": "Len skladom",
+        "benefit": "Možné platiť benefitmi",
+        "discounted": "Produkty v akcii",
+        "summary": {
+          "default": "Možnosti"
+        }
+      },
+      "filters": {
+        "drawerTitle": "Filtre",
+        "search": {
+          "placeholder": "Filtrovať podľa názvu"
+        },
+        "sections": {
+          "categories": {
+            "title": "Kategórie",
+            "all": "Všetky kategórie"
+          },
+          "forms": {
+            "title": "Forma",
+            "all": "Všetky typy"
+          },
+          "consumers": {
+            "title": "Vhodné pre"
+          },
+          "price": {
+            "title": "Cena",
+            "any": "Ľubovoľná cena",
+            "reset": "Reset",
+            "unavailable": "Ceny nie sú k dispozícii.",
+            "range": {
+              "from": "Od {value}",
+              "to": "Do {value}",
+              "between": "{min} – {max}",
+              "full": "{min} – {max}"
+            }
+          }
+        },
+        "expand": {
+          "more": "Viac",
+          "less": "Menej"
+        }
+      },
+      "sorting": {
+        "label": "Zoradiť podľa",
+        "options": {
+          "priceAsc": "Od najlacnejšieho",
+          "priceDesc": "Od najdrahšieho",
+          "alphaAsc": "Abecedne A–Z",
+          "alphaDesc": "Abecedne Z–A",
+          "default": "Odporúčané"
+        }
+      },
+      "results": {
+        "empty": "Pre zadané filtre sme nenašli žiadne výsledky.",
+        "loadMore": "Načítať ďalších {count} produktov",
+        "loaded": "Všetko je načítané"
+      },
+      "cart": {
+        "add": "Pridať do košíka",
+        "decrementAria": "Odobrať kus",
+        "incrementAria": "Pridať kus",
+        "quantityAria": "Počet kusov"
+      }
+    }
   }
 }

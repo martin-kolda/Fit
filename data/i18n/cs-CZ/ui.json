@@ -54,5 +54,84 @@
   },
   "banners": {
     "legalLink": "Podmínky akce"
+  },
+  "routes": {
+    "products": {
+      "title": "Zdraví a léky",
+      "breadcrumbs": {
+        "home": "Domů",
+        "current": "Zdraví a léky"
+      },
+      "actions": {
+        "toggleFilters": "Filtry",
+        "clearFilters": "Vymazat filtry",
+        "showResults": "Zobrazit {count} výsledků"
+      },
+      "quickFilters": {
+        "title": "Rychlé filtry",
+        "inStock": "Pouze skladem",
+        "benefit": "Lze platit benefity",
+        "discounted": "Produkty v akci",
+        "summary": {
+          "default": "Možnosti"
+        }
+      },
+      "filters": {
+        "drawerTitle": "Filtry",
+        "search": {
+          "placeholder": "Filtruj dle názvu"
+        },
+        "sections": {
+          "categories": {
+            "title": "Kategorie",
+            "all": "Všechny kategorie"
+          },
+          "forms": {
+            "title": "Forma",
+            "all": "Všechny typy"
+          },
+          "consumers": {
+            "title": "Vhodné pro"
+          },
+          "price": {
+            "title": "Cena",
+            "any": "Libovolná cena",
+            "reset": "Reset",
+            "unavailable": "Ceny nejsou k dispozici.",
+            "range": {
+              "from": "Od {value}",
+              "to": "Do {value}",
+              "between": "{min} – {max}",
+              "full": "{min} – {max}"
+            }
+          }
+        },
+        "expand": {
+          "more": "Více",
+          "less": "Méně"
+        }
+      },
+      "sorting": {
+        "label": "Řadit dle",
+        "options": {
+          "priceAsc": "Od nejlevnějšího",
+          "priceDesc": "Od nejdražšího",
+          "alphaAsc": "Abecedně A–Z",
+          "alphaDesc": "Abecedně Z–A",
+          "default": "Doporučeno"
+        }
+      },
+      "results": {
+        "empty": "Nic jsme nenašli pro zadané filtrování.",
+        "loadMore": "Načíst dalších {count} produktů",
+        "loaded": "Vše načteno"
+      },
+      "cart": {
+        "add": "Do košíku",
+        "decrementAria": "Odebrat kus",
+        "incrementAria": "Přidat kus",
+        "quantityAria": "Počet kusů"
+      }
+    }
   }
 }

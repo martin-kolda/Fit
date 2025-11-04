@@ -436,6 +436,277 @@
       emit('currency', cfgStore.currency);
     }
 
+    if (!Alpine.store('auth')) {
+      const storageKey = 'fit:auth';
+      const defaults = {
+        isAuthenticated: false,
+        account: null,
+        lastLoginAt: null,
+        throttleMs: 1300,
+        fallbackAccount: {
+          id: 'demo-user',
+          email: 'demo@fit.test',
+          firstName: 'Demo',
+          lastName: 'Uživatel'
+        }
+      };
+      const load = () => {
+        if (typeof localStorage === 'undefined') return {};
+        try {
+          const raw = localStorage.getItem(storageKey);
+          if (!raw) return {};
+          const parsed = JSON.parse(raw);
+          return parsed && typeof parsed === 'object' ? parsed : {};
+        } catch (e) {
+          console.warn('auth store load failed', e);
+          return {};
+        }
+      };
+      const clone = (value) => {
+        if (value == null || typeof value !== 'object') return value;
+        try {
+          return JSON.parse(JSON.stringify(value));
+        } catch {
+          if (Array.isArray(value)) return value.map(clone);
+          return { ...value };
+        }
+      };
+      const normalizeAccount = (payload, fallback = {}, options = {}) => {
+        const { defaultFallback = false } = options || {};
+        const hasPayload = payload && typeof payload === 'object';
+        if (!hasPayload && !defaultFallback) return null;
+        const base = clone(fallback) || {};
+        const incoming = hasPayload ? clone(payload) : {};
+        const merged = { ...base, ...incoming };
+        if (!Object.keys(merged).length) return null;
+        if (merged.email != null) merged.email = String(merged.email).trim();
+        if (merged.firstName != null) merged.firstName = String(merged.firstName);
+        if (merged.lastName != null) merged.lastName = String(merged.lastName);
+        merged.id = String((merged.id || base?.id || 'user') || 'user');
+        return merged;
+      };
+      const ensureThrottle = (value) => {
+        const num = Number(value);
+        if (!Number.isFinite(num)) return defaults.throttleMs;
+        if (num < 0) return defaults.throttleMs;
+        return num;
+      };
+      const emit = (name, detail = {}) => {
+        window.dispatchEvent(new CustomEvent(name, { detail }));
+      };
+
+      const stored = load();
+      const initial = { ...defaults, ...stored };
+      initial.fallbackAccount = normalizeAccount(
+        stored?.fallbackAccount ?? initial.fallbackAccount,
+        defaults.fallbackAccount,
+        { defaultFallback: true }
+      ) || clone(defaults.fallbackAccount);
+      initial.account = normalizeAccount(
+        stored?.account ?? initial.account,
+        initial.fallbackAccount,
+        { defaultFallback: false }
+      );
+      const initialThrottle = ensureThrottle(stored?.throttleMs ?? initial.throttleMs);
+
+      Alpine.store('auth', {
+        key: storageKey,
+        defaults,
+        isAuthenticated: !!initial.isAuthenticated && !!initial.account,
+        account: initial.account,
+        lastLoginAt: initial.lastLoginAt || null,
+        fallbackAccount: initial.fallbackAccount,
+        throttleMs: initialThrottle,
+        modalOpen: false,
+        view: 'login',
+        status: 'idle',
+        error: '',
+        loginForm: {
+          email: initial.account?.email || initial.fallbackAccount?.email || '',
+          password: ''
+        },
+        registrationForm: {
+          email: '',
+          password: ''
+        },
+        forgotForm: {
+          email: initial.account?.email || initial.fallbackAccount?.email || ''
+        },
+        passwordVisible: false,
+        _timer: null,
+        persist() {
+          if (typeof localStorage === 'undefined') return;
+          const payload = {
+            isAuthenticated: !!this.isAuthenticated,
+            account: this.account ? clone(this.account) : null,
+            lastLoginAt: this.lastLoginAt || null,
+            fallbackAccount: this.fallbackAccount ? clone(this.fallbackAccount) : null,
+            throttleMs: this.throttleMs
+          };
+          try {
+            localStorage.setItem(this.key, JSON.stringify(payload));
+          } catch (e) {
+            console.warn('auth store persist failed', e);
+          }
+        },
+        openModal(view = 'login') {
+          this.view = view;
+          this.modalOpen = true;
+          this.status = 'idle';
+          this.error = '';
+          this.passwordVisible = false;
+          if (!this.loginForm.email) {
+            this.loginForm.email = this.fallbackAccount?.email || '';
+          }
+          this.loginForm.password = '';
+          this.forgotForm.email = this.loginForm.email || this.fallbackAccount?.email || '';
+        },
+        closeModal() {
+          this.modalOpen = false;
+          this.status = 'idle';
+          this.error = '';
+          this.view = 'login';
+          this.passwordVisible = false;
+          this.forgotForm.email = this.loginForm.email || this.fallbackAccount?.email || '';
+          if (this._timer) {
+            clearTimeout(this._timer);
+            this._timer = null;
+          }
+        },
+        handleAccountClick() {
+          if (this.isAuthenticated) {
+            location.hash = '/my-account';
+            return;
+          }
+          this.openModal('login');
+        },
+        submitLogin() {
+          if (this.status === 'loading') return;
+          const email = String(this.loginForm.email || '').trim();
+          const password = String(this.loginForm.password || '').trim();
+          if (!email || !password) {
+            this.status = 'error';
+            this.error = 'Zadejte e-mail i heslo.';
+            return;
+          }
+          this.status = 'loading';
+          this.error = '';
+          if (this._timer) clearTimeout(this._timer);
+          const delay = Math.max(400, Number(this.throttleMs) || defaults.throttleMs);
+          this._timer = setTimeout(() => {
+            this._timer = null;
+            const baseAccount = clone(this.fallbackAccount) || {};
+            const account = {
+              ...baseAccount,
+              email,
+              id: (baseAccount?.id && String(baseAccount.id)) || 'user',
+              lastLoginEmail: email
+            };
+            this.isAuthenticated = true;
+            this.account = account;
+            this.lastLoginAt = new Date().toISOString();
+            this.loginForm.email = email;
+            this.loginForm.password = '';
+            this.persist();
+            emit('fit:auth-login', { account: this.account, source: 'manual' });
+            this.closeModal();
+          }, delay);
+        },
+        loginWithFallback() {
+          const account = this.fallbackAccount ? clone(this.fallbackAccount) : null;
+          this.isAuthenticated = !!account;
+          this.account = account;
+          this.lastLoginAt = this.isAuthenticated ? new Date().toISOString() : null;
+          this.loginForm.email = account?.email || this.loginForm.email;
+          this.loginForm.password = '';
+          this.persist();
+          emit('fit:auth-login', { account: this.account, source: 'fallback' });
+          this.closeModal();
+        },
+        logout() {
+          this.isAuthenticated = false;
+          this.account = null;
+          this.lastLoginAt = null;
+          this.loginForm.password = '';
+          if (this.fallbackAccount?.email) {
+            this.loginForm.email = this.fallbackAccount.email;
+          }
+          this.forgotForm.email = this.loginForm.email || this.fallbackAccount?.email || '';
+          this.persist();
+          emit('fit:auth-logout', {});
+        },
+        reset() {
+          this.closeModal();
+          this.isAuthenticated = !!defaults.isAuthenticated && !!defaults.account;
+          this.account = defaults.account ? clone(defaults.account) : null;
+          this.lastLoginAt = defaults.lastLoginAt || null;
+          this.fallbackAccount = clone(defaults.fallbackAccount);
+          this.throttleMs = defaults.throttleMs;
+          this.loginForm.email = this.fallbackAccount?.email || '';
+          this.loginForm.password = '';
+          this.forgotForm.email = this.fallbackAccount?.email || '';
+          this.persist();
+          emit('fit:auth-reset', {});
+        },
+        setFallbackAccount(payload) {
+          const normalized = normalizeAccount(payload, defaults.fallbackAccount, { defaultFallback: true }) || clone(defaults.fallbackAccount);
+          this.fallbackAccount = clone(normalized);
+          if (!this.isAuthenticated) {
+            this.loginForm.email = normalized.email || this.loginForm.email;
+          }
+          if (this.view !== 'register') {
+            this.forgotForm.email = normalized.email || this.forgotForm.email;
+          }
+          this.persist();
+          emit('fit:auth-fallback-change', { fallbackAccount: this.fallbackAccount });
+        },
+        setThrottle(value) {
+          this.throttleMs = ensureThrottle(value);
+          this.persist();
+          emit('fit:auth-throttle-change', { throttleMs: this.throttleMs });
+        },
+        toggleView(next) {
+          const allowed = ['login', 'register', 'forgot'];
+          const target = typeof next === 'string' && allowed.includes(next)
+            ? next
+            : (this.view === 'login' ? 'register' : 'login');
+          this.view = target;
+          this.status = 'idle';
+          this.error = '';
+          if (target !== 'login') {
+            this.passwordVisible = false;
+          }
+          if (target === 'login') {
+            this.loginForm.password = '';
+          }
+          if (target === 'forgot') {
+            this.forgotForm.email = this.loginForm.email || this.fallbackAccount?.email || this.forgotForm.email || '';
+          } else {
+            this.forgotForm.email = this.fallbackAccount?.email || this.loginForm.email || this.forgotForm.email || '';
+          }
+        },
+        isAnonymous() {
+          return !this.isAuthenticated;
+        },
+        togglePasswordVisibility() {
+          this.passwordVisible = !this.passwordVisible;
+        },
+        openForgot() {
+          this.toggleView('forgot');
+        }
+      });
+
+      try {
+        if (typeof localStorage !== 'undefined' && !localStorage.getItem(storageKey)) {
+          Alpine.store('auth').persist();
+        }
+      } catch (e) {
+        console.warn('auth store bootstrap failed', e);
+      }
+
+      window.fitAuthStore = () => Alpine.store('auth');
+    }
+
     if (!Alpine.store('i18n')) {
       const configStore = Alpine.store('appConfig');
       const boot = window.__fitI18n || {};
@@ -2091,13 +2362,13 @@
       <i class="fa-classic fa-xl fa-regular fa-heart text-white max-embos-v"></i>
     </button>
 
-    <button class="btn btn-primary w-12 h-12 btn-lg btn-square max-gradient" 
-    aria-label="Otevřít můj účet" title="Můj účet"
-    :aria-label="t('header.actions.account.aria', 'Otevřít můj účet')"
-    :title="t('header.actions.account.label', 'Můj účet')"
-    @click="location.hash='/my-account'"
+    <button class="btn btn-primary w-12 h-12 btn-lg btn-square max-gradient"
+    :aria-label="$store.auth?.isAuthenticated ? t('header.actions.account.loggedAria', 'Přejít do mého účtu') : t('header.actions.account.aria', 'Otevřít můj účet')"
+    :title="$store.auth?.isAuthenticated ? t('header.actions.account.loggedLabel', 'Můj účet') : t('header.actions.account.label', 'Můj účet')"
+    @click="$store.auth?.handleAccountClick()"
     >
-      <i class="fa-classic fa-xl fa-regular fa-user-circle text-white max-embos-v"></i>
+      <i class="fa-classic fa-xl text-white max-embos-v"
+         :class="$store.auth?.isAuthenticated ? 'fa-solid fa-user-check' : 'fa-regular fa-user-circle'"></i>
     </button>
 
     <button
@@ -2401,19 +2672,21 @@
          x-init="registerTopStrip($el, 'hits')">
       <div class="flex gap-3 snap-x snap-mandatory px-0 pb-5">
         <template x-for="p in topProductsShuffledFor('hits', 12)" :key="p.id">
-          <!-- card markup unchanged -->
-          <a :href="link('product',{id:p.id})"
-             class="snap-start shrink-0 w-48 sm:w-56 card bg-white hover:shadow-md transition relative">
+          <article class="snap-start shrink-0 w-48 sm:w-56 card bg-white hover:shadow-md transition relative">
             <span x-show="discountPct(p) !== null"
                   class="absolute left-2 top-2 badge badge-error text-white font-semibold">
               <span x-text="`-${discountPct(p)}%`"></span>
             </span>
             <figure class="p-3 h-40">
-              <img :src="p.image || './images/placeholder.webp'" :alt="p.name"
-                   class="w-full h-full object-cover">
+              <a :href="link('product',{id:p.id})" class="block h-full">
+                <img :src="p.image || './images/placeholder.webp'" :alt="p.name"
+                     class="w-full h-full object-cover">
+              </a>
             </figure>
-            <div class="card-body pt-0 flex flex-col">
-              <div class="text-sm font-medium line-clamp-2 leading-snug min-h-[2.45rem] max-h-[2.45rem]" x-text="p.name"></div>
+            <div class="card-body pt-0 flex flex-col gap-2">
+              <a :href="link('product',{id:p.id})"
+                 class="text-sm font-medium line-clamp-2 leading-snug min-h-[2.45rem] max-h-[2.45rem] hover:underline"
+                 x-text="p.name"></a>
               <div class="mt-auto">
                 <div class="text-base font-semibold">
                   <span x-text="formatPrice(currentPrice(p))"></span>
@@ -2421,12 +2694,32 @@
                         x-show="crossedPrice(p) !== null"
                         x-text="formatPrice(crossedPrice(p))"></span>
                 </div>
-                <div class="mt-1" x-show="isInStock(p)">
-                  <span class="badge badge-success">Skladem</span>
-                </div>
+              </div>
+              <div class="mt-3">
+                <template x-if="!$store.cart.inCart(p.id)">
+                  <button class="btn btn-primary btn-md w-full font-semibold" @click="$store.cart.add(p)">
+                    <span x-text="t('routes.products.cart.add', 'Do košíku')"></span>
+                  </button>
+                </template>
+                <template x-if="$store.cart.inCart(p.id)">
+                  <div class="join w-full justify-center">
+                    <button class="btn btn-square btn-md join-item"
+                            @click="$store.cart.decrement(p.id)"
+                            :aria-label="t('routes.products.cart.decrementAria', 'Odebrat kus')">−</button>
+                    <input type="text" inputmode="numeric" pattern="[0-9]*"
+                           class="input input-bordered input-md w-12 text-center join-item tabular-nums"
+                           :value="$store.cart.qty(p.id)"
+                           @input="$store.cart.setQty(p.id, $event.target.value.replace(/[^0-9]/g,''))"
+                           @keydown.enter.prevent
+                           :aria-label="t('routes.products.cart.quantityAria', 'Počet kusů')" />
+                    <button class="btn btn-square btn-md join-item"
+                            @click="$store.cart.increment(p.id)"
+                            :aria-label="t('routes.products.cart.incrementAria', 'Přidat kus')">+</button>
+                  </div>
+                </template>
               </div>
             </div>
-          </a>
+          </article>
         </template>
       </div>
     </div>
@@ -2590,14 +2883,14 @@
     <!-- indicators (use the same key) -->
     <div class="pointer-events-none absolute inset-y-0 left-0 w-10 bg-gradient-to-r from-white to-transparent
                 transition-opacity duration-200 z-10"
-         :class="tpStates['hits']?.left ? 'opacity-100' : 'opacity-0'"></div>
+         :class="tpStates['saved']?.left ? 'opacity-100' : 'opacity-0'"></div>
     <div class="pointer-events-none absolute inset-y-0 right-0 w-10 bg-gradient-to-l from-white to-transparent
                 transition-opacity duration-200 z-10"
-         :class="tpStates['hits']?.right ? 'opacity-100' : 'opacity-0'"></div>
+         :class="tpStates['saved']?.right ? 'opacity-100' : 'opacity-0'"></div>
 
     <!-- mobile affordance -->
     <div class="md:hidden pointer-events-none absolute inset-y-0 right-0 w-10 z-10 transition-opacity"
-         :class="tpStates['hits']?.scrolled ? 'opacity-0' : 'opacity-100'">
+         :class="tpStates['saved']?.scrolled ? 'opacity-0' : 'opacity-100'">
       <div class="h-full bg-gradient-to-l from-base-100 to-transparent"></div>
       <div class="absolute right-2 top-1/2 -translate-y-1/2 text-base-content/60 animate-pulse select-none">
         <i class="fa-solid fa-chevron-right fa-lg"></i>
@@ -2606,22 +2899,24 @@
 
     <!-- scroller: call registerTopStrip with the same key, use $el not $refs -->
     <div class="overflow-x-auto scrollbar-thin"
-         x-init="registerTopStrip($el, 'hits')">
+         x-init="registerTopStrip($el, 'saved')">
       <div class="flex gap-3 snap-x snap-mandatory px-0 pb-5">
         <template x-for="p in topProductsShuffledFor('saved', 12)" :key="p.id">
-          <!-- card markup unchanged -->
-          <a :href="link('product',{id:p.id})"
-             class="snap-start shrink-0 w-48 sm:w-56 card bg-white hover:shadow-md transition relative">
+          <article class="snap-start shrink-0 w-48 sm:w-56 card bg-white hover:shadow-md transition relative">
             <span x-show="discountPct(p) !== null"
                   class="absolute left-2 top-2 badge badge-error text-white font-semibold">
               <span x-text="`-${discountPct(p)}%`"></span>
             </span>
             <figure class="p-3 h-40">
-              <img :src="p.image || './images/placeholder.webp'" :alt="p.name"
-                   class="w-full h-full object-cover">
+              <a :href="link('product',{id:p.id})" class="block h-full">
+                <img :src="p.image || './images/placeholder.webp'" :alt="p.name"
+                     class="w-full h-full object-cover">
+              </a>
             </figure>
-            <div class="card-body pt-0 flex flex-col">
-              <div class="text-sm font-medium line-clamp-2 leading-snug min-h-[2.45rem] max-h-[2.45rem]" x-text="p.name"></div>
+            <div class="card-body pt-0 flex flex-col gap-2">
+              <a :href="link('product',{id:p.id})"
+                 class="text-sm font-medium line-clamp-2 leading-snug min-h-[2.45rem] max-h-[2.45rem] hover:underline"
+                 x-text="p.name"></a>
               <div class="mt-auto">
                 <div class="text-base font-semibold">
                   <span x-text="formatPrice(currentPrice(p))"></span>
@@ -2629,12 +2924,32 @@
                         x-show="crossedPrice(p) !== null"
                         x-text="formatPrice(crossedPrice(p))"></span>
                 </div>
-                <div class="mt-1" x-show="isInStock(p)">
-                  <span class="badge badge-success">Skladem</span>
-                </div>
+              </div>
+              <div class="mt-3">
+                <template x-if="!$store.cart.inCart(p.id)">
+                  <button class="btn btn-primary btn-md w-full font-semibold" @click="$store.cart.add(p)">
+                    <span x-text="t('routes.products.cart.add', 'Do košíku')"></span>
+                  </button>
+                </template>
+                <template x-if="$store.cart.inCart(p.id)">
+                  <div class="join w-full justify-center">
+                    <button class="btn btn-square btn-md join-item"
+                            @click="$store.cart.decrement(p.id)"
+                            :aria-label="t('routes.products.cart.decrementAria', 'Odebrat kus')">−</button>
+                    <input type="text" inputmode="numeric" pattern="[0-9]*"
+                           class="input input-bordered input-md w-12 text-center join-item tabular-nums"
+                           :value="$store.cart.qty(p.id)"
+                           @input="$store.cart.setQty(p.id, $event.target.value.replace(/[^0-9]/g,''))"
+                           @keydown.enter.prevent
+                           :aria-label="t('routes.products.cart.quantityAria', 'Počet kusů')" />
+                    <button class="btn btn-square btn-md join-item"
+                            @click="$store.cart.increment(p.id)"
+                            :aria-label="t('routes.products.cart.incrementAria', 'Přidat kus')">+</button>
+                  </div>
+                </template>
               </div>
             </div>
-          </a>
+          </article>
         </template>
       </div>
     </div>
@@ -2957,7 +3272,7 @@
 
         <div class="lg:hidden px-6 pt-4">
           <button type="button"
-                  class="btn btn-outline btn-secondary btn-lg w-full"
+                  class="btn btn-outline btn-secondary w-full"
                   @click="clearFilters(); mobileFiltersOpen = false"
                   x-show="hasActiveFilters()"
                   x-cloak
@@ -2967,13 +3282,14 @@
         </div>
         <div class="lg:hidden px-6 pb-6 pt-4 bg-base-100 border-t border-base-200">
           <button type="button"
-                  class="btn btn-primary btn-lg w-full"
+                  class="btn btn-primary w-full"
                   @click="mobileFiltersOpen = false">
             <span x-text="t('routes.products.actions.showResults', 'Zobrazit {count} výsledků', { count: filteredCount() })"></span>
           </button>
         </div>
       </div>
     </aside>
+    <div class="space-y-6">
       <div class="space-y-3">
         <nav class="breadcrumbs hidden md:block text-sm" aria-label="drobečková navigace">
           <ul>
@@ -2991,7 +3307,7 @@
           <div class="flex items-center justify-between gap-2">
             <div class="relative flex lg:hidden">
               <button type="button"
-                      class="btn btn-md rounded-full btn-outline btn-secondary"
+                      class="btn btn-md rounded-full btn-secondary"
                       @click="mobileFiltersOpen = true">
                 <i class="fa-solid fa-filter"></i>
                 <span x-text="t('routes.products.actions.toggleFilters', 'Filtry')"></span>
@@ -4120,34 +4436,36 @@
 
                 <div class="text-right">
                   <template x-if="it.priceBefore && it.priceBefore > it.price">
-                    <span class="text-sm line-through text-base-content/50 ml-2" x-text="koruny(it.priceBefore)"></span>
+                    <span class="block text-sm line-through text-base-content/50" x-text="koruny(it.priceBefore)"></span>
                   </template>
-                  <div class="font-medium" x-text="koruny($store.cart.linePrice(it))"></div>
-                  
-                  <!-- CART: MOBILE PRICE + LEGAL TOOLTIP (wrap only the price, leave '/ ks' outside) -->
-                  <span
-                    class="tooltip tooltip-left cursor-help inline-flex"
-                    x-init="$store.legal.init()"
-                    x-data="{
-                      get paras () {
-                        const hasDisc = !!(it.priceBefore && it.priceBefore > it.price);
-                        const original = hasDisc ? it.priceBefore : it.price;
-                        const discounted_price = hasDisc ? it.price : null;
-                        return $store.legal.paragraphsFor({ price: original, discounted_price });
-                      }
-                    }"
-                  >
-                    <div class="tooltip-content lg:p-3 max-w-64 md:max-w-auto">
-                      <template x-for="(p, idx) in paras" :key="idx">
-                        <p :class="idx > 0 ? 'mt-1 border-t-1 border-base-300/20 pt-1' : ''" x-text="p"></p>
-                      </template>
-                    </div>
 
-                    <span class="font-medium text-base underline decoration-dotted underline-offset-4 decoration-max-gray-400"
-                          x-text="koruny(it.price)"></span>
-                  </span>
-                  <span> / ks</span>
+                  <div class="flex items-center justify-end gap-1 text-sm">
+                    <!-- CART: MOBILE PRICE + LEGAL TOOLTIP (wrap only the price, leave '/ ks' outside) -->
+                    <span
+                      class="tooltip tooltip-left cursor-help inline-flex"
+                      x-init="$store.legal.init()"
+                      x-data="{
+                        get paras () {
+                          const hasDisc = !!(it.priceBefore && it.priceBefore > it.price);
+                          const original = hasDisc ? it.priceBefore : it.price;
+                          const discounted_price = hasDisc ? it.price : null;
+                          return $store.legal.paragraphsFor({ price: original, discounted_price });
+                        }
+                      }"
+                    >
+                      <div class="tooltip-content lg:p-3 max-w-64 md:max-w-auto">
+                        <template x-for="(p, idx) in paras" :key="idx">
+                          <p :class="idx > 0 ? 'mt-1 border-t-1 border-base-300/20 pt-1' : ''" x-text="p"></p>
+                        </template>
+                      </div>
 
+                      <span class="font-medium text-sm underline decoration-dotted underline-offset-4 decoration-max-gray-400"
+                            x-text="koruny(it.price)"></span>
+                    </span>
+                    <span class="text-sm"> / ks</span>
+                  </div>
+
+                  <div class="font-medium text-base mt-1" x-text="koruny($store.cart.linePrice(it))"></div>
                 </div>
               </div>
 
@@ -4188,9 +4506,6 @@
                     <span class="badge badge-ghost badge-sm" x-text="b"></span>
                   </template>
                 </div>
-                <template x-if="it.priceBefore && it.priceBefore > it.price">
-                  <div class="text-sm text-success mt-1" x-text="`Sleva ${Math.round((1 - it.price/it.priceBefore)*100)} %`"></div>
-                </template>
               </div>
             </div>
           </td>
@@ -4216,15 +4531,16 @@
                 </template>
               </div>
 
-              <!-- Your original desktop price element (unchanged look) -->
-              <div class="font-medium underline decoration-dotted underline-offset-4 decoration-max-gray-400"
-                  x-text="koruny(it.price)"></div>
-            </div>
-
-
               <template x-if="it.priceBefore && it.priceBefore > it.price">
                 <div class="text-sm line-through text-base-content/50" x-text="koruny(it.priceBefore)"></div>
               </template>
+              <!-- Your original desktop price element (unchanged look) -->
+              <div class="font-medium underline decoration-dotted underline-offset-4 decoration-max-gray-400"
+                  x-text="koruny(it.price)"></div>
+              </div>
+
+
+
             </div>
           </td>
 
@@ -4244,14 +4560,7 @@
 
           <td class="text-right align-center">
             <div class="font-medium" x-text="koruny($store.cart.linePrice(it))"></div>
-            <template x-if="(it.priceBefore ?? it.price) > it.price">
-              <div class="text-xs text-success">
-                − <span x-text="koruny($store.cart.lineDiscount(it))"></span>
-              </div>
-            </template>
           </td>
-
-
         </tr>
       </template>
     </tbody>
@@ -4275,7 +4584,7 @@
         </span>
 
         <span class="text-sm text-success" x-show="$store.cart.totalToPay() >= $store.cart.freeShipThreshold">
-          Splněno 🎉
+          Splněno <i class="fa-solid fa-check"></i>
         </span>
       </div>
 
@@ -4482,6 +4791,85 @@
           </div>
         </div>
       </div>
+
+      <section class="mt-10" x-cloak x-show="topProductsShuffledFor('cartUpsell', 12).length">
+        <div class="flex items-center justify-between mb-3">
+          <h3 class="text-lg font-semibold">Nezapomněli jste náhodou na něco?</h3>
+        </div>
+
+        <div class="relative group">
+          <div class="pointer-events-none absolute inset-y-0 left-0 w-10 bg-gradient-to-r from-white to-transparent
+                      transition-opacity duration-200 z-10"
+               :class="tpStates['cartUpsell']?.left ? 'opacity-100' : 'opacity-0'"></div>
+          <div class="pointer-events-none absolute inset-y-0 right-0 w-10 bg-gradient-to-l from-white to-transparent
+                      transition-opacity duration-200 z-10"
+               :class="tpStates['cartUpsell']?.right ? 'opacity-100' : 'opacity-0'"></div>
+
+          <div class="md:hidden pointer-events-none absolute inset-y-0 right-0 w-10 z-10 transition-opacity"
+               :class="tpStates['cartUpsell']?.scrolled ? 'opacity-0' : 'opacity-100'">
+            <div class="h-full bg-gradient-to-l from-base-100 to-transparent"></div>
+            <div class="absolute right-2 top-1/2 -translate-y-1/2 text-base-content/60 animate-pulse select-none">
+              <i class="fa-solid fa-chevron-right fa-lg"></i>
+            </div>
+          </div>
+
+          <div class="overflow-x-auto scrollbar-thin"
+               x-init="registerTopStrip($el, 'cartUpsell')">
+            <div class="flex gap-3 snap-x snap-mandatory px-0 pb-5">
+              <template x-for="p in topProductsShuffledFor('cartUpsell', 12)" :key="p.id">
+                <article class="snap-start shrink-0 w-48 sm:w-56 card bg-white hover:shadow-md transition relative">
+                  <span x-show="discountPct(p) !== null"
+                        class="absolute left-2 top-2 badge badge-error text-white font-semibold">
+                    <span x-text="`-${discountPct(p)}%`"></span>
+                  </span>
+                  <figure class="p-3 h-40">
+                    <a :href="link('product',{id:p.id})" class="block h-full">
+                      <img :src="p.image || './images/placeholder.webp'" :alt="p.name"
+                           class="w-full h-full object-cover">
+                    </a>
+                  </figure>
+                  <div class="card-body pt-0 flex flex-col gap-2">
+                    <a :href="link('product',{id:p.id})"
+                       class="text-sm font-medium line-clamp-2 leading-snug min-h-[2.45rem] max-h-[2.45rem] hover:underline"
+                       x-text="p.name"></a>
+                    <div class="mt-auto">
+                      <div class="text-base font-semibold">
+                        <span x-text="formatPrice(currentPrice(p))"></span>
+                        <span class="ml-2 line-through text-xs opacity-60"
+                              x-show="crossedPrice(p) !== null"
+                              x-text="formatPrice(crossedPrice(p))"></span>
+                      </div>
+                    </div>
+                    <div class="mt-3">
+                      <template x-if="!$store.cart.inCart(p.id)">
+                        <button class="btn btn-primary btn-md w-full font-semibold" @click="$store.cart.add(p)">
+                          <span x-text="t('routes.products.cart.add', 'Do košíku')"></span>
+                        </button>
+                      </template>
+                      <template x-if="$store.cart.inCart(p.id)">
+                        <div class="join w-full justify-center">
+                          <button class="btn btn-square btn-md join-item"
+                                  @click="$store.cart.decrement(p.id)"
+                                  :aria-label="t('routes.products.cart.decrementAria', 'Odebrat kus')">−</button>
+                          <input type="text" inputmode="numeric" pattern="[0-9]*"
+                                 class="input input-bordered input-md w-12 text-center join-item tabular-nums"
+                                 :value="$store.cart.qty(p.id)"
+                                 @input="$store.cart.setQty(p.id, $event.target.value.replace(/[^0-9]/g,''))"
+                                 @keydown.enter.prevent
+                                 :aria-label="t('routes.products.cart.quantityAria', 'Počet kusů')" />
+                          <button class="btn btn-square btn-md join-item"
+                                  @click="$store.cart.increment(p.id)"
+                                  :aria-label="t('routes.products.cart.incrementAria', 'Přidat kus')">+</button>
+                        </div>
+                      </template>
+                    </div>
+                  </div>
+                </article>
+              </template>
+            </div>
+          </div>
+        </div>
+      </section>
     </div>
   </template>
 
@@ -4742,31 +5130,27 @@ document.addEventListener('alpine:init', () => {
                class="size-7 rounded bg-base-200 object-contain shrink-0"
                @error="$event.target.style.opacity=0.3" />
           <div class="min-w-0">
-            <div class="font-medium leading-tight">
+              <div class="font-medium leading-tight">
               <!-- keep text truncation on the text only, not the container -->
               <div class="flex items-center gap-1 min-w-0">
-                <span class="truncate max-w-full" x-text="opt.name"></span>
-            
-                <!-- DaisyUI tooltip (works on hover/focus; forced open on tap) -->
-                <div
-                  x-show="opt.tooltip"
-                  x-data="{ open:false }"
-                  class="tooltip tooltip-left md:tooltip-top shrink-0 z-10"
-                  :class="{ 'tooltip-open': open }"
-                  :data-tip="opt.tooltip"
-                  tabindex="0"
-                  @keydown.escape.window="open=false"
-                  @blur="open=false"
-                >
-                  <button
-                    type="button"
-                    class="ml-1 inline-flex h-5 w-5 items-center justify-center rounded-full text-[10px] bg-base-200"
-                    aria-label="Více informací"
-                    @click.stop="open = !open"
+                <template x-if="opt.tooltip">
+                  <span
+                    x-data="{ open:false }"
+                    class="tooltip tooltip-left md:tooltip-top cursor-help inline-flex max-w-full truncate"
+                    :class="{ 'tooltip-open': open }"
+                    :data-tip="opt.tooltip"
+                    tabindex="0"
+                    @keydown.escape.window="open=false"
+                    @blur="open=false"
+                    @click="open = !open"
                   >
-                  <!--TODO: All icons .fa-question-circle in "Doprava" and "Platba" should be removed, tooltip should be visible on opt.name and the name should add to classes "underline decoration-dotted underline-offset-4 decoration-max-gray-400" and cursor question mark -->
-                  <i class="fa-regular fa-question-circle fa-lg text-max-gray-600" aria-hidden="true"></i></button>
-                </div>
+                    <span class="underline decoration-dotted underline-offset-4 decoration-max-gray-400"
+                          x-text="opt.name"></span>
+                  </span>
+                </template>
+                <template x-if="!opt.tooltip">
+                  <span class="truncate max-w-full" x-text="opt.name"></span>
+                </template>
               </div>
             </div>
         <template x-if="opt.description">
@@ -4840,24 +5224,23 @@ document.addEventListener('alpine:init', () => {
                @error="$event.target.style.opacity=0.3" />
           <div class="min-w-0">
             <div class="font-medium leading-tight">
-              <span x-text="opt.name"></span>
-              <!-- Tooltip #1: option’s own tooltip (DaisyUI) -->
-              <span x-show="opt.tooltip" class="inline-block" x-data="{ open:false }" @keydown.escape.window="open=false">
-                <div
-                  class="tooltip tooltip-left md:tooltip-top"
+              <template x-if="opt.tooltip">
+                <span
+                  x-data="{ open:false }"
+                  class="tooltip tooltip-left md:tooltip-top cursor-help inline-flex"
                   :class="{ 'tooltip-open': open }"
                   :data-tip="opt.tooltip"
                   tabindex="0"
+                  @keydown.escape.window="open=false"
                   @blur="open=false"
+                  @click="open=!open"
                 >
-                  <button
-                    type="button"
-                    class="ml-1 inline-flex size-5 items-center justify-center rounded-full text-xs bg-base-200"
-                    aria-label="Více informací"
-                    @click.stop="open=!open"
-                  ><i class="fa-regular fa-question-circle fa-lg text-max-gray-600" aria-hidden="true"></i></button>
-                </div>
-              </span>
+                  <span class="underline decoration-dotted underline-offset-4 decoration-max-gray-400" x-text="opt.name"></span>
+                </span>
+              </template>
+              <template x-if="!opt.tooltip">
+                <span x-text="opt.name"></span>
+              </template>
             </div>
             <template x-if="opt.description">
               <p class="text-sm font-medium text-base-content/70 leading-snug" x-text="opt.description"></p>
@@ -5953,7 +6336,7 @@ function deliveryPaymentUI() {
                   <legend class="fieldset-legend text-sm text-max-gray-600" x-text="field.label"></legend>
 
                   <template x-if="field.type === 'textarea'">
-                    <textarea class="textarea textarea-bordered h-28 w-full"
+                    <textarea class="textarea textarea-bordered h-28 w-full text-lg"
                               x-bind:placeholder="field.placeholder ?? undefined"
                               x-model="contactFormValues[field.key]"
                               @input="handleFieldInput(field.key)"
@@ -5962,50 +6345,82 @@ function deliveryPaymentUI() {
                   </template>
 
                   <template x-if="field.type === 'address'">
-                    <div class="grid grid-cols-1 gap-3">
-                      <label class="input input-lg w-full" :class="contactFormErrors[field.key].length ? 'input-error' : ''">
+                    <div x-data="addressAutocomplete(field.key)" x-init="init()" class="space-y-3">
+                      <div class="relative">
                         <input type="text"
-                               class="grow"
-                               x-bind:placeholder="addressPlaceholder(field, 'street')"
-                               x-model="contactFormValues[field.key].street"
-                               @input="handleFieldInput(field.key)"
-                               @blur="handleFieldBlur(field.key)" />
-                      </label>
-                      <label class="input input-lg w-full">
-                        <input type="text"
-                               class="grow"
-                               x-bind:placeholder="addressPlaceholder(field, 'extra')"
-                               x-model="contactFormValues[field.key].extra"
-                               @input="handleFieldInput(field.key)"
-                               @blur="handleFieldBlur(field.key)" />
-                      </label>
-                      <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        <label class="input input-lg w-full" :class="contactFormErrors[field.key].length ? 'input-error' : ''">
-                          <input type="text"
-                                 class="grow"
-                                 x-bind:placeholder="addressPlaceholder(field, 'city')"
-                                 x-model="contactFormValues[field.key].city"
-                                 @input="handleFieldInput(field.key)"
-                                 @blur="handleFieldBlur(field.key)" />
-                        </label>
-                        <label class="input input-lg w-full" :class="contactFormErrors[field.key].length ? 'input-error' : ''">
-                          <input type="text"
-                                 class="grow"
-                                 x-bind:placeholder="addressPlaceholder(field, 'zip')"
-                                 inputmode="numeric"
-                                 maxlength="5"
-                                 x-model="contactFormValues[field.key].zip"
-                                 @input="handleFieldInput(field.key)"
-                                 @blur="handleFieldBlur(field.key)" />
-                        </label>
+                               class="input input-lg w-full pr-12"
+                               :class="contactFormErrors[field.key].length ? 'input-error' : ''"
+                               x-model="query"
+                               x-ref="input"
+                               x-bind:placeholder="field.placeholder ?? 'Zadejte adresu'"
+                               @input="onInput($event)"
+                               @focus="openSuggestions()"
+                               @blur="onBlur()"
+                               @keydown.arrow-down.prevent="highlightNext()"
+                               @keydown.arrow-up.prevent="highlightPrev()"
+                               @keydown.enter.prevent="selectHighlighted()"
+                               @keydown.escape="closeSuggestions()" />
+                        <button type="button"
+                                class="btn btn-ghost btn-sm absolute right-2 top-1/2 -translate-y-1/2"
+                                x-show="hasValue"
+                                @mousedown.prevent
+                                @click="clearSelection()">
+                          <span class="sr-only">Vymazat adresu</span>
+                          ×
+                        </button>
+
+                        <div class="absolute left-0 right-0 z-20 mt-1 rounded-lg border border-base-300 bg-white shadow-lg"
+                             x-cloak
+                             x-show="open && filteredOptions.length">
+                          <ul class="max-h-60 overflow-y-auto">
+                            <template x-for="(opt, idx) in filteredOptions" :key="opt.id">
+                              <li>
+                                <button type="button"
+                                        class="w-full text-left px-4 py-2 hover:bg-base-200 focus:bg-base-200"
+                                        :class="idx === highlighted ? 'bg-base-200' : ''"
+                                        @mousedown.prevent="selectOption(opt)"
+                                        @mouseenter="highlighted = idx">
+                                  <div class="font-medium" x-text="opt.label"></div>
+                                  <div class="text-sm text-base-content/70" x-text="opt.cityLine"></div>
+                                </button>
+                              </li>
+                            </template>
+                          </ul>
+                        </div>
                       </div>
+
+                      <template x-if="hasValue">
+                        <div class="rounded-lg border border-dashed border-base-300 bg-base-100 p-4 text-sm leading-snug">
+                          <div class="font-semibold text-base-content">Vybraná adresa</div>
+                          <div class="text-base-content/80 whitespace-pre-line" x-text="summaryBody"></div>
+                        </div>
+                      </template>
                     </div>
                   </template>
 
-                  <template x-if="['text','email','tel'].includes(field.type)">
+                  <template x-if="isPhoneField(field)">
                     <label class="input input-lg w-full" :class="contactFormErrors[field.key].length ? 'input-error' : ''">
                       <span class="label" x-show="field.prefix" x-text="field.prefix"></span>
-                      <input :type="field.type === 'tel' ? 'tel' : (field.type === 'email' ? 'email' : 'text')"
+                      <div class="relative grow min-w-0">
+                        <input :type="field.type === 'tel' ? 'tel' : 'text'"
+                               class="grow bg-transparent focus:outline-none tabular-nums"
+                               :style="contactFormValues[field.key] ? 'color: transparent; caret-color: var(--fallback-bc, currentColor);' : ''"
+                               x-bind:placeholder="field.placeholder ?? undefined"
+                               x-model="contactFormValues[field.key]"
+                               @input="handleFieldInput(field.key)"
+                               @blur="handleFieldBlur(field.key)" />
+                        <span class="pointer-events-none select-none absolute inset-0 flex items-center justify-start text-base-content truncate w-full tabular-nums"
+                              :class="contactFormValues[field.key] ? 'opacity-100' : 'opacity-0'"
+                              aria-hidden="true"
+                              x-text="formatPhoneDisplay(contactFormValues[field.key])"></span>
+                      </div>
+                    </label>
+                  </template>
+
+                  <template x-if="['text','email'].includes(field.type) && !isPhoneField(field)">
+                    <label class="input input-lg w-full" :class="contactFormErrors[field.key].length ? 'input-error' : ''">
+                      <span class="label" x-show="field.prefix" x-text="field.prefix"></span>
+                      <input :type="field.type === 'email' ? 'email' : 'text'"
                              class="grow"
                              x-bind:placeholder="field.placeholder ?? undefined"
                              x-model="contactFormValues[field.key]"
@@ -6497,6 +6912,84 @@ function deliveryPaymentUI() {
           </div>
         </div>
       </div>
+      <div class="rounded-2xl border border-base-300 bg-white shadow-sm p-6 space-y-5">
+        <div class="space-y-1">
+          <h2 class="text-lg font-semibold">Přihlášení a testovací účet</h2>
+          <p class="text-sm text-base-content/70">
+            Spravujte aktuální stav přihlášení a výchozí testovací data uložená v <code>fit:auth</code>.
+          </p>
+        </div>
+        <div class="flex flex-wrap items-center gap-3 text-sm">
+          <span class="badge"
+                :class="$store.auth?.isAuthenticated ? 'badge-success badge-outline' : 'badge-ghost border-base-300 text-base-content/70'">
+            <span x-text="$store.auth?.isAuthenticated ? 'Přihlášený uživatel' : 'Anonymní uživatel'"></span>
+          </span>
+          <template x-if="$store.auth?.account?.email">
+            <span class="text-base-content/70">
+              E-mail: <span class="font-medium" x-text="$store.auth.account.email"></span>
+            </span>
+          </template>
+          <template x-if="!$store.auth?.account?.email && !$store.auth?.isAuthenticated">
+            <span class="text-base-content/60">Nikdo není přihlášen.</span>
+          </template>
+        </div>
+        <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
+          <button type="button"
+                  class="btn btn-primary flex-1 sm:flex-none"
+                  @click="$store.auth?.loginWithFallback()">
+            Přihlásit testovací účet
+          </button>
+          <button type="button"
+                  class="btn btn-ghost flex-1 sm:flex-none"
+                  :disabled="!$store.auth?.isAuthenticated"
+                  @click="$store.auth?.logout()">
+            Odhlásit
+          </button>
+          <button type="button"
+                  class="btn btn-ghost flex-1 sm:flex-none"
+                  @click="$store.auth?.reset()">
+            Resetovat vše
+          </button>
+        </div>
+        <div class="grid gap-4 md:grid-cols-2">
+          <label class="flex flex-col gap-2">
+            <span class="text-xs font-semibold uppercase tracking-wide text-base-content/50">Prodleva simulace (ms)</span>
+            <div class="flex items-center gap-2">
+              <input type="number"
+                     class="input input-bordered w-full"
+                     x-model.number="authThrottleDraft"
+                     min="0"
+                     step="100">
+              <button type="button"
+                      class="btn btn-ghost"
+                      @click="applyThrottle()">
+                Uložit
+              </button>
+            </div>
+          </label>
+          <div class="md:col-span-2 flex flex-col gap-2">
+            <span class="text-xs font-semibold uppercase tracking-wide text-base-content/50">
+              Výchozí testovací uživatel (JSON)
+            </span>
+            <textarea class="textarea textarea-bordered font-mono text-xs leading-5 min-h-[140px]"
+                      x-model="authFallbackDraft"
+                      spellcheck="false"></textarea>
+            <p class="text-xs text-error min-h-[1.2rem]" x-text="authFallbackError"></p>
+            <div class="flex justify-end gap-2">
+              <button type="button"
+                      class="btn btn-ghost btn-sm"
+                      @click="resetFallbackDraft()">
+                Obnovit návrh
+              </button>
+              <button type="button"
+                      class="btn btn-primary btn-sm"
+                      @click="applyFallbackDraft()">
+                Uložit JSON
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
       <div class="rounded-2xl border border-base-300 bg-white shadow-sm p-6 space-y-4">
         <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
@@ -6643,14 +7136,14 @@ function deliveryPaymentUI() {
            @keydown.escape.window="closeModal()"
            @click.self="closeModal()">
     <button type="button"
-            class="absolute top-10 right-8 z-[90] btn btn-circle btn-ghost bg-base-100 border-base-300 border-2 hover:bg-base-200/60  btn-sm md:btn-lg"
+            class="absolute top-24 right-6 md:top-10 md:right-8 z-[90] btn btn-circle btn-ghost bg-base-100 border-base-300 border-2 hover:bg-base-200/60  btn-md md:btn-lg"
             aria-label="Zavřít mapu"
             @click.stop="closeModal()">
       <i class="fa-solid fa-xmark"></i>
     </button>
 
     <div class="relative flex-1 overflow-hidden pointer-events-none">
-      <div class="absolute inset-0 px-4 pt-12 pb-4 md:pt-6 md:pb-6 pointer-events-auto flex flex-col gap-4">
+      <div class="absolute inset-0 px-4 pt-8 pb-4 md:pt-6 md:pb-6 pointer-events-auto flex flex-col gap-4">
         <div class="md:hidden flex-shrink-0">
           <div class="join w-full">
             <input class="join-item btn btn-block flex-1"
@@ -6668,7 +7161,7 @@ function deliveryPaymentUI() {
           <aside class="min-h-0 col-span-12 lg:col-span-3 flex flex-col"
           x-show="isLg || mode==='list'">
           <div class="bg-white border border-base-300 rounded-xl xl:p-8 p-4 flex-1 flex flex-col overflow-hidden">
-            <h1 class="text-3xl mx-auto mt-2 md:mt-4 pb-4">Lékárny a boxy</h1>
+            <h1 class="text-3xl mt-2 md:mt-4 pb-4">Lékárny a boxy</h1>
 
             <!-- Search -->
             <div class="pb-4">
@@ -6820,7 +7313,7 @@ function deliveryPaymentUI() {
   </div>
 
   <!-- Type filter FAB -->
-  <div class="absolute bottom-24 right-4 sm:bottom-28 sm:right-6 md:bottom-14 md:right-10 z-[95]"
+  <div class="absolute bottom-12 right-8 sm:bottom-28 sm:right-6 md:bottom-14 md:right-10 z-[95]"
        x-show="typeOptions.length"
        x-cloak
        @keydown.escape.window="fabOpen=false"
@@ -6836,8 +7329,8 @@ function deliveryPaymentUI() {
            x-transition:leave-end="opacity-0 translate-y-2">
         <template x-for="option in typeOptions" :key="option.value">
           <button type="button"
-                  class="flex items-center gap-3 rounded-full px-4 py-2 text-base font-medium shadow-lg bg-white/90 backdrop-blur border-2 border-base-200 hover:border-base-300 transition"
-                  :class="typeFilter === option.value ? 'bg-primary text-primary-content' : 'text-base-content'"
+                  class="flex items-center gap-3 rounded-full px-4 py-2 text-base font-medium shadow-lg backdrop-blur border-2 hover:border-base-300 transition"
+                  :class="typeFilter === option.value ? 'bg-white text-base-content border-max-blue-300' : 'bg-white/90 text-base-content border-base-200'"
                   @click="setTypeFilter(option.value)">
             <i :class="typeFilter === option.value ? 'fa-solid fa-check-circle text-max-blue-500' : 'fa-regular fa-circle opacity-40'"></i>
             <span x-text="option.label"></span>
@@ -8234,6 +8727,8 @@ contactFormTouched: {},
 contactFormGroups: {},
 contactFormGroupToggles: {},
 contactFormGroupMembers: {},
+addressAutocompleteOptions: [],
+addressAutocompleteLoaded: false,
 addressFormLoaded: false,
 addressFormLoading: false,
 addressFormSubmitAttempted: false,
@@ -9295,6 +9790,43 @@ async ensureAddressForm() {
   }
 },
 
+async loadAddressSuggestions() {
+  if (this.addressAutocompleteLoaded) return this.addressAutocompleteOptions;
+  try {
+    const res = await fetch('data/addresses/prague.json', { cache: 'no-store' });
+    const list = await res.json();
+    const normalized = Array.isArray(list) ? list : [];
+    this.addressAutocompleteOptions = normalized.map((item) => {
+      const street = String(item.street ?? '').trim();
+      const extra = String(item.extra ?? '').trim();
+      const city = String(item.city ?? '').trim();
+      const zip = String(item.zip ?? '').replace(/\s+/g, '');
+      const label = String(item.label ?? `${street}, ${city}`).trim();
+      const cityLine = [zip, city].filter(Boolean).join(' ');
+      const district = String(item.district ?? '').trim();
+      const search = [label, street, extra, city, zip, district].filter(Boolean).join(' ').toLowerCase();
+      const fallbackId = `${street || 'addr'}-${zip || Math.random().toString(36).slice(2)}`;
+      return {
+        id: String(item.id ?? fallbackId),
+        label: label || street,
+        street,
+        extra,
+        city,
+        zip,
+        district,
+        cityLine,
+        search
+      };
+    });
+  } catch (e) {
+    console.warn('Failed to load address suggestions', e);
+    this.addressAutocompleteOptions = [];
+  } finally {
+    this.addressAutocompleteLoaded = true;
+  }
+  return this.addressAutocompleteOptions;
+},
+
 loadCheckoutMeta() {
   const parse = (key) => {
     try {
@@ -9450,6 +9982,102 @@ normalizeAddressValue(val) {
   return { street: '', extra: '', city: '', zip: '' };
 },
 
+addressAutocomplete(fieldKey) {
+  const store = this;
+  return {
+    fieldKey,
+    query: '',
+    open: false,
+    highlighted: -1,
+    init() {
+      store.loadAddressSuggestions().then(() => {
+        this.syncFromValue(store.contactFormValues[this.fieldKey]);
+      });
+      this.$watch(
+        () => store.contactFormValues[this.fieldKey],
+        (value) => this.syncFromValue(value)
+      );
+    },
+    get filteredOptions() {
+      const options = store.addressAutocompleteOptions || [];
+      const q = this.query.trim().toLowerCase();
+      if (!q) return options.slice(0, 8);
+      return options.filter(opt => opt.search.includes(q)).slice(0, 8);
+    },
+    get hasValue() {
+      const value = store.normalizeAddressValue(store.contactFormValues[this.fieldKey]);
+      return !!(value.street || value.extra || value.city || value.zip);
+    },
+    get summaryBody() {
+      return store.formatAddressDisplay(store.contactFormValues[this.fieldKey]);
+    },
+    openSuggestions() {
+      this.open = true;
+      if (this.highlighted === -1 && this.filteredOptions.length) {
+        this.highlighted = 0;
+      }
+    },
+    closeSuggestions() {
+      this.open = false;
+      this.highlighted = -1;
+    },
+    onInput(event) {
+      this.query = event.target.value;
+      const next = store.normalizeAddressValue(store.contactFormValues[this.fieldKey]);
+      const updated = { ...next, street: this.query };
+      store.contactFormValues[this.fieldKey] = updated;
+      store.handleFieldInput(this.fieldKey);
+      this.openSuggestions();
+    },
+    onBlur() {
+      setTimeout(() => this.closeSuggestions(), 120);
+      store.handleFieldBlur(this.fieldKey);
+    },
+    highlightNext() {
+      if (!this.filteredOptions.length) return;
+      this.openSuggestions();
+      this.highlighted = (this.highlighted + 1) % this.filteredOptions.length;
+    },
+    highlightPrev() {
+      if (!this.filteredOptions.length) return;
+      this.openSuggestions();
+      this.highlighted = this.highlighted <= 0 ? this.filteredOptions.length - 1 : this.highlighted - 1;
+    },
+    selectHighlighted() {
+      if (this.highlighted < 0 || this.highlighted >= this.filteredOptions.length) return;
+      this.selectOption(this.filteredOptions[this.highlighted]);
+    },
+    selectOption(opt) {
+      const value = store.normalizeAddressValue(opt);
+      store.contactFormValues[this.fieldKey] = value;
+      store.handleFieldInput(this.fieldKey);
+      store.handleFieldBlur(this.fieldKey);
+      this.query = store.formatAddressLine(value);
+      this.closeSuggestions();
+    },
+    clearSelection() {
+      store.contactFormValues[this.fieldKey] = store.normalizeAddressValue({});
+      this.query = '';
+      store.handleFieldInput(this.fieldKey);
+      store.handleFieldBlur(this.fieldKey);
+      this.closeSuggestions();
+    },
+    syncFromValue(value) {
+      const normalized = store.normalizeAddressValue(value);
+      const current = store.normalizeAddressValue(store.contactFormValues[this.fieldKey]);
+      if (!this.addressesEqual(normalized, current)) {
+        store.contactFormValues[this.fieldKey] = normalized;
+      }
+      this.query = store.formatAddressLine(normalized);
+    },
+    addressesEqual(a, b) {
+      if (!a && !b) return true;
+      const keys = ['street', 'extra', 'city', 'zip'];
+      return keys.every(k => String(a?.[k] ?? '') === String(b?.[k] ?? ''));
+    }
+  };
+},
+
 addressPlaceholder(field, part) {
   if (!field || field.type !== 'address') return undefined;
   const ph = field.placeholder;
@@ -9543,6 +10171,13 @@ isFieldVisible(field) {
   if (field.isToggle) return true;
   if (!field.groupKey) return true;
   return !!this.contactFormGroups[field.groupKey];
+},
+
+isPhoneField(field) {
+  if (!field) return false;
+  if (field.type === 'tel') return true;
+  const validations = Array.isArray(field.validations) ? field.validations : [];
+  return validations.some(v => (v?.type || '').toLowerCase() === 'phone');
 },
 
 isFieldActive(field) {
@@ -9670,6 +10305,21 @@ submitAddressForm() {
   location.hash = '/purchase-review';
 },
 
+formatPhoneDisplay(val) {
+  const digits = String(val || '').replace(/\D+/g, '');
+  if (!digits) return '';
+  return digits.replace(/(\d{3})(?=\d)/g, '$1 ').trim();
+},
+
+formatAddressLine(val) {
+  const addr = this.normalizeAddressValue(val);
+  const parts = [];
+  if (addr.street) parts.push(addr.street);
+  const cityLine = [addr.zip, addr.city].filter(Boolean).join(' ');
+  if (cityLine) parts.push(cityLine);
+  return parts.join(', ');
+},
+
 formatAddressDisplay(val) {
   const addr = this.normalizeAddressValue(val);
   const parts = [];
@@ -9685,10 +10335,11 @@ formatFieldValue(field, value) {
   if (field.type === 'address') {
     return this.formatAddressDisplay(value);
   }
-  if (field.type === 'tel' && field.prefix) {
+  if (this.isPhoneField(field)) {
     const trimmed = String(value || '').trim();
     if (!trimmed) return '';
-    return `${field.prefix} ${trimmed}`;
+    const formatted = this.formatPhoneDisplay(trimmed);
+    return field.prefix ? `${field.prefix} ${formatted}` : formatted;
   }
   return String(value ?? '').trim();
 },
@@ -11070,10 +11721,15 @@ loadCheckoutReviewFromStorage() {
       defaultLocale: (window.__fitI18n && window.__fitI18n.defaultLocale) || 'cs-CZ',
       defaultCurrency: (window.__fitI18n && window.__fitI18n.defaultCurrency) || 'CZK',
       selectedStep: '',
+      authStore: null,
+      authFallbackDraft: '',
+      authFallbackError: '',
+      authThrottleDraft: 1300,
       init() {
         this.store = Alpine.store('appConfig');
         this.orderStore = Alpine.store('activeOrder');
         this.localeStore = Alpine.store('i18n');
+        this.authStore = Alpine.store('auth');
         Promise.resolve(this.orderStore?.ensureData?.());
         this.selectedStep = this.orderStore?.order?.currentStepId || '';
         this.$watch(() => this.orderStore?.order, () => {
@@ -11083,6 +11739,44 @@ loadCheckoutReviewFromStorage() {
           this.selectedStep = value || '';
         });
         Promise.resolve(this.localeStore?.ensureCurrencyConfig?.());
+        this.authFallbackDraft = this.formatFallback(this.authStore?.fallbackAccount);
+        this.authThrottleDraft = Number(this.authStore?.throttleMs ?? 1300);
+        this.$watch(() => JSON.stringify(this.authStore?.fallbackAccount || {}), () => {
+          this.authFallbackDraft = this.formatFallback(this.authStore?.fallbackAccount);
+        });
+        this.$watch(() => this.authStore?.throttleMs, (value) => {
+          this.authThrottleDraft = Number(value ?? 0);
+        });
+      },
+      formatFallback(data) {
+        try {
+          const payload = data && typeof data === 'object' ? data : {};
+          return JSON.stringify(payload, null, 2);
+        } catch {
+          return '{}';
+        }
+      },
+      applyFallbackDraft() {
+        if (!this.authStore) return;
+        this.authFallbackError = '';
+        try {
+          const payload = this.authFallbackDraft ? JSON.parse(this.authFallbackDraft) : {};
+          this.authStore.setFallbackAccount(payload);
+          this.authFallbackDraft = this.formatFallback(this.authStore.fallbackAccount);
+        } catch (e) {
+          console.warn('Failed to apply auth fallback draft', e);
+          this.authFallbackError = 'Nepodařilo se načíst JSON. Zkontrolujte formát.';
+        }
+      },
+      resetFallbackDraft() {
+        this.authFallbackError = '';
+        this.authFallbackDraft = this.formatFallback(this.authStore?.fallbackAccount);
+      },
+      applyThrottle() {
+        if (!this.authStore) return;
+        const value = Number(this.authThrottleDraft);
+        this.authStore.setThrottle(Number.isFinite(value) ? value : this.authStore.throttleMs);
+        this.authThrottleDraft = Number(this.authStore.throttleMs);
       },
       get showBadge() {
         return !!(this.store?.get ? this.store.get('showBreakpointBadge') : this.store?.showBreakpointBadge);
@@ -11985,11 +12679,20 @@ loadCheckoutReviewFromStorage() {
   @click.self="close()"
   @keydown.escape.window="close()"
   @close.prevent="close()"
-  class="modal"
+  class="modal bg-base-200/95 backdrop-blur-sm"
   aria-labelledby="contact_modal_title"
 >
-  <div class="modal-box w-11/12 max-w-3xl bg-base-200 px-4 lg:px-8 py-6 lg:py-8">
-    <div class="flex items-start justify-between gap-4">
+  <div class="modal-box w-11/12 max-w-3xl bg-base-200 px-4 lg:px-8 py-6 lg:py-8 relative space-y-4">
+    <button
+      type="button"
+      class="btn btn-sm btn-circle btn-ghost absolute top-4 right-4"
+      @click="close()"
+      aria-label="Zavřít kontakty"
+      :aria-label="t('header.actions.phone.close', 'Zavřít kontakty')"
+    >
+      <i class="fa-solid fa-xmark"></i>
+    </button>
+    <div class="flex items-start gap-4 pr-10">
       <div>
         <h2 id="contact_modal_title" class="text-2xl font-semibold" x-text="t('header.actions.phone.modalTitle', 'Kontaktujte nás')">
           Kontaktujte nás
@@ -11998,15 +12701,6 @@ loadCheckoutReviewFromStorage() {
           Vyberte si preferovaný způsob komunikace.
         </p>
       </div>
-      <button
-        type="button"
-        class="btn btn-sm btn-circle btn-ghost"
-        @click="close()"
-        aria-label="Zavřít kontakty"
-        :aria-label="t('header.actions.phone.close', 'Zavřít kontakty')"
-      >
-        <i class="fa-solid fa-xmark"></i>
-      </button>
     </div>
 
     <div class="mt-6">
@@ -12024,51 +12718,48 @@ loadCheckoutReviewFromStorage() {
 
       <div x-show="!isLoading && !hasError" x-cloak>
         <template x-if="items.length">
-          <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 mt-4">
+          <div class="flex flex-col gap-3 mt-4">
             <template x-for="contact in items" :key="contact.id">
               <article
-                class="card bg-base-100 border border-base-300/40 shadow-sm h-full transition hover:border-primary/60 focus-within:border-primary/60"
-                :class="$store.contacts.primary?.id === contact.id ? 'border-primary/60 ring-1 ring-primary/40' : ''"
-              >
-                <div class="card-body p-4 flex flex-col gap-4">
-                  <div class="flex items-start gap-3">
-                    <span class="w-12 h-12 rounded-full bg-primary/10 text-primary grid place-items-center flex-none">
-                      <i :class="contact.icon || 'fa-regular fa-address-card'"></i>
-                    </span>
-                    <div class="flex-1 min-w-0">
-                      <h3 class="text-lg font-semibold leading-snug" x-text="contact.name"></h3>
-                      <p class="text-sm text-base-content/70 mt-1" x-text="contact.description"></p>
-                    </div>
-                  </div>
+                class="collapse collapse-arrow bg-base-100 border border-base-300/60 shadow-sm rounded-2xl transition">
+                <input type="checkbox" />
+                <div class="collapse-title flex items-center gap-4 text-base-content/90 min-h-[3.5rem]">
+                  <span class="w-12 h-12 rounded-full bg-primary/10 text-primary grid place-items-center flex-none">
+                    <i :class="[contact.icon || 'fa-regular fa-address-card', 'text-2xl']"></i>
+                  </span>
+                  <h3 class="text-lg font-semibold leading-snug" x-text="contact.name"></h3>
+                </div>
+                <div class="collapse-content flex flex-col gap-4 text-sm text-base-content/70">
+                  <p x-text="contact.description"></p>
                   <div class="space-y-2">
                     <template x-if="contact.phone">
                       <a
-                        class="btn btn-sm btn-outline btn-primary w-full justify-start gap-2"
+                        class="btn btn-link px-0 text-secondary font-medium justify-start gap-2 group"
                         :href="phoneHref(contact) || '#'"
                         @click="phoneHref(contact) ? close() : $event.preventDefault()"
                       >
                         <i class="fa-solid fa-phone"></i>
-                        <span x-text="contact.phone"></span>
+                        <span class="underline-offset-4 decoration-1 decoration-current group-hover:underline group-focus-visible:underline" x-text="contact.phone"></span>
                       </a>
                     </template>
                     <template x-if="contact.email">
                       <a
-                        class="btn btn-sm btn-outline btn-primary w-full justify-start gap-2"
+                        class="btn btn-link px-0 text-secondary font-medium justify-start gap-2 group"
                         :href="emailHref(contact) || '#'"
                         @click="emailHref(contact) ? close() : $event.preventDefault()"
                       >
                         <i class="fa-solid fa-envelope"></i>
-                        <span x-text="contact.email"></span>
+                        <span class="underline-offset-4 decoration-1 decoration-current group-hover:underline group-focus-visible:underline" x-text="contact.email"></span>
                       </a>
                     </template>
                     <template x-if="routeHref(contact)">
                       <a
-                        class="btn btn-sm btn-outline w-full justify-start gap-2"
+                        class="btn btn-link px-0 text-secondary font-medium justify-start gap-2 group"
                         :href="routeHref(contact)"
                         @click="handleRoute(contact, $event)"
                       >
                         <i class="fa-solid fa-arrow-up-right-from-square"></i>
-                        <span x-text="t('header.actions.phone.route', 'Přejít na stránku')">Přejít na stránku</span>
+                        <span class="underline-offset-4 decoration-1 decoration-current group-hover:underline group-focus-visible:underline" x-text="t('header.actions.phone.route', 'Přejít na stránku')">Přejít na stránku</span>
                       </a>
                     </template>
                   </div>
@@ -12716,6 +13407,143 @@ function precartModal() {
   };
 }
 </script>
+
+<!-- Auth Modal -->
+<div class="modal bg-base-200/95 backdrop-blur-sm"
+     x-cloak
+     :class="{ 'modal-open': $store.auth?.modalOpen }"
+     x-show="$store.auth?.modalOpen"
+     @click.self="$store.auth?.closeModal()"
+     @keydown.escape.window="$store.auth?.closeModal()">
+  <div class="modal-box max-w-md space-y-2 relative p-6 md:p-10" @click.stop>
+    <div class="flex items-start justify-between gap-4">
+      <div class="space-y-1">
+        <h2 class="text-2xl font-semibold"
+            x-text="$store.auth?.view === 'register'
+              ? 'Registrace'
+              : ($store.auth?.view === 'forgot' ? 'Zapomenuté heslo' : 'Přihlášení')"></h2>
+      </div>
+      <button type="button"
+              class="absolute top-2 right-2 btn btn-md btn-circle btn-ghost shrink-0"
+              aria-label="Zavřít přihlašovací dialog"
+              @click="$store.auth?.closeModal()">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+
+    <template x-if="$store.auth?.view === 'login'">
+      <form class="flex flex-col gap-4" @submit.prevent="$store.auth?.submitLogin()">
+        <label class="form-control w-full">
+          <span class="label-text text-sm font-semibold text-base-content/80">E-mail</span>
+          <input
+            type="email"
+            class="input input-bordered w-full"
+            x-model.trim="$store.auth.loginForm.email"
+            autocomplete="email"
+            placeholder="jan.novak@example.com"
+            required
+          >
+        </label>
+        <label class="form-control w-full">
+          <span class="label-text text-sm font-semibold text-base-content/80">Heslo</span>
+          <div class="relative">
+            <input
+              :type="$store.auth?.passwordVisible ? 'text' : 'password'"
+              class="input input-bordered w-full pr-12"
+              x-model.trim="$store.auth.loginForm.password"
+              autocomplete="current-password"
+              placeholder="••••••••"
+              required
+            >
+            <button
+              type="button"
+              class="absolute inset-y-0 right-2 flex items-center px-2 text-base-content transition-colors duration-150 focus:outline-none hover:text-base-content z-10"
+              :aria-label="$store.auth?.passwordVisible ? 'Skrýt heslo' : 'Zobrazit heslo'"
+              :title="$store.auth?.passwordVisible ? 'Skrýt heslo' : 'Zobrazit heslo'"
+              :aria-pressed="$store.auth?.passwordVisible ? 'true' : 'false'"
+              @click="$store.auth?.togglePasswordVisibility()">
+              <i class="fa-regular text-secondary"
+                 :class="$store.auth?.passwordVisible ? 'fa-eye-slash' : 'fa-eye'"></i>
+            </button>
+          </div>
+          <button type="button"
+          class="btn btn-link text-secondary btn-md px-0 self-start no-underline hover:underline"
+          @click="$store.auth?.openForgot()">
+            Zapomněli jste heslo?
+          </button>  
+        </label>
+
+        <p class="text-sm text-error"
+           x-show="$store.auth?.status === 'error'"
+           x-text="$store.auth?.error || 'Přihlášení se nezdařilo.'"></p>
+
+        <div class="modal-action justify-between mt-0">
+          <button type="button"
+                  class="btn btn-outline"
+                  @click="$store.auth?.toggleView('register')">
+            Nová registrace
+          </button>
+          <button type="submit"
+                  class="btn btn-primary"
+                  :class="{ 'btn-disabled': $store.auth?.status === 'loading' }">
+            Přihlásit se
+          </button>
+        </div>
+      </form>
+    </template>
+
+    <template x-if="$store.auth?.view === 'forgot'">
+      <form class="flex flex-col gap-4" @submit.prevent>
+        <label class="form-control w-full">
+          <span class="label-text text-sm font-semibold text-base-content/80">E-mail</span>
+          <input
+            type="email"
+            class="input input-bordered w-full"
+            x-model.trim="$store.auth.forgotForm.email"
+            autocomplete="email"
+            placeholder="jan.novak@example.com"
+            required
+          >
+        </label>
+        <div class="modal-action justify-between">
+          <button type="button"
+                  class="btn btn-link px-0 text-secondary no-underline hover:underline btn-md"
+                  @click="$store.auth?.toggleView('login')">
+            Zpět na přihlášení
+          </button>
+          <button type="button"
+                  class="btn btn-primary">
+            Odeslat
+          </button>
+        </div>
+      </form>
+    </template>
+
+    <template x-if="$store.auth?.view === 'register'">
+      <div class="space-y-4">
+        <p class="text-sm text-base-content/70">
+          Registraci připravujeme. Díky testovacím údajům ale dokážete simulovat kompletní zákaznickou cestu.
+        </p>
+        <div class="modal-action justify-end">
+          <button type="button"
+                  class="btn btn-primary"
+                  @click="$store.auth?.toggleView('login')">
+            Zpět na přihlášení
+          </button>
+        </div>
+      </div>
+    </template>
+
+    <div class="absolute inset-0 rounded-2xl bg-base-100/90 backdrop-blur-sm grid place-items-center"
+         x-show="$store.auth?.status === 'loading'"
+         x-transition.opacity>
+      <div class="flex flex-col items-center gap-3">
+        <span class="loading loading-spinner loading-lg text-primary"></span>
+        <p class="text-sm text-base-content/70">Ověřujeme údaje…</p>
+      </div>
+    </div>
+  </div>
+</div>
 
 <!-- Tailwind breakpoint badge (dev helper) -->
 <div

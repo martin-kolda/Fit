@@ -43,7 +43,7 @@
         "label": "Telefonní číslo",
         "placeholder": null,
         "prefix": "+420",
-        "note": "Pro kontakt Dr. Max",
+        "note": "Toto číslo předáme i kurýrovi nebo lékárníkovi, pokud nevyplníte zvlášť",
         "validations": [
             {"type": "required", "fails": "Tato položka je povinná"},
             {"type": "phone", "fails": "Nesprávný formát telefonu"}
@@ -51,19 +51,12 @@
     },
     {
         "form_section": "Doručovací adresa",
-        "fieldset_group": "Podrobnosti k doručení",
-        "type": "checkbox_toggle_fieldset",
-        "label": "Zadat podrobnosti k doručení a informace pro kurýra",
-        "validations": null
-    },  
-    {
-        "form_section": "Doručovací adresa",
-        "fieldset_group": "Podrobnosti k doručení",
+        "fieldset_group": null,
         "type": "address",
         "label": "Adresa pro doručení",
         "placeholder": null,
         "prefix": null,
-        "note": "Na tuto adresu Vám zboží doručíme. Na faktuře bude kontaktní adresa.",
+        "note": "Tato adresa bude i na faktuře, pokud nevyplníte fakturační adresu zvlášť",
         "validations": [
             {"type": "address", "fails": "Nesprávný formát adresy"}
         ]
@@ -71,19 +64,26 @@
     {
         "form_section": "Doručovací adresa",
         "fieldset_group": "Podrobnosti k doručení",
+        "type": "checkbox_toggle_fieldset",
+        "label": "Přidat upřesnění pro kurýra",
+        "validations": null
+    },  
+    {
+        "form_section": "Doručovací adresa",
+        "fieldset_group": "Podrobnosti k doručení",
         "type": "text",
-        "label": "Doručit do firmy:",
-        "placeholder": null,
+        "label": "Doručit do firmy / na recepci",
+        "placeholder": "Název firmy",
         "prefix": null,
-        "note": "Nesouvisí s fakturací",
+        "note": "",
         "validations": null
     },                
     {
         "form_section": "Doručovací adresa",
         "fieldset_group": "Podrobnosti k doručení",
         "type": "text",
-        "label": "Zásilku převezme - Jméno:",
-        "placeholder": null,
+        "label": "Zásilku převezme někdo jiný",
+        "placeholder": "Jméno a příjmení",
         "prefix": null,
         "note": null,
         "validations": null
@@ -92,20 +92,10 @@
         "form_section": "Doručovací adresa",
         "fieldset_group": "Podrobnosti k doručení",
         "type": "text",
-        "label": "Zásilku převezme - Příjmení:",
-        "placeholder": null,
-        "prefix": null,
-        "note": null,
-        "validations": null
-    },
-    {
-        "form_section": "Doručovací adresa",
-        "fieldset_group": "Podrobnosti k doručení",
-        "type": "text",
-        "label": "Zásilku převezme - Telefonní číslo",
+        "label": "Při předání zásliky kurýr volá",
         "placeholder": null,
         "prefix": "+420",
-        "note": "Neslouží pro kontakty od Dr. Max",
+        "note": null,
         "validations": [
             {"type": "phone", "fails": "Nesprávný formát telefonu"}
         ]
@@ -114,8 +104,8 @@
         "form_section": "Doručovací adresa",
         "fieldset_group": "Podrobnosti k doručení",
         "type": "textarea",
-        "label": "Poznámka k objednávce",
-        "placeholder": "Doplňující informace",
+        "label": "Podrobné instrukce",
+        "placeholder": "Např. patro, zvonek, vchod apod.",
         "prefix": null,
         "note": null,
         "validations": null
@@ -153,11 +143,30 @@
         "fieldset_group": "Firemní údaje",
         "type": "text",
         "label": "Společnost",
-        "placeholder": "Doplňující informace",
+        "placeholder": "",
+        "prefix": null,
+        "note": "Název společnosti dle rejstříku",
+        "validations": [
+            {"type": "required", "fails": "Tato položka je povinná"}
+        ]
+    },
+    {
+        "form_section": "Doručovací adresa",
+        "fieldset_group": "Podrobnosti k fakturaci",
+        "type": "checkbox_toggle_fieldset",
+        "label": "Zadat jinou adresu pro fakturaci",
+        "validations": null
+    },
+    {
+        "form_section": "Doručovací adresa",
+        "fieldset_group": "Podrobnosti k fakturaci",
+        "type": "address",
+        "label": "Adresa na faktuře",
+        "placeholder": null,
         "prefix": null,
         "note": null,
         "validations": [
-            {"type": "required", "fails": "Tato položka je povinná"}
+            {"type": "address", "fails": "Nesprávný formát adresy"}
         ]
     }
 ]
