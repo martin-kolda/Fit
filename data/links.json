@@ -10,5 +10,7 @@
     { "name": "Vše o nákupu",                "iconSet":"fa-solid","icon":"circle-info",      "description":"Obchodní a rezervační podmínky a další",                   "route":"info" },
     { "name": "Reklamace a vrácení zboží",   "iconSet":"fa-solid","icon":"arrow-rotate-left","description":"Potřebujete něco reklamovat? Žádný problém",               "route":"info" },
     { "name": "Zeptat se lékárníka",         "iconSet":"fa-solid","icon":"comments",         "description":"Odborné dotazy odpovíme obvykle do 48 hodin",              "route":"info" },
-    { "name": "E-mail",                      "iconSet":"fa-solid","icon":"envelope",         "description":"Napište nám na info@drmax.cz",                             "route":"info" }
+    { "name": "E-mail",                      "iconSet":"fa-solid","icon":"envelope",         "description":"Napište nám na info@drmax.cz",                             "route":"info" },
+    { "name": "Prevence",                    "iconSet":"fa-solid","icon":"heart-pulse",      "description":"Odhalte screeningem v lékárně včas svá zdravotní rizika",            "route":"info" }
+
   ]

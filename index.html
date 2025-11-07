@@ -3102,7 +3102,7 @@
 
 <!-- FILTERS -->
 <section aria-labelledby="filters-heading"
-         class="w-12/12 md:w-11/12 mx-auto px-4 pt-8"
+         class="w-12/12 md:w-11/12 mx-auto px-4 pt-0 md:pt-8"
          x-data="{ mobileFiltersOpen: false }"
          @keydown.escape.window="mobileFiltersOpen = false">
 
@@ -3424,7 +3424,7 @@
         </div>
       </div>
     </aside>
-    <div class="space-y-6">
+    <div class="space-y-1 md:space-y-4">
       <div class="space-y-3">
         <nav class="breadcrumbs hidden md:block text-sm" aria-label="drobečková navigace">
           <ul>
@@ -3451,19 +3451,20 @@
                   x-cloak
                   aria-hidden="true"></span>
           </div>
-          <div class="flex-1 flex items-center gap-2 justify-end">
-            <div x-data="quickSearchControl($data)" class="flex-shrink-0">
+          <div class="flex-1 flex flex-wrap items-center gap-2 justify-end">
+            <div x-data="quickSearchControl($data)" class="flex-shrink-0" @click.outside="close()">
               <div
-                class="btn btn-md rounded-full transition-all duration-200 ease-out flex items-center gap-2 overflow-hidden cursor-pointer"
-                :class="expanded ? 'w-full max-w-[12rem] btn-secondary text-white pl-4 pr-3 justify-start' : 'w-12 btn-outline btn-secondary justify-center'"
+                class="group btn btn-md rounded-full transition-all duration-200 ease-out flex items-center gap-2 overflow-hidden cursor-pointer"
+                :class="expanded ? 'max-w-[9rem] btn-secondary text-white pl-4 pr-3 justify-start' : 'w-12 btn-outline btn-secondary justify-center'"
                 role="button"
                 tabindex="0"
                 @click="expanded ? null : open()"
                 @keydown.enter.prevent="expanded ? null : open()"
-                @keydown.space.prevent="expanded ? null : open()"
+                @keydown.space="expanded ? null : ($event.preventDefault(), open())"
               >
                 <span class="sr-only" x-text="t('routes.products.filters.search.placeholder', 'Filtruj dle názvu')"></span>
-                <i class="fa-solid fa-search" :class="expanded ? 'text-white' : 'text-secondary'"></i>
+                <i class="fa-solid fa-search transition-colors duration-150"
+                   :class="expanded ? 'text-white' : 'text-secondary group-hover:text-white group-focus-visible:text-white'"></i>
                 <input
                   x-ref="input"
                   x-show="expanded"
@@ -3473,7 +3474,8 @@
                   class="bg-transparent border-0 focus:outline-none text-sm placeholder-white/80 flex-1 min-w-0"
                   :placeholder="t('routes.products.filters.search.placeholder', 'Filtruj dle názvu')"
                   x-model.debounce.300ms="query"
-                  @keydown.escape.stop.prevent="close(true)"
+                @keydown.escape.stop.prevent="close(true)"
+                @blur="close()"
                   :aria-label="t('routes.products.filters.search.placeholder', 'Filtruj dle názvu')"
                 />
                 <button
@@ -3488,7 +3490,7 @@
                 </button>
               </div>
             </div>
-            <div class="dropdown dropdown-end" x-data="{ open: false }" @click.outside="open = false" @keydown.escape.window="open = false">
+            <div class="dropdown dropdown-end flex-shrink-0" x-data="{ open: false }" @click.outside="open = false" @keydown.escape.window="open = false">
               <div class="relative">
                 <button type="button"
                         class="btn btn-md rounded-full transition-colors flex items-center gap-2"
@@ -3497,7 +3499,7 @@
                         :aria-expanded="open"
                         aria-haspopup="listbox">
                   <i class="fa-solid fa-arrow-down-arrow-up"></i>
-                  <span x-text="sortButtonLabel()"></span>
+                  <span class="whitespace-nowrap hidden sm:inline" x-text="sortButtonLabel()"></span>
                   <i class="fa-solid fa-chevron-down text-xs opacity-70 transition-transform ml-1"
                      :class="open ? 'rotate-180' : ''"
                      x-show="!sortOrder"
@@ -3627,13 +3629,13 @@
           <div class="flex items-center gap-2 flex-shrink-0 justify-self-end">
             <div x-data="quickSearchControl($data)" class="flex-shrink-0" @click.outside="close()">
               <div
-                class="btn btn-md rounded-full transition-all duration-200 ease-out flex items-center gap-2 overflow-hidden cursor-pointer"
-                :class="expanded ? 'w-60 btn-secondary text-white pl-4 pr-3 justify-start' : 'w-12 btn-outline btn-secondary justify-center'"
+                class="group btn btn-md rounded-full transition-all duration-200 ease-out flex items-center gap-2 overflow-hidden cursor-pointer"
+                :class="expanded ? 'w-44 btn-secondary text-white pl-4 pr-3 justify-start' : 'w-12 btn-outline btn-secondary justify-center'"
                 role="button"
                 tabindex="0"
                 @click="expanded ? null : open()"
                 @keydown.enter.prevent="expanded ? null : open()"
-                @keydown.space.prevent="expanded ? null : open()"
+                @keydown.space="expanded ? null : ($event.preventDefault(), open())"
               >
                 <span class="sr-only" x-text="t('routes.products.filters.search.placeholder', 'Filtruj dle názvu')"></span>
                 <i class="fa-solid fa-search" :class="expanded ? 'text-white' : 'text-secondary'"></i>
@@ -3646,7 +3648,8 @@
                   class="bg-transparent border-0 focus:outline-none text-sm placeholder-white/80 flex-1 min-w-0"
                   :placeholder="t('routes.products.filters.search.placeholder', 'Filtruj dle názvu')"
                   x-model.debounce.300ms="query"
-                  @keydown.escape.stop.prevent="close(true)"
+                @keydown.escape.stop.prevent="close(true)"
+                @blur="close()"
                   :aria-label="t('routes.products.filters.search.placeholder', 'Filtruj dle názvu')"
                 />
                 <button
@@ -3661,7 +3664,7 @@
                 </button>
               </div>
             </div>
-            <div class="dropdown dropdown-end" x-data="{ open: false }" @click.outside="open = false" @keydown.escape.window="open = false">
+            <div class="dropdown dropdown-end flex-shrink-0" x-data="{ open: false }" @click.outside="open = false" @keydown.escape.window="open = false">
               <div class="relative">
                 <button type="button"
                         class="btn btn-md rounded-full transition-colors flex items-center gap-2"
@@ -3670,7 +3673,7 @@
                         :aria-expanded="open"
                         aria-haspopup="listbox">
                   <i class="fa-solid fa-arrow-down-arrow-up"></i>
-                  <span x-text="sortButtonLabel()"></span>
+                  <span class="whitespace-nowrap hidden sm:inline" x-text="sortButtonLabel()"></span>
                   <i class="fa-solid fa-chevron-down text-xs opacity-70 transition-transform ml-1"
                      :class="open ? 'rotate-180' : ''"
                      x-show="!sortOrder"
