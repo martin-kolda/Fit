@@ -128,11 +128,22 @@
       background: linear-gradient(180deg, #f03a54 12%, #c31833 100%);
       box-shadow: 0 -2px 0 0 rgba(0, 0, 0, 0.18) inset, 0 2px 0 0 rgba(255, 255, 255, 0.18) inset;
     }
-  .tooltip::before {
-    font-weight: 500;
-  }
-  [data-tap-flash] {
-    position: relative;
+    .tooltip::before {
+      font-weight: 500;
+    }
+    @media (max-width: 1023px) {
+      .touch-target-md > input[type="radio"],
+      .touch-target-md > input[type="checkbox"] {
+        transform: scale(1.15);
+      }
+      .touch-target-md {
+        padding-top: 0.35rem;
+        padding-bottom: 0.35rem;
+        padding-left: 0.15rem;
+      }
+    }
+    [data-tap-flash] {
+      position: relative;
     overflow: hidden;
   }
   [data-tap-flash]::after {
@@ -3842,22 +3853,23 @@
          class="fixed inset-0 z-40 bg-base-200/70 backdrop-blur-sm xl:hidden"
          @click.self="mobileFiltersOpen = false"></div>
 
-    <aside class="fixed inset-y-0 left-0 w-5/6 max-w-xs bg-base-100 shadow-xl transform -translate-x-full transition-transform duration-300 ease-out overflow-hidden z-50 xl:relative xl:inset-auto xl:w-full xl:max-w-none xl:bg-transparent xl:shadow-none xl:p-0 xl:pb-12 xl:translate-x-0 xl:transform-none xl:overflow-visible"
+    <aside class="fixed inset-y-0 left-0 w-full max-w-full bg-base-100 shadow-xl transform -translate-x-full transition-transform duration-300 ease-out overflow-hidden z-50 xl:relative xl:inset-auto xl:w-full xl:max-w-none xl:bg-transparent xl:shadow-none xl:p-0 xl:pb-12 xl:translate-x-0 xl:transform-none xl:overflow-visible"
            :class="mobileFiltersOpen ? 'translate-x-0' : '-translate-x-full xl:translate-x-0'">
       <div class="h-full flex flex-col">
         <div class="xl:hidden flex items-center justify-between p-6 pb-4">
         <h3 class="text-lg font-semibold" x-text="t('routes.products.filters.drawerTitle', 'Filtry')"></h3>
-        <button type="button" class="btn btn-sm btn-ghost" @click="mobileFiltersOpen = false">
+        <button type="button" class="btn btn-md btn-ghost" @click="mobileFiltersOpen = false">
           <i class="fa-solid fa-xmark"></i>
         </button>
       </div>
 
-        <div class="xl:hidden space-y-2 px-6" x-data>
+        <div class="flex-1 overflow-y-auto px-6 py-6 xl:px-0 xl:pb-8 xl:pt-2">
+        <div class="xl:hidden space-y-3 mb-8" x-data>
         <h4 class="text-base font-semibold text-base-content"
             x-text="t('routes.products.quickFilters.title', 'Rychlé filtry')"></h4>
         <div class="flex flex-wrap gap-2">
           <button type="button"
-                  class="btn btn-sm rounded-full transition-colors"
+                  class="btn btn-md rounded-full transition-colors"
                   :class="onlyInStock ? 'btn-secondary text-white' : 'btn-outline btn-secondary'"
                   :aria-pressed="onlyInStock"
                   @click="onlyInStock = !onlyInStock">
@@ -3867,7 +3879,7 @@
             </span>
           </button>
           <button type="button"
-                  class="btn btn-sm rounded-full transition-colors"
+                  class="btn btn-md rounded-full transition-colors"
                   :class="benefitOnly ? 'btn-secondary text-white' : 'btn-outline btn-secondary'"
                   :aria-pressed="benefitOnly"
                   @click="benefitOnly = !benefitOnly">
@@ -3877,7 +3889,7 @@
             </span>
           </button>
           <button type="button"
-                  class="btn btn-sm rounded-full transition-colors"
+                  class="btn btn-md rounded-full transition-colors"
                   :class="onlyDiscounted ? 'btn-secondary text-white' : 'btn-outline btn-secondary'"
                   :aria-pressed="onlyDiscounted"
                   @click="onlyDiscounted = !onlyDiscounted">
@@ -3888,7 +3900,7 @@
           </button>
           <template x-if="selectedCategory">
             <button type="button"
-                    class="btn btn-sm rounded-full transition-colors btn-secondary text-white"
+                    class="btn btn-md rounded-full transition-colors btn-secondary text-white"
                     @click="selectedCategory = ''">
               <span class="flex items-center gap-2">
                 <span x-text="selectedCategory"></span>
@@ -3898,7 +3910,7 @@
           </template>
           <template x-if="selectedForm">
             <button type="button"
-                    class="btn btn-sm rounded-full transition-colors btn-secondary text-white"
+                    class="btn btn-md rounded-full transition-colors btn-secondary text-white"
                     @click="selectedForm = ''">
               <span class="flex items-center gap-2">
                 <span x-text="selectedForm"></span>
@@ -3908,7 +3920,7 @@
           </template>
           <template x-for="cons in selectedConsumers" :key="'cons-chip-mobile-'+cons">
             <button type="button"
-                    class="btn btn-sm rounded-full transition-colors btn-secondary text-white"
+                    class="btn btn-md rounded-full transition-colors btn-secondary text-white"
                     @click="toggleConsumer(cons)">
               <span class="flex items-center gap-2">
                 <span x-text="cons"></span>
@@ -3918,7 +3930,7 @@
           </template>
           <template x-if="_priceRangeActive()">
             <button type="button"
-                    class="btn btn-sm rounded-full transition-colors btn-secondary text-white"
+                    class="btn btn-md rounded-full transition-colors btn-secondary text-white"
                     @click="resetPriceFilter()">
               <span class="flex items-center gap-2">
                 <span x-text="priceFilterChipLabel()"></span>
@@ -3926,10 +3938,18 @@
               </span>
             </button>
           </template>
+          <template x-if="activeFiltersCount() >= 3">
+            <button type="button"
+                    class="btn btn-md rounded-full btn-outline btn-error text-error"
+                    @click="clearFilters()">
+              <span class="flex items-center gap-2">
+                <i class="fa-solid fa-rotate-left"></i>
+                <span x-text="t('routes.products.actions.resetAll', 'Zrušit vše')"></span>
+              </span>
+            </button>
+          </template>
         </div>
       </div>
-
-        <div class="flex-1 overflow-y-auto px-6 py-6 xl:px-0 xl:pb-8 xl:pt-2">
         <div class="space-y-6 xl:pr-12">
 
 
@@ -3937,12 +3957,12 @@
           <h3 class="font-semibold text-base"
               x-text="t('routes.products.filters.sections.categories.title', 'Kategorie')"></h3>
           <div class="space-y-2">
-            <label class="label cursor-pointer justify-start gap-2 text-max-gray-800 w-full">
+            <label class="label cursor-pointer justify-start gap-2 text-max-gray-800 w-full touch-target-md">
               <input type="radio" name="cat" class="radio radio-sm radio-secondary" value="" x-model="selectedCategory">
               <span x-text="t('routes.products.filters.sections.categories.all', 'Všechny kategorie')"></span>
             </label>
             <template x-for="c in categories.slice(0, limit)" :key="'cat-'+c">
-              <label class="label cursor-pointer justify-start gap-2 text-max-gray-800 w-full">
+              <label class="label cursor-pointer justify-start gap-2 text-max-gray-800 w-full touch-target-md">
                 <input type="radio" name="cat" class="radio radio-sm radio-secondary" :value="c" x-model="selectedCategory">
                 <span x-text="c"></span>
               </label>
@@ -3956,7 +3976,7 @@
                  x-transition:leave-start="max-h-96 opacity-100"
                  x-transition:leave-end="max-h-0 opacity-0">
               <template x-for="c in categories.slice(limit)" :key="'cat-more-'+c">
-                <label class="label cursor-pointer justify-start gap-2 text-max-gray-800 w-full">
+                <label class="label cursor-pointer justify-start gap-2 text-max-gray-800 w-full touch-target-md">
                   <input type="radio" name="cat" class="radio radio-sm radio-secondary" :value="c" x-model="selectedCategory">
                   <span x-text="c"></span>
                 </label>
@@ -3979,12 +3999,12 @@
           <h3 class="font-semibold text-base"
               x-text="t('routes.products.filters.sections.forms.title', 'Forma')"></h3>
           <div class="space-y-2">
-            <label class="label cursor-pointer justify-start gap-2 text-max-gray-800 w-full">
+            <label class="label cursor-pointer justify-start gap-2 text-max-gray-800 w-full touch-target-md">
               <input type="radio" name="form" class="radio radio-sm radio-secondary" value="" x-model="selectedForm">
               <span x-text="t('routes.products.filters.sections.forms.all', 'Všechny typy')"></span>
             </label>
             <template x-for="f in forms.slice(0, limit)" :key="'form-'+f">
-              <label class="label cursor-pointer justify-start gap-2 text-max-gray-800 w-full">
+              <label class="label cursor-pointer justify-start gap-2 text-max-gray-800 w-full touch-target-md">
                 <input type="radio" name="form" class="radio radio-sm radio-secondary" :value="f" x-model="selectedForm">
                 <span x-text="f"></span>
               </label>
@@ -3998,7 +4018,7 @@
                  x-transition:leave-start="max-h-96 opacity-100"
                  x-transition:leave-end="max-h-0 opacity-0">
               <template x-for="f in forms.slice(limit)" :key="'form-more-'+f">
-                <label class="label cursor-pointer justify-start gap-2 text-max-gray-800 w-full">
+                <label class="label cursor-pointer justify-start gap-2 text-max-gray-800 w-full touch-target-md">
                   <input type="radio" name="form" class="radio radio-sm radio-secondary" :value="f" x-model="selectedForm">
                   <span x-text="f"></span>
                 </label>
@@ -4021,7 +4041,7 @@
               x-text="t('routes.products.filters.sections.consumers.title', 'Vhodné pro')"></h3>
           <div class="space-y-2">
             <template x-for="opt in consumersList.slice(0, limit)" :key="'cons-'+opt">
-              <label class="label cursor-pointer justify-start gap-2 text-max-gray-800 w-full">
+              <label class="label cursor-pointer justify-start gap-2 text-max-gray-800 w-full touch-target-md">
                 <input type="checkbox"
                        class="checkbox checkbox-sm checkbox-secondary rounded-[4px]"
                        :value="opt"
@@ -4039,7 +4059,7 @@
                  x-transition:leave-start="max-h-96 opacity-100"
                  x-transition:leave-end="max-h-0 opacity-0">
               <template x-for="opt in consumersList.slice(limit)" :key="'cons-more-'+opt">
-                <label class="label cursor-pointer justify-start gap-2 text-max-gray-800 w-full">
+                <label class="label cursor-pointer justify-start gap-2 text-max-gray-800 w-full touch-target-md">
                   <input type="checkbox"
                          class="checkbox checkbox-sm checkbox-secondary rounded-[4px]"
                          :value="opt"
@@ -4059,17 +4079,6 @@
                  :class="showAllConsumers ? 'rotate-180' : ''"></i>
             </button>
           </div>
-        </div>
-
-        <div class="space-y-3">
-          <label class="input input-bordered items-center gap-2 w-full mt-4"
-                 :aria-label="t('header.search.ariaLabel', 'Vyhledávání')">
-            <i class="fa-solid fa-magnifying-glass text-max-gray-600"></i>
-            <input type="search"
-                   :placeholder="t('routes.products.filters.search.placeholder', 'Filtruj dle názvu')"
-                   class="grow min-w-0"
-                   x-model.debounce.300ms="search" />
-          </label>
         </div>
 
         <div class="space-y-3">
@@ -4095,7 +4104,7 @@
               <span x-text="formatPrice(priceMax ?? priceBounds.max)"></span>
             </div>
             <div class="space-y-2">
-              <label class="label cursor-pointer justify-start gap-2 text-max-gray-800 w-full">
+              <label class="label cursor-pointer justify-start gap-2 text-max-gray-800 w-full touch-target-md">
                 <input type="radio"
                        name="priceQuick"
                        class="radio radio-sm radio-secondary"
@@ -4104,7 +4113,7 @@
                 <span x-text="t('routes.products.filters.sections.price.any', 'Libovolná cena')"></span>
               </label>
               <template x-for="(maxValue, idx) in priceQuickRanges" :key="`pr-${idx}`">
-                <label class="label cursor-pointer justify-start gap-2 text-max-gray-800 w-full">
+                <label class="label cursor-pointer justify-start gap-2 text-max-gray-800 w-full touch-target-md">
                   <input type="radio"
                          name="priceQuick"
                          class="radio radio-sm radio-secondary"
@@ -4134,16 +4143,6 @@
         </button>
       </div>
 
-        <div class="lg:hidden px-6 pt-4">
-          <button type="button"
-                  class="btn btn-outline btn-secondary w-full"
-                  @click="clearFilters(); mobileFiltersOpen = false"
-                  x-show="hasActiveFilters()"
-                  x-cloak
-                  x-transition.opacity>
-            <span x-text="t('routes.products.actions.clearFilters', 'Vymazat filtry')"></span>
-          </button>
-        </div>
         <div class="lg:hidden px-6 pb-6 pt-4 bg-base-100 border-t border-base-200">
           <button type="button"
                   class="btn btn-primary w-full"
@@ -4350,6 +4349,16 @@
                   <span class="flex items-center gap-2">
                     <span x-text="priceFilterChipLabel()"></span>
                     <i class="fa-solid fa-xmark text-xs"></i>
+                  </span>
+                </button>
+              </template>
+              <template x-if="activeFiltersCount() >= 3">
+                <button type="button"
+                        class="btn btn-md rounded-full btn-outline btn-error text-error"
+                        @click="clearFilters()">
+                  <span class="flex items-center gap-2">
+                    <i class="fa-solid fa-rotate-left"></i>
+                    <span x-text="t('routes.products.actions.resetAll', 'Zrušit vše')"></span>
                   </span>
                 </button>
               </template>
