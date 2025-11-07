@@ -128,10 +128,53 @@
       background: linear-gradient(180deg, #f03a54 12%, #c31833 100%);
       box-shadow: 0 -2px 0 0 rgba(0, 0, 0, 0.18) inset, 0 2px 0 0 rgba(255, 255, 255, 0.18) inset;
     }
-    .tooltip::before {
-      font-weight: 500;
-    }
+  .tooltip::before {
+    font-weight: 500;
+  }
+  [data-tap-flash] {
+    position: relative;
+    overflow: hidden;
+  }
+  [data-tap-flash]::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.08);
+    opacity: 0;
+    transition: opacity 0.18s ease-out;
+    pointer-events: none;
+  }
+  [data-tap-flash].is-tap-active::after {
+    opacity: 1;
+    transition: opacity 0.28s ease-out;
+  }
   </style>
+
+<script>
+  (() => {
+    const activate = (el) => {
+      if (!el) return;
+      el.classList.add('is-tap-active');
+      clearTimeout(el._tapFlashTimer);
+      el._tapFlashTimer = setTimeout(() => {
+        el.classList.remove('is-tap-active');
+      }, 200);
+    };
+    document.addEventListener('pointerdown', (event) => {
+      const target = event.target?.closest?.('[data-tap-flash]');
+      if (!target) return;
+      activate(target);
+    }, { passive: true });
+    document.addEventListener('pointerleave', (event) => {
+      const target = event.target?.closest?.('[data-tap-flash].is-tap-active');
+      if (target) target.classList.remove('is-tap-active');
+    }, { passive: true });
+    document.addEventListener('pointerup', (event) => {
+      const target = event.target?.closest?.('[data-tap-flash].is-tap-active');
+      if (target) target.classList.remove('is-tap-active');
+    }, { passive: true });
+  })();
+</script>
 
 <script>
   (function (global) {
@@ -358,7 +401,8 @@
         showBreakpointBadge: true,
         locale: (window.__fitI18n && window.__fitI18n.defaultLocale) || 'cs-CZ',
         currency: (window.__fitI18n && window.__fitI18n.defaultCurrency) || 'CZK',
-        drMaxWomanPromo: false
+        drMaxWomanPromo: false,
+        showTranslationHints: false
       };
       const load = () => {
         if (typeof localStorage === 'undefined') return {};
@@ -388,13 +432,15 @@
         locale: String(initial.locale || defaults.locale),
         currency: String(initial.currency || defaults.currency),
         drMaxWomanPromo: !!initial.drMaxWomanPromo,
+        showTranslationHints: !!initial.showTranslationHints,
         persist() {
           if (typeof localStorage === 'undefined') return;
           const payload = {
             showBreakpointBadge: !!this.showBreakpointBadge,
             locale: this.locale,
             currency: this.currency,
-            drMaxWomanPromo: !!this.drMaxWomanPromo
+            drMaxWomanPromo: !!this.drMaxWomanPromo,
+            showTranslationHints: !!this.showTranslationHints
           };
           try {
             localStorage.setItem(this.key, JSON.stringify(payload));
@@ -409,6 +455,7 @@
           if (key === 'locale') normalized = String(value || defaults.locale);
           if (key === 'currency') normalized = String(value || defaults.currency);
           if (key === 'drMaxWomanPromo') normalized = !!value;
+          if (key === 'showTranslationHints') normalized = !!value;
           if (this[key] === normalized) return;
           this[key] = normalized;
           this.persist();
@@ -423,7 +470,8 @@
             showBreakpointBadge: !!this.showBreakpointBadge,
             locale: this.locale,
             currency: this.currency,
-            drMaxWomanPromo: !!this.drMaxWomanPromo
+            drMaxWomanPromo: !!this.drMaxWomanPromo,
+            showTranslationHints: !!this.showTranslationHints
           };
         },
         reset() {
@@ -444,6 +492,7 @@
       emit('locale', cfgStore.locale);
       emit('currency', cfgStore.currency);
       emit('drMaxWomanPromo', cfgStore.drMaxWomanPromo);
+      emit('showTranslationHints', cfgStore.showTranslationHints);
     }
 
     if (!Alpine.store('auth')) {
@@ -535,15 +584,41 @@
           email: initial.account?.email || initial.fallbackAccount?.email || '',
           password: ''
         },
-        registrationForm: {
-          email: '',
-          password: ''
+        registration: {
+          loading: false,
+          ready: false,
+          loadError: '',
+          step: 1,
+          maxStep: 3,
+          schema: [],
+          fieldMap: {},
+          fieldsByStep: {},
+          values: {},
+          errors: {},
+          touched: {},
+          groups: {},
+          groupMembers: {},
+          groupToggles: {},
+          fieldRefs: {},
+          flowOptions: [],
+          selectedFlow: '',
+          emailVerified: false,
+          phase: 'idle',
+          submitAttempted: false,
+          passwordVisible: false,
+          addressOptions: [],
+          addressLoaded: false
         },
         forgotForm: {
           email: initial.account?.email || initial.fallbackAccount?.email || ''
         },
         passwordVisible: false,
         _timer: null,
+        _registrationTimers: {
+          email: null,
+          process: null,
+          success: null
+        },
         persist() {
           if (typeof localStorage === 'undefined') return;
           const payload = {
@@ -565,6 +640,11 @@
           this.status = 'idle';
           this.error = '';
           this.passwordVisible = false;
+          if (this.view === 'register') {
+            this.prepareRegistration();
+          } else {
+            this.resetRegistrationState({ keepSchema: true });
+          }
           if (!this.loginForm.email) {
             this.loginForm.email = this.fallbackAccount?.email || '';
           }
@@ -582,6 +662,8 @@
             clearTimeout(this._timer);
             this._timer = null;
           }
+          this.registrationCancelTimers();
+          this.resetRegistrationState({ keepSchema: true });
         },
         handleAccountClick() {
           if (this.isAuthenticated) {
@@ -655,6 +737,8 @@
           this.loginForm.email = this.fallbackAccount?.email || '';
           this.loginForm.password = '';
           this.forgotForm.email = this.fallbackAccount?.email || '';
+          this.registrationCancelTimers();
+          this.resetRegistrationState({ hard: true });
           this.persist();
           emit('fit:auth-reset', {});
         },
@@ -694,6 +778,625 @@
           } else {
             this.forgotForm.email = this.fallbackAccount?.email || this.loginForm.email || this.forgotForm.email || '';
           }
+          if (target === 'register') {
+            this.prepareRegistration();
+          } else {
+            this.resetRegistrationState({ keepSchema: true });
+          }
+        },
+        prepareRegistration(force = false) {
+          if (this.registration.loading) return;
+          if (force || !this.registration.ready) {
+            this.loadRegistrationSchema();
+            return;
+          }
+          this.resetRegistrationState({ keepSchema: true });
+        },
+        async loadRegistrationSchema() {
+          if (this.registration.loading) return;
+          this.registration.loading = true;
+          this.registration.loadError = '';
+          try {
+            const res = await fetch('data/forms/registration.json', { cache: 'no-store' });
+            const data = await res.json();
+            this.initRegistration(Array.isArray(data) ? data : []);
+          } catch (e) {
+            console.warn('registration.json load failed', e);
+            this.registration.loadError = 'Nepodařilo se načíst registrační formulář. Zkuste to prosím znovu.';
+            this.initRegistration([]);
+          } finally {
+            this.registration.loading = false;
+          }
+        },
+        initRegistration(schema) {
+          const reg = this.registration;
+          reg.schema = Array.isArray(schema) ? schema : [];
+          reg.fieldMap = {};
+          reg.fieldsByStep = {};
+          reg.values = {};
+          reg.errors = {};
+          reg.touched = {};
+          reg.groups = {};
+          reg.groupMembers = {};
+          reg.groupToggles = {};
+          reg.fieldRefs = {};
+          const flowOptions = [];
+          const used = new Set();
+          reg.schema.forEach((raw, idx) => {
+            const step = Number(raw?.step) || 1;
+            if (step === 1 && (raw?.type === 'radio') && !Array.isArray(raw?.items)) {
+              flowOptions.push({
+                id: `flow-${idx}`,
+                label: raw?.label || `Možnost ${idx + 1}`,
+                value: raw?.value || `flow-${idx}`,
+                disabled: /kartu/i.test(String(raw?.label || ''))
+              });
+              return;
+            }
+            const key = this.registrationNormalizeKey(raw?.label || raw?.type || `field-${idx}`, idx, used);
+            used.add(key);
+            const field = {
+              key,
+              type: raw?.type || 'text',
+              label: raw?.label || '',
+              placeholder: raw?.placeholder || '',
+              prefix: raw?.prefix || null,
+              suffix: raw?.suffix || null,
+              note: raw?.note || null,
+              validations: Array.isArray(raw?.validations) ? raw.validations : [],
+              items: Array.isArray(raw?.items) ? raw.items : [],
+              section: raw?.form_section || '',
+              groupKey: raw?.fieldset_group || null,
+              step
+            };
+            field.isToggle = field.type === 'checkbox_toggle_fieldset';
+            if (!reg.fieldsByStep[step]) reg.fieldsByStep[step] = [];
+            reg.fieldsByStep[step].push(field);
+            reg.fieldMap[key] = field;
+            reg.values[key] = this.registrationDefaultValue(field);
+            reg.errors[key] = [];
+            reg.touched[key] = false;
+            if (field.isToggle && field.groupKey) {
+              reg.groupToggles[field.groupKey] = key;
+              reg.groups[field.groupKey] = false;
+            } else if (field.groupKey) {
+              if (!reg.groupMembers[field.groupKey]) reg.groupMembers[field.groupKey] = [];
+              reg.groupMembers[field.groupKey].push(key);
+              if (!(field.groupKey in reg.groups)) {
+                reg.groups[field.groupKey] = false;
+              }
+            }
+            this.registrationCaptureFieldRefs(field, key);
+          });
+          reg.flowOptions = flowOptions.length
+            ? flowOptions.map((opt, idx) => ({
+                ...opt,
+                value: opt.value || `option-${idx}`,
+                disabled: opt.disabled || idx > 0
+              }))
+            : [{ id: 'flow-default', label: 'Jsem nový člen', value: 'new-member', disabled: false }];
+          const firstActive = reg.flowOptions.find(opt => !opt.disabled);
+          reg.selectedFlow = firstActive ? firstActive.value : reg.flowOptions[0]?.value;
+          reg.step = 1;
+          reg.maxStep = Math.max(3, ...Object.keys(reg.fieldsByStep).map(s => Number(s) || 1));
+          reg.emailVerified = false;
+          reg.phase = 'idle';
+          reg.submitAttempted = false;
+          reg.passwordVisible = false;
+          reg.ready = reg.schema.length > 0;
+          reg.addressLoaded = false;
+          reg.addressOptions = [];
+        },
+        resetRegistrationState({ keepSchema = true, hard = false } = {}) {
+          const reg = this.registration;
+          if (!keepSchema || hard) {
+            reg.schema = keepSchema ? reg.schema : [];
+            reg.ready = keepSchema ? reg.ready : false;
+          }
+          const map = reg.fieldMap || {};
+          Object.keys(map).forEach((key) => {
+            reg.values[key] = this.registrationDefaultValue(map[key]);
+            reg.errors[key] = [];
+            reg.touched[key] = false;
+          });
+          Object.keys(reg.groupToggles || {}).forEach((groupKey) => {
+            reg.groups[groupKey] = false;
+          });
+          const flowOptions = Array.isArray(reg.flowOptions) ? reg.flowOptions : [];
+          const activeOption = flowOptions.find(opt => !opt.disabled);
+          if (flowOptions.length) {
+            reg.selectedFlow = (activeOption ? activeOption.value : flowOptions[0].value) || reg.selectedFlow;
+          }
+          reg.step = 1;
+          reg.emailVerified = false;
+          reg.phase = 'idle';
+          reg.submitAttempted = false;
+          reg.passwordVisible = false;
+        },
+        registrationNormalizeKey(label, idx, existing = new Set()) {
+          const base = String(label || `field-${idx}`)
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, '-')
+            .replace(/^-+|-+$/g, '') || `field-${idx}`;
+          let key = base;
+          let counter = 1;
+          while (existing.has(key)) {
+            key = `${base}-${counter++}`;
+          }
+          return key;
+        },
+        registrationDefaultValue(field) {
+          if (!field) return '';
+          switch (field.type) {
+            case 'checkbox':
+            case 'checkbox_toggle_fieldset':
+              return false;
+            case 'address':
+              return { street: '', extra: '', city: '', zip: '' };
+            default:
+              return '';
+          }
+        },
+        registrationCaptureFieldRefs(field, key) {
+          if (!field || !key) return;
+          const reg = this.registration;
+          const normalizedLabel = String(field.label || '')
+            .toLowerCase()
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '');
+          if (field.type === 'email') reg.fieldRefs.email = key;
+          if (field.type === 'password') reg.fieldRefs.password = key;
+          if (field.type === 'tel') reg.fieldRefs.phone = key;
+          if (field.type === 'address') reg.fieldRefs.address = key;
+          if (field.type === 'date') reg.fieldRefs.birthDate = key;
+          if (field.type === 'radio' && /v[ěe]rnostn/i.test(field.fieldset_group || '')) {
+            reg.fieldRefs.gender = key;
+          }
+          if (field.type === 'checkbox') reg.fieldRefs.consent = key;
+          if (/jmeno/.test(normalizedLabel) && !/prijmeni/.test(normalizedLabel)) {
+            reg.fieldRefs.firstName = key;
+          }
+          if (/prijmeni/.test(normalizedLabel)) {
+            reg.fieldRefs.lastName = key;
+          }
+          if ((field.groupKey || '').toLowerCase().includes('titul')) {
+            if (/pred/.test(normalizedLabel)) reg.fieldRefs.titleBefore = key;
+            if (/za/.test(normalizedLabel)) reg.fieldRefs.titleAfter = key;
+          }
+        },
+        registrationStepList() {
+          return [
+            { id: 1, label: 'Typ registrace' },
+            { id: 2, label: 'Osobní údaje' },
+            { id: 3, label: 'Kontaktní údaje' }
+          ];
+        },
+        registrationStepFields(step, options = {}) {
+          const excludeTypes = Array.isArray(options.excludeTypes) ? options.excludeTypes : [];
+          const fields = this.registration.fieldsByStep?.[step] || [];
+          return fields.filter((field) => {
+            if (!field) return false;
+            if (excludeTypes.includes(field.type)) return false;
+            if (field.isToggle) return true;
+            return this.registrationFieldVisible(field);
+          });
+        },
+        registrationEmailField() {
+          const key = this.registration.fieldRefs.email;
+          if (!key) return null;
+          return this.registration.fieldMap?.[key] || null;
+        },
+        registrationFieldVisible(field) {
+          if (!field) return false;
+          if (!field.groupKey) return true;
+          if (field.isToggle) return true;
+          if (!(field.groupKey in (this.registration.groups || {}))) return true;
+          return !!this.registration.groups[field.groupKey];
+        },
+        registrationHandleInput(fieldKey) {
+          const reg = this.registration;
+          const field = reg.fieldMap?.[fieldKey];
+          if (!field) return;
+          if (field.type === 'tel') {
+            const digits = String(reg.values[fieldKey] || '').replace(/\D+/g, '');
+            reg.values[fieldKey] = digits.slice(0, 12);
+          }
+          if (field.type === 'address') {
+            reg.values[fieldKey] = this.normalizeRegistrationAddress(reg.values[fieldKey]);
+          }
+          if (reg.fieldRefs.email === fieldKey) {
+            if (reg.emailVerified) {
+              reg.emailVerified = false;
+            }
+            if (reg.phase === 'verifying-email') {
+              reg.phase = 'idle';
+            }
+            this.registrationCancelTimers('email');
+          }
+          if (!field.isToggle && reg.touched[fieldKey]) {
+            this.registrationValidateFieldByKey(fieldKey);
+          }
+        },
+        registrationHandleBlur(fieldKey) {
+          const reg = this.registration;
+          if (!(fieldKey in reg.touched)) return;
+          reg.touched[fieldKey] = true;
+          this.registrationValidateFieldByKey(fieldKey);
+        },
+        registrationHandleGroupToggle(fieldKey) {
+          const reg = this.registration;
+          const field = reg.fieldMap?.[fieldKey];
+          if (!field || !field.groupKey) return;
+          const active = !!reg.values[fieldKey];
+          reg.groups[field.groupKey] = active;
+          if (!active) {
+            (reg.groupMembers[field.groupKey] || []).forEach((memberKey) => {
+              reg.values[memberKey] = this.registrationDefaultValue(reg.fieldMap[memberKey]);
+              reg.errors[memberKey] = [];
+              reg.touched[memberKey] = false;
+            });
+          }
+        },
+        registrationIsPhoneField(field) {
+          return !!field && field.type === 'tel';
+        },
+        registrationHasValue(field, value) {
+          if (!field) return false;
+          if (field.type === 'checkbox' || field.type === 'checkbox_toggle_fieldset') {
+            return !!value;
+          }
+          if (field.type === 'address') {
+            const addr = this.normalizeRegistrationAddress(value);
+            return !!(addr.street || addr.city || addr.zip);
+          }
+          const val = typeof value === 'string' ? value.trim() : value;
+          return val !== null && val !== undefined && String(val).trim() !== '';
+        },
+        registrationComputeFieldErrors(field) {
+          if (!field) return [];
+          const reg = this.registration;
+          const value = reg.values[field.key];
+          const errors = [];
+          const validations = Array.isArray(field.validations) ? field.validations : [];
+          const addr = field.type === 'address' ? this.normalizeRegistrationAddress(value) : null;
+          const textValue = typeof value === 'string' ? value.trim() : String(value ?? '').trim();
+          for (const rule of validations) {
+            const type = (rule?.type || '').toLowerCase();
+            const message = rule?.fails || 'Neplatná hodnota';
+            switch (type) {
+              case 'required':
+                if (!this.registrationHasValue(field, value)) errors.push(message);
+                break;
+              case 'email':
+                if (textValue && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(textValue)) errors.push(message);
+                break;
+              case 'phone': {
+                const digits = String(value || '').replace(/\D+/g, '');
+                if (digits && digits.length !== 9) errors.push(message);
+                break;
+              }
+              case 'address': {
+                const zipPlain = (addr?.zip || '').replace(/\s+/g, '');
+                if (!(addr?.street && addr?.city && /^\d{5}$/.test(zipPlain))) errors.push(message);
+                break;
+              }
+              case 'date': {
+                if (textValue && !/^\d{4}-\d{2}-\d{2}$/.test(textValue)) {
+                  errors.push(message);
+                }
+                break;
+              }
+              case 'legth':
+              case 'length':
+                if (textValue.length < 8) errors.push(message);
+                break;
+              case 'capital':
+                if (textValue && !/[A-ZÁČĎÉĚÍĹĽŇÓŘŠŤÚŮÝŽ]/.test(textValue)) errors.push(message);
+                break;
+              case 'number':
+                if (textValue && !/\d/.test(textValue)) errors.push(message);
+                break;
+              default:
+                break;
+            }
+          }
+          return Array.from(new Set(errors));
+        },
+        registrationValidateFieldByKey(fieldKey) {
+          const field = this.registration.fieldMap?.[fieldKey];
+          if (!field) return [];
+          const errs = this.registrationComputeFieldErrors(field);
+          this.registration.errors[fieldKey] = errs;
+          return errs;
+        },
+        registrationValidateStep(step) {
+          let ok = true;
+          this.registrationStepFields(step).forEach((field) => {
+            if (!field || field.isToggle) return;
+            const errs = this.registrationValidateFieldByKey(field.key);
+            if (errs.length) ok = false;
+          });
+          return ok;
+        },
+        registrationGoToStep(step) {
+          const reg = this.registration;
+          const max = Number(reg.maxStep) || 3;
+          const target = Math.min(Math.max(1, Number(step) || 1), max);
+          reg.step = target;
+        },
+        nextRegistrationStep() {
+          this.registrationGoToStep((this.registration.step || 1) + 1);
+        },
+        prevRegistrationStep() {
+          this.registrationGoToStep((this.registration.step || 1) - 1);
+        },
+        registrationStartEmailVerification() {
+          const reg = this.registration;
+          const emailField = this.registrationEmailField();
+          if (!emailField) return;
+          reg.submitAttempted = true;
+          reg.touched[emailField.key] = true;
+          const errs = this.registrationValidateFieldByKey(emailField.key);
+          if (errs.length) return;
+          if (reg.emailVerified || reg.phase === 'verifying-email') return;
+          reg.phase = 'verifying-email';
+          this.registrationCancelTimers('email');
+          const delay = Math.max(800, Number(this.throttleMs) || defaults.throttleMs || 1300);
+          this._registrationTimers.email = setTimeout(() => {
+            reg.phase = 'idle';
+            reg.emailVerified = true;
+            this._registrationTimers.email = null;
+          }, delay);
+        },
+        advanceAfterStepTwo() {
+          const reg = this.registration;
+          if (!reg.emailVerified) {
+            this.registrationStartEmailVerification();
+            return;
+          }
+          reg.submitAttempted = true;
+          if (!this.registrationValidateStep(2)) return;
+          reg.submitAttempted = false;
+          this.registrationGoToStep(3);
+          this.registrationEnsureAddressOptions();
+        },
+        submitRegistration() {
+          const reg = this.registration;
+          if (reg.phase === 'processing') return;
+          reg.submitAttempted = true;
+          const step2Ok = this.registrationValidateStep(2);
+          const step3Ok = this.registrationValidateStep(3);
+          if (!(step2Ok && step3Ok)) return;
+          reg.phase = 'processing';
+          this.registrationCancelTimers('process');
+          this.registrationCancelTimers('success');
+          const delay = Math.max(1000, Number(this.throttleMs) || defaults.throttleMs || 1300);
+          this._registrationTimers.process = setTimeout(() => {
+            const account = this.registrationCollectAccountPayload();
+            this.applyRegistrationAccount(account);
+            reg.phase = 'success';
+            this._registrationTimers.process = null;
+            this.registrationCancelTimers('success');
+            this._registrationTimers.success = setTimeout(() => {
+              this.closeModal();
+            }, 1600);
+          }, delay);
+        },
+        registrationCollectAccountPayload() {
+          const reg = this.registration;
+          const emailKey = reg.fieldRefs.email;
+          const firstNameKey = reg.fieldRefs.firstName;
+          const lastNameKey = reg.fieldRefs.lastName;
+          const phoneKey = reg.fieldRefs.phone;
+          const addressKey = reg.fieldRefs.address;
+          const genderKey = reg.fieldRefs.gender;
+          const birthKey = reg.fieldRefs.birthDate;
+          const titleBeforeKey = reg.fieldRefs.titleBefore;
+          const titleAfterKey = reg.fieldRefs.titleAfter;
+          const phoneDigits = String(reg.values[phoneKey] || '').replace(/\D+/g, '');
+          const account = {
+            id: `reg-${Date.now()}`,
+            email: String(reg.values[emailKey] || '').trim(),
+            firstName: String(reg.values[firstNameKey] || '').trim(),
+            lastName: String(reg.values[lastNameKey] || '').trim()
+          };
+          if (titleBeforeKey) account.titleBefore = String(reg.values[titleBeforeKey] || '').trim();
+          if (titleAfterKey) account.titleAfter = String(reg.values[titleAfterKey] || '').trim();
+          if (genderKey) account.gender = reg.values[genderKey] || '';
+          if (birthKey) account.birthDate = reg.values[birthKey] || '';
+          if (phoneDigits) {
+            account.phone = `+420 ${this.registrationFormatPhoneDisplay(phoneDigits)}`.trim();
+          }
+          if (addressKey) {
+            const addr = this.normalizeRegistrationAddress(reg.values[addressKey]);
+            account.address = addr;
+            account.addressDisplay = this.formatRegistrationAddressDisplay(addr);
+          }
+          account.createdAt = new Date().toISOString();
+          return account;
+        },
+        applyRegistrationAccount(account) {
+          if (!account || !account.email) return;
+          const normalized = normalizeAccount(account, defaults.fallbackAccount, { defaultFallback: true }) || clone(defaults.fallbackAccount);
+          this.account = normalized;
+          this.isAuthenticated = true;
+          this.lastLoginAt = new Date().toISOString();
+          this.loginForm.email = normalized.email || '';
+          this.loginForm.password = '';
+          this.forgotForm.email = normalized.email || this.forgotForm.email || '';
+          this.fallbackAccount = clone(normalized);
+          this.persist();
+          emit('fit:auth-login', { account: this.account, source: 'register' });
+        },
+        async registrationEnsureAddressOptions() {
+          if (this.registration.addressLoaded && Array.isArray(this.registration.addressOptions) && this.registration.addressOptions.length) {
+            return this.registration.addressOptions;
+          }
+          try {
+            const res = await fetch('data/addresses/prague.json', { cache: 'no-store' });
+            const list = await res.json();
+            const normalized = Array.isArray(list) ? list : [];
+            this.registration.addressOptions = normalized.map((item, idx) => {
+              const street = String(item.street ?? '').trim();
+              const extra = String(item.extra ?? '').trim();
+              const city = String(item.city ?? '').trim();
+              const zip = String(item.zip ?? '').replace(/\s+/g, '');
+              const label = String(item.label ?? `${street}, ${city}`).trim();
+              const cityLine = [zip, city].filter(Boolean).join(' ');
+              const district = String(item.district ?? '').trim();
+              const search = [label, street, extra, city, zip, district].filter(Boolean).join(' ').toLowerCase();
+              return {
+                id: String(item.id ?? `addr-${idx}`),
+                label: label || street,
+                street,
+                extra,
+                city,
+                zip,
+                district,
+                cityLine,
+                search
+              };
+            });
+          } catch (e) {
+            console.warn('registration address suggestions load failed', e);
+            this.registration.addressOptions = [];
+          } finally {
+            this.registration.addressLoaded = true;
+          }
+          return this.registration.addressOptions;
+        },
+        registrationAddressField(fieldKey) {
+          const store = this;
+          return {
+            fieldKey,
+            query: '',
+            open: false,
+            highlighted: -1,
+            init() {
+              store.registrationEnsureAddressOptions().then(() => {
+                this.syncFromStore();
+              });
+              this.$watch(
+                () => JSON.stringify(store.normalizeRegistrationAddress(store.registration.values[this.fieldKey] || {})),
+                () => this.syncFromStore()
+              );
+            },
+            get options() {
+              const opts = Array.isArray(store.registration.addressOptions) ? store.registration.addressOptions : [];
+              const q = this.query.trim().toLowerCase();
+              if (!q) return opts.slice(0, 8);
+              return opts.filter(opt => opt.search.includes(q)).slice(0, 8);
+            },
+            get hasValue() {
+              const val = store.normalizeRegistrationAddress(store.registration.values[this.fieldKey]);
+              return !!(val.street || val.extra || val.city || val.zip);
+            },
+            get summaryBody() {
+              return store.formatRegistrationAddressDisplay(store.registration.values[this.fieldKey]);
+            },
+            openSuggestions() {
+              this.open = true;
+              if (this.highlighted === -1 && this.options.length) {
+                this.highlighted = 0;
+              }
+            },
+            closeSuggestions() {
+              this.open = false;
+              this.highlighted = -1;
+            },
+            onInput(event) {
+              this.query = event.target.value;
+              const next = store.normalizeRegistrationAddress(store.registration.values[this.fieldKey]);
+              store.registration.values[this.fieldKey] = { ...next, street: this.query };
+              store.registrationHandleInput(this.fieldKey);
+              this.openSuggestions();
+            },
+            onBlur() {
+              setTimeout(() => this.closeSuggestions(), 120);
+              store.registrationHandleBlur(this.fieldKey);
+            },
+            highlightNext() {
+              if (!this.options.length) return;
+              this.openSuggestions();
+              this.highlighted = (this.highlighted + 1) % this.options.length;
+            },
+            highlightPrev() {
+              if (!this.options.length) return;
+              this.openSuggestions();
+              this.highlighted = this.highlighted <= 0 ? this.options.length - 1 : this.highlighted - 1;
+            },
+            selectHighlighted() {
+              if (this.highlighted < 0 || this.highlighted >= this.options.length) return;
+              this.selectOption(this.options[this.highlighted]);
+            },
+            selectOption(opt) {
+              const value = store.normalizeRegistrationAddress(opt);
+              store.registration.values[this.fieldKey] = value;
+              store.registrationHandleInput(this.fieldKey);
+              store.registrationHandleBlur(this.fieldKey);
+              this.query = store.formatRegistrationAddressLine(value);
+              this.closeSuggestions();
+            },
+            clearSelection() {
+              store.registration.values[this.fieldKey] = store.normalizeRegistrationAddress({});
+              this.query = '';
+              store.registrationHandleInput(this.fieldKey);
+              store.registrationHandleBlur(this.fieldKey);
+              this.closeSuggestions();
+            },
+            syncFromStore() {
+              const normalized = store.normalizeRegistrationAddress(store.registration.values[this.fieldKey]);
+              this.query = store.formatRegistrationAddressLine(normalized);
+            }
+          };
+        },
+        normalizeRegistrationAddress(val) {
+          if (val && typeof val === 'object') {
+            return {
+              street: String(val.street ?? val.line1 ?? '').trim(),
+              extra: String(val.extra ?? val.line2 ?? '').trim(),
+              city: String(val.city ?? '').trim(),
+              zip: String(val.zip ?? '').trim()
+            };
+          }
+          if (typeof val === 'string') {
+            return { street: val.trim(), extra: '', city: '', zip: '' };
+          }
+          return { street: '', extra: '', city: '', zip: '' };
+        },
+        formatRegistrationAddressLine(val) {
+          const addr = this.normalizeRegistrationAddress(val);
+          const parts = [];
+          if (addr.street) parts.push(addr.street);
+          const cityLine = [addr.zip, addr.city].filter(Boolean).join(' ');
+          if (cityLine) parts.push(cityLine);
+          return parts.join(', ');
+        },
+        formatRegistrationAddressDisplay(val) {
+          const addr = this.normalizeRegistrationAddress(val);
+          const parts = [];
+          if (addr.street) parts.push(addr.street);
+          if (addr.extra) parts.push(addr.extra);
+          const cityLine = [addr.zip, addr.city].filter(Boolean).join(' ');
+          if (cityLine) parts.push(cityLine);
+          return parts.join('\n');
+        },
+        registrationFormatPhoneDisplay(val) {
+          const digits = String(val || '').replace(/\D+/g, '');
+          if (!digits) return '';
+          return digits.replace(/(\d{3})(?=\d)/g, '$1 ').trim();
+        },
+        registrationCancelTimers(type = null) {
+          const targets = type ? [type] : ['email', 'process', 'success'];
+          targets.forEach((key) => {
+            const timerKey = key === 'email' ? 'email' : (key === 'success' ? 'success' : 'process');
+            if (this._registrationTimers[timerKey]) {
+              clearTimeout(this._registrationTimers[timerKey]);
+              this._registrationTimers[timerKey] = null;
+            }
+          });
         },
         isAnonymous() {
           return !this.isAuthenticated;
@@ -741,6 +1444,11 @@
         currencyConfig: null,
         localeConfigs: null,
         _configListener: null,
+        showFallbackHint: !!(
+          configStore?.get
+            ? configStore.get('showTranslationHints')
+            : configStore?.showTranslationHints
+        ),
         async init() {
           await Promise.all([
             this.ensureCurrencyConfig(),
@@ -765,6 +1473,8 @@
                 if (code && this.currency !== code) {
                   this.setCurrency(code, { persist: false, forceEvent: true });
                 }
+              } else if (detail.key === 'showTranslationHints') {
+                this.showFallbackHint = !!detail.value;
               }
             };
             window.addEventListener('fit:config-change', this._configListener);
@@ -882,10 +1592,12 @@
           if (primary !== undefined) return this.interpolate(primary, params);
           const fallback = this.lookup(this.fallbackLocale, key);
           if (fallback !== undefined) {
-            return this.interpolate(fallback, params) + this.fallbackHint;
+            const text = this.interpolate(fallback, params);
+            return this.showFallbackHint ? text + this.fallbackHint : text;
           }
           const fallbackValue = fallbackText != null ? fallbackText : key;
-          return this.interpolate(fallbackValue, params) + this.fallbackHint;
+          const base = this.interpolate(fallbackValue, params);
+          return this.showFallbackHint ? base + this.fallbackHint : base;
         },
         getCurrencyMeta(code) {
           const config = this.currencyConfig || {};
@@ -1137,7 +1849,7 @@
         return [];
       };
 
-      const buildSources = (locale) => {
+      const buildSources = (locale, includeDefault = true) => {
         const sources = [];
         const normalized = String(locale || '').trim();
         const lower = normalized.toLowerCase();
@@ -1163,7 +1875,9 @@
           sources.push(`./data/contacts-${langLower}.json`);
           sources.push(`./data/contacts/${langLower}.json`);
         }
-        sources.push('./data/contacts.json');
+        if (includeDefault) {
+          sources.push('./data/contacts.json');
+        }
         return Array.from(new Set(sources));
       };
 
@@ -1247,19 +1961,22 @@
           this.locale = target;
           this.status = 'loading';
           this.error = null;
-          const candidates = buildSources(target);
+          const defaultSource = './data/contacts.json';
+          const candidates = buildSources(target, false);
           const task = (async () => {
             let lastError = null;
-            for (const url of candidates) {
+            const trySource = async (url, { allowEmpty = true } = {}) => {
               try {
                 const res = await fetch(url, { cache: 'no-store' });
                 if (!res.ok) {
-                  if (res.status === 404) continue;
+                  if (res.status === 404) return false;
                   throw new Error(`HTTP ${res.status}`);
                 }
                 const json = await res.json();
                 const list = normalizeList(json, target);
-                this.items = Array.isArray(list) ? list : [];
+                const arr = Array.isArray(list) ? list : [];
+                if (!arr.length && !allowEmpty) return false;
+                this.items = arr;
                 this.primaryId = resolvePrimary(this.items)?.id || null;
                 this.source = url;
                 this.status = 'ready';
@@ -1267,11 +1984,23 @@
                 if (!this.items.length) {
                   console.warn('[contacts] loaded empty contact list from', url);
                 }
-                return this.items;
+                return true;
               } catch (err) {
                 lastError = err;
+                return false;
               }
+            };
+
+            if (await trySource(defaultSource, { allowEmpty: false })) {
+              return this.items;
             }
+
+            for (const url of candidates) {
+              if (url === defaultSource) continue;
+              const loaded = await trySource(url, { allowEmpty: true });
+              if (loaded) return this.items;
+            }
+
             this.items = [];
             this.primaryId = null;
             this.source = null;
@@ -2806,7 +3535,7 @@
     <div class="overflow-x-auto scrollbar-thin"
          x-init="registerTopStrip($el, 'hits')">
       <div class="flex gap-3 snap-x snap-mandatory px-0 pb-5">
-        <template x-for="p in topProductsShuffledFor('hits', 12)" :key="p.id">
+        <template x-for="(p, idx) in topProductsShuffledFor('hits', 12)" :key="'hits-' + (p?.id ?? idx)">
           <article class="snap-start shrink-0 w-48 sm:w-56 card bg-white hover:shadow-md transition relative">
             <span x-show="discountPct(p) !== null"
                   class="absolute left-2 top-2 badge badge-error text-white font-semibold">
@@ -3036,7 +3765,7 @@
     <div class="overflow-x-auto scrollbar-thin"
          x-init="registerTopStrip($el, 'saved')">
       <div class="flex gap-3 snap-x snap-mandatory px-0 pb-5">
-        <template x-for="p in topProductsShuffledFor('saved', 12)" :key="p.id">
+        <template x-for="(p, idx) in topProductsShuffledFor('saved', 12)" :key="'saved-' + (p?.id ?? idx)">
           <article class="snap-start shrink-0 w-48 sm:w-56 card bg-white hover:shadow-md transition relative">
             <span x-show="discountPct(p) !== null"
                   class="absolute left-2 top-2 badge badge-error text-white font-semibold">
@@ -3824,24 +4553,30 @@
       </div>
 
       <div x-show="!isLoading && (totalPages() > 1 || canLoadMoreFirstPage())"
-           class="mt-2 flex items-center justify-between gap-4 flex-wrap py-4">
-        <div class="text-sm opacity-70">
-          <span x-text="rangeLabel()"></span>
+           class="mt-4 flex flex-col gap-3 py-4 w-full sm:flex-row sm:items-center sm:justify-between">
+        <div class="w-full sm:w-auto">
+          <div class="flex flex-wrap items-center gap-2 w-full">
+            <button class="btn btn-md"
+                    :class="{'btn-disabled': page === 1}"
+                    @click="page = Math.max(1, page - 1)"
+                    aria-label="Předchozí stránka">«</button>
+            <template x-for="(n, idx) in pagesToShow()" :key="`p-${idx}-${n}-${page}`">
+              <button class="btn btn-md font-medium"
+                      :class="{'btn-active': n === page, 'btn-disabled': n === '…'}"
+                      @click="if(n !== '…') page = n"
+                      x-text="n === '…' ? '…' : n"
+                      :aria-current="n === page ? 'page' : null"></button>
+            </template>
+            <button class="btn btn-md"
+                    :class="{'btn-disabled': page === totalPages()}"
+                    @click="page = Math.min(totalPages(), page + 1)"
+                    aria-label="Další stránka">»</button>
+          </div>
         </div>
-        <div class="join mx-auto">
-          <button class="btn btn-md join-item" :class="{'btn-disabled': page === 1}"
-                  @click="page = Math.max(1, page - 1)" aria-label="Předchozí stránka">«</button>
-          <template x-for="n in pagesToShow()" :key="`p-${n}-${page}`">
-            <button class="btn btn-md join-item font-medium"
-                    :class="{'btn-active': n === page, 'btn-disabled': n === '…'}"
-                    @click="if(n !== '…') page = n"
-                    x-text="n === '…' ? '…' : n"
-                    :aria-current="n === page ? 'page' : null"></button>
-          </template>
-          <button class="btn btn-md join-item" :class="{'btn-disabled': page === totalPages()}"
-                  @click="page = Math.min(totalPages(), page + 1)" aria-label="Další stránka">»</button>
-        </div>
-        <button x-show="canLoadMoreFirstPage()" class="btn btn-secondary btn-md" @click="loadMore()" :disabled="isLoading">
+        <button x-show="canLoadMoreFirstPage()"
+                class="btn btn-secondary btn-md w-full sm:w-auto sm:ml-auto"
+                @click="loadMore()"
+                :disabled="isLoading">
           <span x-text="loadMoreLabel()"></span>
         </button>
       </div>
@@ -5088,7 +5823,7 @@
           <div class="overflow-x-auto scrollbar-thin"
                x-init="registerTopStrip($el, 'cartUpsell')">
             <div class="flex gap-3 snap-x snap-mandatory px-0 pb-5">
-              <template x-for="p in topProductsShuffledFor('cartUpsell', 12)" :key="p.id">
+              <template x-for="(p, idx) in topProductsShuffledFor('cartUpsell', 12)" :key="'cart-upsell-' + (p?.id ?? idx)">
                 <article class="snap-start shrink-0 w-48 sm:w-56 card bg-white hover:shadow-md transition relative">
                   <span x-show="discountPct(p) !== null"
                         class="absolute left-2 top-2 badge badge-error text-white font-semibold">
@@ -7162,6 +7897,23 @@ function deliveryPaymentUI() {
                    :checked="drMaxWomanEnabled"
                    @change="setDrMaxWoman($event.target.checked)">
             <span class="text-sm font-semibold" x-text="drMaxWomanEnabled ? 'Zapnuto' : 'Vypnuto'"></span>
+          </label>
+        </div>
+      </div>
+      <div class="rounded-2xl border border-base-300 bg-white shadow-sm p-6 space-y-4">
+        <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 class="text-lg font-semibold">Indikátor chybějících překladů</h2>
+            <p class="text-sm text-base-content/70">
+              Přidá tečku k textům, které používají fallback překlad nebo řetězec.
+            </p>
+          </div>
+          <label class="flex items-center gap-3">
+            <input type="checkbox"
+                   class="toggle toggle-accent"
+                   :checked="translationHintsEnabled"
+                   @change="setTranslationHints($event.target.checked)">
+            <span class="text-sm font-semibold" x-text="translationHintsEnabled ? 'Zobrazeno' : 'Skryto'"></span>
           </label>
         </div>
       </div>
@@ -9388,10 +10140,15 @@ _responsivePageSize() {
   if (width >= 1280) return 8;       // 4 cols * 2 rows
   if (width >= 1024) return 6;       // 3 cols * 2 rows
   if (width >= 640)  return 4;       // 2 cols * 2 rows
-  return 4;
+  return 10;                         // mobile: show 10 items per page
 },
 skeletonPlaceholderCount() {
   return Math.max(this.skeletonBaseCount || this.pageSize || 4, 4);
+},
+_isCompactPagination() {
+  if (typeof window === 'undefined') return false;
+  const width = window.innerWidth || document.documentElement.clientWidth || 0;
+  return width < 640;
 },
 
 // ---- scroll manager ----
@@ -10091,20 +10848,17 @@ pagedProducts() {
 },
 pagesToShow() {
   const p = this.page, t = this.totalPages();
+  if (this._isCompactPagination()) {
+    if (t <= 5) return Array.from({ length: t }, (_, i) => i + 1);
+    if (p <= 3) return [1, 2, 3, '…', t];
+    if (p >= t - 2) return [1, '…', t - 2, t - 1, t];
+    return [1, '…', p - 1, p, p + 1, '…', t];
+  }
   if (t <= 7) return Array.from({ length: t }, (_, i) => i + 1);
   if (p <= 4) return [1, 2, 3, 4, 5, '…', t];
   if (p >= t - 3) return [1, '…', t - 4, t - 3, t - 2, t - 1, t];
   return [1, '…', p - 1, p, p + 1, '…', t];
 },
-rangeLabel() {
-  const total = this.filteredProducts().length;
-  if (!total) return '0 z 0';
-  if (this.page === 1) return `1–${this.showCount} z ${total}`;
-  const start = this.showCount + (this.page - 2) * this.pageSize + 1;
-  const end = Math.min(this.showCount + (this.page - 1) * this.pageSize, total);
-  return `${start}–${end} z ${total}`;
-},
-
 // ---- checkout form helpers ----
 async ensureAddressForm() {
   if (this.addressFormLoaded || this.addressFormLoading) return;
@@ -12284,6 +13038,19 @@ loadCheckoutReviewFromStorage() {
           window.dispatchEvent(new CustomEvent('fit:config-change', { detail: { key: 'drMaxWomanPromo', value: !!value } }));
         }
       },
+      get translationHintsEnabled() {
+        return !!(this.store?.get ? this.store.get('showTranslationHints') : this.store?.showTranslationHints);
+      },
+      setTranslationHints(value) {
+        if (!this.store) return;
+        if (typeof this.store.set === 'function') {
+          this.store.set('showTranslationHints', !!value);
+        } else {
+          this.store.showTranslationHints = !!value;
+          this.store.persist?.();
+          window.dispatchEvent(new CustomEvent('fit:config-change', { detail: { key: 'showTranslationHints', value: !!value } }));
+        }
+      },
       get localeCode() {
         return this.localeStore?.locale || this.defaultLocale;
       },
@@ -12885,7 +13652,8 @@ loadCheckoutReviewFromStorage() {
             <div class="divide-y divide-base-200">
               <template x-for="(it, i) in ($store.menu.current.items || [])" :key="'root-'+i">
                 <button
-                  class="w-full text-left py-3 px-3 flex items-center gap-3 hover:bg-base-200/60 rounded-lg transition cursor-pointer"
+                  class="w-full text-left py-3 px-3 flex items-center gap-3 hover:bg-base-200/60 active:bg-base-300/60 rounded-lg transition-colors duration-150 cursor-pointer"
+                  data-tap-flash
                   @click.stop="$store.menu.onItemClick(it)"
                 >
                   <!-- left icon (only if present) -->
@@ -12939,7 +13707,8 @@ loadCheckoutReviewFromStorage() {
                     <div class="divide-y divide-base-200 bg-base-100 rounded-lg mx-2">
                       <template x-for="locale in ($store.i18n?.listLocales?.() || [])" :key="'lang-'+locale.code">
                         <button
-                          class="w-full text-left py-3 px-3 flex items-center gap-3 hover:bg-base-200/60 transition"
+                          class="w-full text-left py-3 px-3 flex items-center gap-3 hover:bg-base-200/60 active:bg-base-300/60 transition-colors duration-150"
+                          data-tap-flash
                           @click.stop.prevent="$store.i18n?.setLocale?.(locale.code)"
                         >
                           <i
@@ -12967,7 +13736,8 @@ loadCheckoutReviewFromStorage() {
                     <div class="divide-y divide-base-200 bg-base-100 rounded-lg mx-2">
                       <template x-for="(it, i) in (sec.items || [])" :key="'item-'+i">
                         <button
-                          class="w-full text-left py-4 px-3 flex items-center gap-3 hover:bg-max-gray-50 border-0 transition cursor-pointer"
+                          class="w-full text-left py-4 px-3 flex items-center gap-3 hover:bg-max-gray-50 active:bg-base-200/60 border-0 transition-colors duration-150 cursor-pointer"
+                          data-tap-flash
                           @click.stop="$store.menu.onItemClick(it)"
                         >
                           <template x-if="it.icon || it.iconSet">
@@ -13000,73 +13770,75 @@ loadCheckoutReviewFromStorage() {
     </aside>
 
     <!-- Sponsored banner -->
-    <div
-      x-cloak
-      x-show="visible && product"
-      x-transition:enter="transform ease-out duration-200"
-      x-transition:enter-start="opacity-0 translate-y-4 scale-95"
-      x-transition:enter-end="opacity-100 translate-y-0 scale-100"
-      x-transition:leave="transform ease-in duration-150"
-      x-transition:leave-start="opacity-100 translate-y-0 scale-100"
-      x-transition:leave-end="opacity-0 translate-y-2 scale-95"
-      class="hidden md:block pointer-events-auto fixed bottom-6 right-6 md:bottom-8 md:right-8 w-[17rem] max-w-[80vw] z-[11005] flex flex-col gap-2 items-start"
-      role="complementary"
-      aria-live="polite"
-    >
-      <span class="px-3 py-1 rounded-full border border-white/20 bg-white/10 text-xs font-normal tracking-wide text-white/60 backdrop-blur-sm">
-        Sponzorováno
-      </span>
-      <article class="card bg-white shadow-xl relative overflow-hidden mt-1">
-        <span
-          x-show="discountPct(product) !== null"
-          class="badge badge-error text-white font-semibold absolute right-3 top-3"
-        >
-          <span x-text="`-${discountPct(product)}%`"></span>
+    <template x-if="product">
+      <div
+        x-cloak
+        x-show="visible"
+        x-transition:enter="transform ease-out duration-200"
+        x-transition:enter-start="opacity-0 translate-y-4 scale-95"
+        x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+        x-transition:leave="transform ease-in duration-150"
+        x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+        x-transition:leave-end="opacity-0 translate-y-2 scale-95"
+        class="hidden md:block pointer-events-auto fixed bottom-6 right-6 md:bottom-8 md:right-8 w-[17rem] max-w-[80vw] z-[11005] flex flex-col gap-2 items-start"
+        role="complementary"
+        aria-live="polite"
+      >
+        <span class="px-3 py-1 rounded-full border border-white/20 bg-white/10 text-xs font-normal tracking-wide text-white/60 backdrop-blur-sm">
+          Sponzorováno
         </span>
-        <figure class="p-3 h-44 overflow-hidden">
-          <a :href="link('product', { id: product.id })" class="block h-full">
-            <img :src="product.image || './images/placeholder.webp'" :alt="product.name"
-                 class="w-full h-full object-cover">
-          </a>
-        </figure>
-        <div class="card-body pt-0 flex flex-col gap-2">
-          <a :href="link('product', { id: product.id })"
-             class="text-sm font-medium line-clamp-2 leading-snug min-h-[2.45rem] max-h-[2.45rem] hover:underline"
-             x-text="product.name"></a>
-          <div class="mt-auto">
-            <div class="text-base font-semibold">
-              <span x-text="formatPrice(currentPrice(product))"></span>
-              <span class="ml-2 line-through text-xs opacity-60"
-                    x-show="crossedPrice(product) !== null"
-                    x-text="formatPrice(crossedPrice(product))"></span>
+        <article class="card bg-white shadow-xl relative overflow-hidden mt-1">
+          <span
+            x-show="discountPct(product) !== null"
+            class="badge badge-error text-white font-semibold absolute right-3 top-3"
+          >
+            <span x-text="`-${discountPct(product)}%`"></span>
+          </span>
+          <figure class="p-3 h-44 overflow-hidden">
+            <a :href="link('product', { id: product.id })" class="block h-full">
+              <img :src="product.image || './images/placeholder.webp'" :alt="product.name"
+                   class="w-full h-full object-cover">
+            </a>
+          </figure>
+          <div class="card-body pt-0 flex flex-col gap-2">
+            <a :href="link('product', { id: product.id })"
+               class="text-sm font-medium line-clamp-2 leading-snug min-h-[2.45rem] max-h-[2.45rem] hover:underline"
+               x-text="product.name"></a>
+            <div class="mt-auto">
+              <div class="text-base font-semibold">
+                <span x-text="formatPrice(currentPrice(product))"></span>
+                <span class="ml-2 line-through text-xs opacity-60"
+                      x-show="crossedPrice(product) !== null"
+                      x-text="formatPrice(crossedPrice(product))"></span>
+              </div>
+            </div>
+            <div class="mt-3">
+              <template x-if="!$store.cart.inCart(product.id)">
+                <button class="btn btn-primary btn-md w-full font-semibold" @click="$store.cart.add(product)">
+                  <span x-text="t('routes.products.cart.add', 'Do košíku')"></span>
+                </button>
+              </template>
+              <template x-if="$store.cart.inCart(product.id)">
+                <div class="join w-full justify-center">
+                  <button class="btn btn-square btn-md join-item"
+                          @click="$store.cart.decrement(product.id)"
+                          :aria-label="t('routes.products.cart.decrementAria', 'Odebrat kus')">−</button>
+                  <input type="text" inputmode="numeric" pattern="[0-9]*"
+                         class="input input-bordered input-md w-12 text-center join-item tabular-nums"
+                         :value="$store.cart.qty(product.id)"
+                         @input="$store.cart.setQty(product.id, $event.target.value.replace(/[^0-9]/g,''))"
+                         @keydown.enter.prevent
+                         :aria-label="t('routes.products.cart.quantityAria', 'Počet kusů')" />
+                  <button class="btn btn-square btn-md join-item"
+                          @click="$store.cart.increment(product.id)"
+                          :aria-label="t('routes.products.cart.incrementAria', 'Přidat kus')">+</button>
+                </div>
+              </template>
             </div>
           </div>
-          <div class="mt-3">
-            <template x-if="!$store.cart.inCart(product.id)">
-              <button class="btn btn-primary btn-md w-full font-semibold" @click="$store.cart.add(product)">
-                <span x-text="t('routes.products.cart.add', 'Do košíku')"></span>
-              </button>
-            </template>
-            <template x-if="$store.cart.inCart(product.id)">
-              <div class="join w-full justify-center">
-                <button class="btn btn-square btn-md join-item"
-                        @click="$store.cart.decrement(product.id)"
-                        :aria-label="t('routes.products.cart.decrementAria', 'Odebrat kus')">−</button>
-                <input type="text" inputmode="numeric" pattern="[0-9]*"
-                       class="input input-bordered input-md w-12 text-center join-item tabular-nums"
-                       :value="$store.cart.qty(product.id)"
-                       @input="$store.cart.setQty(product.id, $event.target.value.replace(/[^0-9]/g,''))"
-                       @keydown.enter.prevent
-                       :aria-label="t('routes.products.cart.quantityAria', 'Počet kusů')" />
-                <button class="btn btn-square btn-md join-item"
-                        @click="$store.cart.increment(product.id)"
-                        :aria-label="t('routes.products.cart.incrementAria', 'Přidat kus')">+</button>
-              </div>
-            </template>
-          </div>
-        </div>
-      </article>
-    </div>
+        </article>
+      </div>
+    </template>
   </div>
 <!-- MOBILE SEARCH OVERLAY -->
 <template x-teleport="body">
@@ -14083,16 +14855,526 @@ function precartModal() {
     </template>
 
     <template x-if="$store.auth?.view === 'register'">
-      <div class="space-y-4">
-        <p class="text-sm text-base-content/70">
-          Registraci připravujeme. Díky testovacím údajům ale dokážete simulovat kompletní zákaznickou cestu.
-        </p>
-        <div class="modal-action justify-end">
+      <div class="space-y-6 relative">
+        <template x-if="$store.auth.registration.loading">
+          <div class="rounded-2xl border border-base-300 bg-base-100 p-6 text-base-content/70">
+            Načítám registrační formulář…
+          </div>
+        </template>
+
+        <template x-if="!$store.auth.registration.loading && $store.auth.registration.loadError">
+          <div class="rounded-xl border border-error/40 bg-error/5 p-4 text-sm text-error">
+            <span x-text="$store.auth.registration.loadError"></span>
+          </div>
+        </template>
+
+        <template x-if="!$store.auth.registration.loading && $store.auth.registration.ready">
+          <div class="space-y-5">
+            <div class="flex flex-col gap-2">
+              <div class="flex items-center justify-between gap-2 text-xs font-semibold uppercase tracking-wide text-base-content/60"
+                   x-data="{ steps: $store.auth.registrationStepList() }">
+                <template x-for="(item, index) in steps" :key="item.id">
+                  <div class="flex items-center gap-2 flex-1">
+                    <div class="w-8 h-8 rounded-full border flex items-center justify-center transition"
+                         :class="$store.auth.registration.step > item.id
+                           ? 'bg-primary text-primary-content border-primary'
+                           : ($store.auth.registration.step === item.id
+                              ? 'border-primary text-primary'
+                              : 'border-base-300 text-base-content/50')">
+                      <template x-if="$store.auth.registration.step > item.id">
+                        <i class="fa-solid fa-check text-sm"></i>
+                      </template>
+                      <template x-if="$store.auth.registration.step <= item.id">
+                        <span x-text="item.id"></span>
+                      </template>
+                    </div>
+                    <span class="text-[0.65rem] sm:text-xs" x-text="item.label"></span>
+                    <div class="hidden sm:block flex-1 border-t border-dashed border-base-300"
+                         x-show="index < steps.length - 1"></div>
+                  </div>
+                </template>
+              </div>
+            </div>
+
+            <!-- Step 1 -->
+            <section class="space-y-4" x-show="$store.auth.registration.step === 1" x-transition.opacity>
+              <p class="text-sm text-base-content/70">
+                Vyberte, jak chcete registraci dokončit.
+              </p>
+              <div class="space-y-3">
+                <template x-for="option in $store.auth.registration.flowOptions" :key="option.id">
+                  <label class="flex items-start gap-3 rounded-xl border border-base-200 bg-base-100 p-4 cursor-pointer transition hover:border-primary"
+                         :class="{
+                           'opacity-60 cursor-not-allowed': option.disabled,
+                           'border-primary ring-1 ring-primary/30': $store.auth.registration.selectedFlow === option.value
+                         }">
+                    <input type="radio"
+                           class="radio radio-primary mt-1"
+                           name="registration-flow"
+                           :value="option.value"
+                           :checked="$store.auth.registration.selectedFlow === option.value"
+                           :disabled="option.disabled"
+                           @change="$store.auth.registration.selectedFlow = option.value">
+                    <div class="grow">
+                      <div class="flex items-center gap-2">
+                        <span class="font-semibold" x-text="option.label"></span>
+                        <span class="badge badge-sm badge-outline" x-show="option.disabled">Brzy</span>
+                      </div>
+                      <p class="text-sm text-base-content/70" x-show="option.disabled">
+                        Tuto možnost aktuálně v prototypu nepodporujeme.
+                      </p>
+                    </div>
+                  </label>
+                </template>
+              </div>
+              <div class="modal-action justify-end pt-2">
+                <button type="button"
+                        class="btn btn-primary"
+                        @click="$store.auth.nextRegistrationStep()">
+                  Pokračovat
+                </button>
+              </div>
+            </section>
+
+            <!-- Step 2 -->
+            <section class="space-y-5" x-show="$store.auth.registration.step === 2" x-transition.opacity>
+              <div class="space-y-3" x-data="{ field: $store.auth.registrationEmailField() }" x-show="field">
+                <p class="text-sm text-base-content/70">
+                  Nejprve ověříme váš e-mail. Poté doplníte osobní údaje.
+                </p>
+                <label class="form-control w-full gap-2">
+                  <span class="text-sm font-semibold text-base-content/80" x-text="field.label"></span>
+                  <input type="email"
+                         class="input input-bordered w-full"
+                         :placeholder="field.placeholder || 'jan.novak@example.com'"
+                         x-model="$store.auth.registration.values[field.key]"
+                         @input="$store.auth.registrationHandleInput(field.key)"
+                         @blur="$store.auth.registrationHandleBlur(field.key)">
+                </label>
+                <p class="text-xs text-base-content/70" x-show="field.note" x-text="field.note"></p>
+                <p class="text-sm text-error"
+                   x-show="$store.auth.registration.errors[field.key]?.length"
+                   x-text="$store.auth.registration.errors[field.key][0]"></p>
+              </div>
+
+              <template x-if="$store.auth.registration.phase === 'verifying-email'">
+                <div class="rounded-xl border border-base-200 bg-base-100/80 px-4 py-3 flex items-center gap-3">
+                  <span class="loading loading-spinner text-secondary"></span>
+                  <span class="text-sm text-base-content/70">Ověřujeme e-mail…</span>
+                </div>
+              </template>
+
+              <div class="modal-action justify-between" x-show="!$store.auth.registration.emailVerified">
+                <button type="button"
+                        class="btn btn-outline"
+                        @click="$store.auth.prevRegistrationStep()">
+                  Zpět
+                </button>
+                <button type="button"
+                        class="btn btn-primary"
+                        :class="{ 'btn-disabled': $store.auth.registration.phase === 'verifying-email' }"
+                        @click="$store.auth.registrationStartEmailVerification()">
+                  Ověřit e-mail
+                </button>
+              </div>
+
+              <template x-if="$store.auth.registration.emailVerified">
+                <div class="space-y-5">
+                  <div class="space-y-4">
+                    <template x-for="field in $store.auth.registrationStepFields(2, { excludeTypes: ['email'] })" :key="field.key">
+                      <div class="space-y-2">
+                        <template x-if="field.isToggle">
+                          <label class="flex items-center gap-3 rounded-lg border border-base-200 bg-base-100 px-4 py-3">
+                            <input type="checkbox"
+                                   class="checkbox checkbox-secondary"
+                                   x-model="$store.auth.registration.values[field.key]"
+                                   @change="$store.auth.registrationHandleGroupToggle(field.key)">
+                            <div>
+                              <span class="font-semibold" x-text="field.label"></span>
+                              <p class="text-sm text-base-content/70" x-show="field.note" x-text="field.note"></p>
+                            </div>
+                          </label>
+                        </template>
+                        <template x-if="!field.isToggle">
+                          <div class="space-y-2">
+                            <template x-if="$store.auth.registrationIsPhoneField(field)">
+                              <div class="space-y-1">
+                                <span class="text-sm font-semibold text-base-content/80" x-text="field.label"></span>
+                                <label class="input input-bordered flex items-center gap-3"
+                                       :class="$store.auth.registration.errors[field.key]?.length ? 'input-error' : ''">
+                                  <span class="font-semibold text-base-content/70" x-show="field.prefix" x-text="field.prefix"></span>
+                                  <div class="relative grow min-w-0">
+                                    <input type="tel"
+                                           class="w-full bg-transparent focus:outline-none tabular-nums"
+                                           :style="$store.auth.registration.values[field.key] ? 'color: transparent; caret-color: var(--fallback-bc, currentColor);' : ''"
+                                           x-model="$store.auth.registration.values[field.key]"
+                                           @input="$store.auth.registrationHandleInput(field.key)"
+                                           @blur="$store.auth.registrationHandleBlur(field.key)"
+                                           :placeholder="field.placeholder || '123456789'">
+                                    <span class="pointer-events-none absolute inset-0 flex items-center text-base-content tabular-nums"
+                                          :class="$store.auth.registration.values[field.key] ? 'opacity-100' : 'opacity-0'"
+                                          x-text="$store.auth.registrationFormatPhoneDisplay($store.auth.registration.values[field.key])"></span>
+                                  </div>
+                                </label>
+                              </div>
+                            </template>
+
+                            <template x-if="!$store.auth.registrationIsPhoneField(field) && field.type === 'password'">
+                              <label class="form-control w-full gap-2">
+                                <span class="text-sm font-semibold text-base-content/80" x-text="field.label"></span>
+                                <div class="relative">
+                                  <input :type="$store.auth.registration.passwordVisible ? 'text' : 'password'"
+                                         class="input input-bordered w-full pr-12"
+                                         :placeholder="field.placeholder || '••••••••'"
+                                         x-model="$store.auth.registration.values[field.key]"
+                                         @input="$store.auth.registrationHandleInput(field.key)"
+                                         @blur="$store.auth.registrationHandleBlur(field.key)">
+                                  <button type="button"
+                                          class="absolute inset-y-0 right-2 flex items-center px-2 text-base-content/70"
+                                          @click="$store.auth.registration.passwordVisible = !$store.auth.registration.passwordVisible"
+                                          :aria-label="$store.auth.registration.passwordVisible ? 'Skrýt heslo' : 'Zobrazit heslo'">
+                                    <i class="fa-regular" :class="$store.auth.registration.passwordVisible ? 'fa-eye-slash' : 'fa-eye'"></i>
+                                  </button>
+                                </div>
+                              </label>
+                            </template>
+
+                            <template x-if="!$store.auth.registrationIsPhoneField(field) && ['text','email'].includes(field.type) && field.type !== 'password'">
+                              <label class="form-control w-full gap-2">
+                                <span class="text-sm font-semibold text-base-content/80" x-text="field.label"></span>
+                                <input :type="field.type === 'email' ? 'email' : 'text'"
+                                       class="input input-bordered w-full"
+                                       :placeholder="field.placeholder || undefined"
+                                       x-model="$store.auth.registration.values[field.key]"
+                                       @input="$store.auth.registrationHandleInput(field.key)"
+                                       @blur="$store.auth.registrationHandleBlur(field.key)">
+                              </label>
+                            </template>
+
+                            <template x-if="field.type === 'radio' && field.items.length">
+                              <div class="space-y-2">
+                                <span class="text-sm font-semibold text-base-content/80" x-text="field.label"></span>
+                                <div class="space-y-2">
+                                  <template x-for="item in field.items" :key="item">
+                                    <label class="flex items-center gap-3 rounded-lg border border-base-200 px-4 py-2">
+                                      <input type="radio"
+                                             class="radio radio-primary"
+                                             :name="`reg-${field.key}`"
+                                             :value="item"
+                                             x-model="$store.auth.registration.values[field.key]"
+                                             @change="$store.auth.registrationHandleInput(field.key); $store.auth.registrationHandleBlur(field.key)">
+                                      <span class="text-sm" x-text="item"></span>
+                                    </label>
+                                  </template>
+                                </div>
+                              </div>
+                            </template>
+
+                            <template x-if="field.type === 'checkbox' && !field.isToggle">
+                              <label class="flex items-start gap-3 rounded-lg border border-base-200 bg-base-100 px-4 py-3">
+                                <input type="checkbox"
+                                       class="checkbox checkbox-secondary mt-1"
+                                       x-model="$store.auth.registration.values[field.key]"
+                                       @change="$store.auth.registrationHandleInput(field.key); $store.auth.registrationHandleBlur(field.key)">
+                                <span class="text-sm leading-snug" x-html="field.label"></span>
+                              </label>
+                            </template>
+
+                            <template x-if="field.type === 'date'">
+                              <label class="form-control w-full gap-2">
+                                <span class="text-sm font-semibold text-base-content/80" x-text="field.label"></span>
+                                <input type="date"
+                                       class="input input-bordered w-full"
+                                       x-model="$store.auth.registration.values[field.key]"
+                                       @input="$store.auth.registrationHandleInput(field.key)"
+                                       @blur="$store.auth.registrationHandleBlur(field.key)">
+                              </label>
+                            </template>
+
+                            <template x-if="field.type === 'address'">
+                              <div x-data="$store.auth.registrationAddressField(field.key)" x-init="init()" class="space-y-2">
+                                <label class="form-control w-full gap-2">
+                                  <span class="text-sm font-semibold text-base-content/80" x-text="field.label"></span>
+                                  <div class="relative">
+                                    <input type="text"
+                                           class="input input-bordered w-full"
+                                           :placeholder="(field.placeholder && field.placeholder.street) || 'Začněte psát adresu'"
+                                           x-model="query"
+                                           @focus="openSuggestions()"
+                                           @input="onInput($event)"
+                                           @blur="onBlur()"
+                                           @keydown.arrow-down.prevent="highlightNext()"
+                                           @keydown.arrow-up.prevent="highlightPrev()"
+                                           @keydown.enter.prevent="selectHighlighted()">
+                                    <button type="button"
+                                            class="btn btn-xs btn-ghost absolute right-2 top-1/2 -translate-y-1/2"
+                                            @click="clearSelection()"
+                                            x-show="hasValue">
+                                      Vymazat
+                                    </button>
+                                  </div>
+                                </label>
+                                <div class="relative" x-show="open && options.length">
+                                  <ul class="menu absolute z-10 w-full rounded-xl border border-base-200 bg-base-100 shadow">
+                                    <template x-for="(option, index) in options" :key="option.id">
+                                      <li>
+                                        <button type="button"
+                                                class="flex flex-col items-start"
+                                                :class="{ 'active text-primary': highlighted === index }"
+                                                @mouseenter="highlighted = index"
+                                                @click="selectOption(option)">
+                                          <span class="font-semibold" x-text="option.label"></span>
+                                          <span class="text-xs text-base-content/70" x-text="option.cityLine"></span>
+                                        </button>
+                                      </li>
+                                    </template>
+                                  </ul>
+                                </div>
+                                <div class="rounded-lg border border-dashed border-base-300 bg-base-100 p-4 text-sm" x-show="hasValue">
+                                  <div class="font-semibold text-base-content">Vybraná adresa</div>
+                                  <p class="text-base-content/70 whitespace-pre-line" x-text="summaryBody"></p>
+                                </div>
+                              </div>
+                            </template>
+
+                            <p class="text-xs text-base-content/70" x-show="field.note" x-text="field.note"></p>
+                            <p class="text-sm text-error"
+                               x-show="$store.auth.registration.errors[field.key]?.length"
+                               x-text="$store.auth.registration.errors[field.key][0]"></p>
+                          </div>
+                        </template>
+                      </div>
+                    </template>
+                  </div>
+                  <div class="modal-action justify-between">
+                    <button type="button"
+                            class="btn btn-outline"
+                            @click="$store.auth.prevRegistrationStep()">
+                      Zpět
+                    </button>
+                    <button type="button"
+                            class="btn btn-primary"
+                            @click="$store.auth.advanceAfterStepTwo()">
+                      Pokračovat
+                    </button>
+                  </div>
+                </div>
+              </template>
+            </section>
+
+            <!-- Step 3 -->
+            <section class="space-y-5" x-show="$store.auth.registration.step === 3" x-transition.opacity>
+              <p class="text-sm text-base-content/70">
+                Doplňte kontaktní údaje pro doručení i věrnostní program.
+              </p>
+              <div class="space-y-4">
+                <template x-for="field in $store.auth.registrationStepFields(3)" :key="field.key">
+                  <div class="space-y-2">
+                    <template x-if="field.isToggle">
+                      <label class="flex items-center gap-3 rounded-lg border border-base-200 bg-base-100 px-4 py-3">
+                        <input type="checkbox"
+                               class="checkbox checkbox-secondary"
+                               x-model="$store.auth.registration.values[field.key]"
+                               @change="$store.auth.registrationHandleGroupToggle(field.key)">
+                        <div>
+                          <span class="font-semibold" x-text="field.label"></span>
+                          <p class="text-sm text-base-content/70" x-show="field.note" x-text="field.note"></p>
+                        </div>
+                      </label>
+                    </template>
+                    <template x-if="!field.isToggle">
+                      <div class="space-y-2">
+                        <template x-if="$store.auth.registrationIsPhoneField(field)">
+                          <div class="space-y-1">
+                            <span class="text-sm font-semibold text-base-content/80" x-text="field.label"></span>
+                            <label class="input input-bordered flex items-center gap-3"
+                                   :class="$store.auth.registration.errors[field.key]?.length ? 'input-error' : ''">
+                              <span class="font-semibold text-base-content/70" x-show="field.prefix" x-text="field.prefix"></span>
+                              <div class="relative grow min-w-0">
+                                <input type="tel"
+                                       class="w-full bg-transparent focus:outline-none tabular-nums"
+                                       :style="$store.auth.registration.values[field.key] ? 'color: transparent; caret-color: var(--fallback-bc, currentColor);' : ''"
+                                       x-model="$store.auth.registration.values[field.key]"
+                                       @input="$store.auth.registrationHandleInput(field.key)"
+                                       @blur="$store.auth.registrationHandleBlur(field.key)"
+                                       :placeholder="field.placeholder || '123456789'">
+                                <span class="pointer-events-none absolute inset-0 flex items-center text-base-content tabular-nums"
+                                      :class="$store.auth.registration.values[field.key] ? 'opacity-100' : 'opacity-0'"
+                                      x-text="$store.auth.registrationFormatPhoneDisplay($store.auth.registration.values[field.key])"></span>
+                              </div>
+                            </label>
+                          </div>
+                        </template>
+
+                        <template x-if="!$store.auth.registrationIsPhoneField(field) && field.type === 'password'">
+                          <label class="form-control w-full gap-2">
+                            <span class="text-sm font-semibold text-base-content/80" x-text="field.label"></span>
+                            <div class="relative">
+                              <input :type="$store.auth.registration.passwordVisible ? 'text' : 'password'"
+                                     class="input input-bordered w-full pr-12"
+                                     :placeholder="field.placeholder || '••••••••'"
+                                     x-model="$store.auth.registration.values[field.key]"
+                                     @input="$store.auth.registrationHandleInput(field.key)"
+                                     @blur="$store.auth.registrationHandleBlur(field.key)">
+                              <button type="button"
+                                      class="absolute inset-y-0 right-2 flex items-center px-2 text-base-content/70"
+                                      @click="$store.auth.registration.passwordVisible = !$store.auth.registration.passwordVisible">
+                                <i class="fa-regular" :class="$store.auth.registration.passwordVisible ? 'fa-eye-slash' : 'fa-eye'"></i>
+                              </button>
+                            </div>
+                          </label>
+                        </template>
+
+                        <template x-if="!$store.auth.registrationIsPhoneField(field) && ['text','email'].includes(field.type) && field.type !== 'password'">
+                          <label class="form-control w-full gap-2">
+                            <span class="text-sm font-semibold text-base-content/80" x-text="field.label"></span>
+                            <input :type="field.type === 'email' ? 'email' : 'text'"
+                                   class="input input-bordered w-full"
+                                   :placeholder="field.placeholder || undefined"
+                                   x-model="$store.auth.registration.values[field.key]"
+                                   @input="$store.auth.registrationHandleInput(field.key)"
+                                   @blur="$store.auth.registrationHandleBlur(field.key)">
+                          </label>
+                        </template>
+
+                        <template x-if="field.type === 'radio' && field.items.length">
+                          <div class="space-y-2">
+                            <span class="text-sm font-semibold text-base-content/80" x-text="field.label"></span>
+                            <div class="space-y-2">
+                              <template x-for="item in field.items" :key="item">
+                                <label class="flex items-center gap-3 rounded-lg border border-base-200 px-4 py-2">
+                                  <input type="radio"
+                                         class="radio radio-primary"
+                                         :name="`reg-${field.key}`"
+                                         :value="item"
+                                         x-model="$store.auth.registration.values[field.key]"
+                                         @change="$store.auth.registrationHandleInput(field.key); $store.auth.registrationHandleBlur(field.key)">
+                                  <span class="text-sm" x-text="item"></span>
+                                </label>
+                              </template>
+                            </div>
+                          </div>
+                        </template>
+
+                        <template x-if="field.type === 'checkbox' && !field.isToggle">
+                          <label class="flex items-start gap-3 rounded-lg border border-base-200 bg-base-100 px-4 py-3">
+                            <input type="checkbox"
+                                   class="checkbox checkbox-secondary mt-1"
+                                   x-model="$store.auth.registration.values[field.key]"
+                                   @change="$store.auth.registrationHandleInput(field.key); $store.auth.registrationHandleBlur(field.key)">
+                            <span class="text-sm leading-snug" x-html="field.label"></span>
+                          </label>
+                        </template>
+
+                        <template x-if="field.type === 'date'">
+                          <label class="form-control w-full gap-2">
+                            <span class="text-sm font-semibold text-base-content/80" x-text="field.label"></span>
+                            <input type="date"
+                                   class="input input-bordered w-full"
+                                   x-model="$store.auth.registration.values[field.key]"
+                                   @input="$store.auth.registrationHandleInput(field.key)"
+                                   @blur="$store.auth.registrationHandleBlur(field.key)">
+                          </label>
+                        </template>
+
+                        <template x-if="field.type === 'address'">
+                          <div x-data="$store.auth.registrationAddressField(field.key)" x-init="init()" class="space-y-2">
+                            <label class="form-control w-full gap-2">
+                              <span class="text-sm font-semibold text-base-content/80" x-text="field.label"></span>
+                              <div class="relative">
+                                <input type="text"
+                                       class="input input-bordered w-full"
+                                       :placeholder="(field.placeholder && field.placeholder.street) || 'Začněte psát adresu'"
+                                       x-model="query"
+                                       @focus="openSuggestions()"
+                                       @input="onInput($event)"
+                                       @blur="onBlur()"
+                                       @keydown.arrow-down.prevent="highlightNext()"
+                                       @keydown.arrow-up.prevent="highlightPrev()"
+                                       @keydown.enter.prevent="selectHighlighted()">
+                                <button type="button"
+                                        class="btn btn-xs btn-ghost absolute right-2 top-1/2 -translate-y-1/2"
+                                        @click="clearSelection()"
+                                        x-show="hasValue">
+                                  Vymazat
+                                </button>
+                              </div>
+                            </label>
+                            <div class="relative" x-show="open && options.length">
+                              <ul class="menu absolute z-10 w-full rounded-xl border border-base-200 bg-base-100 shadow">
+                                <template x-for="(option, index) in options" :key="option.id">
+                                  <li>
+                                    <button type="button"
+                                            class="flex flex-col items-start"
+                                            :class="{ 'active text-primary': highlighted === index }"
+                                            @mouseenter="highlighted = index"
+                                            @click="selectOption(option)">
+                                      <span class="font-semibold" x-text="option.label"></span>
+                                      <span class="text-xs text-base-content/70" x-text="option.cityLine"></span>
+                                    </button>
+                                  </li>
+                                </template>
+                              </ul>
+                            </div>
+                            <div class="rounded-lg border border-dashed border-base-300 bg-base-100 p-4 text-sm" x-show="hasValue">
+                              <div class="font-semibold text-base-content">Vybraná adresa</div>
+                              <p class="text-base-content/70 whitespace-pre-line" x-text="summaryBody"></p>
+                            </div>
+                          </div>
+                        </template>
+
+                        <p class="text-xs text-base-content/70" x-show="field.note" x-text="field.note"></p>
+                        <p class="text-sm text-error"
+                           x-show="$store.auth.registration.errors[field.key]?.length"
+                           x-text="$store.auth.registration.errors[field.key][0]"></p>
+                      </div>
+                    </template>
+                  </div>
+                </template>
+              </div>
+              <div class="modal-action justify-between">
+                <button type="button"
+                        class="btn btn-outline"
+                        @click="$store.auth.prevRegistrationStep()">
+                  Zpět
+                </button>
+                <button type="button"
+                        class="btn btn-primary"
+                        :class="{ 'btn-disabled': $store.auth.registration.phase === 'processing' }"
+                        @click="$store.auth.submitRegistration()">
+                  Dokončit registraci
+                </button>
+              </div>
+            </section>
+          </div>
+        </template>
+
+        <div class="modal-action justify-start" x-show="!$store.auth.registration.loading">
           <button type="button"
-                  class="btn btn-primary"
-                  @click="$store.auth?.toggleView('login')">
+                  class="btn btn-link px-0 text-secondary no-underline hover:underline btn-md"
+                  @click="$store.auth.toggleView('login')">
             Zpět na přihlášení
           </button>
+        </div>
+
+        <div class="absolute inset-0 rounded-2xl bg-base-100/90 backdrop-blur-sm grid place-items-center"
+             x-show="$store.auth.registration.phase === 'processing' || $store.auth.registration.phase === 'success'"
+             x-transition.opacity>
+          <template x-if="$store.auth.registration.phase === 'processing'">
+            <div class="flex flex-col items-center gap-3 text-center">
+              <span class="loading loading-spinner loading-lg text-secondary"></span>
+              <p class="text-sm text-base-content/70">Dokončujeme registraci…</p>
+            </div>
+          </template>
+          <template x-if="$store.auth.registration.phase === 'success'">
+            <div class="flex flex-col items-center gap-3 text-center">
+              <span class="text-4xl text-success">
+                <i class="fa-solid fa-circle-check"></i>
+              </span>
+              <h3 class="text-lg font-semibold">Hotovo! Přihlašujeme vás…</h3>
+              <p class="text-sm text-base-content/70">Za malou chvíli budete pokračovat jako přihlášený uživatel.</p>
+            </div>
+          </template>
         </div>
       </div>
     </template>
