@@ -357,7 +357,8 @@
       const defaults = {
         showBreakpointBadge: true,
         locale: (window.__fitI18n && window.__fitI18n.defaultLocale) || 'cs-CZ',
-        currency: (window.__fitI18n && window.__fitI18n.defaultCurrency) || 'CZK'
+        currency: (window.__fitI18n && window.__fitI18n.defaultCurrency) || 'CZK',
+        drMaxWomanPromo: false
       };
       const load = () => {
         if (typeof localStorage === 'undefined') return {};
@@ -372,6 +373,10 @@
         }
       };
       const initial = { ...defaults, ...load() };
+      if (initial.drMaxWomanPromo == null && initial.valentinePromo != null) {
+        initial.drMaxWomanPromo = !!initial.valentinePromo;
+        delete initial.valentinePromo;
+      }
       const emit = (key, value) => {
         window.dispatchEvent(new CustomEvent('fit:config-change', { detail: { key, value } }));
       };
@@ -382,12 +387,14 @@
         showBreakpointBadge: !!initial.showBreakpointBadge,
         locale: String(initial.locale || defaults.locale),
         currency: String(initial.currency || defaults.currency),
+        drMaxWomanPromo: !!initial.drMaxWomanPromo,
         persist() {
           if (typeof localStorage === 'undefined') return;
           const payload = {
             showBreakpointBadge: !!this.showBreakpointBadge,
             locale: this.locale,
-            currency: this.currency
+            currency: this.currency,
+            drMaxWomanPromo: !!this.drMaxWomanPromo
           };
           try {
             localStorage.setItem(this.key, JSON.stringify(payload));
@@ -401,6 +408,7 @@
           if (key === 'showBreakpointBadge') normalized = !!value;
           if (key === 'locale') normalized = String(value || defaults.locale);
           if (key === 'currency') normalized = String(value || defaults.currency);
+          if (key === 'drMaxWomanPromo') normalized = !!value;
           if (this[key] === normalized) return;
           this[key] = normalized;
           this.persist();
@@ -414,7 +422,8 @@
           return {
             showBreakpointBadge: !!this.showBreakpointBadge,
             locale: this.locale,
-            currency: this.currency
+            currency: this.currency,
+            drMaxWomanPromo: !!this.drMaxWomanPromo
           };
         },
         reset() {
@@ -434,6 +443,7 @@
       emit('showBreakpointBadge', cfgStore.showBreakpointBadge);
       emit('locale', cfgStore.locale);
       emit('currency', cfgStore.currency);
+      emit('drMaxWomanPromo', cfgStore.drMaxWomanPromo);
     }
 
     if (!Alpine.store('auth')) {
@@ -1374,6 +1384,85 @@
       }
     }));
 
+    Alpine.data('quickSearchControl', (ctx) => ({
+      ctx,
+      expanded: false,
+      get query() {
+        const value = ctx && typeof ctx.search !== 'undefined' ? ctx.search : '';
+        return value == null ? '' : String(value);
+      },
+      set query(value) {
+        if (ctx && typeof ctx.search !== 'undefined') {
+          ctx.search = value;
+        }
+      },
+      get trimmed() {
+        return this.query.trim();
+      },
+      hasQuery() {
+        return this.trimmed.length > 0;
+      },
+      open() {
+        if (this.expanded) return;
+        this.expanded = true;
+        this.$nextTick(() => this.$refs.input?.focus());
+      },
+      close(force = false) {
+        if (!force && this.hasQuery()) return;
+        this.expanded = false;
+      },
+      clear() {
+        this.query = '';
+        this.close(true);
+      },
+      init() {
+        if (this.hasQuery()) this.expanded = true;
+        this.$watch(() => this.query, (value) => {
+          const trimmed = String(value || '').trim();
+          const input = this.$refs?.input;
+          if (trimmed.length) {
+            this.expanded = true;
+          } else if (!input || document.activeElement !== input) {
+            this.expanded = false;
+          }
+        });
+      }
+    }));
+
+    Alpine.data('drMaxWomanToast', () => ({
+      dismissed: false,
+      _onConfig: null,
+      get configStore() {
+        return Alpine.store('appConfig');
+      },
+      get isEnabled() {
+        return !!this.configStore?.drMaxWomanPromo;
+      },
+      get isVisible() {
+        return this.isEnabled && !this.dismissed;
+      },
+      init() {
+        this._onConfig = (event) => {
+          if (!event || event?.detail?.key !== 'drMaxWomanPromo') return;
+          if (event.detail.value) {
+            this.dismissed = false;
+          }
+        };
+        window.addEventListener('fit:config-change', this._onConfig);
+        if (this.$el) {
+          this.$el.addEventListener('alpine:destroy', () => {
+            if (this._onConfig) {
+              window.removeEventListener('fit:config-change', this._onConfig);
+              this._onConfig = null;
+            }
+          }, { once: true });
+        }
+      },
+      close() {
+        this.dismissed = true;
+      }
+    }));
+
     if (!Alpine.store('precart')) {
       Alpine.store('precart', {
         // state
@@ -2046,8 +2135,9 @@
   <!-- TOP-BAR LOGO + SEARCH -->
 <div class="navbar md:p-6 p-2 pt-4 pb-2 bg-base-100 overflow-visible">
   <!-- left: menu + logo + (desktop) search -->
-  <div class="flex flex-1 items-center gap-3 md:gap-4 min-w-0">
-    <button class="btn btn-primary w-[46px] h-[46px] btn-lg btn-square max-gradient inline-flex md:hidden shrink-0"
+  <div class="flex flex-1 items-start gap-3 md:gap-4 min-w-0">
+    <button class="btn btn-primary w-[46px] h-[46px] btn-lg btn-square inline-flex md:hidden shrink-0 self-start"
+            :class="maxGradientClass()"
             aria-label="Otevřít menu"
             :aria-label="t('header.actions.menu.aria', 'Otevřít menu')"
             title="Menu"
@@ -2061,14 +2151,21 @@
       />
     </button>
 
-    <a href="/" @click.prevent="go('home')">
-         <svg viewBox="0 0 137 46" fill="none" xmlns="http://www.w3.org/2000/svg" class="h-[46px] md:h-[56px] shrink-0">
+    <a href="/" @click.prevent="go('home')" class="flex flex-col items-center justify-center leading-none">
+        <svg viewBox="0 0 137 46" fill="none" xmlns="http://www.w3.org/2000/svg" class="h-[46px] md:h-[56px] shrink-0">
           <path fill-rule="evenodd" clip-rule="evenodd" d="M23.2836 45.2917C10.8401 45.2917 0.716797 35.2915 0.716797 23C0.716797 10.7082 10.8401 0.708008 23.2836 0.708008H113.716C126.16 0.708008 136.283 10.7082 136.283 23C136.283 35.2915 126.16 45.2917 113.716 45.2917H23.2836Z" fill="white"/>
           <path fill-rule="evenodd" clip-rule="evenodd" d="M113.716 0H23.284C10.4451 0 0 10.3177 0 22.9999C0 35.682 10.4451 46 23.284 46H113.716C126.555 46 137 35.682 137 22.9999C137 10.3177 126.555 0 113.716 0M113.716 1.41634C125.765 1.41634 135.566 11.0987 135.566 22.9999C135.566 34.901 125.765 44.5837 113.716 44.5837H23.284C11.2357 44.5837 1.43382 34.901 1.43382 22.9999C1.43382 11.0987 11.2357 1.41634 23.284 1.41634H113.716" fill="#A7A8AA"/>
           <path fill-rule="evenodd" clip-rule="evenodd" d="M120.794 11.6358H117.464V8.34591C117.464 7.1797 116.503 6.23047 115.322 6.23047C114.141 6.23047 113.18 7.1797 113.18 8.34591V11.6358H109.85C108.669 11.6358 107.708 12.5847 107.708 13.7512C107.708 14.9177 108.669 15.8669 109.85 15.8669H113.18V19.1565C113.18 20.3233 114.141 21.2722 115.322 21.2722C116.503 21.2722 117.464 20.3233 117.464 19.1565V15.8669H120.794C121.975 15.8669 122.936 14.9177 122.936 13.7512C122.936 12.5847 121.975 11.6358 120.794 11.6358Z" fill="#78BE20"/>
           <path d="M85.4546 17.7158C89.5262 17.7158 93.0472 19.4528 93.0474 24.2979V33.2529C93.0473 33.6425 92.7276 33.9578 92.3335 33.958H88.9282C88.5144 33.958 88.1792 33.6269 88.1792 33.2188V31.46H88.1177C86.8629 33.4403 85.3324 34.3242 83.0669 34.3242C79.9134 34.3242 77.0962 32.7696 77.0962 29.3262C77.0964 24.4812 82.3933 23.9023 85.3325 23.9023C86.2199 23.9024 87.1996 23.9932 87.9038 24.1152C87.873 21.9519 86.2503 21.373 84.2603 21.373C82.6326 21.3731 81.0676 21.6288 79.6284 22.333C79.4478 22.4213 79.1721 22.2252 79.1675 22.0264L79.0972 19.2578C79.0909 19.0095 79.2418 18.7797 79.4771 18.6924C81.3186 18.0086 83.2532 17.7158 85.4546 17.7158ZM47.1782 29.4854C48.4415 29.4856 49.4653 30.5441 49.4653 31.8486C49.4653 33.1535 48.4415 34.2117 47.1782 34.2119C45.9147 34.2119 44.8901 33.1536 44.8901 31.8486C44.8901 30.5439 45.9148 29.4854 47.1782 29.4854ZM24.3267 12.6641C30.8944 12.6641 35.4896 14.9892 35.4897 23.2168C35.4897 31.1702 30.7595 33.9433 24.3267 33.9434H18.2173C17.8497 33.9434 17.5513 33.6068 17.5513 33.1924V13.415C17.5513 13.0003 17.8497 12.6641 18.2173 12.6641H24.3267ZM41.9097 20.1387C43.7154 17.3021 46.6765 17.5948 48.2319 18.1738C48.4727 18.2637 48.6008 18.5224 48.519 18.7637L47.5317 21.6865C47.4225 22.0103 47.0734 22.18 46.7407 22.0879C44.3565 21.4305 41.9097 22.7076 41.9097 26.7285V33.1924C41.9097 33.6067 41.6122 33.9433 41.2446 33.9434H37.8833C37.5157 33.9433 37.2173 33.6068 37.2173 33.1924V18.8701C37.2175 18.4559 37.5158 18.1201 37.8833 18.1201H41.2446C41.6121 18.1202 41.9095 18.4559 41.9097 18.8701V20.1387ZM59.356 12.6787C59.7235 12.6787 60.1161 13.0144 60.2329 13.4287L63.772 26.0264L67.312 13.4287C67.4286 13.0145 67.8214 12.6787 68.189 12.6787H73.1606C73.528 12.679 73.8571 13.0146 73.896 13.4287L75.731 33.2949C75.7694 33.7095 75.5027 33.9432 75.1353 33.9434H71.5171C71.1493 33.9432 70.8204 33.7095 70.7817 33.2949L69.5894 20.3486L65.98 33.2949C65.8851 33.6328 65.7294 33.9432 65.3315 33.9434H62.2134C61.8363 33.9434 61.6599 33.6329 61.5649 33.2949L57.9556 20.3486L56.5542 33.2949C56.5158 33.7095 56.1873 33.9432 55.8198 33.9434H52.4097C52.0421 33.9433 51.7753 33.7096 51.814 33.2949L53.6489 13.4287C53.6875 13.0145 54.0165 12.6788 54.3843 12.6787H59.356ZM98.8892 18.1201C99.3107 18.1199 99.5588 18.18 99.8657 18.5938L102.433 22.0898L105 18.5938C105.307 18.1798 105.555 18.1198 105.977 18.1201H109.941C110.362 18.1206 110.513 18.4106 110.303 18.7119L105.075 25.8076L110.512 33.1992C110.777 33.5263 110.627 33.9432 110.218 33.9434H106.217C105.799 33.9414 105.523 33.7421 105.278 33.4072L102.433 29.5254L99.5884 33.4072C99.343 33.7422 99.0674 33.9413 98.6489 33.9434H94.6479C94.2389 33.9433 94.0884 33.5263 94.353 33.1992L99.7915 25.8076L94.563 18.7119C94.3531 18.4106 94.5034 18.1205 94.9253 18.1201H98.8892ZM85.5776 26.8271C83.7099 26.8271 82.2397 27.407 82.2397 28.9307C82.24 30.0275 83.22 30.667 84.5054 30.667C86.5872 30.667 87.9038 28.7777 87.9038 26.9189C87.1997 26.8886 86.4039 26.8272 85.5776 26.8271ZM22.7231 16.8789V29.7383H24.4341C28.9445 29.7383 30.1958 27.5444 30.1958 23.3086C30.1958 19.0729 28.9804 16.8789 24.4341 16.8789H22.7231Z" fill="#E72234"/>
         </svg>
-      </a>
+        <img
+          x-show="isDrMaxWomanEnabled()"
+          x-cloak
+          src="./images/drmax-woman.png"
+          alt="Dr. Max Woman"
+          class="h-[18px] md:h-[22px] -mt-3 object-contain"
+        />
+    </a>
 
     <!-- DESKTOP TOPBAR SEARCH -->
     <div class="relative hidden md:block w-full">
@@ -2353,7 +2450,8 @@
       <i class="fa-classic fa-xl fa-regular fa-truck-fast text-gray-700 max-embos-v-gray"></i>
     </button>
 
-    <button class="btn btn-primary w-12 h-12 btn-lg btn-square max-gradient" 
+    <button class="btn btn-primary w-12 h-12 btn-lg btn-square"
+    :class="maxGradientClass()" 
     aria-label="Otevřít moje uložené" title="Moje uložené"
     :aria-label="t('header.actions.saved.aria', 'Otevřít moje uložené')"
     :title="t('header.actions.saved.label', 'Moje uložené')"
@@ -2362,7 +2460,8 @@
       <i class="fa-classic fa-xl fa-regular fa-heart text-white max-embos-v"></i>
     </button>
 
-    <button class="btn btn-primary w-12 h-12 btn-lg btn-square max-gradient"
+    <button class="btn btn-primary w-12 h-12 btn-lg btn-square"
+    :class="maxGradientClass()"
     :aria-label="$store.auth?.isAuthenticated ? t('header.actions.account.loggedAria', 'Přejít do mého účtu') : t('header.actions.account.aria', 'Otevřít můj účet')"
     :title="$store.auth?.isAuthenticated ? t('header.actions.account.loggedLabel', 'Můj účet') : t('header.actions.account.label', 'Můj účet')"
     @click="$store.auth?.handleAccountClick()"
@@ -2372,7 +2471,8 @@
     </button>
 
     <button
-    class="btn btn-primary btn-squish w-12 h-12 btn-lg btn-square max-gradient indicator"
+    class="btn btn-primary btn-squish w-12 h-12 btn-lg btn-square indicator"
+    :class="maxGradientClass()"
     aria-label="Otevřít košík" title="Košík"
     :aria-label="t('header.actions.cart.aria', 'Otevřít košík')"
     :title="t('header.actions.cart.label', 'Košík')"
@@ -2432,7 +2532,8 @@
 
 <!-- NAVBAR PRODUCT NAVIGATION -->
   <div
-    class="hidden md:flex w-full items-stretch bg-primary max-gradient-v text-primary-content md:h-12 lg:h-16 px-2 lg:px-4"
+    class="hidden md:flex w-full items-stretch bg-primary text-primary-content md:h-12 lg:h-16 px-2 lg:px-4"
+    :class="maxGradientVClass()"
     x-data="topNav()"
     x-init="init()"
     x-ref="navRoot"
@@ -2502,8 +2603,42 @@
 <!-- ROUTE == HOMEPAGE -->
 <template x-if="is('home')">
   <div class="sm:w-11/12 lg:w-10/12 mx-auto p-4 pb-12 pt-1 md:pt-6">
-    
-
+    <div
+      x-data="drMaxWomanToast()"
+      x-cloak
+      x-show="isVisible"
+      x-transition.opacity.duration.200ms
+      class="mb-4"
+    >
+      <div
+        class="flex items-center gap-3 rounded-xl border border-white/10 bg-max-gray-850 px-3 py-2 text-white/90 shadow-sm"
+        role="region"
+        aria-label="Dr. Max Woman nabídka"
+      >
+        <span
+          class="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/15 text-white"
+        >
+          <i class="fa-solid fa-tag fa-lg" aria-hidden="true"></i>
+        </span>
+        <p class="flex-1 min-w-0 text-sm font-medium leading-snug sm:text-base">
+          Objevte novou Dr. Max Woman kolekci a získejte 20&nbsp;% slevu na produkty pro každodenní péči.
+        </p>
+        <a
+          href="/kampan/drmax-woman"
+          class="inline-flex shrink-0 items-center rounded-full border border-white/25 bg-white/5 px-3 py-1 text-xs font-medium tracking-wide transition hover:bg-white/15 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white sm:text-sm"
+        >
+          Otevřít akci
+        </a>
+        <button
+          type="button"
+          class="ml-2 shrink-0 rounded-full p-1 text-base font-semibold text-white/70 transition hover:bg-white/10 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white sm:text-lg"
+          @click="close()"
+          aria-label="Zavřít oznámení Dr. Max Woman"
+        >
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+    </div>
 
 <!-- Billboard Carousel -->
 <section x-data="homeCarousel()" class="mt-0 lg:mt-4">
@@ -2967,28 +3102,28 @@
 
 <!-- FILTERS -->
 <section aria-labelledby="filters-heading"
-         class="w-11/12 mx-auto px-4 pt-8"
+         class="w-12/12 md:w-11/12 mx-auto px-4 pt-8"
          x-data="{ mobileFiltersOpen: false }"
          @keydown.escape.window="mobileFiltersOpen = false">
 
-  <div class="lg:grid lg:grid-cols-[minmax(260px,320px)_1fr] lg:gap-6 relative">
+  <div class="xl:grid xl:grid-cols-[minmax(260px,320px)_1fr] xl:gap-6 relative">
     <div x-cloak
          x-show="mobileFiltersOpen"
          x-transition.opacity
-         class="fixed inset-0 z-40 bg-base-200/70 backdrop-blur-sm lg:hidden"
+         class="fixed inset-0 z-40 bg-base-200/70 backdrop-blur-sm xl:hidden"
          @click.self="mobileFiltersOpen = false"></div>
 
-    <aside class="fixed inset-y-0 left-0 w-5/6 max-w-xs bg-base-100 shadow-xl transform -translate-x-full transition-transform duration-300 ease-out overflow-hidden z-50 lg:relative lg:inset-auto lg:w-full lg:max-w-none lg:bg-transparent lg:shadow-none lg:p-0 lg:pb-12 lg:translate-x-0 lg:transform-none lg:overflow-visible"
-           :class="mobileFiltersOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'">
+    <aside class="fixed inset-y-0 left-0 w-5/6 max-w-xs bg-base-100 shadow-xl transform -translate-x-full transition-transform duration-300 ease-out overflow-hidden z-50 xl:relative xl:inset-auto xl:w-full xl:max-w-none xl:bg-transparent xl:shadow-none xl:p-0 xl:pb-12 xl:translate-x-0 xl:transform-none xl:overflow-visible"
+           :class="mobileFiltersOpen ? 'translate-x-0' : '-translate-x-full xl:translate-x-0'">
       <div class="h-full flex flex-col">
-        <div class="lg:hidden flex items-center justify-between p-6 pb-4">
+        <div class="xl:hidden flex items-center justify-between p-6 pb-4">
         <h3 class="text-lg font-semibold" x-text="t('routes.products.filters.drawerTitle', 'Filtry')"></h3>
         <button type="button" class="btn btn-sm btn-ghost" @click="mobileFiltersOpen = false">
           <i class="fa-solid fa-xmark"></i>
         </button>
       </div>
 
-        <div class="lg:hidden space-y-2 px-6" x-data>
+        <div class="xl:hidden space-y-2 px-6" x-data>
         <h4 class="text-base font-semibold text-base-content"
             x-text="t('routes.products.quickFilters.title', 'Rychlé filtry')"></h4>
         <div class="flex flex-wrap gap-2">
@@ -3065,8 +3200,8 @@
         </div>
       </div>
 
-        <div class="flex-1 overflow-y-auto px-6 py-6 lg:px-0 lg:pb-8 lg:pt-2">
-        <div class="space-y-6 lg:pr-12">
+        <div class="flex-1 overflow-y-auto px-6 py-6 xl:px-0 xl:pb-8 xl:pt-2">
+        <div class="space-y-6 xl:pr-12">
 
 
         <div class="space-y-3" x-data="{ showAllCategories: false, limit: 6 }">
@@ -3302,10 +3437,108 @@
           <span class="text-max-gray-400 font-normal">(<span x-text="filteredCount()"></span>)</span>
         </h1>
       </div>
-      <div class="sticky top-0 z-30 bg-base-200 border-b border-base-200 py-3">
-        <div class="flex flex-wrap items-center gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div class="flex items-center justify-between gap-2">
-            <div class="relative flex lg:hidden">
+      <div class="sticky top-0 z-30 bg-base-200 border-b border-base-200 py-3 space-y-3">
+        <div class="flex items-center gap-2 lg:hidden">
+          <div class="relative flex">
+            <button type="button"
+                    class="btn btn-md rounded-full btn-secondary"
+                    @click="mobileFiltersOpen = true">
+              <i class="fa-solid fa-filter"></i>
+              <span x-text="t('routes.products.actions.toggleFilters', 'Filtry')"></span>
+              </button>
+            <span class="absolute -top-1 -right-1 block h-2.5 w-2.5 rounded-full bg-error"
+                  x-show="hasActiveFilters()"
+                  x-cloak
+                  aria-hidden="true"></span>
+          </div>
+          <div class="flex-1 flex items-center gap-2 justify-end">
+            <div x-data="quickSearchControl($data)" class="flex-shrink-0">
+              <div
+                class="btn btn-md rounded-full transition-all duration-200 ease-out flex items-center gap-2 overflow-hidden cursor-pointer"
+                :class="expanded ? 'w-full max-w-[12rem] btn-secondary text-white pl-4 pr-3 justify-start' : 'w-12 btn-outline btn-secondary justify-center'"
+                role="button"
+                tabindex="0"
+                @click="expanded ? null : open()"
+                @keydown.enter.prevent="expanded ? null : open()"
+                @keydown.space.prevent="expanded ? null : open()"
+              >
+                <span class="sr-only" x-text="t('routes.products.filters.search.placeholder', 'Filtruj dle názvu')"></span>
+                <i class="fa-solid fa-search" :class="expanded ? 'text-white' : 'text-secondary'"></i>
+                <input
+                  x-ref="input"
+                  x-show="expanded"
+                  x-transition.opacity.duration.150ms
+                  type="text"
+                  inputmode="search"
+                  class="bg-transparent border-0 focus:outline-none text-sm placeholder-white/80 flex-1 min-w-0"
+                  :placeholder="t('routes.products.filters.search.placeholder', 'Filtruj dle názvu')"
+                  x-model.debounce.300ms="query"
+                  @keydown.escape.stop.prevent="close(true)"
+                  :aria-label="t('routes.products.filters.search.placeholder', 'Filtruj dle názvu')"
+                />
+                <button
+                  type="button"
+                  x-show="expanded && trimmed.length"
+                  x-transition.opacity.duration.150ms
+                  class="btn btn-xs btn-circle btn-ghost text-white/80 hover:text-white hover:bg-white/20 flex-shrink-0"
+                  @click.stop="clear()"
+                  :aria-label="t('routes.products.quickSearch.close', 'Zavřít vyhledávání')"
+                >
+                  <i class="fa-solid fa-xmark"></i>
+                </button>
+              </div>
+            </div>
+            <div class="dropdown dropdown-end" x-data="{ open: false }" @click.outside="open = false" @keydown.escape.window="open = false">
+              <div class="relative">
+                <button type="button"
+                        class="btn btn-md rounded-full transition-colors flex items-center gap-2"
+                        :class="sortOrder ? 'btn-secondary text-white pr-10' : 'btn-outline btn-secondary pr-4'"
+                        @click="open = !open"
+                        :aria-expanded="open"
+                        aria-haspopup="listbox">
+                  <i class="fa-solid fa-arrow-down-arrow-up"></i>
+                  <span x-text="sortButtonLabel()"></span>
+                  <i class="fa-solid fa-chevron-down text-xs opacity-70 transition-transform ml-1"
+                     :class="open ? 'rotate-180' : ''"
+                     x-show="!sortOrder"
+                     aria-hidden="true"></i>
+                </button>
+                <button type="button"
+                        x-show="sortOrder"
+                        x-cloak
+                        class="absolute right-1.5 top-1/2 -translate-y-1/2 btn btn-xs btn-circle btn-ghost text-white/80 hover:text-white hover:bg-white/20 focus-visible:outline-none focus-visible:ring focus-visible:ring-white/40"
+                        @click.stop="sortOrder = ''; open = false"
+                        aria-label="Zrušit řazení">
+                  <i class="fa-solid fa-xmark"></i>
+                </button>
+              </div>
+              <ul x-cloak
+                  x-show="open"
+                  x-transition.opacity.duration.150ms
+                  class="menu menu-compact dropdown-content mt-3 p-2 shadow-lg bg-base-100 rounded-box min-w-[14rem]">
+                <li class="px-3 py-2 text-xs uppercase tracking-wide text-base-content/60 cursor-default select-none"
+                    x-text="t('routes.products.sorting.label', 'Řadit dle')">
+                </li>
+                <template x-for="opt in sortOptions()" :key="opt.value">
+                  <li>
+                    <button type="button"
+                            class="flex w-full items-center justify-between gap-3 rounded-lg px-3 py-2 text-sm transition focus-visible:outline-none focus-visible:ring focus-visible:ring-primary/40"
+                            :class="sortOrder === opt.value ? 'bg-secondary text-white' : 'hover:bg-base-200'"
+                            @click="sortOrder = opt.value; open = false">
+                      <span x-text="opt.label"></span>
+                      <i class="fa-solid fa-check text-white"
+                         x-show="sortOrder === opt.value"
+                         aria-hidden="true"></i>
+                    </button>
+                  </li>
+                </template>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <div class="hidden lg:grid grid-cols-[minmax(0,1fr)_auto] gap-3 items-start">
+          <div class="flex flex-wrap items-center gap-2">
+            <div class="relative flex xl:hidden">
               <button type="button"
                       class="btn btn-md rounded-full btn-secondary"
                       @click="mobileFiltersOpen = true">
@@ -3318,7 +3551,7 @@
                     aria-hidden="true"></span>
             </div>
 
-            <div class="hidden md:flex flex-wrap items-center gap-2">
+            <div class="hidden lg:flex flex-wrap items-center gap-2">
               <button type="button"
                       class="btn btn-md rounded-full transition-colors"
                       :class="onlyInStock ? 'btn-secondary text-white' : 'btn-outline btn-secondary'"
@@ -3391,7 +3624,43 @@
               </template>
             </div>
           </div>
-          <div class="flex-shrink-0">
+          <div class="flex items-center gap-2 flex-shrink-0 justify-self-end">
+            <div x-data="quickSearchControl($data)" class="flex-shrink-0" @click.outside="close()">
+              <div
+                class="btn btn-md rounded-full transition-all duration-200 ease-out flex items-center gap-2 overflow-hidden cursor-pointer"
+                :class="expanded ? 'w-60 btn-secondary text-white pl-4 pr-3 justify-start' : 'w-12 btn-outline btn-secondary justify-center'"
+                role="button"
+                tabindex="0"
+                @click="expanded ? null : open()"
+                @keydown.enter.prevent="expanded ? null : open()"
+                @keydown.space.prevent="expanded ? null : open()"
+              >
+                <span class="sr-only" x-text="t('routes.products.filters.search.placeholder', 'Filtruj dle názvu')"></span>
+                <i class="fa-solid fa-search" :class="expanded ? 'text-white' : 'text-secondary'"></i>
+                <input
+                  x-ref="input"
+                  x-show="expanded"
+                  x-transition.opacity.duration.150ms
+                  type="text"
+                  inputmode="search"
+                  class="bg-transparent border-0 focus:outline-none text-sm placeholder-white/80 flex-1 min-w-0"
+                  :placeholder="t('routes.products.filters.search.placeholder', 'Filtruj dle názvu')"
+                  x-model.debounce.300ms="query"
+                  @keydown.escape.stop.prevent="close(true)"
+                  :aria-label="t('routes.products.filters.search.placeholder', 'Filtruj dle názvu')"
+                />
+                <button
+                  type="button"
+                  x-show="expanded && trimmed.length"
+                  x-transition.opacity.duration.150ms
+                  class="btn btn-xs btn-circle btn-ghost text-white hover:text-white hover:bg-white/20 flex-shrink-0"
+                  @click.stop="clear()"
+                  :aria-label="t('routes.products.quickSearch.close', 'Zavřít vyhledávání')"
+                >
+                  <i class="fa-solid fa-xmark text-xs"></i>
+                </button>
+              </div>
+            </div>
             <div class="dropdown dropdown-end" x-data="{ open: false }" @click.outside="open = false" @keydown.escape.window="open = false">
               <div class="relative">
                 <button type="button"
@@ -3410,7 +3679,7 @@
                 <button type="button"
                         x-show="sortOrder"
                         x-cloak
-                        class="absolute right-1.5 top-1/2 -translate-y-1/2 btn btn-xs btn-circle btn-ghost text-white/80 hover:text-white hover:bg-white/20 focus-visible:outline-none focus-visible:ring focus-visible:ring-white/40"
+                        class="absolute right-1.5 top-1/2 -translate-y-1/2 btn btn-xs btn-circle btn-ghost text-white hover:text-white hover:bg-white/20 focus-visible:outline-none focus-visible:ring focus-visible:ring-white/40"
                         @click.stop="sortOrder = ''; open = false"
                         aria-label="Zrušit řazení">
                   <i class="fa-solid fa-xmark"></i>
@@ -6877,6 +7146,23 @@ function deliveryPaymentUI() {
         </div>
       </div>
       <div class="rounded-2xl border border-base-300 bg-white shadow-sm p-6 space-y-4">
+        <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 class="text-lg font-semibold">Dr. Max Woman kampaň</h2>
+            <p class="text-sm text-base-content/70">
+              Aktivuje speciální banner, upraví CTA barvy a přepne logo v horní liště.
+            </p>
+          </div>
+          <label class="flex items-center gap-3">
+            <input type="checkbox"
+                   class="toggle toggle-secondary"
+                   :checked="drMaxWomanEnabled"
+                   @change="setDrMaxWoman($event.target.checked)">
+            <span class="text-sm font-semibold" x-text="drMaxWomanEnabled ? 'Zapnuto' : 'Vypnuto'"></span>
+          </label>
+        </div>
+      </div>
+      <div class="rounded-2xl border border-base-300 bg-white shadow-sm p-6 space-y-4">
         <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div class="max-w-xl">
             <h2 class="text-lg font-semibold">Výchozí jazyk a měna</h2>
@@ -7170,7 +7456,7 @@ function deliveryPaymentUI() {
                 <i class="fa-solid fa-magnifying-glass text-max-gray-600"></i>
                 <input type="search" placeholder="Filtruj dle adresy"
                        x-model.debounce.250ms="search"
-                       @input="applyFilters()" />
+                       @input="applyFilters($event.target.value)" />
               </label>
             </div>
 
@@ -7241,7 +7527,9 @@ function deliveryPaymentUI() {
 
             <!-- Overlay (desktop / tablet) -->
             <div x-show="selected"
-                 class="rounded-xl border border-base-300 w-80 sm:w-96 bg-white absolute m-2 z-10">
+                 x-data="{ tab: 'overview', currentId: null }"
+                 x-effect="if (!selected || currentId !== (selected?.id ?? null)) { tab = 'overview'; currentId = selected?.id ?? null; }"
+                 class="rounded-xl border border-base-300 w-80 sm:w-96 bg-white absolute top-2 left-1/2 -translate-x-1/2 md:left-4 md:translate-x-0 md:top-4 m-2 md:m-4 z-[110] shadow-xl">
 
               <div class="h-50 w-full rounded-t-xl bg-base-200 overflow-hidden mr-2 shrink-0">
                 <img :src="selected.photo || placeholderImg" alt=""
@@ -7254,51 +7542,79 @@ function deliveryPaymentUI() {
               </button>
               
              <div class="px-4 py-6 lg:px-8">
-              <div class="mb-2">
+              <div>
                 <div class="font-medium text-base" x-text="selected?.name"></div>
                 <div class="text-base opacity-70"
                      x-text="`${selected?.address?.street} • ${selected?.address?.city}`"></div>
               </div>
 
-              <div class="overflow-x-auto max-h-40 lg:max-h-max">
-                <table class="table table-zebra">
-                  <tbody>
-                    <template x-if="selected && selected.opening_hours">
-                      <template x-for="(val, day) in selected.opening_hours" :key="day">
-                        <tr>
-                          <th x-text="dayCZ(day)"></th>
-                          <td x-text="val"></td>
-                        </tr>
-                      </template>
-                    </template>
-                    <template x-if="selected && !selected.opening_hours">
-                      <tr><td class="py-3 text-sm opacity-70">Bez zveřejněné provozní doby.</td></tr>
-                    </template>
-                  </tbody>
-                </table>
+              <div class="mt-4 flex overflow-x-auto border-b border-base-200">
+                <button type="button"
+                        class="relative whitespace-nowrap pr-7 pb-3 pt-2 text-base font-semibold transition-colors"
+                        :class="tab === 'overview' ? 'text-secondary' : 'text-base-content hover:text-base-content/90'"
+                        @click="tab = 'overview'">
+                  <span>Přehled</span>
+                  <span class="absolute left-0 right-6 -bottom-[1px] h-1 rounded-full bg-secondary"
+                        x-show="tab === 'overview'"></span>
+                </button>
+                <button type="button"
+                        class="relative whitespace-nowrap pr-7 pb-3 pt-2 text-base font-semibold transition-colors"
+                        :class="tab === 'details' ? 'text-secondary' : 'text-base-content hover:text-base-content/90'"
+                        @click="tab = 'details'">
+                  <span>Podrobnosti</span>
+                  <span class="absolute left-0 right-6 -bottom-[1px] h-1 rounded-full bg-secondary"
+                        x-show="tab === 'details'"></span>
+                </button>
               </div>
 
-              <button class="btn btn-active btn-primary w-full mt-4"
-                      @click="confirmSelection()">Potvrdit výběr</button>
+              <div class="mt-4 space-y-4" x-show="tab === 'overview'" x-transition.opacity>
+                <div class="overflow-x-auto max-h-40 lg:max-h-max">
+                  <table class="table table-zebra">
+                    <tbody>
+                      <template x-if="selected && selected.opening_hours">
+                        <template x-for="(val, day) in selected.opening_hours" :key="day">
+                          <tr>
+                            <th x-text="dayCZ(day)"></th>
+                            <td x-text="val"></td>
+                          </tr>
+                        </template>
+                      </template>
+                      <template x-if="selected && !selected.opening_hours">
+                        <tr><td class="py-3 text-sm opacity-70">Bez zveřejněné provozní doby.</td></tr>
+                      </template>
+                    </tbody>
+                  </table>
+                </div>
 
-              <p class="text-sm my-4" x-text="selected?.note"></p>
+                <button class="btn btn-active btn-primary w-full"
+                        @click="confirmSelection()">Potvrdit výběr</button>
 
-              <div class="flex flex-wrap gap-1 mt-4">
-                <template x-for="t in (selected?.tags||[])" :key="t">
-                  <div class="badge badge-soft badge-neutral" x-text="t"></div>
+                <p class="text-sm" x-text="selected?.note" x-show="selected?.note"></p>
+
+              </div>
+
+              <div class="mt-4" x-show="tab === 'details'" x-transition.opacity>
+                <address class="not-italic mb-4" x-show="selected?.phone" x-cloak>
+                  <p class="flex flex-wrap items-center gap-y-2 gap-x-6">
+                    <a :href="selected?.phone ? `tel:${selected.phone}` : '#'"
+                       class="group inline-flex items-center gap-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 rounded">
+                      <i class="fa-solid fa-phone fa-sm" aria-hidden="true"></i>
+                      <span class="group-hover:underline group-focus-visible:underline underline-offset-2"
+                            x-text="selected?.phone"></span>
+                    </a>
+                  </p>
+                </address>
+                <template x-if="selected?.tags && selected.tags.length">
+                  <div class="flex flex-wrap gap-1">
+                    <template x-for="t in selected.tags" :key="t">
+                      <div class="badge badge-soft badge-neutral" x-text="t"></div>
+                    </template>
+                  </div>
+                </template>
+                <template x-if="!selected?.tags || !selected.tags.length">
+                  <p class="text-sm text-base-content/70">Další informace připravujeme.</p>
                 </template>
               </div>
-
-              <address class="not-italic mt-6" x-show="selected?.phone" x-cloak>
-                <p class="flex flex-wrap items-center gap-y-2 gap-x-6">
-                  <a :href="selected?.phone ? `tel:${selected.phone}` : '#'"
-                     class="group inline-flex items-center gap-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 rounded">
-                    <i class="fa-solid fa-phone fa-sm" aria-hidden="true"></i>
-                    <span class="group-hover:underline group-focus-visible:underline underline-offset-2"
-                          x-text="selected?.phone"></span>
-                  </a>
-                </p>
-              </address>
             </div>
             </div>
 
@@ -9093,6 +9409,20 @@ _scrollToTopSoon() {
 },
 
 // ---- misc helpers ----
+isDrMaxWomanEnabled() {
+  const configStore = Alpine.store('appConfig');
+  return !!configStore?.drMaxWomanPromo;
+},
+maxGradientClass() {
+  return this.isDrMaxWomanEnabled()
+    ? 'max-gradient max-gradient-woman'
+    : 'max-gradient';
+},
+maxGradientVClass() {
+  return this.isDrMaxWomanEnabled()
+    ? 'max-gradient-v max-gradient-v-woman'
+    : 'max-gradient-v';
+},
 truncate(str, max = 34) {
   const s = String(str || '');
   return s.length > max ? s.slice(0, max - 1) + '…' : s;
@@ -10651,6 +10981,10 @@ loadCheckoutReviewFromStorage() {
         id: m.id,
         parentId: m.parentId ?? m.parent ?? null,
         name: m.name,
+        banner: !!m.banner,
+        bannerProductId: (m.bannerProductId != null && !Number.isNaN(Number(m.bannerProductId)))
+          ? Number(m.bannerProductId)
+          : null,
         footer_position: (m.footer_position != null && !Number.isNaN(Number(m.footer_position)))
           ? Number(m.footer_position)
           : null,
@@ -10725,7 +11059,148 @@ loadCheckoutReviewFromStorage() {
       }
       // no link/route: no-op
     }
-  }),  
+  }),
+  
+  Alpine.data('menuPortal', () => ({
+    product: null,
+    visible: false,
+    isDesktop: window.matchMedia('(min-width: 768px)').matches,
+    _mq: null,
+    _mqHandler: null,
+    _products: null,
+    _productsPromise: null,
+    _currentMenuId: null,
+    _onMenuLoaded: null,
+    _onLocaleChange: null,
+
+    init() {
+      this._mq = window.matchMedia('(min-width: 768px)');
+      this._mqHandler = (event) => {
+        this.isDesktop = event.matches;
+        this.evaluate();
+      };
+      if (this._mq?.addEventListener) this._mq.addEventListener('change', this._mqHandler);
+      else if (this._mq?.addListener) this._mq.addListener(this._mqHandler);
+
+      this.$watch('$store.menu.open', () => this.evaluate());
+      this.$watch('$store.menu.viewKey', () => this.evaluate());
+      this.$watch(() => {
+        const current = Alpine.store('menu')?.current;
+        return current ? current.id : null;
+      }, () => this.evaluate());
+
+      this._onMenuLoaded = () => this.evaluate();
+      window.addEventListener('fit:menu-loaded', this._onMenuLoaded);
+
+      this._onLocaleChange = () => {
+        this._products = null;
+        this._productsPromise = null;
+        this.evaluate();
+      };
+      window.addEventListener('fit:locale-change', this._onLocaleChange);
+
+      if (this.$el) {
+        this.$el.addEventListener('alpine:destroy', () => this.destroy());
+      }
+
+      this.evaluate();
+    },
+
+    destroy() {
+      if (this._mq?.removeEventListener) this._mq.removeEventListener('change', this._mqHandler);
+      else if (this._mq?.removeListener) this._mq.removeListener(this._mqHandler);
+      if (this._onMenuLoaded) window.removeEventListener('fit:menu-loaded', this._onMenuLoaded);
+      if (this._onLocaleChange) window.removeEventListener('fit:locale-change', this._onLocaleChange);
+    },
+
+    async evaluate() {
+      const store = Alpine.store('menu');
+      const current = store?.current;
+      const shouldShow = !!(this.isDesktop && store?.open && current && current.banner);
+      if (!shouldShow) {
+        this.visible = false;
+        this._currentMenuId = null;
+        return;
+      }
+
+      if (!this.product || this._currentMenuId !== current.id) {
+        this.product = await this.pickProduct(current);
+        this._currentMenuId = current.id;
+      }
+
+      this.visible = !!this.product;
+    },
+
+    async pickProduct(menu) {
+      const list = await this.ensureProducts();
+      if (!Array.isArray(list) || !list.length) return null;
+
+      const requestedId = Number(menu?.bannerProductId);
+      if (Number.isFinite(requestedId)) {
+        const match = list.find(p => Number(p.id) === requestedId);
+        if (match) return match;
+      }
+
+      const menuName = String(menu?.name || '').toLowerCase();
+      let candidate = list.find(p => String(p.category || '').toLowerCase().includes(menuName));
+      if (!candidate) candidate = list.find(p => p.discounted_price != null);
+      return candidate || list[0];
+    },
+
+    async ensureProducts() {
+      if (Array.isArray(this._products)) return this._products;
+      if (this._productsPromise) return this._productsPromise;
+
+      this._productsPromise = fetch('data/products.json', { cache: 'no-store' })
+        .then(res => res.json())
+        .then(arr => Array.isArray(arr) ? arr : [])
+        .catch(err => {
+          console.warn('menu banner products load failed', err);
+          return [];
+        })
+        .then(arr => {
+          this._products = arr;
+          return arr;
+        });
+
+      return this._productsPromise;
+    },
+
+    formatPrice(value) {
+      try {
+        return window.__fitMoney.format(value, { fromCurrency: 'CZK' });
+      } catch {
+        const num = Number(value || 0);
+        return Number.isFinite(num) ? `${num.toFixed(0)} CZK` : '—';
+      }
+    },
+
+    currentPrice(product) {
+      const price = product?.discounted_price != null
+        ? Number(product.discounted_price)
+        : Number(product?.price || 0);
+      return Number.isFinite(price) ? price : 0;
+    },
+
+    crossedPrice(product) {
+      if (product?.discounted_price != null) return Number(product?.price || 0);
+      if (product?.oldPrice != null) return Number(product.oldPrice);
+      return null;
+    },
+
+    discountPct(product) {
+      const now = this.currentPrice(product);
+      const was = this.crossedPrice(product);
+      if (!was || !now || !(was > now)) return null;
+      return Math.round(100 - (now / was) * 100);
+    },
+
+    link(name, params = {}) {
+      if (name === 'product') return `#/product/${params.id ?? ''}`;
+      if (name === 'cart') return '#/cart';
+      return '#/products';
+    }
+  })),
   
   // PRODUCT RATING
     Alpine.data('ratingLine', (src = {}) => ({
@@ -11341,7 +11816,10 @@ loadCheckoutReviewFromStorage() {
       },
   
       // FILTERING
-      applyFilters() {
+      applyFilters(newQuery = null) {
+        if (typeof newQuery === 'string') {
+          this.search = newQuery;
+        }
         const q = (this.search || '').toLowerCase().trim();
         const d = this.district;
         const t = this.typeFilter || this.defaultType || 'pharmacy';
@@ -11788,6 +12266,19 @@ loadCheckoutReviewFromStorage() {
         } else {
           this.store.showBreakpointBadge = !!value;
           this.store.persist?.();
+        }
+      },
+      get drMaxWomanEnabled() {
+        return !!(this.store?.get ? this.store.get('drMaxWomanPromo') : this.store?.drMaxWomanPromo);
+      },
+      setDrMaxWoman(value) {
+        if (!this.store) return;
+        if (typeof this.store.set === 'function') {
+          this.store.set('drMaxWomanPromo', !!value);
+        } else {
+          this.store.drMaxWomanPromo = !!value;
+          this.store.persist?.();
+          window.dispatchEvent(new CustomEvent('fit:config-change', { detail: { key: 'drMaxWomanPromo', value: !!value } }));
         }
       },
       get localeCode() {
@@ -12313,7 +12804,7 @@ loadCheckoutReviewFromStorage() {
   </div>
 
 <!-- MENU PORTAL (place near end of <body>) -->
-  <div x-data x-cloak class="fixed inset-0 z-[11000] pointer-events-none">
+  <div x-data="menuPortal()" x-cloak class="fixed inset-0 z-[11000] pointer-events-none">
 
     <!-- BACKDROP -->
     <div
@@ -12504,6 +12995,75 @@ loadCheckoutReviewFromStorage() {
         </template>
       </div>
     </aside>
+
+    <!-- Sponsored banner -->
+    <div
+      x-cloak
+      x-show="visible && product"
+      x-transition:enter="transform ease-out duration-200"
+      x-transition:enter-start="opacity-0 translate-y-4 scale-95"
+      x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+      x-transition:leave="transform ease-in duration-150"
+      x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+      x-transition:leave-end="opacity-0 translate-y-2 scale-95"
+      class="hidden md:block pointer-events-auto fixed bottom-6 right-6 md:bottom-8 md:right-8 w-[17rem] max-w-[80vw] z-[11005] flex flex-col gap-2 items-start"
+      role="complementary"
+      aria-live="polite"
+    >
+      <span class="px-3 py-1 rounded-full border border-white/20 bg-white/10 text-xs font-normal tracking-wide text-white/60 backdrop-blur-sm">
+        Sponzorováno
+      </span>
+      <article class="card bg-white shadow-xl relative overflow-hidden mt-1">
+        <span
+          x-show="discountPct(product) !== null"
+          class="badge badge-error text-white font-semibold absolute right-3 top-3"
+        >
+          <span x-text="`-${discountPct(product)}%`"></span>
+        </span>
+        <figure class="p-3 h-44 overflow-hidden">
+          <a :href="link('product', { id: product.id })" class="block h-full">
+            <img :src="product.image || './images/placeholder.webp'" :alt="product.name"
+                 class="w-full h-full object-cover">
+          </a>
+        </figure>
+        <div class="card-body pt-0 flex flex-col gap-2">
+          <a :href="link('product', { id: product.id })"
+             class="text-sm font-medium line-clamp-2 leading-snug min-h-[2.45rem] max-h-[2.45rem] hover:underline"
+             x-text="product.name"></a>
+          <div class="mt-auto">
+            <div class="text-base font-semibold">
+              <span x-text="formatPrice(currentPrice(product))"></span>
+              <span class="ml-2 line-through text-xs opacity-60"
+                    x-show="crossedPrice(product) !== null"
+                    x-text="formatPrice(crossedPrice(product))"></span>
+            </div>
+          </div>
+          <div class="mt-3">
+            <template x-if="!$store.cart.inCart(product.id)">
+              <button class="btn btn-primary btn-md w-full font-semibold" @click="$store.cart.add(product)">
+                <span x-text="t('routes.products.cart.add', 'Do košíku')"></span>
+              </button>
+            </template>
+            <template x-if="$store.cart.inCart(product.id)">
+              <div class="join w-full justify-center">
+                <button class="btn btn-square btn-md join-item"
+                        @click="$store.cart.decrement(product.id)"
+                        :aria-label="t('routes.products.cart.decrementAria', 'Odebrat kus')">−</button>
+                <input type="text" inputmode="numeric" pattern="[0-9]*"
+                       class="input input-bordered input-md w-12 text-center join-item tabular-nums"
+                       :value="$store.cart.qty(product.id)"
+                       @input="$store.cart.setQty(product.id, $event.target.value.replace(/[^0-9]/g,''))"
+                       @keydown.enter.prevent
+                       :aria-label="t('routes.products.cart.quantityAria', 'Počet kusů')" />
+                <button class="btn btn-square btn-md join-item"
+                        @click="$store.cart.increment(product.id)"
+                        :aria-label="t('routes.products.cart.incrementAria', 'Přidat kus')">+</button>
+              </div>
+            </template>
+          </div>
+        </div>
+      </article>
+    </div>
   </div>
 <!-- MOBILE SEARCH OVERLAY -->
 <template x-teleport="body">
