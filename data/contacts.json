@@ -1,0 +1,6 @@
+[
+    { "name": "Klientská linka", "icon":"fa-regular fa-phone", "description": "Na obecné dotazy odpovíme v pracovní dny od 8:00 do 17:00 online.", "phone": "516 770 100", "email": "info@drmax.cz", "route": null, "primary": true},
+    { "name": "Online poradna", "icon":"fa-regular fa-messages", "description": "Využijte možnost zeptat se našich lékárníků online. Odpovíme v pracovní dny do 48 hodin.", "phone": null, "email": null, "route": "quora" },
+    { "name": "A.I. Chatbot", "icon":"fa-regular fa-user-robot", "description": "Umělá inteligence Vám poradí v běžných otázkách. K dispozici nonstop.", "phone": null, "email": null, "route": "chatbot" },
+    { "name": "Nabídky práce", "icon":"fa-regular fa-handshake",  "description": "Chcete pracovat v naší lékárně? Kontaktujte náborového specialistu.", "phone": "739 329 179", "email": "ivo.jonas@drmax.cz", "route": null }
+]

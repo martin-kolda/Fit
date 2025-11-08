@@ -1,0 +1,34 @@
+[    
+    {
+      "id": "home_delivery_pay_online",
+      "steps": [
+        "order_acceptation",
+        "order_payment_online",
+        "order_completion",
+        "order_shipped",
+        "order_delivered",
+        "order_received"
+      ]
+    },
+    {
+      "id": "home_delivery_cash_on_delivery",
+      "steps": [
+        "order_acceptation",
+        "order_completion",
+        "order_shipped",
+        "order_delivered",
+        "order_payment_on_delivery",
+        "order_received"
+      ]
+    },
+    {
+      "id": "pharmacy_reservation",
+      "steps": [
+        "order_acceptation",
+        "order_completion",
+        "order_prepared",
+        "order_payment_pharmacy",
+        "order_received"
+      ]
+    }
+]

@@ -1,0 +1,27 @@
+[
+    {
+        "form_section": "Přihlášení",
+        "fieldset_group": null,
+        "type": "email",
+        "label": "E-mail",
+        "placeholder": null,
+        "prefix": null,
+        "note": null,
+        "validations": [
+            {"type": "required", "fails": "Tato položka je povinná"},
+            {"type": "email", "fails": "Nesprávný formát e-mailu"}
+        ]
+    },
+    {
+        "form_section": "Přihlášení",
+        "fieldset_group": null,
+        "type": "password",
+        "label": "Heslo",
+        "placeholder": null,
+        "prefix": null,
+        "note": null,
+        "validations": [
+            {"type": "required", "fails": "Tato položka je povinná"}
+        ]
+    }
+]

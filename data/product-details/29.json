@@ -1,0 +1,59 @@
+{
+  "id": 29,
+  "name": "Fenistil kapky 20 ml",
+  "registeredMedicament": true,
+  "brand": "Fenistil",
+  "productLine": "Fenistil",
+  "reviews": {
+    "rating": 0.0,
+    "count": 0
+  },
+  "perex": "Fenistil kapky tlumí svědění a alergické projevy kůže a dýchacích cest.",
+  "category": "Alergie",
+  "stock": "Skladem na e-shopu",
+  "pharmacyStock": "ve 0 lékárnách",
+  "SKU": "50101829",
+  "badges": [],
+  "images": [
+    "./images/fenistil-kapky.webp"
+  ],
+  "price": 219,
+  "discounted_price": 219,
+  "comparison_id": null,
+  "variants": [
+    {
+      "id": "20ml",
+      "name": "Fenistil kapky 20 ml",
+      "label": "20 ml",
+      "price": 219,
+      "discounted_price": 219
+    }
+  ],
+  "description": "<h2>Úvod</h2>\n<p>Fenistil kapky jsou antihistaminikum pro léčbu alergických reakcí. Ulevují od svědění kůže, vyrážky, senné rýmy a dalších alergických obtíží.</p>\n<h2>Dávkování</h2>\n<p>Dospělí a děti od 12 let užívají 20–40 kapek 3× denně. Děti 1–12 let 10–20 kapek 3× denně, děti 1 měsíc až 1 rok 3–10 kapek 3× denně. Kapky lze podávat s potravou nebo nápojem.</p>\n<h2>Složení</h2>\n<p>1 ml roztoku (20 kapek) obsahuje dimetindenmalein 1 mg a pomocné látky: monohydrát kyseliny citronové, sacharinát sodný, propylenglykol, etanol a čištěnou vodu.</p>\n<h2>Upozornění</h2>\n<p>Léčivý přípravek. Neužívejte při přecitlivělosti na dimetinden nebo jiné složky. Pozor na obsah alkoholu. Není vhodné pro děti do 1 měsíce.</p>",
+  "parameters": [
+    {
+      "name": "Léčivá látka",
+      "value": "dimetindenmalein 1 mg/ml"
+    },
+    {
+      "name": "Forma",
+      "value": "Perorální kapky, roztok"
+    },
+    {
+      "name": "Velikost balení",
+      "value": "20 ml"
+    },
+    {
+      "name": "Výrobce",
+      "value": "GSK"
+    },
+    {
+      "name": "EAN",
+      "value": "8596149002088"
+    },
+    {
+      "name": "Farmakoterapeutická skupina",
+      "value": "Antihistaminika"
+    }
+  ]
+}

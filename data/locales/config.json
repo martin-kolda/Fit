@@ -1,0 +1,30 @@
+{
+  "default": {
+    "contact": {
+      "phone": {
+        "display": "516 770 100",
+        "href": "tel:516770100"
+      }
+    },
+    "map": {
+      "center": [50.0755, 14.4378],
+      "zoom": 12,
+      "points": "data/map-points.json"
+    }
+  },
+  "cs-CZ": {},
+  "en-EU": {},
+  "sk-SK": {
+    "contact": {
+      "phone": {
+        "display": "0800 60 60 70",
+        "href": "tel:0800606070"
+      }
+    },
+    "map": {
+      "center": [48.1486, 17.1077],
+      "zoom": 12,
+      "points": "data/map-points.sk.json"
+    }
+  }
+}

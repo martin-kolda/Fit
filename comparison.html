@@ -1,0 +1,170 @@
+<!doctype html>
+<html data-theme="max">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Comparison tool</title>
+  
+
+  <!-- CDN / dependecies -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Figtree:ital,wght@0,300..900;1,300..900&display=swap" rel="stylesheet">
+  <script src="https://kit.fontawesome.com/2c7f1c6cae.js" crossorigin="anonymous"></script> 
+  <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css" />
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <link rel="stylesheet" href="./theme/max-tokens.css"> 
+  <script> // cannot be loaded by classic link
+    fetch('./theme/tw-mapping.css', { cache: 'no-store' }).then(r => r.text()).then(css => {const s = document.createElement('style');s.type = 'text/tailwindcss';s.textContent = css;document.head.appendChild(s);});
+  </script>
+  <link rel="stylesheet" href="./theme/max.css" type="text/css">
+  <script defer src="https://unpkg.com/@alpinejs/persist@3.x.x/dist/cdn.min.js"></script>
+  <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>  
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css">
+  <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+  <script src="https://unpkg.com/@lottiefiles/dotlottie-wc@0.8.1/dist/dotlottie-wc.js" type="module"></script>
+
+  <style>
+    body {
+      margin: 0;
+      background-color: #242424;
+      color: #f3f4f6;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      font-family: "Figtree", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    .comparison-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1.5rem;
+      width: min(90vw, 480px);
+    }
+
+    .comparison-switch {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .comparison-switch label {
+      font-weight: 600;
+      font-size: 1rem;
+    }
+
+    .comparison-switch select {
+      background-color: #1b1b1b;
+      color: inherit;
+      border: 1px solid #3d3d3d;
+      border-radius: 9999px;
+      padding: 0.35rem 1.25rem;
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .comparison-switch select:focus-visible {
+      outline: none;
+      border-color: #86efac;
+      box-shadow: 0 0 0 3px rgba(134, 239, 172, 0.35);
+    }
+
+    figure.diff {
+      margin: 0;
+      width: 100%;
+    }
+  </style>
+  </head>
+
+<body class="overflow-x-hidden">
+
+<div class="comparison-wrapper">
+  <div class="comparison-switch">
+    <label for="comparison-select">View:</label>
+    <select id="comparison-select" aria-label="Choose a before-and-after comparison">
+      <option value="homepage">Homepage</option>
+      <option value="delivery-payment-empty">Delivery &amp; Payment (Empty)</option>
+      <option value="order-tracking">Order Tracking</option>
+    </select>
+  </div>
+
+  <figure class="diff aspect-9/16 max-w-11/12" tabindex="0">
+    <div class="diff-item-1" role="img" tabindex="0">
+      <img data-role="before-image" alt="Homepage before changes" src="comparison/homepage@2x.jpg" />
+    </div>
+    <div class="diff-item-2" role="img">
+      <img data-role="after-image" alt="Homepage after changes" src="comparison/homepage-new@2x.jpg" />
+    </div>
+    <div class="diff-resizer"></div>
+  </figure>
+</div>
+
+
+<script>
+  const comparisons = {
+    homepage: {
+      label: 'Homepage',
+      before: {
+        src: 'comparison/homepage@2x.jpg',
+        alt: 'Homepage before changes'
+      },
+      after: {
+        src: 'comparison/homepage-new@2x.jpg',
+        alt: 'Homepage after changes'
+      }
+    },
+    'delivery-payment-empty': {
+      label: 'Delivery & Payment (Empty)',
+      before: {
+        src: 'comparison/delivery-payment-empty@2x.jpg',
+        alt: 'Delivery and payment screen before changes'
+      },
+      after: {
+        src: 'comparison/deliverpayment-empty-new@2x.jpg',
+        alt: 'Delivery and payment screen after changes'
+      }
+    },
+    'order-tracking': {
+      label: 'Order Tracking',
+      before: {
+        src: 'comparison/order-tracking@2x.jpg',
+        alt: 'Order tracking screen before changes'
+      },
+      after: {
+        src: 'comparison/order-tracking-new@2x.jpg',
+        alt: 'Order tracking screen after changes'
+      }
+    }
+  };
+
+  const selectEl = document.getElementById('comparison-select');
+  const beforeImg = document.querySelector('[data-role="before-image"]');
+  const afterImg = document.querySelector('[data-role="after-image"]');
+
+  const applySelection = (key) => {
+    const config = comparisons[key];
+    if (!config) {
+      return;
+    }
+
+    beforeImg.src = config.before.src;
+    beforeImg.alt = config.before.alt || `Before – ${config.label}`;
+
+    afterImg.src = config.after.src;
+    afterImg.alt = config.after.alt || `After – ${config.label}`;
+  };
+
+  selectEl.addEventListener('change', (event) => {
+    applySelection(event.target.value);
+  });
+
+  applySelection(selectEl.value);
+</script>
+</body>

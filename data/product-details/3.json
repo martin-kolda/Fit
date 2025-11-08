@@ -1,0 +1,81 @@
+{
+    "id": "ibalgin-400-mg-48-tablet",
+    "name": "Ibalgin 400 mg 48 tablet",
+    "registeredMedicament": true,
+    "brand": "Ibalgin",
+    "productLine": "",
+    "reviews": {
+        "average": null,
+        "count": 0
+    },
+    "perex": "Zm\u00edr\u0148uje bolest a z\u00e1n\u011bt r\u016fzn\u00e9ho p\u016fvodu a sni\u017euje hore\u010dku. Pro dosp\u011bl\u00e9 a dosp\u00edvaj\u00edc\u00ed od 12 let.",
+    "category": "Bolest hlavy a migr\u00e9na",
+    "stock": "Skladem",
+    "pharmacyStock": "",
+    "SKU": "",
+    "badges": [],
+    "images": [
+        "./images/ibalgin.webp"
+    ],
+    "price": 125,
+    "discounted_price": null,
+    "comparison_id": 3,
+    "variants": [
+        {
+            "id": "24",
+            "name": "Ibalgin 400 mg 24 tablet",
+            "label": "24 tablet",
+            "price": 79,
+            "discounted_price": null
+        },
+        {
+            "id": "default",
+            "name": "Ibalgin 400 mg 48 tablet",
+            "label": "48 tablet",
+            "price": 125,
+            "discounted_price": null,
+            "default": true
+        },
+        {
+            "id": "96",
+            "name": "Ibalgin 400 mg 96 tablet",
+            "label": "96 tablet",
+            "price": 195,
+            "discounted_price": null
+        }
+    ],
+    "description": "<div class='text-md'>\n  <h3 class='text-lg font-bold pb-4'>\u00davod</h3>\n  <div><p>Ibalgin 400 mg tlum\u00ed <strong>bolest, z\u00e1n\u011bt a hore\u010dku</strong>. Vhodn\u00fd p\u0159i bolesti hlavy, zub\u016f, zad, p\u0159i menstruaci a p\u0159i nachlazen\u00ed.</p></div>\n</div>\n<div class='text'>\n  <h3 class='text-lg font-bold pb-4 pt-6'>D\u00e1vkov\u00e1n\u00ed</h3>\n  <div><p>Dosp\u011bl\u00ed a dosp\u00edvaj\u00edc\u00ed od 12 let: obvykle 1 tableta (400&nbsp;mg) dle pot\u0159eby v min. 4\u20136hod. odstupu, max. 3 tablety denn\u011b.</p></div>\n</div>\n<div class='text'>\n  <h3 class='text-lg font-bold pb-4 pt-6'>Slo\u017een\u00ed</h3>\n  <div><p>\u00da\u010dinn\u00e1 l\u00e1tka: ibuprofenum 400&nbsp;mg v 1 tablet\u011b. Pomocn\u00e9 l\u00e1tky dle p\u0159\u00edbalov\u00e9 informace.</p></div>\n</div>",
+    "parameters": [
+        {
+            "name": "L\u00e9kov\u00e1 forma",
+            "value": "Potahovan\u00e9 tablety"
+        },
+        {
+            "name": "S\u00edla",
+            "value": "400 mg"
+        },
+        {
+            "name": "Po\u010det tablet",
+            "value": "48"
+        },
+        {
+            "name": "\u00da\u010dinn\u00e1 l\u00e1tka",
+            "value": "ibuprofenum"
+        }
+    ],
+    "availability": [],
+    "payment": [
+        {
+            "method": "Online kartou",
+            "note": "Zdarma"
+        },
+        {
+            "method": "Dob\u00edrka",
+            "note": "+39 K\u010d"
+        },
+        {
+            "method": "Hotov\u011b na pobo\u010dce",
+            "note": "Zdarma"
+        }
+    ]
+}

@@ -1,0 +1,84 @@
+[
+    {
+      "id": "order_acceptation",
+      "future_headline": null,
+      "future_description": null,
+      "now_headline": null,
+      "now_description": null,
+      "past_headline": "Přijali jsme vaši {{PURCHASE_TYPE}}",
+      "past_description": "Zasíláme e-mail s potvrzením.  {{PURCHASE_TYPE}} má číslo {{ORDER_NUMBER}}"
+    },
+ 
+    {
+      "id": "order_payment_online",
+      "future_headline": "Zaplacení",
+      "future_description": null,
+      "now_headline": "Čekáme na zaplacení vaší {{PURCHASE_TYPE}}",
+      "now_description": "Podrobnosti najdete v e-mailu. Platbu zopakujte <u>zde</u>",
+      "past_headline": "{{PURCHASE_TYPE}} byla zaplacena",
+      "past_description": "{{PAYMENT_METHOD}}"
+    },
+   {
+      "id": "order_payment_on_delivery",
+      "future_headline": "Zaplacení",
+      "future_description": null,
+      "now_headline": "Čekáme na zaplacení vaší {{PURCHASE_TYPE}}",
+      "now_description": "{{PURCHASE_TYPE}} zaplatíte při převzetí přímo kurýrovi",
+      "past_headline": " {{PURCHASE_TYPE}} byla zaplacena",
+      "past_description": "{{PAYMENT_METHOD}}"
+    },
+   {
+      "id": "order_payment_pharmacy",
+      "future_headline": "Zaplacení",
+      "future_description": null,
+      "now_headline": "Čekáme na zaplacení vaší {{PURCHASE_TYPE}}",
+      "now_description": "{{PURCHASE_TYPE}} zaplatíte při převzetí přímo v lékárně",
+      "past_headline": " {{PURCHASE_TYPE}} byla zaplacena",
+      "past_description": "{{PAYMENT_METHOD}}"
+    },
+    {
+      "id": "order_completion",
+      "future_headline": "Příprava a zabalení",
+      "future_description": null,
+      "now_headline": "Vaši {{PURCHASE_TYPE}} právě připravujeme a balíme",
+      "now_description": null,
+      "past_headline": "Vaši {{PURCHASE_TYPE}} jsme připravili a zabalili",
+      "past_description": "Očekávejte {{PACKAGES_COUNT}} balíček(y) o hmotnosti {{TOTAL_WEIGHT}} kg"
+    },
+    {
+      "id": "order_shipped",
+      "future_headline": "Odeslání",
+      "future_description": null,
+      "now_headline": "{{PURCHASE_TYPE}} nyní předáváme dopravci",
+      "now_description": "Podrobnosti očekávejte na <u>SMS</u>",
+      "past_headline": "{{PURCHASE_TYPE}} jsme předali dopravci",
+      "past_description": "Balíček Vám veze pan Karel z {{DELIVERY_METHOD}}"
+    },
+    {
+      "id": "order_prepared",
+      "future_headline": "Převzetí",
+      "future_description": null,
+      "now_headline": "{{PURCHASE_TYPE}} nyní připravujeme k převzetí",
+      "now_description": "Počkejte na <u>SMS</u>",
+      "past_headline": "{{PURCHASE_TYPE}} je připravený k převzetí na adrse",
+      "past_description": "{{DELIVERY_ADDRESS}} a počká tu 3 dny"
+    },
+    {
+      "id": "order_delivered",
+      "future_headline": "Doručení",
+      "future_description": null,
+      "now_headline": "{{DELIVERY_METHOD}} právě doručujeme na adresu",
+      "now_description": "{{DELIVERY_ADDRESS}}. Podrobnosti očekávejte na <u>SMS</u>",
+      "past_headline": "{{DELIVERY_METHOD}} byla doručena na adresu",
+      "past_description": "{{DELIVERY_ADDRESS}} a počká tu 3 dny"
+    },
+    {
+      "id": "order_received",
+      "future_headline": "Vyzvednutí",
+      "future_description": null,
+      "now_headline": "Balíček čeká na vyzvednutí",
+      "now_description": "PIN k vyzvednutí je <u>110 112</u>",
+      "past_headline": "Balíček jste vyzvedli",
+      "past_description": "Jak jste se zbožím spokojeni? Těšíme se na <u>hodnocení!</u>"
+    }
+]

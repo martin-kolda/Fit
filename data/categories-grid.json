@@ -1,0 +1,152 @@
+[
+  {
+    "image": "./images/categories-grid/zdravotnicke-pomucky.webp",
+    "label": "Zdravotnické pomůcky",
+    "background": "bg-max-gray-100",
+    "slug": "zdravotnicke pomucky"
+  },
+  {
+    "image": "./images/categories-grid/alergie.webp",
+    "label": "Alergie",
+    "background": "bg-max-gray-100",
+    "slug": "alergie"
+  },
+  {
+    "image": "./images/categories-grid/Bolest.webp",
+    "label": "Bolest",
+    "background": "bg-max-gray-100",
+    "slug": "bolest"
+  },
+  {
+    "image": "./images/categories-grid/chripka.webp",
+    "label": "Chřipka",
+    "background": "bg-max-gray-100",
+    "slug": "chripka"
+  },
+  {
+    "image": "./images/categories-grid/detska-kosmetika.webp",
+    "label": "Dětská kosmetika",
+    "background": "bg-max-gray-100",
+    "slug": "detska kosmetika"
+  },
+  {
+    "image": "./images/categories-grid/detska-vyziva.webp",
+    "label": "Dětská výživa",
+    "background": "bg-max-gray-100",
+    "slug": "detska vyziva"
+  },
+  {
+    "image": "./images/categories-grid/drogerie.webp",
+    "label": "Drogerie",
+    "background": "bg-max-gray-100",
+    "slug": "drogerie"
+  },
+  {
+    "image": "./images/categories-grid/elektronika.webp",
+    "label": "Elektronika",
+    "background": "bg-max-gray-100",
+    "slug": "elektronika"
+  },
+  {
+    "image": "./images/categories-grid/holeni.webp",
+    "label": "Holení",
+    "background": "bg-max-gray-100",
+    "slug": "holeni"
+  },
+  {
+    "image": "./images/categories-grid/imunita.webp",
+    "label": "Imunita",
+    "background": "bg-max-gray-100",
+    "slug": "imunita"
+  },
+  {
+    "image": "./images/categories-grid/kardio.webp",
+    "label": "Srdce a cévy",
+    "background": "bg-max-gray-100",
+    "slug": "srdce a cevy"
+  },
+  {
+    "image": "./images/categories-grid/klouby-kosti.webp",
+    "label": "Klouby",
+    "background": "bg-max-gray-100",
+    "slug": "klouby"
+  },
+  {
+    "image": "./images/categories-grid/kocarky.webp",
+    "label": "Kočárky",
+    "background": "bg-max-gray-100",
+    "slug": "kocarky"
+  },
+  {
+    "image": "./images/categories-grid/parfemy.webp",
+    "label": "Parfémy",
+    "background": "bg-max-gray-100",
+    "slug": "parfemy"
+  },
+  {
+    "image": "./images/categories-grid/liceni.webp",
+    "label": "Líčení",
+    "background": "bg-max-gray-100",
+    "slug": "liceni"
+  },
+  {
+    "image": "./images/categories-grid/obleceni.webp",
+    "label": "Oblečení",
+    "background": "bg-max-gray-100",
+    "slug": "obleceni"
+  },
+  {
+    "image": "./images/categories-grid/opalovani.webp",
+    "label": "Opalování",
+    "background": "bg-max-gray-100",
+    "slug": "opalovani"
+  },
+  {
+    "image": "./images/categories-grid/prebalovani.webp",
+    "label": "Přebalování",
+    "background": "bg-max-gray-100",
+    "slug": "prebalovani"
+  },
+  {
+    "image": "./images/categories-grid/pro-sportovce.webp",
+    "label": "Sport",
+    "background": "bg-max-gray-100",
+    "slug": "sport"
+  },
+  {
+    "image": "./images/categories-grid/pro-zvirata.webp",
+    "label": "Zvířata",
+    "background": "bg-max-gray-100",
+    "slug": "zvirata"
+  },
+  {
+    "image": "./images/categories-grid/uklid.webp",
+    "label": "Úklid",
+    "background": "bg-max-gray-100",
+    "slug": "uklid"
+  },
+  {
+    "image": "./images/categories-grid/ustni-hygiena.webp",
+    "label": "Zuby",
+    "background": "bg-max-gray-100",
+    "slug": "zuby"
+  },
+  {
+    "image": "./images/categories-grid/vlasy.webp",
+    "label": "Vlasy",
+    "background": "bg-max-gray-100",
+    "slug": "vlasy"
+  },
+  {
+    "image": "./images/categories-grid/zazivani.webp",
+    "label": "Trávení",
+    "background": "bg-max-gray-100",
+    "slug": "taveni"
+  },
+  {
+    "image": "./images/categories-grid/zdrava-vyziva.webp",
+    "label": "Zdravá výživa",
+    "background": "bg-max-gray-100",
+    "slug": "zdrava vyziva"
+  }
+]

@@ -1,0 +1,48 @@
+[
+    {
+        "name": "Bolest",
+        "image": "./images/bolest.webp",
+        "products": 87,
+        "route": "TBD"
+    },
+    {
+        "name": "Průjem, zácpa, nevolnost, nadýmání",
+        "image": "./images/prujem.webp",
+        "products": 43,
+        "route": "TBD"
+    },
+    {
+        "name": "Chřipka, nachlazení",
+        "image": "./images/chripka.webp",
+        "products": 80,
+        "route": "TBD"
+    },
+    {
+        "name": "Pokožka, kůže, vlasy",
+        "image": "./images/pokozka.webp",
+        "products": 32,
+        "route": "TBD"
+    },
+    {
+        "name": "Léky na alergii",
+        "image": "./images/alergie.webp",
+        "products": 19,
+        "route": "TBD"
+    },
+    {
+        "name": "Vitamíny, minerály, imunita",
+        "image": "./images/vitaminy.webp",
+        "products": 178,
+        "route": "TBD"
+    },
+    {
+        "name": "Jak vybrat vitamíny?",
+        "route": "content/how-to-choose-vitamins",
+        "appearance": {
+            "icon": "fa-regular fa-newspaper",
+            "backgroundToken": "max-blue-100",
+            "iconToken": "max-blue-500",
+            "iconClass": "text-lg md:text-2xl"
+        }
+    }
+]

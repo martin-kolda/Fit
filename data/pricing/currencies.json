@@ -1,0 +1,24 @@
+{
+  "baseCurrency": "CZK",
+  "currencies": {
+    "CZK": {
+      "rate": 1,
+      "locale": "cs-CZ",
+      "iso": "CZK",
+      "symbol": "Kč",
+      "symbolPosition": "after",
+      "minorUnits": 0,
+      "rounding": 1
+    },
+    "EUR": {
+      "rate": 0.041,
+      "locale": "en-IE",
+      "iso": "EUR",
+      "symbol": "€",
+      "symbolPosition": "before",
+      "minorUnits": 2,
+      "rounding": 0.01
+    }
+  },
+  "lastUpdated": "2024-01-01"
+}

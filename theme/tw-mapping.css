@@ -1,0 +1,59 @@
+@theme {
+    --color-max-gray-0: var(--max-gray-0);
+    --color-max-gray-12-5: var(--max-gray-12-5);
+    --color-max-gray-25: var(--max-gray-25);
+    --color-max-gray-50: var(--max-gray-50);
+    --color-max-gray-75: var(--max-gray-75);
+    --color-max-gray-100: var(--max-gray-100);
+    --color-max-gray-150: var(--max-gray-150);
+    --color-max-gray-200: var(--max-gray-200);
+    --color-max-gray-300: var(--max-gray-300);
+    --color-max-gray-400: var(--max-gray-400);
+    --color-max-gray-500: var(--max-gray-500);
+    --color-max-gray-600: var(--max-gray-600);
+    --color-max-gray-700: var(--max-gray-700);
+    --color-max-gray-800: var(--max-gray-800);
+    --color-max-gray-850: var(--max-gray-850);
+    --color-max-gray-900: var(--max-gray-900);
+    --color-max-gray-950: var(--max-gray-950);
+    --color-max-gray-1000: var(--max-gray-1000);
+  
+    /* green */
+    --color-max-green-25: var(--max-green-25);
+    --color-max-green-50: var(--max-green-50);
+    --color-max-green-100: var(--max-green-100);
+    --color-max-green-200: var(--max-green-200);
+    --color-max-green-300: var(--max-green-300);
+    --color-max-green-400: var(--max-green-400);
+    --color-max-green-500: var(--max-green-500);
+    --color-max-green-600: var(--max-green-600);
+    --color-max-green-700: var(--max-green-700);
+    --color-max-green-800: var(--max-green-800);
+    --color-max-green-900: var(--max-green-900);
+  
+    /* red */
+    --color-max-red-25: var(--max-red-25);
+    --color-max-red-50: var(--max-red-50);
+    --color-max-red-100: var(--max-red-100);
+    --color-max-red-200: var(--max-red-200);
+    --color-max-red-300: var(--max-red-300);
+    --color-max-red-400: var(--max-red-400);
+    --color-max-red-500: var(--max-red-500);
+    --color-max-red-600: var(--max-red-600);
+    --color-max-red-700: var(--max-red-700);
+    --color-max-red-800: var(--max-red-800);
+    --color-max-red-900: var(--max-red-900);
+  
+    /* blue */
+    --color-max-blue-25: var(--max-blue-25);
+    --color-max-blue-50: var(--max-blue-50);
+    --color-max-blue-100: var(--max-blue-100);
+    --color-max-blue-200: var(--max-blue-200);
+    --color-max-blue-300: var(--max-blue-300);
+    --color-max-blue-400: var(--max-blue-400);
+    --color-max-blue-500: var(--max-blue-500);
+    --color-max-blue-600: var(--max-blue-600);
+    --color-max-blue-700: var(--max-blue-700);
+    --color-max-blue-800: var(--max-blue-800);
+    --color-max-blue-900: var(--max-blue-900);
+  }

@@ -1,0 +1,75 @@
+{
+  "id": "aspirin-500-20",
+  "name": "Aspirin 500 mg 20 tablet",
+  "registeredMedicament": true,
+  "brand": "Aspirin",
+  "productLine": "Aspirin",
+  "reviews": {
+    "average": 0.0,
+    "count": 0
+  },
+  "perex": "Tablety s kyselinou acetylsalicylovou k úlevě od bolesti a snížení horečky, vhodné při bolestech hlavy, zubů, svalů a kloubů.",
+  "category": "Bolest a horečka",
+  "stock": "Skladem",
+  "pharmacyStock": "330",
+  "SKU": "50095328",
+  "badges": [],
+  "images": [
+    "./images/aspirin-500mg.webp"
+  ],
+  "price": 155,
+  "discounted_price": 155,
+  "comparison_id": 5,
+  "variants": [
+    {
+      "id": "20tbl",
+      "name": "Aspirin 500 mg 20 tablet",
+      "label": "20 tablet",
+      "price": 155,
+      "discounted_price": 155
+    }
+  ],
+  "description": "<div class='text-md'>\n<h3 class='text-lg font-bold pb-4'>Úvod</h3>\n<div><p><strong>Aspirin 500&nbsp;mg</strong> obsahuje kyselinu acetylsalicylovou, která snižuje horečku a tlumí mírnou až středně silnou bolest, například bolest hlavy, zubů, svalů, kloubů nebo menstruační potíže. Působí i protizánětlivě a je vhodným lékem při chřipkových onemocněních.</p></div>\n</div>\n<div class='text'>\n<h3 class='text-lg font-bold pb-4 pt-6'>Dávkování</h3>\n<div><p>Dospělí užívají <strong>1–2 tablety každé 4 hodiny</strong> podle potřeby, maximálně však 6 tablet denně. Dospívající ve věku 12–15 let užívají 1 tabletu každé 4 hodiny, maximálně 6 tablet za den. Tablety zapijte dostatečným množstvím tekutiny a neužívejte je déle než 7 dní bez konzultace s lékařem.</p></div>\n</div>\n<div class='text'>\n<h3 class='text-lg font-bold pb-4 pt-6'>Složení</h3>\n<div><p>Léčivou látkou je kyselina acetylsalicylová 500&nbsp;mg v jedné tabletě. Pomocné látky: kukuřičný škrob, mikrokrystalická celulóza, kyselina askorbová, kyselina citrónová, kroskarmelóza sodná a mastek.</p></div>\n</div>\n<div class='text'>\n<h3 class='text-lg font-bold pb-4 pt-6'>Upozornění</h3>\n<div><p>Přípravek není určen pro děti do 12&nbsp;let kvůli riziku Reyova syndromu. Nepoužívejte, pokud trpíte žaludečními vředy, krvácivými poruchami nebo jste těhotná či kojíte. Nepřekračujte doporučené dávkování a lék neužívejte současně s jinými přípravky obsahujícími kyselinu acetylsalicylovou.</p></div>\n</div>",
+  "parameters": [
+    {
+      "name": "Léková forma",
+      "value": "Tablety"
+    },
+    {
+      "name": "Počet",
+      "value": "20 tablet"
+    },
+    {
+      "name": "Výrobce",
+      "value": "Bayer"
+    },
+    {
+      "name": "EAN",
+      "value": "8590322002889"
+    }
+  ],
+  "availability": [
+    {
+      "location": "Praha – Václavské nám.",
+      "status": "Skladem do 2 h"
+    },
+    {
+      "location": "Brno – Česká",
+      "status": "Skladem zítra"
+    }
+  ],
+  "payment": [
+    {
+      "method": "Online kartou",
+      "note": "Zdarma"
+    },
+    {
+      "method": "Dobírka",
+      "note": "+39 Kč"
+    },
+    {
+      "method": "Hotově na pobočce",
+      "note": "Zdarma"
+    }
+  ]
+}

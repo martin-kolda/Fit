@@ -1,0 +1,137 @@
+{
+  "header": {
+    "languageMenu": {
+      "label": "Language",
+      "options": {
+        "cs-CZ": "Czech",
+        "en-EU": "English",
+        "sk-SK": "Slovak"
+      }
+    },
+    "links": {
+      "map": "Pharmacy & pickup map"
+    },
+    "search": {
+      "ariaLabel": "Search",
+      "placeholder": "Search by name",
+      "recent": "Recently searched",
+      "startTyping": "Start typing your query…",
+      "noResults": "No results",
+      "badges": {
+        "product": "Product",
+        "category": "Category",
+        "info": "Info"
+      }
+    },
+    "actions": {
+      "menu": {
+        "aria": "Open menu",
+        "label": "Menu"
+      },
+      "activeOrder": {
+        "aria": "Open active order",
+        "label": "Active order"
+      },
+      "saved": {
+        "aria": "Open saved items",
+        "label": "Saved items"
+      },
+      "account": {
+        "aria": "Open my account",
+        "label": "My account"
+      },
+      "cart": {
+        "aria": "Open cart",
+        "label": "Cart"
+      },
+      "phone": {
+        "aria": "Call customer support"
+      }
+    },
+    "nav": {
+      "browseCategories": "Browse categories"
+    }
+  },
+  "banners": {
+    "legalLink": "Promotion terms"
+  },
+  "routes": {
+    "products": {
+      "title": "Health & medicines",
+      "breadcrumbs": {
+        "home": "Home",
+        "current": "Health & medicines"
+      },
+      "actions": {
+        "toggleFilters": "Filters",
+        "clearFilters": "Clear filters",
+        "showResults": "Show {count} results"
+      },
+      "quickFilters": {
+        "title": "Quick filters",
+        "inStock": "In stock only",
+        "benefit": "Benefits payment",
+        "discounted": "On sale",
+        "summary": {
+          "default": "Options"
+        }
+      },
+      "filters": {
+        "drawerTitle": "Filters",
+        "search": {
+          "placeholder": "Filter by name"
+        },
+        "sections": {
+          "categories": {
+            "title": "Category",
+            "all": "All categories"
+          },
+          "forms": {
+            "title": "Form",
+            "all": "All forms"
+          },
+          "consumers": {
+            "title": "Suitable for"
+          },
+          "price": {
+            "title": "Price",
+            "any": "Any price",
+            "reset": "Reset",
+            "unavailable": "Prices are unavailable.",
+            "range": {
+              "from": "From {value}",
+              "to": "Up to {value}",
+              "between": "{min} – {max}",
+              "full": "{min} – {max}"
+            }
+          }
+        },
+        "expand": {
+          "more": "More",
+          "less": "Less"
+        }
+      },
+      "sorting": {
+        "label": "Sort by",
+        "options": {
+          "priceAsc": "Lowest price first",
+          "priceDesc": "Highest price first",
+          "alphaAsc": "Alphabetical A–Z",
+          "alphaDesc": "Alphabetical Z–A",
+          "default": "Recommended"
+        }
+      },
+      "results": {
+        "empty": "No results match the current filters.",
+        "loadMore": "Load {count} more products",
+        "loaded": "All products loaded"
+      },
+      "cart": {
+        "add": "Add to cart",
+        "decrementAria": "Remove item",
+        "incrementAria": "Add item",
+        "quantityAria": "Quantity"
+      }
+    }
+  }
+}

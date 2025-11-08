@@ -1,0 +1,79 @@
+{
+  "id": "otrivin-menthol-10",
+  "name": "Otrivin Menthol 1 mg/ml nosní sprej, roztok 10 ml",
+  "registeredMedicament": true,
+  "brand": "Otrivin",
+  "productLine": "Menthol",
+  "reviews": {
+    "average": 4.9,
+    "count": 12
+  },
+  "perex": "Nosní sprej s xylometazolinem, mentholem a eukalyptolem rychle uvolňuje ucpaný nos. Účinek nastupuje do 2 minut a trvá až 12 hodin.",
+  "category": "Nosní kapky, spreje a masti",
+  "stock": "Skladem",
+  "pharmacyStock": "246",
+  "SKU": "50182971",
+  "badges": [],
+  "images": [
+    "./images/otrivin-menthol.webp"
+  ],
+  "price": 155,
+  "discounted_price": 155,
+  "comparison_id": 13,
+  "variants": [
+    {
+      "id": "10ml",
+      "name": "Otrivin Menthol 1 mg/ml nosní sprej, roztok 10 ml",
+      "label": "10 ml",
+      "price": 155,
+      "discounted_price": 155
+    }
+  ],
+  "description": "<div class='text-md'>\n<h3 class='text-lg font-bold pb-4'>Úvod</h3>\n<div><p><strong>Otrivin Menthol</strong> je nosní sprej s&nbsp;xylometazolinem, mentholem a eukalyptolem, který <strong>rychle snižuje otok nosní sliznice</strong>, podporuje odtok hlenu a uvolňuje ucpaný nos. Účinek nastupuje už do 2 minut a trvá až 12 hodin.</p></div>\n</div>\n<div class='text'>\n<h3 class='text-lg font-bold pb-4 pt-6'>Dávkování</h3>\n<div><p>Dospělí a dospívající od 12&nbsp;let aplikují <strong>1 vstřik do každé nosní dírky 1–3× denně</strong>. Nepřekračujte 3 aplikace denně a poslední dávku použijte večer před spaním. Bez doporučení lékaře nepoužívejte déle než 7&nbsp;dní.</p></div>\n</div>\n<div class='text'>\n<h3 class='text-lg font-bold pb-4 pt-6'>Složení</h3>\n<div><p>Obsahuje xylometazolini hydrochloridum 1&nbsp;mg/ml a pomocné látky: dihydrát dihydrogenfosforečnanu sodného, dodekahydrát hydrogenfosforečnanu sodného, chlorid sodný, edetát disodný, levomenthol, cineol, sorbitol, hydrogenovaný ricinový olej a čištěnou vodu.</p></div>\n</div>\n<div class='text'>\n<h3 class='text-lg font-bold pb-4 pt-6'>Upozornění</h3>\n<div><p>Není určeno pro děti mladší 12 let. Nepoužívejte déle než 7 dnů v celku, delší používání může způsobit zhoršení ucpaného nosu. Před použitím si pečlivě přečtěte příbalový leták.</p></div>\n</div>",
+  "parameters": [
+    {
+      "name": "Léková forma",
+      "value": "Nosní sprej"
+    },
+    {
+      "name": "Objem",
+      "value": "10 ml"
+    },
+    {
+      "name": "Výrobce",
+      "value": "Otrivin"
+    },
+    {
+      "name": "Kód SÚKL",
+      "value": "280149"
+    },
+    {
+      "name": "EAN",
+      "value": "5054563230263"
+    }
+  ],
+  "availability": [
+    {
+      "location": "Praha – Václavské nám.",
+      "status": "Skladem do 2 h"
+    },
+    {
+      "location": "Brno – Česká",
+      "status": "Skladem zítra"
+    }
+  ],
+  "payment": [
+    {
+      "method": "Online kartou",
+      "note": "Zdarma"
+    },
+    {
+      "method": "Dobírka",
+      "note": "+39 Kč"
+    },
+    {
+      "method": "Hotově na pobočce",
+      "note": "Zdarma"
+    }
+  ]
+}

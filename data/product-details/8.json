@@ -1,0 +1,61 @@
+{
+  "id": "nasivin-0-5-mg-ml-nosn-sprej-10-ml",
+  "name": "Nasivin 0,5 mg/ml nosní sprej 10 ml",
+  "registeredMedicament": true,
+  "brand": "Nasivin",
+  "productLine": "",
+  "reviews": {
+    "average": null,
+    "count": 0
+  },
+  "perex": "Uvolňuje ucpaný nos při akutní a alergické rýmě. Pro dospělé a děti od 8 let.",
+  "category": "Rýma",
+  "stock": "Skladem",
+  "pharmacyStock": "",
+  "SKU": "",
+  "badges": [],
+  "images": [
+    "./images/nasivin.webp"
+  ],
+  "price": 115,
+  "discounted_price": null,
+  "comparison_id": 8,
+  "variants": [
+    {
+      "id": "default",
+      "name": "Nasivin 0,5 mg/ml nosní sprej 10 ml",
+      "price": 115,
+      "discounted_price": null
+    }
+  ],
+  "description": "<div class='text-md'>\n  <h3 class='text-lg font-bold pb-4'>Úvod</h3>\n  <div><p>Nasivin 0,5&nbsp;mg/ml nosní sprej <strong>snižuje překrvení nosní sliznice</strong> a usnadňuje dýchání při rýmě.</p></div>\n</div>\n<div class='text'>\n  <h3 class='text-lg font-bold pb-4 pt-6'>Dávkování</h3>\n  <div><p>Dospělí a děti od 8 let: 1 vstřik do každé nosní dírky 2–3× denně po dobu max. 7 dní.</p></div>\n</div>\n<div class='text'>\n  <h3 class='text-lg font-bold pb-4 pt-6'>Složení</h3>\n  <div><p>Účinná látka: oxymetazolini hydrochloridum 0,5&nbsp;mg/ml.</p></div>\n</div>",
+  "parameters": [
+    {
+      "name": "Léková forma",
+      "value": "Nosní sprej, roztok"
+    },
+    {
+      "name": "Objem",
+      "value": "10 ml"
+    },
+    {
+      "name": "Účinná látka",
+      "value": "oxymetazolin-hydrochlorid 0,5 mg/ml"
+    }
+  ],
+  "availability": [],
+  "payment": [
+    {
+      "method": "Online kartou",
+      "note": "Zdarma"
+    },
+    {
+      "method": "Dobírka",
+      "note": "+39 Kč"
+    },
+    {
+      "method": "Hotově na pobočce",
+      "note": "Zdarma"
+    }
+  ]
+}

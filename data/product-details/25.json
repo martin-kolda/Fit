@@ -1,0 +1,63 @@
+{
+  "id": 25,
+  "name": "Dr. Max Ibuprofen 400 mg 100 potahovaných tablet",
+  "registeredMedicament": true,
+  "brand": "Dr. Max",
+  "productLine": "Ibuprofen",
+  "reviews": {
+    "rating": 0.0,
+    "count": 0
+  },
+  "perex": "Ibuprofen Dr. Max 400 mg tlumí bolest (hlavy, zubů, při menstruaci) a snižuje horečku.",
+  "category": "Bolest hlavy a migréna",
+  "stock": "Skladem na e-shopu",
+  "pharmacyStock": "ve 0 lékárnách",
+  "SKU": "50184181",
+  "badges": [],
+  "images": [
+    "./images/ibuprofen-400.webp"
+  ],
+  "price": 119,
+  "discounted_price": 119,
+  "comparison_id": null,
+  "variants": [
+    {
+      "id": "100tbl",
+      "name": "Dr. Max Ibuprofen 400 mg 100 potahovaných tablet",
+      "label": "100 tablet",
+      "price": 119,
+      "discounted_price": 119
+    }
+  ],
+  "description": "<h2>Úvod</h2>\n<p>Přípravek Ibuprofen Dr. Max 400 mg se používá ke zmírnění bolesti různého původu a ke snížení horečky. Účinná látka ibuprofen působí protizánětlivě a analgeticky.</p>\n<h2>Dávkování</h2>\n<p>Dospělí a dospívající od 12 let užívají 1/2–1 tabletu 3–4× denně podle potřeby. Mezi dávkami ponechte odstup minimálně 4 hodiny. Nepřekračujte 3 tablety za 24 hodin.</p>\n<h2>Složení</h2>\n<p>Jedna potahovaná tableta obsahuje ibuprofenum 400 mg a pomocné látky: mikrokrystalická celulóza, kukuřičný škrob, sodná sůl karboxymethylškrobu, stearan hořečnatý a další.</p>\n<h2>Upozornění</h2>\n<p>Léčivý přípravek. Nepřekračujte doporučené dávkování. Není určeno pro děti do 12 let. Čtěte pozorně příbalový leták a v případě těhotenství či kojení se poraďte s lékařem.</p>",
+  "parameters": [
+    {
+      "name": "Léčivá látka",
+      "value": "ibuprofenum 400 mg"
+    },
+    {
+      "name": "Forma",
+      "value": "Potahované tablety"
+    },
+    {
+      "name": "Velikost balení",
+      "value": "100 tablet"
+    },
+    {
+      "name": "Výrobce",
+      "value": "Dr. Max"
+    },
+    {
+      "name": "SUKL kód",
+      "value": "263056"
+    },
+    {
+      "name": "EAN",
+      "value": "8595566457631"
+    },
+    {
+      "name": "Farmakoterapeutická skupina",
+      "value": "Nesteroidní protizánětlivá a protirevmatická léčiva"
+    }
+  ]
+}

@@ -1,0 +1,81 @@
+{
+  "id": "voltaren-forte-180",
+  "name": "Voltaren Forte 20 mg/g gel 180 g",
+  "registeredMedicament": true,
+  "brand": "Voltaren",
+  "productLine": "Forte",
+  "reviews": {
+    "average": 0.0,
+    "count": 0
+  },
+  "perex": "Silný gel s diclofenacem pro místní léčbu bolesti svalů a kloubů, tlumí zánět a otok a účinkuje až 12 hodin.",
+  "category": "Bolest kloubů, svalů",
+  "stock": "Skladem",
+  "pharmacyStock": "198",
+  "SKU": "50122888",
+  "badges": [
+    "Akce -20%"
+  ],
+  "images": [
+    "./images/voltaren-forte.webp"
+  ],
+  "price": 495,
+  "discounted_price": 399,
+  "comparison_id": 9,
+  "variants": [
+    {
+      "id": "180g",
+      "name": "Voltaren Forte 20 mg/g gel 180 g",
+      "label": "180 g",
+      "price": 495,
+      "discounted_price": 399
+    }
+  ],
+  "description": "<div class='text-md'>\n<h3 class='text-lg font-bold pb-4'>Úvod</h3>\n<div><p><strong>Voltaren Forte 20&nbsp;mg/g gel</strong> obsahuje diclofenacum diethylaminum (23,2&nbsp;mg v 1&nbsp;g gelu). Působí proti bolesti, zánětu a otoku svalů a kloubů při akutních poraněních, bolestech zad nebo artritidě. Účinek přetrvává až 12 hodin, a proto stačí aplikace dvakrát denně.</p></div>\n</div>\n<div class='text'>\n<h3 class='text-lg font-bold pb-4 pt-6'>Dávkování</h3>\n<div><p>Aplikujte <strong>2–4&nbsp;g gelu</strong> (velikost třešně až vlašského ořechu) na postižené místo a jemně vetřete do kůže 2× denně, ráno a večer. U menších partií (kotník, zápěstí) postačí 2&nbsp;g, pro větší oblasti (koleno, loket) 4&nbsp;g. Lék používejte nejdéle 2 týdny u dospělých a 1 týden u adolescentů.</p></div>\n</div>\n<div class='text'>\n<h3 class='text-lg font-bold pb-4 pt-6'>Složení</h3>\n<div><p>Gel obsahuje diclofenacum diethylaminum 23,2&nbsp;mg/g a pomocné látky: butylhydroxytoluen, karbomer, diethylamin, makrogol 7 000&nbsp;cetostearyléter, parafín, isopropylalkohol, čištěná voda a parfém.</p></div>\n</div>\n<div class='text'>\n<h3 class='text-lg font-bold pb-4 pt-6'>Upozornění</h3>\n<div><p>Určeno pouze k vnějšímu použití. Nepoužívejte na poraněnou nebo zanícenou kůži a zabraňte kontaktu s oči a sliznicemi. Není vhodné pro děti mladší 14 let a těhotné ženy v posledním trimestru. Po aplikaci nevystavujte ošetřenou oblast slunečnímu záření.</p></div>\n</div>",
+  "parameters": [
+    {
+      "name": "Léková forma",
+      "value": "Gel"
+    },
+    {
+      "name": "Hmotnost",
+      "value": "180 g"
+    },
+    {
+      "name": "Výrobce",
+      "value": "GlaxoSmithKline"
+    },
+    {
+      "name": "Kód SÚKL",
+      "value": "246015"
+    },
+    {
+      "name": "EAN",
+      "value": "5054563919649"
+    }
+  ],
+  "availability": [
+    {
+      "location": "Praha – Václavské nám.",
+      "status": "Skladem do 2 h"
+    },
+    {
+      "location": "Brno – Česká",
+      "status": "Skladem zítra"
+    }
+  ],
+  "payment": [
+    {
+      "method": "Online kartou",
+      "note": "Zdarma"
+    },
+    {
+      "method": "Dobírka",
+      "note": "+39 Kč"
+    },
+    {
+      "method": "Hotově na pobočce",
+      "note": "Zdarma"
+    }
+  ]
+}

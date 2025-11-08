@@ -1,0 +1,61 @@
+{
+  "id": "fenistil-gel-50-g",
+  "name": "Fenistil gel 50 g",
+  "registeredMedicament": true,
+  "brand": "Fenistil",
+  "productLine": "",
+  "reviews": {
+    "average": null,
+    "count": 0
+  },
+  "perex": "Gel pro rychlou úlevu při poštípání hmyzem, spálení od slunce a kopřivce. Zmírňuje svědění a podráždění kůže.",
+  "category": "Léky na alergii",
+  "stock": "Skladem",
+  "pharmacyStock": "",
+  "SKU": "",
+  "badges": [],
+  "images": [
+    "./images/fenistil.webp"
+  ],
+  "price": 369,
+  "discounted_price": null,
+  "comparison_id": 1,
+  "variants": [
+    {
+      "id": "default",
+      "name": "Fenistil gel 50 g",
+      "price": 369,
+      "discounted_price": null
+    }
+  ],
+  "description": "<div class='text-md'>\n  <h3 class='text-lg font-bold pb-4'>Úvod</h3>\n  <div><p>Fenistil gel obsahuje antihistaminikum, které <strong>rychle tlumí svědění a podráždění</strong> kůže. Vhodný po štípnutí hmyzem, při kopřivce a lehkém spálení sluncem.</p></div>\n</div>\n<div class='text'>\n  <h3 class='text-lg font-bold pb-4 pt-6'>Dávkování</h3>\n  <div><p>Nanášejte 2–4× denně na postižené místo. Nepoužívejte na rozsáhlé nebo poraněné plochy.</p></div>\n</div>\n<div class='text'>\n  <h3 class='text-lg font-bold pb-4 pt-6'>Složení</h3>\n  <div><p>Léčivá látka: dimetinden-maleinát 1&nbsp;mg/g. Další složky: benzalkonium-chlorid, dinatrium-edetát, karbomer, hydroxid sodný, propylenglykol, voda.</p></div>\n</div>\n<div class='text'>\n  <h3 class='text-lg font-bold pb-4 pt-6'>Upozornění</h3>\n  <div><p>Určeno pro zevní použití. Chraňte před sluncem na ošetřené ploše bezprostředně po aplikaci.</p></div>\n</div>",
+  "parameters": [
+    {
+      "name": "Léková forma",
+      "value": "Gel"
+    },
+    {
+      "name": "Obsah",
+      "value": "50 g"
+    },
+    {
+      "name": "Účinná látka",
+      "value": "dimetinden-maleinát 1 mg/g"
+    }
+  ],
+  "availability": [],
+  "payment": [
+    {
+      "method": "Online kartou",
+      "note": "Zdarma"
+    },
+    {
+      "method": "Dobírka",
+      "note": "+39 Kč"
+    },
+    {
+      "method": "Hotově na pobočce",
+      "note": "Zdarma"
+    }
+  ]
+}

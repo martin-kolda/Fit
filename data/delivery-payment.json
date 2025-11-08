@@ -1,0 +1,153 @@
+[
+    {
+        "id": 1,
+        "name": "DODO Expres",
+        "tooltip": "Ostrava, Brno, Praha a okolí",
+        "type": "delivery",
+        "price_from": true,
+        "price": 79,
+        "icon": "./images/payment-delivery/dodo.png",
+        "description": "",
+        "disables_id": [
+            8
+        ],
+        "followup": "timeslot"
+    },
+    {
+        "id": 2,
+        "name": "Dr. Max Box",
+        "tooltip": "Ostrava, Praha a okolí",
+        "type": "pickup",
+        "price_from": false,
+        "price": 19,
+        "icon": "./images/payment-delivery/drmax-box.png",
+        "description": "",
+        "disables_id": [
+            8,
+            10
+        ],
+        "followup": "map",
+        "map_type": "box"
+    },
+    {
+        "id": 3,
+        "name": "Vyzvednutí v lékárně",
+        "tooltip": null,
+        "type": "pickup",
+        "price_from": false,
+        "price": 29,
+        "icon": "./images/payment-delivery/drmax-pharmacy.png",
+        "description": "",
+        "disables_id": [
+            9,
+            10,
+            11
+        ],
+        "followup": "map",
+        "map_type": "pharmacy"
+    },
+    {
+        "id": 4,
+        "name": "Zásilkovna",
+        "tooltip": null,
+        "type": "pickup",
+        "price_from": false,
+        "price": 59,
+        "icon": "./images/payment-delivery/zasilkovna.png",
+        "description": "",
+        "disables_id": [
+            8
+        ],
+        "followup": "map",
+        "map_type": "z-box"
+    },
+    {
+        "id": 5,
+        "name": "Česká pošta",
+        "tooltip": null,
+        "type": "delivery",
+        "price_from": false,
+        "price": 69,
+        "icon": "./images/payment-delivery/ceska-posta.png",
+        "description": "",
+        "disables_id": [
+            8
+        ],
+        "followup": null
+    },
+    {
+        "id": 6,
+        "name": "DPD",
+        "tooltip": null,
+        "type": "delivery",
+        "price_from": false,
+        "price": 89,
+        "icon": "./images/payment-delivery/dpd.png",
+        "description": "",
+        "disables_id": [
+            8
+        ],
+        "followup": null
+    },
+    {
+        "id": 7,
+        "name": "PPL",
+        "type": "delivery",
+        "price_from": false,
+        "price": 89,
+        "icon": "./images/payment-delivery/ppl.png",
+        "description": "",
+        "disables_id": [
+            8
+        ],
+        "followup": null
+    },
+    {
+        "id": 8,
+        "name": "Platba v lékárně",
+        "tooltip": "V lékárně zaplatíte hotově, kartou i benefitními poukázkami",
+        "type": "payment",
+        "price_from": false,
+        "price": 0,
+        "icon": "./images/payment-delivery/pharmacy-payment.png",
+        "description": "",
+        "disables_id": [],
+        "followup": null
+    },
+    {
+        "id": 9,
+        "name": "Kartou online",
+        "tooltip": null,
+        "type": "payment",
+        "price_from": false,
+        "price": 0,
+        "icon": "./images/payment-delivery/card-online.png",
+        "description": "",
+        "disables_id": [],
+        "followup": null
+    },
+    {
+        "id": 10,
+        "name": "Na dobírku",
+        "tooltip": null,
+        "type": "payment",
+        "price_from": false,
+        "price": 0,
+        "icon": "./images/payment-delivery/pay-on-delivery.png",
+        "description": "",
+        "disables_id": [],
+        "followup": null
+    },
+    {
+        "id": 11,
+        "name": "Benefitní kartou online",
+        "tooltip": "Pluxee, Benefit Plus, Edenred Card / Up eBenefity, Edenred Benefity Premium (účet), FKSP Edenred Card",
+        "type": "payment",
+        "price_from": false,
+        "price": 0,
+        "icon": "./images/payment-delivery/benefit-card.png",
+        "description": "",
+        "disables_id": [],
+        "followup": "benefits"
+    }
+]

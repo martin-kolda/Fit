@@ -1,0 +1,36 @@
+{
+    "id": "xylomax-0-5",
+    "name": "Dr. Max Xylomax 0,5 mg/ml nosní sprej 10 ml",
+    "registeredMedicament": true,
+    "brand": "Dr. Max",
+    "productLine": "Xylomax",
+    "reviews": {
+    "average": 4.6,
+    "count": 3
+    },
+    "perex": "Nosní sprej k uvolnění ucpaného nosu při rýmě. Snižuje překrvení nosní sliznice a usnadňuje tak dýchání. Určeno pro dospělé a děti od 12 let věku.",
+    "category": "Nosní kapky, spreje a masti",
+    "stock": "Skladem",
+    "pharmacyStock": "534",
+    "SKU": "50118215",
+    "badges": ["Akce -20%", "Doprava zdarma"],
+    "images": [
+      "./images/xylomax-1.webp",
+      "./images/xylomax-2.webp",
+      "./images/xylomax-3.webp"
+    ],
+    "price": 159,
+    "discounted_price": 129,
+    "comparison_id": 1,
+    "variants": [
+      { "id": "10ml", "name": "Dr. Max Xylomax 0,5 mg/ml nosní sprej 10 ml", "label": "10 ml", "price": 159, "discounted_price": 129 },
+      { "id": "20ml", "name": "Dr. Max Xylomax 0,5 mg/ml nosní sprej 20 ml", "label": "20 ml", "price": 249, "discounted_price": 199 }
+    ],
+    "description": "<div class='text-md'><h3 class='text-lg font-bold pb-4'>Úvod</h3><div><p><strong>Nosní sprej pro rychlou a dlouhodobou úlevu od ucpaného nosu. Dr.&nbsp;Max Xylomax 1 mg/ml</strong>&nbsp;snižuje otok nosní sliznice a při plném nose&nbsp;<strong>usnadňuje dýchání.</strong>&nbsp;Účinek tohoto léku nastupuje během několika minut a trvá několik hodin. Nosní sprej <strong>Dr.&nbsp;Max Xylomax 1 mg/ml</strong>&nbsp;mohou používat dospělí a děti od 12 let věku.</p></div></div><div class='text'><h3 class='text-lg font-bold pb-4 pt-6'>Dávkování</h3> <div><p><strong>Dospělí a děti od 12 let </strong>aplikují 1 vstřik do každé nosní dírky 1-3x denně dle potřeby. Mezi dvěma dávkami má být časový odstup 8-10 hodin. Bez porady s&nbsp;lékařem nepoužívejte déle než 7 dní. Pro děti od 2 do 12 let je k dispozici přípravek Dr.&nbsp;Max Xylomax 0,5 mg/ml.</p></div></div><div class='text'><h3 class='text-lg font-bold pb-4 pt-6'>Složení</h3> <div><p>Léčivou látkou je xylometazolini hydrochloridum 1 mg v&nbsp;1 ml. Jedna dávka (138 mikrolitrů) obsahuje xylometazolini hydrochloridum 140 mikrogramů.</p><p>Dalšími pomocnými látkami jsou benzalkonium-chlorid, dinatrium-edetát, dihydrát dihydrogenfosforečnanu sodného, dodekahydrát hydrogenfosforečnanu sodného, chlorid sodný a čištěná voda.</p></div></div><div class='text'><h3 class='text-lg font-bold pb-4 pt-6'>Upozornění</h3> <div><p>Není určeno pro děti do 12 let. Uchovávejte mimo dosah dětí. Přípravek obsahuje benzalkonium-chlorid, který může způsobit podráždění nebo otok nosní sliznice, zvláště pokud je používán dlouhodobě.</p><p class='pt-6'>LÉČIVÝ PŘÍPRAVEK, ČTĚTE POZORNĚ PŘÍBALOVÝ LETÁK.</p></div></div>",
+    "parameters": [
+      { "name": "Léková forma", "value": "Nosní sprej" },
+      { "name": "Objem", "value": "10 ml" },
+      { "name": "Výrobce", "value": "Dr. Max" },
+      { "name": "Kód SÚKL", "value": "123456" }
+    ]
+  }

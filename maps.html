@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Pickup Points Map (Prague) – Prototype</title>
+
+  <!-- Tailwind + DaisyUI (optional) -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdn.jsdelivr.net/npm/daisyui@5/dist/full.min.css" rel="stylesheet"/>
+
+  <!-- Alpine.js -->
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
+  <!-- Leaflet -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
+  <style>
+    /* Make Leaflet map consume available space inside its container */
+    .mapContainer { position: relative; }
+    .mapEl { position:absolute; inset:0; }
+    .leaflet-popup-content { min-width: 240px; }
+  </style>
+</head>
+<body class="bg-base-200 text-base-content">
+  <div class="mx-auto max-w-[1400px] w-11/12 py-6 space-y-10">
+    <header class="flex items-center justify-between">
+      <h1 class="text-2xl font-bold">Výdejní místa – prototyp</h1>
+      <a href="#" class="btn btn-sm">Domů</a>
+    </header>
+
+    <!-- Demo A: Map with CTA (for cart flow / modal step) -->
+    <section class="card bg-base-100 shadow">
+      <div class="card-body">
+        <h2 class="card-title">Výběr výdejního místa (s potvrzením)</h2>
+        <div x-data="pickupMap({ showCTA: true })" x-init="init()" class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          <!-- Left: list + search -->
+          <aside class="lg:col-span-1 flex flex-col min-h-[50vh]">
+            <div class="form-control mb-2">
+              <label class="label"><span class="label-text">Hledat (ulice, PSČ, čtvrť)</span></label>
+              <div class="join w-full">
+                <input x-model.trim="query" @input="filterList()" type="search" placeholder="Např. 11000, Vinohrady, Na Příkopě" class="input input-bordered join-item w-full" />
+                <button class="btn join-item" @click="clearQuery()">Vymazat</button>
+              </div>
+            </div>
+
+            <p class="text-sm mb-2" x-text="`Nalezeno: ${filtered.length}`"></p>
+
+            <div class="overflow-auto grow rounded border border-base-300 divide-y">
+              <template x-for="pp in filtered" :key="pp.id">
+                <button @click="focusPoint(pp.id)" class="w-full text-left p-3 hover:bg-base-200">
+                  <div class="flex gap-3 items-start">
+                    <img :src="pp.photo" alt="foto" class="w-16 h-16 rounded object-cover border" />
+                    <div class="min-w-0">
+                      <div class="font-medium truncate" x-text="pp.name"></div>
+                      <div class="text-sm opacity-80 truncate" x-text="`${pp.address.street}, ${pp.address.city}`"></div>
+                      <div class="text-xs opacity-60" x-text="`PSČ: ${pp.address.zip} · ${pp.address.district}`"></div>
+                    </div>
+                  </div>
+                </button>
+              </template>
+            </div>
+          </aside>
+
+          <!-- Right: map -->
+          <div class="lg:col-span-2 min-h-[50vh] lg:min-h-[60vh] mapContainer">
+            <div x-ref="map" class="mapEl rounded-md overflow-hidden border border-base-300"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Demo B: Read‑only map instance (no CTA) -->
+    <section class="card bg-base-100 shadow">
+      <div class="card-body">
+        <h2 class="card-title">Mapa bez potvrzení (jen pro náhled)</h2>
+        <div x-data="pickupMap({ showCTA: false })" x-init="init()" class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          <aside class="lg:col-span-1">
+            <div class="form-control mb-2">
+              <label class="label"><span class="label-text">Hledat</span></label>
+              <input x-model.trim="query" @input="filterList()" type="search" class="input input-bordered" placeholder="Např. Karlín" />
+            </div>
+            <div class="text-sm mb-2" x-text="`Nalezeno: ${filtered.length}`"></div>
+            <div class="overflow-auto max-h-72 rounded border border-base-300 divide-y">
+              <template x-for="pp in filtered" :key="pp.id">
+                <button @click="focusPoint(pp.id)" class="w-full text-left p-3 hover:bg-base-200">
+                  <div class="font-medium" x-text="pp.name"></div>
+                  <div class="text-sm opacity-80" x-text="`${pp.address.street}, ${pp.address.city}`"></div>
+                </button>
+              </template>
+            </div>
+          </aside>
+          <div class="lg:col-span-2 min-h-[40vh] mapContainer">
+            <div x-ref="map" class="mapEl rounded-md overflow-hidden border border-base-300"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="prose max-w-none">
+      <h3>Poznámky k integraci</h3>
+      <ul>
+        <li>Kliknutí na „Potvrdit“ uloží do <code>localStorage</code> klíč <code>selectedPickupPoint</code> s JSON hodnotou a vyšle custom event <code>pickup:selected</code> s detailem bodu.</li>
+        <li>Pro otevření v modalu stačí tento blok vložit do vašeho dialogu; mapu po zobrazení zavolejte <code>map.invalidateSize()</code> (řešíme automaticky při <code>init()</code>).</li>
+        <li>Jazykové prvky jsou v češtině v rámci UI; samotný Leaflet neobsahuje lokalizaci, ale ovládací prvky jsou ikonové.</li>
+        <li>Ikona pinu je řešena pomocí <code>DivIcon</code> s jednoduchým HTML (snadno vyměnitelné za PNG).</li>
+      </ul>
+    </section>
+  </div>
+
+  <script>
+    // --- Demo dataset (Prague) ---
+    const PICKUP_POINTS = [
+      {
+        id: 'pp1',
+        name: 'Lékárna Anděl – OC Nový Smíchov',
+        address: {
+          street: 'Plzeňská 8', city: 'Praha', district: 'Smíchov', zip: '150 00'
+        },
+        coords: { lat: 50.0709, lng: 14.4020 },
+        phone: '+420 111 222 333',
+        photo: 'https://images.unsplash.com/photo-1587854692152-1c3145628d60?q=80&w=400&auto=format&fit=crop',
+        openingHours: {
+          Mon: '08:00–20:00', Tue: '08:00–20:00', Wed: '08:00–20:00', Thu: '08:00–20:00', Fri: '08:00–20:00', Sat: '09:00–18:00', Sun: '10:00–17:00'
+        },
+        services: ['Výdej e‑shop', 'Platba kartou'],
+        note: 'Vstup z úrovně metra Anděl'
+      },
+      {
+        id: 'pp2',
+        name: 'Lékárna Vinohrady – I. P. Pavlova',
+        address: {
+          street: 'Legerova 72', city: 'Praha', district: 'Vinohrady', zip: '120 00'
+        },
+        coords: { lat: 50.0757, lng: 14.4305 },
+        phone: '+420 222 333 444',
+        photo: 'https://images.unsplash.com/photo-1583324113626-70df0f4deaab?q=80&w=400&auto=format&fit=crop',
+        openingHours: {
+          Mon: '07:30–19:00', Tue: '07:30–19:00', Wed: '07:30–19:00', Thu: '07:30–19:00', Fri: '07:30–19:00', Sat: '09:00–14:00', Sun: 'Zavřeno'
+        },
+        services: ['Výdej e‑shop', 'Bezkontaktní výdej'],
+        note: 'Roh Legerovy a Rumunské'
+      },
+      {
+        id: 'pp3',
+        name: 'Lékárna Karlín – Křižíkova',
+        address: {
+          street: 'Křižíkova 49', city: 'Praha', district: 'Karlín', zip: '186 00'
+        },
+        coords: { lat: 50.0913, lng: 14.4480 },
+        phone: '+420 333 444 555',
+        photo: 'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?q=80&w=400&auto=format&fit=crop',
+        openingHours: {
+          Mon: '08:00–18:00', Tue: '08:00–18:00', Wed: '08:00–18:00', Thu: '08:00–18:00', Fri: '08:00–18:00', Sat: 'Zavřeno', Sun: 'Zavřeno'
+        },
+        services: ['Výdej e‑shop'],
+        note: '2 minuty od metra Křižíkova'
+      },
+      {
+        id: 'pp4',
+        name: 'Lékárna Dejvice – Vítězné náměstí',
+        address: {
+          street: 'Jugoslávských partyzánů 20', city: 'Praha', district: 'Dejvice', zip: '160 00'
+        },
+        coords: { lat: 50.0990, lng: 14.3915 },
+        phone: '+420 777 888 999',
+        photo: 'https://images.unsplash.com/photo-1584367369853-8b966cf2235f?q=80&w=400&auto=format&fit=crop',
+        openingHours: {
+          Mon: '08:00–19:00', Tue: '08:00–19:00', Wed: '08:00–19:00', Thu: '08:00–19:00', Fri: '08:00–19:00', Sat: '09:00–13:00', Sun: 'Zavřeno'
+        },
+        services: ['Výdej e‑shop', 'Parkování u prodejny'],
+        note: ''
+      }
+    ].map(pp => ({
+      ...pp,
+      searchIndex: `${pp.name} ${pp.address.street} ${pp.address.city} ${pp.address.district} ${pp.address.zip}`.toLowerCase()
+    }));
+
+    // JSON shape documentation (for devs or external feed):
+    // {
+    //   id: string,
+    //   name: string,
+    //   address: { street: string, city: string, district: string, zip: string },
+    //   coords: { lat: number, lng: number },
+    //   phone: string,
+    //   photo: string (URL),
+    //   openingHours: { Mon: string, Tue: string, Wed: string, Thu: string, Fri: string, Sat: string, Sun: string },
+    //   services: string[],
+    //   note: string,
+    //   searchIndex: string (computed client-side for filtering)
+    // }
+
+    // --- Alpine component factory ---
+    function pickupMap(opts = {}) {
+      const cfg = Object.assign({ showCTA: true }, opts);
+
+      return {
+        // state
+        map: null,
+        markers: new Map(),
+        points: PICKUP_POINTS,
+        filtered: [],
+        query: '',
+        showCTA: cfg.showCTA,
+
+        init() {
+          // Prepare container size & map
+          this.filtered = this.points.slice();
+          this.$nextTick(() => {
+            this.initMap();
+            this.renderMarkers();
+            // Invalidate after a small delay to fix rendering inside hidden containers/dialogs
+            setTimeout(() => this.map.invalidateSize(), 100);
+          });
+        },
+
+        initMap() {
+          const el = this.$refs.map;
+          const prague = [50.0755, 14.4378];
+
+          this.map = L.map(el, {
+            zoomControl: true,
+            attributionControl: true,
+          }).setView(prague, 12);
+
+          // OSM tiles
+          L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> přispěvatelé'
+          }).addTo(this.map);
+        },
+
+        customIcon() {
+          // Simple DivIcon you can swap for PNG later
+          return L.divIcon({
+            className: 'custom-pin',
+            html: `
+              <div class="relative -translate-y-2">
+                <div class="w-5 h-5 rounded-full bg-primary ring-2 ring-white shadow"></div>
+                <div class="w-2 h-2 bg-primary/80 rotate-45 mx-auto -mt-1"></div>
+              </div>
+            `,
+            iconSize: [20, 20],
+            iconAnchor: [10, 20],
+            popupAnchor: [0, -14]
+          });
+        },
+
+        renderMarkers() {
+          // Clear old markers
+          this.markers.forEach(m => m.remove());
+          this.markers.clear();
+
+          // Add markers for filtered
+          this.filtered.forEach(pp => {
+            const m = L.marker([pp.coords.lat, pp.coords.lng], { icon: this.customIcon() });
+            m.addTo(this.map);
+            m.on('click', () => this.openPopup(pp));
+            this.markers.set(pp.id, m);
+          });
+        },
+
+        openPopup(pp) {
+          const oh = pp.openingHours || {};
+          const ohRows = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun']
+            .map(d => oh[d] ? `<div class=\"flex justify-between text-sm\"><span>${this.dayCZ(d)}</span><span>${oh[d]}</span></div>` : '')
+            .join('');
+
+          const ctaBtn = this.showCTA ? `
+            <button id=\"cta-${pp.id}\" class=\"btn btn-primary w-full\">Potvrdit výdejní místo</button>
+          ` : '';
+
+          const html = `
+            <div class=\"space-y-2\">
+              <div class=\"font-semibold text-base\">${pp.name}</div>
+              <div class=\"text-sm\">${pp.address.street}, ${pp.address.city} (${pp.address.zip})</div>
+              <div class=\"text-sm\"><span class=\"opacity-70\">Čtvrť:</span> ${pp.address.district}</div>
+              <img src=\"${pp.photo}\" alt=\"foto\" class=\"w-full h-28 object-cover rounded\" />
+              <div class=\"text-sm\"><span class=\"opacity-70\">Telefon:</span> <a href=\"tel:${pp.phone}\" class=\"link\">${pp.phone}</a></div>
+              <div class=\"divider my-2\"></div>
+              <div class=\"space-y-1\">${ohRows}</div>
+              ${pp.note ? `<div class=\"text-xs opacity-70\">${pp.note}</div>` : ''}
+              ${ctaBtn}
+            </div>
+          `;
+
+          const marker = this.markers.get(pp.id);
+          if (!marker) return;
+
+          marker.bindPopup(html, { closeButton: true }).openPopup();
+
+          // Attach CTA handler after popup opens
+          setTimeout(() => {
+            const btn = document.getElementById(`cta-${pp.id}`);
+            if (btn) btn.addEventListener('click', () => this.confirmSelection(pp));
+          }, 0);
+        },
+
+        focusPoint(id) {
+          const pp = this.points.find(p => p.id === id);
+          if (!pp) return;
+          const marker = this.markers.get(id);
+          const latlng = [pp.coords.lat, pp.coords.lng];
+          this.map.setView(latlng, 15, { animate: true });
+          if (marker) marker.openPopup(); else this.openPopup(pp);
+        },
+
+        confirmSelection(pp) {
+          try {
+            localStorage.setItem('selectedPickupPoint', JSON.stringify(pp));
+          } catch (e) { console.warn('localStorage error', e); }
+
+          // Fire a custom event for host app to react (e.g., close modal, update cart flow)
+          window.dispatchEvent(new CustomEvent('pickup:selected', { detail: pp }));
+
+          // Simple feedback toast (DaisyUI) – you can wire your own store/toast
+          this.toast(`Vybráno: ${pp.name}`);
+        },
+
+        toast(msg) {
+          // Minimal inline toast
+          const t = document.createElement('div');
+          t.className = 'fixed bottom-4 left-1/2 -translate-x-1/2 z-[1000]';
+          t.innerHTML = `<div class=\"alert alert-success shadow\">${msg}</div>`;
+          document.body.appendChild(t);
+          setTimeout(() => t.remove(), 1800);
+        },
+
+        filterList() {
+          const q = this.query.toLowerCase();
+          this.filtered = q
+            ? this.points.filter(p => p.searchIndex.includes(q))
+            : this.points.slice();
+          this.renderMarkers();
+          // Auto-zoom to results
+          if (this.filtered.length) {
+            const bounds = L.latLngBounds(this.filtered.map(p => [p.coords.lat, p.coords.lng]));
+            this.map.fitBounds(bounds.pad(0.2));
+          }
+        },
+
+        clearQuery() {
+          this.query = '';
+          this.filterList();
+        },
+
+        dayCZ(d) {
+          return ({ Mon: 'Pondělí', Tue: 'Úterý', Wed: 'Středa', Thu: 'Čtvrtek', Fri: 'Pátek', Sat: 'Sobota', Sun: 'Neděle' })[d] || d;
+        }
+      };
+    }
+  </script>
+</body>
+</html>

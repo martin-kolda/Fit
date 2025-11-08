@@ -1,0 +1,67 @@
+{
+  "id": "paralen-500-mg-24-tablet",
+  "name": "Paralen 500 mg 24 tablet",
+  "registeredMedicament": true,
+  "brand": "Paralen",
+  "productLine": "",
+  "reviews": {
+    "average": 4.9,
+    "count": 1298
+  },
+  "perex": "Lék proti bolesti a horečce s obsahem paracetamolu. Vhodný při chřipce a nachlazení, bolestech hlavy či zubů.",
+  "category": "Bolest hlavy a migréna",
+  "stock": "Skladem",
+  "pharmacyStock": "",
+  "SKU": "",
+  "badges": [
+    "Sleva 29%"
+  ],
+  "images": [
+    "./images/paralen.webp"
+  ],
+  "price": 55,
+  "discounted_price": 39,
+  "comparison_id": 4,
+  "variants": [
+    {
+      "id": "default",
+      "name": "Paralen 500 mg 24 tablet",
+      "price": 55,
+      "discounted_price": 39
+    }
+  ],
+  "description": "<div class='text-md'>\n  <h3 class='text-lg font-bold pb-4'>Úvod</h3>\n  <div><p>Paralen 500 mg <strong>snižuje horečku</strong> a tlumí bolest různého původu (hlava, zuby, bolesti při nachlazení).</p></div>\n</div>\n<div class='text'>\n  <h3 class='text-lg font-bold pb-4 pt-6'>Dávkování</h3>\n  <div><p>Dospělí a děti od 6 let: obvykle 1 tableta (500&nbsp;mg) dle potřeby v odstupu alespoň 4 hodiny, max. 4 g paracetamolu denně.</p></div>\n</div>\n<div class='text'>\n  <h3 class='text-lg font-bold pb-4 pt-6'>Složení</h3>\n  <div><p>Účinná látka: paracetamol 500&nbsp;mg v 1 tabletě.</p></div>\n</div>",
+  "parameters": [
+    {
+      "name": "Léková forma",
+      "value": "Tablety"
+    },
+    {
+      "name": "Síla",
+      "value": "500 mg"
+    },
+    {
+      "name": "Počet tablet",
+      "value": "24"
+    },
+    {
+      "name": "Účinná látka",
+      "value": "paracetamol"
+    }
+  ],
+  "availability": [],
+  "payment": [
+    {
+      "method": "Online kartou",
+      "note": "Zdarma"
+    },
+    {
+      "method": "Dobírka",
+      "note": "+39 Kč"
+    },
+    {
+      "method": "Hotově na pobočce",
+      "note": "Zdarma"
+    }
+  ]
+}
