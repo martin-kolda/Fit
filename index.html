@@ -646,10 +646,74 @@
           process: null,
           success: null
         },
+        accountTooltip: {
+          visible: false,
+          message: 'Váš účet',
+          timer: null,
+          duration: 3000
+        },
         initials() {
           const active = accountInitials(this.account);
           if (active) return active;
           return accountInitials(this.fallbackAccount) || '??';
+        },
+        showAccountTooltip(message = 'Váš účet', duration = 3000) {
+          const tip = this.accountTooltip;
+          if (!tip) return;
+          tip.message = message;
+          tip.visible = true;
+          if (tip.timer) {
+            clearTimeout(tip.timer);
+          }
+          const timeout = Number(duration) || tip.duration || 3000;
+          tip.timer = setTimeout(() => {
+            tip.visible = false;
+            tip.timer = null;
+          }, timeout);
+        },
+        celebrateAccountAccess(type = 'success') {
+          this.showAccountTooltip();
+          this.accountConfetti(type);
+        },
+        accountConfetti(type = 'success') {
+          const prefersReduced = window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches;
+          if (prefersReduced || typeof window.confetti !== 'function') return;
+          const button = document.querySelector('[data-auth-account-button]');
+          let origin = { x: 0.5, y: 0.55 };
+          if (button?.getBoundingClientRect) {
+            const rect = button.getBoundingClientRect();
+            const centerX = (rect.left + rect.width / 2) / (window.innerWidth || document.documentElement.clientWidth || 1);
+            const viewportHeight = window.innerHeight || document.documentElement.clientHeight || 1;
+            const scrollY = window.scrollY || window.pageYOffset || 0;
+            const centerY = (rect.top + rect.height / 2 + scrollY) /
+              ((document.documentElement.scrollHeight || viewportHeight) || 1);
+            origin = {
+              x: Math.min(0.98, Math.max(0.02, centerX)),
+              y: Math.min(0.98, Math.max(0.02, centerY))
+            };
+          }
+          const base = { ticks: 200, gravity: 0.9, scalar: 1, spread: 65, origin };
+          const burst = (opts) => window.confetti({ ...base, ...opts });
+          if (type === 'success') {
+            burst({ particleCount: 45, spread: 75, scalar: 0.9 });
+          } else if (type === 'celebrate') {
+            burst({ particleCount: 70, angle: 60, origin: { x: Math.max(0.05, origin.x - 0.2), y: origin.y } });
+            burst({ particleCount: 70, angle: 120, origin: { x: Math.min(0.95, origin.x + 0.2), y: origin.y } });
+            burst({ particleCount: 60, spread: 120, scalar: 1.1 });
+          } else if (type === 'coupon') {
+            burst({ particleCount: 40, spread: 75, scalar: 0.9 });
+          } else {
+            burst({ particleCount: 60, spread: 100 });
+          }
+        },
+        hideAccountTooltip() {
+          const tip = this.accountTooltip;
+          if (!tip) return;
+          tip.visible = false;
+          if (tip.timer) {
+            clearTimeout(tip.timer);
+            tip.timer = null;
+          }
         },
         persist() {
           if (typeof localStorage === 'undefined') return;
@@ -667,6 +731,7 @@
           }
         },
         openModal(view = 'login') {
+          this.hideAccountTooltip();
           this.view = view;
           this.modalOpen = true;
           this.status = 'idle';
@@ -734,6 +799,7 @@
             this.persist();
             emit('fit:auth-login', { account: this.account, source: 'manual' });
             this.closeModal();
+            this.celebrateAccountAccess('success');
           }, delay);
         },
         loginWithFallback() {
@@ -746,8 +812,10 @@
           this.persist();
           emit('fit:auth-login', { account: this.account, source: 'fallback' });
           this.closeModal();
+          this.celebrateAccountAccess('success');
         },
         logout() {
+          this.hideAccountTooltip();
           this.isAuthenticated = false;
           this.account = null;
           this.lastLoginAt = null;
@@ -760,6 +828,7 @@
           emit('fit:auth-logout', {});
         },
         reset() {
+          this.hideAccountTooltip();
           this.closeModal();
           this.isAuthenticated = !!defaults.isAuthenticated && !!defaults.account;
           this.account = defaults.account ? clone(defaults.account) : null;
@@ -1213,6 +1282,7 @@
             this.registrationCancelTimers('success');
             this._registrationTimers.success = setTimeout(() => {
               this.closeModal();
+              this.celebrateAccountAccess('celebrate');
             }, 1600);
           }, delay);
         },
@@ -3221,25 +3291,43 @@
       <i class="fa-classic fa-xl fa-regular fa-heart text-white max-embos-v"></i>
     </button>
 
-    <button class="btn btn-primary w-12 h-12 btn-lg btn-square"
-    :class="maxGradientClass()"
-    :aria-label="$store.auth?.isAuthenticated ? t('header.actions.account.loggedAria', 'Přejít do mého účtu') : t('header.actions.account.aria', 'Otevřít můj účet')"
-    :title="$store.auth?.isAuthenticated ? t('header.actions.account.loggedLabel', 'Můj účet') : t('header.actions.account.label', 'Můj účet')"
-    @click="$store.auth?.handleAccountClick()"
-    > 
-      <template x-if="!$store.auth?.isAuthenticated">
-        <i class="fa-classic fa-xl text-white max-embos-v"
-           :class="$store.auth?.isAuthenticated ? 'fa-solid fa-user-check' : 'fa-regular fa-user-circle'"></i>
-      </template>
-      <template x-if="$store.auth?.isAuthenticated">
-        <span class="inline-flex items-center justify-center w-10 h-10 rounded-xl border border-white/40 bg-white/20 text-white font-semibold uppercase tracking-wide select-none"
-              x-text="$store.auth?.initials()"
-              aria-hidden="true"></span>
-      </template>
-    </button>
+    <div class="relative flex items-center justify-center">
+      <button class="btn btn-primary w-12 h-12 btn-lg btn-square"
+      data-auth-account-button
+      :class="maxGradientClass()"
+      :aria-label="$store.auth?.isAuthenticated ? t('header.actions.account.loggedAria', 'Přejít do mého účtu') : t('header.actions.account.aria', 'Otevřít můj účet')"
+      :title="$store.auth?.isAuthenticated ? t('header.actions.account.loggedLabel', 'Můj účet') : t('header.actions.account.label', 'Můj účet')"
+      @click="$store.auth?.handleAccountClick()"
+      > 
+        <template x-if="!$store.auth?.isAuthenticated">
+          <i class="fa-classic fa-xl text-white max-embos-v"
+             :class="$store.auth?.isAuthenticated ? 'fa-solid fa-user-check' : 'fa-regular fa-user-circle'"></i>
+        </template>
+        <template x-if="$store.auth?.isAuthenticated">
+          <span class="inline-flex items-center justify-center w-10 h-10 rounded-full bg-black/10 text-white font-semibold uppercase tracking-wide select-none"
+                x-text="$store.auth?.initials()"
+                aria-hidden="true"></span>
+        </template>
+      </button>
+      <div
+        class="pointer-events-none absolute left-1/2 top-full mt-3 -translate-x-1/2 z-40"
+        x-cloak
+        x-show="$store.auth?.accountTooltip?.visible"
+        x-transition.opacity.duration.150ms
+        x-transition.scale.origin-top.duration.150ms
+        role="status"
+        aria-live="polite">
+        <div class="relative">
+          <div class="rounded-xl border border-base-300 bg-base-100/95 px-3 py-1.5 text-xs font-semibold text-base-content shadow-lg animate-bounce">
+            <span x-text="$store.auth?.accountTooltip?.message || 'Váš účet'"></span>
+          </div>
+          <span class="absolute left-1/2 -top-1.5 h-3 w-3 -translate-x-1/2 rotate-45 border border-base-300 border-b-transparent border-r-transparent bg-base-100/95"></span>
+        </div>
+      </div>
+    </div>
 
     <button
-    class="btn btn-primary btn-squish w-12 h-12 btn-lg btn-square indicator"
+    class="btn btn-primary btn-squish w-12 h-12 btn-lg btn-square indicator overflow-hidden md:overflow-visible"
     :class="maxGradientClass()"
     aria-label="Otevřít košík" title="Košík"
     :aria-label="t('header.actions.cart.aria', 'Otevřít košík')"
@@ -8252,61 +8340,63 @@ function deliveryPaymentUI() {
               </label>
             </div>
 
-            <!-- “Městská část” (simple chips) -->
-            <div class="items-center mt-1 mb-2 gap-2 flex flex-wrap">
+            <div class="flex-1 min-h-0 overflow-y-auto space-y-3 pr-1">
+              <!-- “Městská část” (simple chips) -->
+              <div class="items-center mt-1 gap-2 flex flex-wrap">
 
-              <!-- Vše (show all) -->
-              <button type="button"
-                      class="btn btn-sm"
-                      :class="district==='' ? 'btn-primary' : 'btn-outline'"
-                      @click="district=''; applyFilters()">
-                Vše
-              </button>
-
-              <!-- District chips -->
-              <template x-for="d in districts" :key="d">
+                <!-- Vše (show all) -->
                 <button type="button"
                         class="btn btn-sm"
-                        :class="district===d ? 'btn-primary' : 'btn-outline'"
-                        @click="district = (district===d ? '' : d); applyFilters()"
-                        x-text="d">
+                        :class="district==='' ? 'btn-primary' : 'btn-outline'"
+                        @click="district=''; applyFilters()">
+                  Vše
                 </button>
-              </template>
-            </div>
 
-            <!-- Filter summary -->
-            <p class="text-sm opacity-70 mt-3"
-            x-text="`Zobrazuji ${filtered.length} z ${all.length}`"></p>
+                <!-- District chips -->
+                <template x-for="d in districts" :key="d">
+                  <button type="button"
+                          class="btn btn-sm"
+                          :class="district===d ? 'btn-primary' : 'btn-outline'"
+                          @click="district = (district===d ? '' : d); applyFilters()"
+                          x-text="d">
+                  </button>
+                </template>
+              </div>
 
-            <!-- List -->
-            <div class="overflow-x-auto overflow-y-auto flex-1 min-h-0">
-              <table class="table">
-                <tbody>
-                  <template x-for="p in filtered" :key="p.id">
-                    <tr class="cursor-pointer"
-                        :class="selected && selected.id===p.id ? 'bg-max-blue-50' : 'hover:bg-max-gray-50'"
-                        :data-pickup-id="p.id"
-                        @click="selectFromList(p)">
-                      <td>
-                        <div class="flex items-center gap-3">
-                          <div class="h-20 w-20 rounded bg-base-200 overflow-hidden mr-2 shrink-0">
-                            <img :src="p.photo || placeholderImg" alt=""
-                                 class="h-full w-full object-cover object-center" loading="lazy">
+              <!-- Filter summary -->
+              <p class="text-sm opacity-70"
+                 x-text="`Zobrazuji ${filtered.length} z ${all.length}`"></p>
+
+              <!-- List -->
+              <div class="overflow-y-auto pe-1">
+                <table class="table w-full">
+                  <tbody>
+                    <template x-for="p in filtered" :key="p.id">
+                      <tr class="cursor-pointer"
+                          :class="selected && selected.id===p.id ? 'bg-max-blue-50' : 'hover:bg-max-gray-50'"
+                          :data-pickup-id="p.id"
+                          @click="selectFromList(p)">
+                        <td>
+                          <div class="flex items-center gap-3">
+                            <div class="h-20 w-20 rounded bg-base-200 overflow-hidden mr-2 shrink-0">
+                              <img :src="p.photo || placeholderImg" alt=""
+                                   class="h-full w-full object-cover object-center" loading="lazy">
+                            </div>
+                            <div class="min-w-0">
+                              <div class="font-medium text-base truncate" x-text="p.name"></div>
+                              <div class="text-base opacity-70 truncate"
+                                   x-text="`${p.address.street} • ${p.address.city}`"></div>
+                            </div>
                           </div>
-                          <div class="min-w-0">
-                            <div class="font-medium text-base truncate" x-text="p.name"></div>
-                            <div class="text-base opacity-70 truncate"
-                                 x-text="`${p.address.street} • ${p.address.city}`"></div>
-                          </div>
-                        </div>
-                      </td>
-                    </tr>
-                  </template>
-                  <template x-if="!filtered.length">
-                    <tr><td class="py-8 text-center text-sm opacity-70">Žádné výsledky.</td></tr>
-                  </template>
-                </tbody>
-              </table>
+                        </td>
+                      </tr>
+                    </template>
+                    <template x-if="!filtered.length">
+                      <tr><td class="py-8 text-center text-sm opacity-70">Žádné výsledky.</td></tr>
+                    </template>
+                  </tbody>
+                </table>
+              </div>
             </div>
             
           </div>
@@ -8321,19 +8411,19 @@ function deliveryPaymentUI() {
             <div x-show="selected"
                  x-data="{ tab: 'overview', currentId: null }"
                  x-effect="if (!selected || currentId !== (selected?.id ?? null)) { tab = 'overview'; currentId = selected?.id ?? null; }"
-                 class="rounded-xl border border-base-300 w-80 sm:w-96 bg-white absolute top-2 left-1/2 -translate-x-1/2 md:left-4 md:translate-x-0 md:top-4 m-2 md:m-4 z-[110] shadow-xl">
+                 class="absolute inset-0 md:top-4 md:left-4 md:right-auto md:bottom-auto m-0 md:m-4 w-full md:w-80 lg:w-96 h-full md:h-auto bg-white rounded-none md:rounded-xl border border-transparent md:border-base-300 shadow-none md:shadow-xl z-[110] flex flex-col overflow-y-auto md:overflow-visible">
 
-              <div class="h-50 w-full rounded-t-xl bg-base-200 overflow-hidden mr-2 shrink-0">
+              <div class="h-50 w-full rounded-none md:rounded-t-xl bg-base-200 overflow-hidden mr-2 shrink-0">
                 <img :src="selected.photo || placeholderImg" alt=""
                       class="h-full w-full object-cover object-center" loading="lazy">
               </div>
-                
+
               <button class="btn btn-md btn-circle btn-ghost bg-base-100 absolute right-2 top-2"
                       @click="selected=null; updateMarkerIcons()">
                 <i class="fa-solid fa-xmark fa-lg" aria-hidden="true"></i>
               </button>
-              
-             <div class="px-4 py-6 lg:px-8">
+
+             <div class="px-4 py-6 lg:px-8 flex-1">
               <div>
                 <div class="font-medium text-base" x-text="selected?.name"></div>
                 <div class="text-base opacity-70"
@@ -14164,12 +14254,18 @@ loadCheckoutReviewFromStorage() {
   @keydown.escape.window="close()"
   class="modal"
 >
-  <div class="modal-box w-11/12 max-w-3xl bg-base-200 px-4 lg:px-8 py-6 lg:py-10 flex flex-col overflow-x-hidden">
-    <div class="flex-1 overflow-visible">
-      <!-- Header / confirmation -->
-      <h2 class="text-2xl font-medium text-max-green-500 mb-2">
-        <i class="fa-classic fa-md fa-solid fa-check-circle"></i> Přidáno do košíku
-      </h2>
+  <div class="modal-box w-11/12 max-w-3xl bg-base-200 px-4 lg:px-8 py-6 lg:py-10 flex flex-col overflow-hidden">
+    <div class="flex-1 overflow-y-auto">
+      <div class="sticky top-0 z-10 bg-base-200 pt-0 pb-2">
+        <h2 class="text-2xl font-medium text-max-green-500 mb-2 pr-10">
+          <i class="fa-classic fa-md fa-solid fa-check-circle"></i> Přidáno do košíku
+        </h2>
+        <button class="btn btn-md btn-circle btn-ghost absolute right-2 top-2"
+                @click.prevent="close()"
+                aria-label="Zavřít">
+          <i class="fa-solid fa-xmark fa-lg text-max-gray-500" aria-hidden="true"></i>
+        </button>
+      </div>
 
       <!-- Context product -->
       <template x-if="$store.precart.product">
@@ -14385,20 +14481,17 @@ loadCheckoutReviewFromStorage() {
     </div>
 
     <!-- Footer actions -->
-    <div class="modal-action w-full flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-      <button type="button" class="btn btn-outline btn-block sm:w-auto" @click="close()">
-        Pokračovat v nákupu
-      </button>
-      <form method="dialog" class="w-full sm:w-auto flex items-center justify-end gap-2">
-        <button class="btn btn-md btn-circle btn-ghost absolute right-2 top-2"
-                @click.prevent="close()"
-                aria-label="Zavřít">
-          <i class="fa-solid fa-xmark fa-lg text-max-gray-500" aria-hidden="true"></i>
+    <div class="sticky bottom-0 z-10 bg-base-200 pt-4">
+      <div class="modal-action w-full flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+        <button type="button" class="btn btn-outline btn-block sm:w-auto" @click="close()">
+          Pokračovat v nákupu
         </button>
-        <button class="btn btn-primary btn-block sm:w-auto" @click.prevent="goCart()">
-          Přejít do košíku
-        </button>
-      </form>
+        <form method="dialog" class="w-full sm:w-auto flex items-center justify-end gap-2">
+          <button class="btn btn-primary btn-block sm:w-auto" @click.prevent="goCart()">
+            Přejít do košíku
+          </button>
+        </form>
+      </div>
     </div>
   </div>
 </dialog>
@@ -14829,12 +14922,12 @@ function precartModal() {
             >
             <button
               type="button"
-              class="absolute inset-y-0 right-2 flex items-center px-2 text-base-content transition-colors duration-150 focus:outline-none hover:text-base-content z-10"
+              class="absolute inset-y-0 right-2 flex items-center px-2 text-base-content transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-base-100 hover:text-secondary z-20"
               :aria-label="$store.auth?.passwordVisible ? 'Skrýt heslo' : 'Zobrazit heslo'"
               :title="$store.auth?.passwordVisible ? 'Skrýt heslo' : 'Zobrazit heslo'"
               :aria-pressed="$store.auth?.passwordVisible ? 'true' : 'false'"
               @click="$store.auth?.togglePasswordVisibility()">
-              <i class="fa-regular text-secondary"
+              <i class="fa-regular text-base-content"
                  :class="$store.auth?.passwordVisible ? 'fa-eye-slash' : 'fa-eye'"></i>
             </button>
           </div>
@@ -14907,32 +15000,6 @@ function precartModal() {
 
         <template x-if="!$store.auth.registration.loading && $store.auth.registration.ready">
           <div class="space-y-5">
-            <div class="flex flex-col gap-2">
-              <div class="flex items-center justify-between gap-2 text-xs font-semibold uppercase tracking-wide text-base-content/60"
-                   x-data="{ steps: $store.auth.registrationStepList() }">
-                <template x-for="(item, index) in steps" :key="item.id">
-                  <div class="flex items-center gap-2 flex-1">
-                    <div class="w-8 h-8 rounded-full border flex items-center justify-center transition"
-                         :class="$store.auth.registration.step > item.id
-                           ? 'bg-primary text-primary-content border-primary'
-                           : ($store.auth.registration.step === item.id
-                              ? 'border-primary text-primary'
-                              : 'border-base-300 text-base-content/50')">
-                      <template x-if="$store.auth.registration.step > item.id">
-                        <i class="fa-solid fa-check text-sm"></i>
-                      </template>
-                      <template x-if="$store.auth.registration.step <= item.id">
-                        <span x-text="item.id"></span>
-                      </template>
-                    </div>
-                    <span class="text-[0.65rem] sm:text-xs" x-text="item.label"></span>
-                    <div class="hidden sm:block flex-1 border-t border-dashed border-base-300"
-                         x-show="index < steps.length - 1"></div>
-                  </div>
-                </template>
-              </div>
-            </div>
-
             <!-- Step 1 -->
             <section class="space-y-4" x-show="$store.auth.registration.step === 1" x-transition.opacity>
               <p class="text-sm text-base-content/70">
@@ -14964,7 +15031,12 @@ function precartModal() {
                   </label>
                 </template>
               </div>
-              <div class="modal-action justify-end pt-2">
+              <div class="modal-action justify-between pt-2">
+                <button type="button"
+                        class="btn btn-link px-0 text-secondary no-underline hover:underline btn-md"
+                        @click="$store.auth.toggleView('login')">
+                  Zpět na přihlášení
+                </button>
                 <button type="button"
                         class="btn btn-primary"
                         @click="$store.auth.nextRegistrationStep()">
@@ -15001,12 +15073,7 @@ function precartModal() {
                 </div>
               </template>
 
-              <div class="modal-action justify-between" x-show="!$store.auth.registration.emailVerified">
-                <button type="button"
-                        class="btn btn-outline"
-                        @click="$store.auth.prevRegistrationStep()">
-                  Zpět
-                </button>
+              <div class="modal-action justify-end" x-show="!$store.auth.registration.emailVerified">
                 <button type="button"
                         class="btn btn-primary"
                         :class="{ 'btn-disabled': $store.auth.registration.phase === 'verifying-email' }"
@@ -15067,10 +15134,11 @@ function precartModal() {
                                          @input="$store.auth.registrationHandleInput(field.key)"
                                          @blur="$store.auth.registrationHandleBlur(field.key)">
                                   <button type="button"
-                                          class="absolute inset-y-0 right-2 flex items-center px-2 text-base-content/70"
+                                          class="absolute inset-y-0 right-2 flex items-center px-2 text-base-content transition-colors duration-150 hover:text-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-base-100 z-20"
                                           @click="$store.auth.registration.passwordVisible = !$store.auth.registration.passwordVisible"
                                           :aria-label="$store.auth.registration.passwordVisible ? 'Skrýt heslo' : 'Zobrazit heslo'">
-                                    <i class="fa-regular" :class="$store.auth.registration.passwordVisible ? 'fa-eye-slash' : 'fa-eye'"></i>
+                                    <i class="fa-regular text-base-content"
+                                       :class="$store.auth.registration.passwordVisible ? 'fa-eye-slash' : 'fa-eye'"></i>
                                   </button>
                                 </div>
                               </label>
@@ -15183,12 +15251,7 @@ function precartModal() {
                       </div>
                     </template>
                   </div>
-                  <div class="modal-action justify-between">
-                    <button type="button"
-                            class="btn btn-outline"
-                            @click="$store.auth.prevRegistrationStep()">
-                      Zpět
-                    </button>
+                  <div class="modal-action justify-end">
                     <button type="button"
                             class="btn btn-primary"
                             @click="$store.auth.advanceAfterStepTwo()">
@@ -15254,9 +15317,11 @@ function precartModal() {
                                      @input="$store.auth.registrationHandleInput(field.key)"
                                      @blur="$store.auth.registrationHandleBlur(field.key)">
                               <button type="button"
-                                      class="absolute inset-y-0 right-2 flex items-center px-2 text-base-content/70"
-                                      @click="$store.auth.registration.passwordVisible = !$store.auth.registration.passwordVisible">
-                                <i class="fa-regular" :class="$store.auth.registration.passwordVisible ? 'fa-eye-slash' : 'fa-eye'"></i>
+                                      class="absolute inset-y-0 right-2 flex items-center px-2 text-base-content transition-colors duration-150 hover:text-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-base-100 z-20"
+                                      @click="$store.auth.registration.passwordVisible = !$store.auth.registration.passwordVisible"
+                                      :aria-label="$store.auth.registration.passwordVisible ? 'Skrýt heslo' : 'Zobrazit heslo'">
+                                <i class="fa-regular text-base-content"
+                                   :class="$store.auth.registration.passwordVisible ? 'fa-eye-slash' : 'fa-eye'"></i>
                               </button>
                             </div>
                           </label>
@@ -15369,12 +15434,7 @@ function precartModal() {
                   </div>
                 </template>
               </div>
-              <div class="modal-action justify-between">
-                <button type="button"
-                        class="btn btn-outline"
-                        @click="$store.auth.prevRegistrationStep()">
-                  Zpět
-                </button>
+              <div class="modal-action justify-end">
                 <button type="button"
                         class="btn btn-primary"
                         :class="{ 'btn-disabled': $store.auth.registration.phase === 'processing' }"
@@ -15385,14 +15445,6 @@ function precartModal() {
             </section>
           </div>
         </template>
-
-        <div class="modal-action justify-start" x-show="!$store.auth.registration.loading">
-          <button type="button"
-                  class="btn btn-link px-0 text-secondary no-underline hover:underline btn-md"
-                  @click="$store.auth.toggleView('login')">
-            Zpět na přihlášení
-          </button>
-        </div>
 
         <div class="absolute inset-0 rounded-2xl bg-base-100/90 backdrop-blur-sm grid place-items-center"
              x-show="$store.auth.registration.phase === 'processing' || $store.auth.registration.phase === 'success'"
