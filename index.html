@@ -555,6 +555,22 @@
         merged.id = String((merged.id || base?.id || 'user') || 'user');
         return merged;
       };
+      const accountInitials = (account) => {
+        if (!account) return '';
+        const getInitial = (value) => {
+          if (!value) return '';
+          return String(value).trim().charAt(0).toUpperCase();
+        };
+        const first = getInitial(account.firstName);
+        const last = getInitial(account.lastName);
+        if (first || last) return `${first}${last || ''}`;
+        const email = String(account.email || '').trim();
+        if (email) {
+          const sanitized = email.replace(/[^A-Za-z0-9]/g, '');
+          return sanitized.slice(0, 2).toUpperCase();
+        }
+        return '';
+      };
       const ensureThrottle = (value) => {
         const num = Number(value);
         if (!Number.isFinite(num)) return defaults.throttleMs;
@@ -629,6 +645,11 @@
           email: null,
           process: null,
           success: null
+        },
+        initials() {
+          const active = accountInitials(this.account);
+          if (active) return active;
+          return accountInitials(this.fallbackAccount) || '??';
         },
         persist() {
           if (typeof localStorage === 'undefined') return;
@@ -3205,9 +3226,16 @@
     :aria-label="$store.auth?.isAuthenticated ? t('header.actions.account.loggedAria', 'Přejít do mého účtu') : t('header.actions.account.aria', 'Otevřít můj účet')"
     :title="$store.auth?.isAuthenticated ? t('header.actions.account.loggedLabel', 'Můj účet') : t('header.actions.account.label', 'Můj účet')"
     @click="$store.auth?.handleAccountClick()"
-    >
-      <i class="fa-classic fa-xl text-white max-embos-v"
-         :class="$store.auth?.isAuthenticated ? 'fa-solid fa-user-check' : 'fa-regular fa-user-circle'"></i>
+    > 
+      <template x-if="!$store.auth?.isAuthenticated">
+        <i class="fa-classic fa-xl text-white max-embos-v"
+           :class="$store.auth?.isAuthenticated ? 'fa-solid fa-user-check' : 'fa-regular fa-user-circle'"></i>
+      </template>
+      <template x-if="$store.auth?.isAuthenticated">
+        <span class="inline-flex items-center justify-center w-10 h-10 rounded-xl border border-white/40 bg-white/20 text-white font-semibold uppercase tracking-wide select-none"
+              x-text="$store.auth?.initials()"
+              aria-hidden="true"></span>
+      </template>
     </button>
 
     <button
