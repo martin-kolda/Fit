@@ -2964,7 +2964,7 @@
 
 <body class="bg-base-200 overflow-x-hidden" x-data="storeApp()">
   <!-- TOP-BAR LOGO + SEARCH -->
-<div class="navbar md:p-6 p-2 pt-4 pb-2 bg-base-100 overflow-visible">
+<div class="navbar md:p-6 p-2 pt-4 pb-2 bg-base-100 overflow-x-hidden md:overflow-visible">
   <!-- left: menu + logo + (desktop) search -->
   <div class="flex flex-1 items-start gap-3 md:gap-4 min-w-0">
     <button class="btn btn-primary w-[46px] h-[46px] btn-lg btn-square inline-flex md:hidden shrink-0 self-start"
@@ -3271,7 +3271,7 @@
   </div>
 
   <!-- TOP-BAR BUTTONS + CART (mobile + desktop) -->
-  <div class="flex gap-2 flex-none overflow-x-hidden md:overflow-visible pr-1">
+  <div class="flex gap-2 flex-none">
     <button class="btn btn-primary w-12 h-12 btn-lg btn-square max-gradient-gray hidden md:block"
     aria-label="Otevřít aktivní objednávku" title="Aktivní objednávka"
     :aria-label="t('header.actions.activeOrder.aria', 'Otevřít aktivní objednávku')"
@@ -8418,7 +8418,7 @@ function deliveryPaymentUI() {
                       class="h-full w-full object-cover object-center" loading="lazy">
               </div>
 
-              <button class="btn btn-md btn-circle btn-ghost bg-base-100 absolute right-2 top-2 md:static md:self-start md:mt-2 md:mr-2 sticky top-2"
+              <button class="btn btn-md btn-circle btn-ghost bg-base-100 absolute right-2 top-2"
                       @click="closeDetail()">
                 <i class="fa-solid fa-xmark fa-lg" aria-hidden="true"></i>
               </button>
@@ -8472,8 +8472,10 @@ function deliveryPaymentUI() {
                   </table>
                 </div>
 
-                <button class="btn btn-active btn-primary w-full"
-                        @click="confirmSelection()">Potvrdit výběr</button>
+                <div class="sticky bottom-0 bg-white pt-2">
+                  <button class="btn btn-active btn-primary w-full"
+                          @click="confirmSelection()">Potvrdit výběr</button>
+                </div>
 
               </div>
 
