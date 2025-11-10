@@ -8418,7 +8418,8 @@ function deliveryPaymentUI() {
                       class="h-full w-full object-cover object-center" loading="lazy">
               </div>
 
-              <button class="btn btn-md btn-circle btn-ghost bg-base-100 absolute right-2 top-2"
+              <button class="btn btn-md btn-circle btn-ghost bg-base-100 z-[120]"
+                      :class="isLg ? 'absolute right-2 top-2' : 'fixed right-4 top-4'"
                       @click="closeDetail()">
                 <i class="fa-solid fa-xmark fa-lg" aria-hidden="true"></i>
               </button>
@@ -8472,7 +8473,7 @@ function deliveryPaymentUI() {
                   </table>
                 </div>
 
-                <div class="sticky bottom-0 bg-white pt-2">
+                <div class="sticky bottom-0 bg-white pt-2 pb-2">
                   <button class="btn btn-active btn-primary w-full"
                           @click="confirmSelection()">Potvrdit výběr</button>
                 </div>
