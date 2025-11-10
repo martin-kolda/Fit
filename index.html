@@ -3172,8 +3172,12 @@
                 </template>
               </ul>
             </template>
-          </div>
-        </div>
+             </div>
+             <div class="px-4 lg:px-8 pb-4 pt-3 border-t border-base-200 bg-white">
+               <button class="btn btn-active btn-primary w-full"
+                       @click="confirmSelection()">Potvrdit výběr</button>
+             </div>
+            </div>
       </div>
     </div>
   </div>
@@ -4470,7 +4474,7 @@
               </template>
               <template x-if="activeFiltersCount() >= 3">
                 <button type="button"
-                        class="btn btn-md rounded-full btn-outline btn-error text-error"
+                        class="btn btn-md rounded-full btn-outline btn-error text-error hover:text-white"
                         @click="clearFilters()">
                   <span class="flex items-center gap-2">
                     <i class="fa-solid fa-rotate-left"></i>
@@ -8411,57 +8415,59 @@ function deliveryPaymentUI() {
             <div x-show="selected"
                  x-data="{ tab: 'overview', currentId: null }"
                  x-effect="if (!selected || currentId !== (selected?.id ?? null)) { tab = 'overview'; currentId = selected?.id ?? null; }"
-                 class="absolute inset-0 md:top-4 md:left-4 md:right-auto md:bottom-auto m-0 md:m-4 w-full md:w-80 lg:w-96 h-full md:h-auto bg-white rounded-none md:rounded-xl border border-transparent md:border-base-300 shadow-none md:shadow-xl z-[110] flex flex-col overflow-y-auto overflow-x-hidden md:overflow-visible">
+                 class="absolute inset-0 md:right-auto md:bottom-auto m-2 w-full md:w-80 lg:w-96 h-full md:h-auto bg-white rounded-none md:rounded-xl shadow-none md:shadow-xl z-[110] flex flex-col overflow-hidden md:max-h-[calc(100vh-4rem)]">
 
-              <div class="h-50 w-full rounded-none md:rounded-t-xl bg-base-200 overflow-hidden mr-2 shrink-0">
-                <img :src="(selected && selected.photo) || placeholderImg" alt=""
-                      class="h-full w-full object-cover object-center" loading="lazy">
-              </div>
-
-              <button class="btn btn-md btn-circle btn-ghost bg-base-100 z-[120]"
-                      :class="isLg ? 'absolute right-2 top-2' : 'fixed right-4 top-4'"
-                      @click="closeDetail()">
-                <i class="fa-solid fa-xmark fa-lg" aria-hidden="true"></i>
-              </button>
-
-             <div class="px-4 py-6 lg:px-8 flex-1">
-              <div>
-                <div class="font-medium text-base" x-text="selected?.name"></div>
-                <div class="text-base opacity-70"
-                     x-text="`${selected?.address?.street} • ${selected?.address?.city}`"></div>
-              </div>
-
-              <div class="mt-4" x-show="selected?.note">
-                <p class="text-sm text-base-content/80" x-text="selected?.note"></p>
-              </div>
-
-              <div class="mt-4 flex overflow-x-auto border-b border-base-200">
-                <button type="button"
-                        class="relative whitespace-nowrap pr-7 pb-3 pt-2 text-base font-semibold transition-colors"
-                        :class="tab === 'overview' ? 'text-secondary' : 'text-base-content hover:text-base-content/90'"
-                        @click="tab = 'overview'">
-                  <span>Přehled</span>
-                  <span class="absolute left-0 right-6 -bottom-[1px] h-1 rounded-full bg-secondary"
-                        x-show="tab === 'overview'"></span>
-                </button>
-                <button type="button"
-                        class="relative whitespace-nowrap pr-7 pb-3 pt-2 text-base font-semibold transition-colors"
-                        :class="tab === 'details' ? 'text-secondary' : 'text-base-content hover:text-base-content/90'"
-                        @click="tab = 'details'">
-                  <span>Podrobnosti</span>
-                  <span class="absolute left-0 right-6 -bottom-[1px] h-1 rounded-full bg-secondary"
-                        x-show="tab === 'details'"></span>
+             <div class="flex-1 overflow-y-auto">
+              <div class="relative">
+                <div class="h-50 w-full rounded-t-lg bg-base-200 overflow-hidden">
+                  <img :src="(selected && selected.photo) || placeholderImg" alt=""
+                       class="h-full w-full object-cover object-center" loading="lazy">
+                </div>
+                <button class="btn btn-md btn-circle btn-ghost bg-base-100 absolute right-3 top-3 z-10 shadow"
+                        @click="closeDetail()">
+                  <i class="fa-solid fa-xmark fa-lg" aria-hidden="true"></i>
                 </button>
               </div>
+              
+              <div class="px-4 pt-2 lg:px-8 flex-1 overflow-y-auto space-y-4 mt-4">
+                <div>
+                  <div class="font-medium text-base" x-text="selected?.name"></div>
+                  <div class="text-base opacity-70"
+                      x-text="`${selected?.address?.street} • ${selected?.address?.city}`"></div>
+                </div>
 
-              <div class="mt-4 space-y-4" x-show="tab === 'overview'" x-transition.opacity>
-                <div class="overflow-y-auto max-h-[55vh] lg:max-h-max">
+                <div x-show="selected?.note">
+                  <p class="text-sm text-base-content/80" x-text="selected?.note"></p>
+                </div>
+
+                <div class="flex overflow-x-auto overflow-y-hidden border-b border-base-200">
+                  <button type="button"
+                          class="relative whitespace-nowrap pr-7 pb-3 pt-2 text-base font-semibold transition-colors"
+                          :class="tab === 'overview' ? 'text-secondary' : 'text-base-content hover:text-base-content/90'"
+                          @click="tab = 'overview'">
+                    <span>Otevírací doba</span>
+                    <span class="absolute left-0 right-6 -bottom-[1px] h-1 rounded-full bg-secondary"
+                          x-show="tab === 'overview'"></span>
+                  </button>
+                  <button type="button"
+                          class="relative whitespace-nowrap pr-7 pb-3 pt-2 text-base font-semibold transition-colors"
+                          :class="tab === 'details' ? 'text-secondary' : 'text-base-content hover:text-base-content/90'"
+                          @click="tab = 'details'">
+                    <span>Podrobnosti</span>
+                    <span class="absolute left-0 right-6 -bottom-[1px] h-1 rounded-full bg-secondary"
+                          x-show="tab === 'details'"></span>
+                  </button>
+                </div>
+              </div>
+
+              <div class="px-4 pb-4 lg:px-8" x-show="tab === 'overview'" x-transition.opacity>
+                <div class="overflow-y-auto max-h-[55vh] lg:max-h-max pr-1">
                   <table class="table table-zebra">
                     <tbody>
                       <template x-if="selected && selected.opening_hours">
                         <template x-for="(val, day) in selected.opening_hours" :key="day">
                           <tr>
-                            <th x-text="dayCZ(day)"></th>
+                            <td x-text="dayCZ(day)"></td>
                             <td x-text="val"></td>
                           </tr>
                         </template>
@@ -8472,16 +8478,16 @@ function deliveryPaymentUI() {
                     </tbody>
                   </table>
                 </div>
-
-                <div class="sticky bottom-0 bg-white pt-2 pb-2">
-                  <button class="btn btn-active btn-primary w-full"
-                          @click="confirmSelection()">Potvrdit výběr</button>
-                </div>
-
               </div>
 
-              <div class="mt-4" x-show="tab === 'details'" x-transition.opacity>
-                <address class="not-italic mb-4" x-show="selected?.phone" x-cloak>
+              <div class="space-y-5 px-4 lg:px-8 pb-4 pt-3 mt-4" x-show="tab === 'details'" x-transition.opacity>
+                <template x-if="selected?.senior_pharmacist">
+                  <div>
+                    <h5 class="text-sm font-semibold text-base-content/80 mb-1">Vedoucí lékárník</h5>
+                    <p class="text-sm text-base-content/80" x-text="selected.senior_pharmacist"></p>
+                  </div>
+                </template>
+                <address class="not-italic" x-show="selected?.phone" x-cloak>
                   <p class="flex flex-wrap items-center gap-y-2 gap-x-6">
                     <a :href="selected?.phone ? `tel:${selected.phone}` : '#'"
                        class="group inline-flex items-center gap-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 rounded">
@@ -8491,17 +8497,44 @@ function deliveryPaymentUI() {
                     </a>
                   </p>
                 </address>
-                <template x-if="selected?.tags && selected.tags.length">
-                  <div class="flex flex-wrap gap-1">
-                    <template x-for="t in selected.tags" :key="t">
-                      <div class="badge badge-soft badge-neutral" x-text="t"></div>
-                    </template>
+
+                <template x-if="selected?.billing">
+                  <div>
+                    <h5 class="text-sm font-semibold text-base-content/80 mb-1">Fakturační údaje lékárny</h5>
+                    <p class="text-sm text-base-content/70 whitespace-pre-line" x-text="selected.billing"></p>
                   </div>
                 </template>
-                <template x-if="!selected?.tags || !selected.tags.length">
-                  <p class="text-sm text-base-content/70">Další informace připravujeme.</p>
+
+                <template x-if="selected?.brands && selected.brands.length">
+                  <div>
+                    <h5 class="text-sm font-semibold text-base-content/80 mb-2">Dostupná dermokosmetika</h5>
+                    <div class="flex flex-wrap gap-2">
+                      <template x-for="brand in selected.brands" :key="brand">
+                        <span class="badge badge-outline" x-text="brand"></span>
+                      </template>
+                    </div>
+                  </div>
                 </template>
+
+                <div>
+                  <h5 class="text-sm font-semibold text-base-content/80 mb-2" x-show="selected?.tags?.length">Služby</h5>
+                  <template x-if="selected?.tags && selected.tags.length">
+                    <div class="flex flex-wrap gap-1">
+                      <template x-for="t in selected.tags" :key="t">
+                        <div class="badge badge-soft badge-neutral" x-text="t"></div>
+                      </template>
+                    </div>
+                  </template>
+                  <template x-if="!selected?.tags || !selected.tags.length">
+                    <p class="text-sm text-base-content/70">Další informace připravujeme.</p>
+                  </template>
+                </div>
               </div>
+            </div>
+
+            <div class="px-4 lg:px-8 pb-4 pt-3 bg-white sticky bottom-0">
+              <button class="btn btn-active btn-primary w-full"
+                      @click="confirmSelection()">Potvrdit výběr</button>
             </div>
             </div>
 
@@ -8541,18 +8574,20 @@ function deliveryPaymentUI() {
         </template>
       </div>
 
-      <button type="button"
-              class="relative flex items-center justify-center w-14 h-14 rounded-full bg-primary text-primary-content shadow-xl transition transform hover:scale-105 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary/60 focus-visible:ring-offset-base-200"
-              aria-label="Filtrovat výdejní místa podle typu"
-              @click="fabOpen = !fabOpen">
-        <i class="fa-solid fa-bars-filter fa-lg"></i>
-        <span class="absolute top-0 right-0" x-show="typeFilter !== defaultType">
-          <span class="relative flex h-4 w-4">
-            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-max-red-500 opacity-75"></span>
-            <span class="relative inline-flex rounded-full h-4 w-4 bg-max-red-500"></span>
+      <div class="tooltip tooltip-left tooltip-open flex" data-tip="Filtruj zde">
+        <button type="button"
+                class="relative flex items-center justify-center w-14 h-14 rounded-full bg-primary text-primary-content shadow-xl transition transform hover:scale-105 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary/60 focus-visible:ring-offset-base-200"
+                aria-label="Filtrovat výdejní místa podle typu"
+                @click="fabOpen = !fabOpen">
+          <i class="fa-solid fa-bars-filter fa-lg"></i>
+          <span class="absolute top-0 right-0" x-show="typeFilter !== defaultType">
+            <span class="relative flex h-4 w-4">
+              <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-max-red-500 opacity-75"></span>
+              <span class="relative inline-flex rounded-full h-4 w-4 bg-max-red-500"></span>
+            </span>
           </span>
-        </span>
-      </button>
+        </button>
+      </div>
     </div>
   </div>
 </section>
@@ -14275,35 +14310,32 @@ loadCheckoutReviewFromStorage() {
   @keydown.escape.window="close()"
   class="modal"
 >
-  <div class="modal-box w-11/12 max-w-3xl bg-base-200 px-4 lg:px-8 py-6 lg:py-10 flex flex-col overflow-hidden">
-    <div class="flex-1 overflow-y-auto">
-      <div class="sticky top-0 z-10 bg-base-200 pt-0 pb-2">
-        <h2 class="text-2xl font-medium text-max-green-500 mb-2 pr-10">
-          <i class="fa-classic fa-md fa-solid fa-check-circle"></i> Přidáno do košíku
-        </h2>
-        <button class="btn btn-md btn-circle btn-ghost absolute right-2 top-2"
-                @click.prevent="close()"
-                aria-label="Zavřít">
-          <i class="fa-solid fa-xmark fa-lg text-max-gray-500" aria-hidden="true"></i>
-        </button>
-      </div>
+  <div class="modal-box w-12/12 max-w-3xl lg:max-h-164 bg-base-200 px-4 lg:px-8 py-6 lg:py-10 flex flex-col overflow-hidden">
+    <div class="flex items-start justify-between gap-4 pb-4">
+      <h2 class="text-2xl font-medium text-max-green-500 flex-1">
+        <i class="fa-classic fa-md fa-solid fa-check-circle"></i> Přidáno do košíku
+      </h2>
+      <button class="btn btn-md btn-circle btn-ghost absolute top-2 right-2"
+              @click.prevent="close()"
+              aria-label="Zavřít">
+        <i class="fa-solid fa-xmark fa-lg text-base-content/70" aria-hidden="true"></i>
+      </button>
+    </div>
 
-      <!-- Context product -->
+    <div class="flex-1 overflow-y-auto overflow-x-hidden space-y-6">
       <template x-if="$store.precart.product">
-        <div x-transition.opacity.duration.200ms class="py-4 w-auto mx-auto items-stretch">
+        <div x-transition.opacity.duration.200ms>
           <article class="h-full" x-data="precartItem($store.precart.product)">
             <div class="card card-side h-full relative px-2 items-center bg-base-100 overflow-visible">
-              <!-- BADGES -->
               <div x-show="product.badges?.length" class="absolute left-2 top-2 z-10 flex flex-col gap-1">
                 <template x-for="(b,i) in (product?.badges || [])" :key="i">
                   <span class="badge badge-error badge-sm font-semibold" x-text="b"></span>
                 </template>
               </div>
 
-              <!-- IMAGE (clickable) -->
               <figure class="w-36 flex items-center justify-center overflow-hidden">
                 <a :href="link('product', { id: product.id })"
-                   @click="close()"
+                   @click.prevent="goDetail(product)"
                    class="block w-full h-full">
                   <img
                     :src="imgSrc"
@@ -14314,18 +14346,15 @@ loadCheckoutReviewFromStorage() {
                 </a>
               </figure>
 
-              <!-- BODY -->
               <div class="card-body min-w-0 flex flex-col">
                 <h3 class="text-xl font-medium">
                   <a :href="link('product', { id: product.id })"
-                     @click="close()"
+                     @click.prevent="goDetail(product)"
                      class="hover:underline focus:outline-none focus:ring-2 focus:ring-primary/50"
                      x-text="product.name"></a>
                 </h3>
 
-                <div class="card-actions mt-0 justify-between items-center">
-
-                  <!-- PRICE with LEGAL TOOLTIP -->
+                <div class="card-actions mt-0 justify-between items-center gap-4 flex-wrap">
                   <div
                     class="tooltip tooltip-right md:tooltip-top cursor-help overflow-visible"
                     x-init="$store.legal.init()"
@@ -14363,7 +14392,6 @@ loadCheckoutReviewFromStorage() {
                     </div>
                   </div>
 
-                  <!-- CTA or STEPPER -->
                   <template x-if="!$store.cart.inCart(product.id)">
                     <button class="btn btn-primary btn-md font-semibold" @click="$store.cart.add(product)">
                       <span x-text="t('routes.products.cart.add', 'Do košíku')"></span>
@@ -14394,115 +14422,110 @@ loadCheckoutReviewFromStorage() {
         </div>
       </template>
 
+      <div>
+        <h4 class="text-sm font-medium pb-3 sticky top-0 block bg-base-200">Ostatní k tomuto produktu kupují</h4>
+        <div class="grid grid-cols-1 gap-2">
+          <ul
+            class="overflow-y-auto overflow-x-hidden w-full flex flex-col space-y-1 pr-1"
+            :id="listId"
+            role="listbox"
+            x-data="{ highlighted: -1, get items(){ return ($store.precart?.recommend?.(8) || []); } }"
+          >
+            <template x-for="(item, i) in items" :key="item.id">
+              <li
+                :id="itemId(i)"
+                class="w-full rounded-xl bg-white px-2 py-4"
+                role="option"
+                @mouseenter="highlighted = i"
+                :class="i===highlighted ? 'bg-white' : 'hover:bg-base-200'"
+              >
+                <div class="flex w-full items-center gap-3 min-h-12">
+                  <a :href="link('product', { id: item.id })"
+                     @click.prevent="goDetail(item)"
+                     class="flex flex-1 items-center gap-3 min-h-12 min-w-0">
+                    <img :src="item.image" alt="" class="w-14 h-14 object-contain rounded" />
 
-     <!--  <div class="py-1 free-ship-bar select-none w-full">
-        <div class="flex items-center justify-between mb-2">
-          <span class="text-sm font-medium">Doprava zdarma</span>
-        </div>
-
-        <div class="relative h-1 rounded-full bg-base-300 overflow-hidden"
-             role="progressbar"
-             :aria-valuemin="0" :aria-valuemax="100"
-             :aria-valuenow="$store.cart.freeShipProgress()">
-          <div class="fill h-full rounded-full transition-[width] duration-500"
-               :class="{
-                 'bg-success' : $store.cart.hasFreeShipping(),
-                 'bg-primary/80 shimmer' : !$store.cart.hasFreeShipping()
-               }"
-               :style="`width: ${$store.cart.freeShipProgress()}%`">
-          </div>
-        </div>
-      </div>-->
-
-      <!-- Upsell -->
-      <h4 class="text-sm font-medium my-4">Ostatní k tomuto produktu kupují</h4>
-
-      <div class="grid grid-cols-1 gap-2">
-        <ul
-          class="max-h-40 lg:max-h-80 overflow-y-auto w-full flex flex-col space-y-1"
-          :id="listId"
-          role="listbox"
-          x-data="{ highlighted: -1, get items(){ return ($store.precart?.recommend?.(8) || []); } }"     
-        >
-          <template x-for="(item, i) in items" :key="item.id">
-            <li
-              :id="itemId(i)"
-              class="w-full rounded-xl bg-white px-2 py-4"
-              role="option"
-              @mouseenter="highlighted = i"
-              :class="i===highlighted ? 'bg-white' : 'hover:bg-base-200'"
-            >
-            <div class="flex w-full items-center gap-3 min-h-12">
-              <a :href="link('product', { id: item.id })"
-                 @click.prevent="goDetail(item)"
-                 class="flex flex-1 items-center gap-3 min-h-12 min-w-0">
-                <img :src="item.image" alt="" class="w-14 h-14 object-contain rounded" />
-
-                <div class="min-w-0 flex-1">
-                  <div class="text-base font-medium truncate" x-text="item.name"></div>
-                  <div class="text-sm font-medium text-base-content/60 truncate max-w-5/6" x-text="item.description"></div>
-                  <div class="text-xs font-medium text-base-content/40 mt-1 text-[9px]">Sponzorováno</div>
-                </div>
-
-                <!-- price block (desktop only) -->
-                <div class="hidden md:flex">
-                  <div
-                    class="tooltip tooltip-left cursor-help"
-                    x-init="$store.legal.init()"
-                    @click.prevent.stop
-                    x-data="{
-                      get paras(){
-                        const hasDisc = !!(item.discounted_price && item.discounted_price < item.price);
-                        const original = item.price;
-                        const discounted = hasDisc ? item.discounted_price : null;
-                        return $store.legal.paragraphsFor({ price: original, discounted_price: discounted });
-                      }
-                    }"
-                  >
-                    <div class="tooltip-content lg:p-3">
-                      <template x-for="(p, idx) in paras" :key="idx">
-                        <p :class="idx > 0 ? 'mt-1 border-t-1 border-base-300/20 pt-1' : ''" x-text="p"></p>
-                      </template>
+                    <div class="min-w-0 flex-1">
+                      <div class="text-base font-medium" x-text="item.name"></div>
+                      <div class="text-sm font-medium text-base-content/60 truncate" x-text="item.description"></div>
+                      <div class="text-xs font-medium text-base-content/40 mt-1 text-[9px]">Sponzorováno</div>
                     </div>
-                    <div class="flex flex-col leading-tight">
-                      <span
-                        x-show="item.discounted_price && item.discounted_price < item.price"
-                        class="font-bold text-lg text-error underline decoration-dotted underline-offset-4 decoration-max-gray-400"
-                        x-text="koruny(item.discounted_price)"
-                      ></span>
-                      <span
-                        x-show="item.discounted_price && item.discounted_price < item.price"
-                        class="text-sm line-through text-base-content/60 -mt-0.5"
-                        x-text="koruny(item.price)"
-                      ></span>
-                      <span
-                        x-show="!item.discounted_price || !(item.discounted_price < item.price)"
-                        class="font-medium text-base underline decoration-dotted underline-offset-4 decoration-max-gray-400"
-                        x-text="koruny(item.price)"
-                      ></span>
+
+                    <div class="hidden md:flex">
+                      <div
+                        class="tooltip tooltip-left cursor-help overflow-visible"
+                        x-data="{
+                          get paras(){
+                            const hasDisc = !!(item.discounted_price && item.discounted_price < item.price);
+                            const original = hasDisc ? item.price : item.price;
+                            const discounted = hasDisc ? item.discounted_price : null;
+                            return $store.legal.paragraphsFor({ price: original, discounted_price: discounted });
+                          }
+                        }"
+                      >
+                        <div class="tooltip-content lg:p-3 max-w-64 md:max-w-auto">
+                          <template x-for="(p, idx) in paras" :key="idx">
+                            <p :class="idx > 0 ? 'mt-1 border-t-1 border-base-300/20 pt-1' : ''" x-text="p"></p>
+                          </template>
+                        </div>
+
+                        <div class="flex flex-col leading-tight">
+                          <span
+                            x-show="item.discounted_price && item.discounted_price < item.price"
+                            class="font-bold text-lg text-error underline decoration-dotted underline-offset-4 decoration-max-gray-400"
+                            x-text="koruny(item.discounted_price)"
+                          ></span>
+                          <span
+                            x-show="item.discounted_price && item.discounted_price < item.price"
+                            class="text-sm line-through text-base-content/60 -mt-0.5"
+                            x-text="koruny(item.price)"
+                          ></span>
+                          <span
+                            x-show="!item.discounted_price || !(item.discounted_price < item.price)"
+                            class="font-medium text-base underline decoration-dotted underline-offset-4 decoration-max-gray-400"
+                            x-text="koruny(item.price)"
+                          ></span>
+                        </div>
+                      </div>
                     </div>
-                  </div>
+
+                    <div class="flex md:hidden">
+                      <div class="flex flex-col leading-tight">
+                        <span
+                          x-show="item.discounted_price && item.discounted_price < item.price"
+                          class="font-bold text-base text-error underline decoration-dotted underline-offset-4 decoration-max-gray-400"
+                          x-text="koruny(item.discounted_price)"
+                        ></span>
+                        <span
+                          x-show="item.discounted_price && item.discounted_price < item.price"
+                          class="text-xs line-through text-base-content/60 -mt-0.5"
+                          x-text="koruny(item.price)"
+                        ></span>
+                        <span
+                          x-show="!item.discounted_price || !(item.discounted_price < item.price)"
+                          class="font-medium text-base underline decoration-dotted underline-offset-4 decoration-max-gray-400"
+                          x-text="koruny(item.price)"
+                        ></span>
+                      </div>
+                    </div>
+                  </a>
+
+                  <button
+                    type="button"
+                    class="hidden md:block btn btn-sm shrink-0 w-16"
+                    :class="$store.precart.isQuickAdded(item.id) ? 'btn-ghost btn-disabled text-max-green-500' : ''"
+                    @click.prevent.stop="quickAdd(item)"
+                    x-text="$store.precart.isQuickAdded(item.id) ? 'Přidáno' : 'Přidat'">
+                  </button>
                 </div>
-              </a>
-
-              <!-- Quick add -->
-              <button
-                type="button"
-                class="hidden md:block btn btn-sm shrink-0 w-16"
-                :class="$store.precart.isQuickAdded(item.id) ? 'btn-ghost btn-disabled text-max-green-500' : ''"
-                @click.prevent.stop="quickAdd(item)"
-                x-text="$store.precart.isQuickAdded(item.id) ? 'Přidáno' : 'Přidat'">
-              </button>
-            </div>
-          </li>
-          </template>
-
-        </ul>
+              </li>
+            </template>
+          </ul>
+        </div>
       </div>
     </div>
 
-    <!-- Footer actions -->
-    <div class="sticky bottom-0 z-10 bg-base-200 pt-4">
+    <div class="mt-1">
       <div class="modal-action w-full flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
         <button type="button" class="btn btn-outline btn-block sm:w-auto" @click="close()">
           Pokračovat v nákupu
@@ -14516,6 +14539,7 @@ loadCheckoutReviewFromStorage() {
     </div>
   </div>
 </dialog>
+
 
   
 <script>
