@@ -3271,7 +3271,7 @@
   </div>
 
   <!-- TOP-BAR BUTTONS + CART (mobile + desktop) -->
-  <div class="flex gap-2 flex-none">
+  <div class="flex gap-2 flex-none overflow-x-hidden md:overflow-visible pr-1">
     <button class="btn btn-primary w-12 h-12 btn-lg btn-square max-gradient-gray hidden md:block"
     aria-label="Otevřít aktivní objednávku" title="Aktivní objednávka"
     :aria-label="t('header.actions.activeOrder.aria', 'Otevřít aktivní objednávku')"
@@ -3327,7 +3327,7 @@
     </div>
 
     <button
-    class="btn btn-primary btn-squish w-12 h-12 btn-lg btn-square indicator overflow-hidden md:overflow-visible"
+    class="btn btn-primary btn-squish w-12 h-12 btn-lg btn-square indicator"
     :class="maxGradientClass()"
     aria-label="Otevřít košík" title="Košík"
     :aria-label="t('header.actions.cart.aria', 'Otevřít košík')"
@@ -8298,7 +8298,7 @@ function deliveryPaymentUI() {
              defaultZoom: Number(Alpine.store('i18n')?.resolveConfig('map.zoom') || 12)
            })"
            x-init="init()"
-           class="fixed inset-0 z-[80] flex flex-col bg-base-200/95 backdrop-blur-sm"
+           class="fixed inset-0 z-[80] flex flex-col bg-base-200/95 backdrop-blur-sm overflow-x-hidden"
            @keydown.escape.window="closeModal()"
            @click.self="closeModal()">
     <button type="button"
@@ -8340,7 +8340,7 @@ function deliveryPaymentUI() {
               </label>
             </div>
 
-            <div class="flex-1 min-h-0 overflow-y-auto space-y-3 pr-1">
+            <div class="flex-1 min-h-0 overflow-y-auto overflow-x-hidden space-y-3 pr-1">
               <!-- “Městská část” (simple chips) -->
               <div class="items-center mt-1 gap-2 flex flex-wrap">
 
@@ -8368,7 +8368,7 @@ function deliveryPaymentUI() {
                  x-text="`Zobrazuji ${filtered.length} z ${all.length}`"></p>
 
               <!-- List -->
-              <div class="overflow-y-auto pe-1">
+              <div class="overflow-y-auto overflow-x-hidden pe-1">
                 <table class="table w-full">
                   <tbody>
                     <template x-for="p in filtered" :key="p.id">
@@ -8411,14 +8411,14 @@ function deliveryPaymentUI() {
             <div x-show="selected"
                  x-data="{ tab: 'overview', currentId: null }"
                  x-effect="if (!selected || currentId !== (selected?.id ?? null)) { tab = 'overview'; currentId = selected?.id ?? null; }"
-                 class="absolute inset-0 md:top-4 md:left-4 md:right-auto md:bottom-auto m-0 md:m-4 w-full md:w-80 lg:w-96 h-full md:h-auto bg-white rounded-none md:rounded-xl border border-transparent md:border-base-300 shadow-none md:shadow-xl z-[110] flex flex-col overflow-y-auto md:overflow-visible">
+                 class="absolute inset-0 md:top-4 md:left-4 md:right-auto md:bottom-auto m-0 md:m-4 w-full md:w-80 lg:w-96 h-full md:h-auto bg-white rounded-none md:rounded-xl border border-transparent md:border-base-300 shadow-none md:shadow-xl z-[110] flex flex-col overflow-y-auto overflow-x-hidden md:overflow-visible">
 
               <div class="h-50 w-full rounded-none md:rounded-t-xl bg-base-200 overflow-hidden mr-2 shrink-0">
                 <img :src="(selected && selected.photo) || placeholderImg" alt=""
                       class="h-full w-full object-cover object-center" loading="lazy">
               </div>
 
-              <button class="btn btn-md btn-circle btn-ghost bg-base-100 absolute right-2 top-2"
+              <button class="btn btn-md btn-circle btn-ghost bg-base-100 absolute right-2 top-2 md:static md:self-start md:mt-2 md:mr-2 sticky top-2"
                       @click="closeDetail()">
                 <i class="fa-solid fa-xmark fa-lg" aria-hidden="true"></i>
               </button>
@@ -8428,6 +8428,10 @@ function deliveryPaymentUI() {
                 <div class="font-medium text-base" x-text="selected?.name"></div>
                 <div class="text-base opacity-70"
                      x-text="`${selected?.address?.street} • ${selected?.address?.city}`"></div>
+              </div>
+
+              <div class="mt-4" x-show="selected?.note">
+                <p class="text-sm text-base-content/80" x-text="selected?.note"></p>
               </div>
 
               <div class="mt-4 flex overflow-x-auto border-b border-base-200">
@@ -8470,8 +8474,6 @@ function deliveryPaymentUI() {
 
                 <button class="btn btn-active btn-primary w-full"
                         @click="confirmSelection()">Potvrdit výběr</button>
-
-                <p class="text-sm" x-text="selected?.note" x-show="selected?.note"></p>
 
               </div>
 
