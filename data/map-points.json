@@ -13,7 +13,10 @@
       "Mon": "08:00–20:00", "Tue": "08:00–20:00", "Wed": "08:00–20:00", "Thu": "08:00–20:00", "Fri": "08:00–20:00", "Sat": "09:00–18:00", "Sun": "10:00–17:00"
     },
     "tags": ["Dermoporadenství", "Analýza vlasů", "Bezbariérový přístup"],
-    "note": "U hlavního vchodu OC"
+    "note": "U hlavního vchodu OC",
+    "billing": "PHARMAVIT spol. s r.o., Aupark, Einsteinova 18, 160 00, Praha 6, IČO: 31321160, DIČ: 2020350189 / SK7120000195",
+    "brands": ["Aderma", "Apivita", "Avene", "Bioderma", "La Roche-Posay", "Nuance", "Klorane", "Eucerin", "Ducray", "Dr. Max", "Skinexpert" ,"Vichy"],
+    "senior_pharmacist": "PharmDr. Jana Nováková"
   },
   {
     "id": 2,
@@ -29,7 +32,10 @@
       "Mon": "08:00–20:00", "Tue": "08:00–20:00", "Wed": "08:00–20:00", "Thu": "08:00–20:00", "Fri": "08:00–20:00", "Sat": "09:00–18:00", "Sun": "10:00–17:00"
     },
     "tags": ["Dermoporadenství", "Analýza vlasů", "Bezbariérový přístup"],
-    "note": "Roh Legerovy a Rumunské"
+    "note": "Roh Legerovy a Rumunské",
+    "billing": "PHARMAVIT spol. s r.o., Aupark, Einsteinova 18, 160 00, Praha 6, IČO: 31321160, DIČ: 2020350189 / SK7120000195",
+    "brands": ["Aderma", "Apivita", "Avene", "Bioderma", "La Roche-Posay", "Nuance", "Klorane", "Eucerin", "Ducray", "Dr. Max", "Skinexpert" ,"Vichy"],
+    "senior_pharmacist": "PharmDr. Jana Nováková"
   },
   {
     "id": 3,
@@ -45,7 +51,10 @@
       "Mon": "08:00–20:00", "Tue": "08:00–20:00", "Wed": "08:00–20:00", "Thu": "08:00–20:00", "Fri": "08:00–20:00", "Sat": "09:00–18:00", "Sun": "10:00–17:00"
     },
     "tags": ["Homeopatika", "Měření tlaku krve", "Bezbariérový přístup"],
-    "note": ""
+    "note": "",
+    "billing": "PHARMAVIT spol. s r.o., Aupark, Einsteinova 18, 160 00, Praha 6, IČO: 31321160, DIČ: 2020350189 / SK7120000195",
+    "brands": ["Aderma", "Apivita", "Avene", "Bioderma", "La Roche-Posay", "Nuance", "Klorane", "Eucerin", "Ducray", "Dr. Max", "Skinexpert" ,"Vichy"],
+    "senior_pharmacist": "PharmDr. Jana Nováková"
   },
   {
     "id": 4,
@@ -61,7 +70,10 @@
       "Mon": "08:00–20:00", "Tue": "08:00–20:00", "Wed": "08:00–20:00", "Thu": "08:00–20:00", "Fri": "08:00–20:00", "Sat": "09:00–18:00", "Sun": "10:00–17:00"
     },
     "tags": ["Homeopatika", "Měření tlaku krve", "Dermoporadenství"],
-    "note": "Naproti OD MY"
+    "note": "Naproti OD MY",
+    "billing": "PHARMAVIT spol. s r.o., Aupark, Einsteinova 18, 160 00, Praha 6, IČO: 31321160, DIČ: 2020350189 / SK7120000195",
+    "brands": ["Aderma", "Apivita", "Avene", "Bioderma", "La Roche-Posay", "Nuance", "Klorane", "Eucerin", "Ducray", "Dr. Max", "Skinexpert" ,"Vichy"],
+    "senior_pharmacist": "PharmDr. Jana Nováková"
   },
   {
     "id": 5,
@@ -77,7 +89,10 @@
       "Mon": "08:00–20:00", "Tue": "08:00–20:00", "Wed": "08:00–20:00", "Thu": "08:00–20:00", "Fri": "08:00–20:00", "Sat": "09:00–18:00", "Sun": "10:00–17:00"
     },
     "tags": ["Analýza vlasů", "Měření tlaku krve", "Dermoporadenství"],
-    "note": "UPOZORNĚNÍ: Internetové objednávky z e-shopu je možné vyzvednout v lékárně Dr.Max v suterénu v pracovní dny pouze v době od 10:00 - 18:00 hodin."
+    "note": "UPOZORNĚNÍ: Internetové objednávky z e-shopu je možné vyzvednout v lékárně Dr.Max v suterénu v pracovní dny pouze v době od 10:00 - 18:00 hodin.",
+    "billing": "PHARMAVIT spol. s r.o., Aupark, Einsteinova 18, 160 00, Praha 6, IČO: 31321160, DIČ: 2020350189 / SK7120000195",
+    "brands": ["Aderma", "Apivita", "Avene", "Bioderma", "La Roche-Posay", "Nuance", "Klorane", "Eucerin", "Ducray", "Dr. Max", "Skinexpert" ,"Vichy"],
+    "senior_pharmacist": "PharmDr. Jana Nováková"
   },
   {
     "id": 6,
@@ -93,7 +108,10 @@
       "Mon": "08:00–20:00", "Tue": "08:00–20:00", "Wed": "08:00–20:00", "Thu": "08:00–20:00", "Fri": "08:00–20:00", "Sat": "09:00–18:00", "Sun": "10:00–17:00"
     },
     "tags": ["Parkování", "Měření tlaku krve", "Dermoporadenství"],
-    "note": ""
+    "note": "",
+    "billing": "PHARMAVIT spol. s r.o., Aupark, Einsteinova 18, 160 00, Praha 6, IČO: 31321160, DIČ: 2020350189 / SK7120000195",
+    "brands": ["Aderma", "Apivita", "Avene", "Bioderma", "La Roche-Posay", "Nuance", "Klorane", "Eucerin", "Ducray", "Dr. Max", "Skinexpert" ,"Vichy"],
+    "senior_pharmacist": "PharmDr. Jana Nováková"
   },
   {
     "id": 7,
@@ -109,7 +127,10 @@
       "Mon": "08:00–20:00", "Tue": "08:00–20:00", "Wed": "08:00–20:00", "Thu": "08:00–20:00", "Fri": "08:00–20:00", "Sat": "09:00–18:00", "Sun": "10:00–17:00"
     },
     "tags": ["Parkování", "Měření tlaku krve", "Dermoporadenství", "Bezbariérový přístup"],
-    "note": "Naproti OD Bílá Labuť"
+    "note": "Naproti OD Bílá Labuť",
+    "billing": "PHARMAVIT spol. s r.o., Aupark, Einsteinova 18, 160 00, Praha 6, IČO: 31321160, DIČ: 2020350189 / SK7120000195",
+    "brands": ["Aderma", "Apivita", "Avene", "Bioderma", "La Roche-Posay", "Nuance", "Klorane", "Eucerin", "Ducray", "Dr. Max", "Skinexpert" ,"Vichy"],
+    "senior_pharmacist": "PharmDr. Jana Nováková"
   },
   {
     "id": 8,
@@ -157,7 +178,10 @@
       "Mon": "08:00–20:00", "Tue": "08:00–20:00", "Wed": "08:00–20:00", "Thu": "08:00–20:00", "Fri": "08:00–20:00", "Sat": "09:00–18:00", "Sun": "10:00–17:00"
     },
     "tags": ["Homeopatika", "Měření tlaku krve", "Bezbariérový přístup"],
-    "note": ""
+    "note": "",
+    "billing": "PHARMAVIT spol. s r.o., Aupark, Einsteinova 18, 160 00, Praha 6, IČO: 31321160, DIČ: 2020350189 / SK7120000195",
+    "brands": ["Aderma", "Apivita", "Avene", "Bioderma", "La Roche-Posay", "Nuance", "Klorane", "Eucerin", "Ducray", "Dr. Max", "Skinexpert" ,"Vichy"],
+    "senior_pharmacist": "PharmDr. Jana Nováková"
   },
   {
     "id": 11,
@@ -173,6 +197,9 @@
       "Mon": "06:00–23:00", "Tue": "06:00–23:00", "Wed": "06:00–23:00", "Thu": "06:00–23:00", "Fri": "06:00–23:00", "Sat": "09:00–18:00", "Sun": "10:00–17:00"
     },
     "tags": ["Zásilka do 15 kg", "Výdejní i podací místo", "Z-BOX má klávesnici"],
-    "note": "Nachází v prodejně potravin Žabka"
+    "note": "Nachází v prodejně potravin Žabka",
+    "billing": "PHARMAVIT spol. s r.o., Aupark, Einsteinova 18, 160 00, Praha 6, IČO: 31321160, DIČ: 2020350189 / SK7120000195",
+    "brands": ["Aderma", "Apivita", "Avene", "Bioderma", "La Roche-Posay", "Nuance", "Klorane", "Eucerin", "Ducray", "Dr. Max", "Skinexpert" ,"Vichy"],
+    "senior_pharmacist": "PharmDr. Jana Nováková"
   }
 ]

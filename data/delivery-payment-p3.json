@@ -1,0 +1,38 @@
+[
+    {
+        "id": 1,
+        "name": "Doručení od dodavatele",
+        "tooltip": null,
+        "type": "delivery",
+        "price_from": false,
+        "price": 0,
+        "icon": "./images/payment-delivery/partner-delivery.png",
+        "description": "",
+        "followup": null
+    },
+    {
+        "id": 2,
+        "name": "Zásilkovna",
+        "tooltip": null,
+        "type": "pickup",
+        "price_from": false,
+        "price": 59,
+        "icon": "./images/payment-delivery/zasilkovna.png",
+        "description": "",
+        "followup": "map",
+        "map_type": "z-box"
+    },
+
+    {
+        "id": 3,
+        "name": "Kartou online",
+        "tooltip": null,
+        "type": "payment",
+        "price_from": false,
+        "price": 0,
+        "icon": "./images/payment-delivery/card-online.png",
+        "description": "",
+        "disables_id": [],
+        "followup": null
+    }
+]

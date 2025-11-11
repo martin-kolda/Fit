@@ -3173,10 +3173,6 @@
               </ul>
             </template>
              </div>
-             <div class="px-4 lg:px-8 pb-4 pt-3 border-t border-base-200 bg-white">
-               <button class="btn btn-active btn-primary w-full"
-                       @click="confirmSelection()">Potvrdit výběr</button>
-             </div>
             </div>
       </div>
     </div>
@@ -3354,6 +3350,7 @@
     </template>
   </button>
   </div>
+
 </div>
 
 <!-- MOBILE TOPBAR SEARCH (trigger only) -->
@@ -3990,12 +3987,12 @@
         <div class="flex flex-wrap gap-2">
           <button type="button"
                   class="btn btn-md rounded-full transition-colors"
-                  :class="onlyInStock ? 'btn-secondary text-white' : 'btn-outline btn-secondary'"
-                  :aria-pressed="onlyInStock"
-                  @click="onlyInStock = !onlyInStock">
+                  :class="isStockFiltered() ? 'btn-secondary text-white' : 'btn-outline btn-secondary'"
+                  :aria-pressed="isStockFiltered()"
+                  @click="toggleStockQuickFilter()">
             <span class="flex items-center gap-2">
               <span x-text="t('routes.products.quickFilters.inStock', 'Pouze skladem')"></span>
-              <i class="fa-solid fa-xmark text-xs" x-show="onlyInStock" x-cloak></i>
+              <i class="fa-solid fa-xmark text-xs" x-show="isStockFiltered()" x-cloak></i>
             </span>
           </button>
           <button type="button"
@@ -4018,6 +4015,16 @@
               <i class="fa-solid fa-xmark text-xs" x-show="onlyDiscounted" x-cloak></i>
             </span>
           </button>
+          <template x-if="isStockFiltered()">
+            <button type="button"
+                    class="btn btn-md rounded-full transition-colors btn-secondary text-white"
+                    @click="stockFilter = 'all'">
+              <span class="flex items-center gap-2">
+                <span x-text="stockFilterLabel()"></span>
+                <i class="fa-solid fa-xmark text-xs"></i>
+              </span>
+            </button>
+          </template>
           <template x-if="selectedCategory">
             <button type="button"
                     class="btn btn-md rounded-full transition-colors btn-secondary text-white"
@@ -4153,6 +4160,23 @@
               <i class="fa-solid fa-chevron-down ml-1 transition-transform"
                  :class="showAllForms ? 'rotate-180' : ''"></i>
             </button>
+          </div>
+        </div>
+
+        <div class="space-y-3">
+          <h3 class="font-semibold text-base"
+              x-text="t('routes.products.filters.sections.stock.title', 'Skladem')"></h3>
+          <div class="space-y-2">
+            <template x-for="opt in stockFilterOptions()" :key="'stock-'+opt.value">
+              <label class="label cursor-pointer justify-start gap-2 text-max-gray-800 w-full touch-target-md">
+                <input type="radio"
+                       name="stock-filter"
+                       class="radio radio-sm radio-secondary"
+                       :value="opt.value"
+                       x-model="stockFilter">
+                <span x-text="opt.label"></span>
+              </label>
+            </template>
           </div>
         </div>
 
@@ -4404,12 +4428,12 @@
             <div class="hidden lg:flex flex-wrap items-center gap-2">
               <button type="button"
                       class="btn btn-md rounded-full transition-colors"
-                      :class="onlyInStock ? 'btn-secondary text-white' : 'btn-outline btn-secondary'"
-                      :aria-pressed="onlyInStock"
-                      @click="onlyInStock = !onlyInStock">
+                      :class="isStockFiltered() ? 'btn-secondary text-white' : 'btn-outline btn-secondary'"
+                      :aria-pressed="isStockFiltered()"
+                      @click="toggleStockQuickFilter()">
                 <span class="flex items-center gap-2">
                   <span x-text="t('routes.products.quickFilters.inStock', 'Pouze skladem')"></span>
-                  <i class="fa-solid fa-xmark text-xs" x-show="onlyInStock" x-cloak></i>
+                  <i class="fa-solid fa-xmark text-xs" x-show="isStockFiltered()" x-cloak></i>
                 </span>
               </button>
               <button type="button"
@@ -4432,6 +4456,16 @@
                   <i class="fa-solid fa-xmark text-xs" x-show="onlyDiscounted" x-cloak></i>
                 </span>
               </button>
+              <template x-if="isStockFiltered()">
+                <button type="button"
+                        class="btn btn-md rounded-full transition-colors btn-secondary text-white"
+                        @click="stockFilter = 'all'">
+                  <span class="flex items-center gap-2">
+                    <span x-text="stockFilterLabel()"></span>
+                    <i class="fa-solid fa-xmark text-xs"></i>
+                  </span>
+                </button>
+              </template>
               <template x-if="selectedCategory">
                 <button type="button"
                         class="btn btn-md rounded-full transition-colors btn-secondary text-white"
@@ -4764,8 +4798,8 @@
       <!-- BREADCRUMBS -->
 
     <div
-      x-data="productDetail({ fetchUrl: `data/product-details/${params.id}.json` })"
-      x-effect="load(`data/product-details/${params.id}.json`)"
+      x-data="productDetail({ id: params.id, fetchUrl: `data/product-details/${params.id}.json` })"
+      x-effect="id = params.id; load(`data/product-details/${params.id}.json`)"
       class="mx-auto w-auto md:w-11/12 lg:w-8/12 p-4 py-6"
     >
     <div class="breadcrumbs hidden md:block text-sm mx-auto py-4">
@@ -4920,28 +4954,30 @@
   
             <div class="pt-2">
               <!-- ADD / STEPPER -->
-              <template x-if="!$store.cart.inCart(product.id)">
-                <button class="btn btn-primary btn-lg font-medium" @click="$store.cart.add(product)">
+              <template x-if="!$store.cart.inCart(cartItemId())">
+                <button class="btn btn-primary btn-lg font-medium"
+                        :disabled="!cartItemId()"
+                        @click="addCurrentToCart()">
                   <span x-text="t('routes.products.cart.add', 'Do košíku')"></span>
                 </button>
               </template>
 
-              <template x-if="$store.cart.inCart(product.id)">
-                <div class="flex items-center gap-4" x-data="qtyBlinker(product.id)">
+              <template x-if="$store.cart.inCart(cartItemId())">
+                <div class="flex items-center gap-4" x-data="qtyBlinker(cartItemId())">
                   <div class="join">
                     <button class="btn btn-square btn-lg join-item"
-                            @click="$store.cart.decrement(product.id)"
+                            @click="$store.cart.decrement(cartItemId())"
                             :aria-label="t('routes.products.cart.decrementAria', 'Odebrat kus')">−</button>
 
                     <input type="text" inputmode="numeric" pattern="[0-9]*"
                           class="input input-bordered input-lg w-12 text-center join-item"
-                          :value="$store.cart.qty(product.id)"
-                          @input="$store.cart.setQty(product.id, $event.target.value)"
+                          :value="$store.cart.qty(cartItemId())"
+                          @input="$store.cart.setQty(cartItemId(), $event.target.value)"
                           @keydown.enter.prevent
                           :aria-label="t('routes.products.cart.quantityAria', 'Počet kusů')" />
 
                     <button class="btn btn-square btn-lg join-item"
-                            @click="$store.cart.increment(product.id)"
+                            @click="$store.cart.increment(cartItemId())"
                             :aria-label="t('routes.products.cart.incrementAria', 'Přidat kus')">+</button>
                   </div>
 
@@ -5344,28 +5380,30 @@
           <!-- CTA -->
           <div class="pt-2">
             <!-- ADD / STEPPER -->
-            <template x-if="!$store.cart.inCart(product.id)">
-                  <button class="btn btn-primary btn-md font-medium" @click="$store.cart.add(product)">
+            <template x-if="!$store.cart.inCart(cartItemId())">
+                  <button class="btn btn-primary btn-md font-medium"
+                          :disabled="!cartItemId()"
+                          @click="addCurrentToCart()">
                     <span x-text="t('routes.products.cart.add', 'Do košíku')"></span>
                   </button>
             </template>
 
-            <template x-if="$store.cart.inCart(product.id)">
-              <div class="flex items-center gap-4" x-data="qtyBlinker(product.id)">
+            <template x-if="$store.cart.inCart(cartItemId())">
+              <div class="flex items-center gap-4" x-data="qtyBlinker(cartItemId())">
                 <div class="join">
                     <button class="btn btn-square btn-md join-item"
-                            @click="$store.cart.decrement(product.id)"
+                            @click="$store.cart.decrement(cartItemId())"
                             :aria-label="t('routes.products.cart.decrementAria', 'Odebrat kus')">−</button>
 
                   <input type="text" inputmode="numeric" pattern="[0-9]*"
                         class="input input-bordered input-md w-12 text-center join-item"
-                        :value="$store.cart.qty(product.id)"
-                        @input="$store.cart.setQty(product.id, $event.target.value)"
+                        :value="$store.cart.qty(cartItemId())"
+                        @input="$store.cart.setQty(cartItemId(), $event.target.value)"
                           @keydown.enter.prevent
                           :aria-label="t('routes.products.cart.quantityAria', 'Počet kusů')" />
 
                   <button class="btn btn-square btn-md join-item"
-                            @click="$store.cart.increment(product.id)"
+                            @click="$store.cart.increment(cartItemId())"
                             :aria-label="t('routes.products.cart.incrementAria', 'Přidat kus')">+</button>
                 </div>
 
@@ -5928,7 +5966,7 @@
         </div>
       </div>
 
-      <section class="mt-10" x-cloak x-show="topProductsShuffledFor('cartUpsell', 12).length">
+<section class="mt-10" x-cloak x-show="topProductsShuffledFor('cartUpsell', 12).length">
         <div class="flex items-center justify-between mb-3">
           <h3 class="text-lg font-semibold">Nezapomněli jste náhodou na něco?</h3>
         </div>
@@ -5952,7 +5990,7 @@
           <div class="overflow-x-auto scrollbar-thin"
                x-init="registerTopStrip($el, 'cartUpsell')">
             <div class="flex gap-3 snap-x snap-mandatory px-0 pb-5">
-              <template x-for="(p, idx) in topProductsShuffledFor('cartUpsell', 12)" :key="'cart-upsell-' + (p?.id ?? idx)">
+              <template x-for="(p, idx) in topProductsShuffledFor('cartUpsell', 12)" :key="p?.id ? `cart-upsell-${p.id}` : `cart-upsell-idx-${idx}`">
                 <article class="snap-start shrink-0 w-48 sm:w-56 card bg-white hover:shadow-md transition relative">
                   <span x-show="discountPct(p) !== null"
                         class="absolute left-2 top-2 badge badge-error text-white font-semibold">
@@ -6108,7 +6146,7 @@
 
     <section x-data="" class="w-auto md:w-11/12 xl:w-8/12 mx-auto px-4 pt-2 md:pt-12 pb-32">
 <!-- DELIVERY/PAYMENT: Cart Avatars (from localStorage 'cart.v1') -->
-<div x-data="cartAvatars({ key: 'cart.v1', max: 4 })" x-init="init()" class="flex items-center gap-4 pb-4">
+<div x-data="cartAvatars({ key: 'cart.v1', max: 4, group: 'ours' })" x-init="init()" class="flex items-center gap-4 pb-4">
   <h1 class="text-3xl">Nákup</h1>
 
   <!-- Only render the group after items are ready -->
@@ -6129,8 +6167,8 @@
       </template>
 
       <div class="avatar avatar-placeholder" x-show="overflow() > 0">
-        <div class="bg-neutral text-neutral-content w-12">
-          <span x-text="'+' + overflow()"></span>
+        <div class="w-14 xl:w-18 h-14 xl:h-18 rounded-full bg-neutral text-neutral-content flex items-center justify-center">
+          <span class="text-sm font-semibold" x-text="'+' + overflow()"></span>
         </div>
       </div>
     </div>
@@ -6143,6 +6181,7 @@ document.addEventListener('alpine:init', () => {
     items: [],
     key: opts.key ?? 'cart.v1',
     max: opts.max ?? 4,
+    group: opts.group ?? 'all',
 
     _bc: null,
     _onCartChange: null,
@@ -6173,16 +6212,6 @@ document.addEventListener('alpine:init', () => {
       } catch(_) { this._bc = null; }
     },
 
-    // Prefer live Alpine store (instant same-tab)
-    refreshFromStore() {
-      const storeItems = this.$store?.cart?.items;
-      if (storeItems && typeof storeItems === 'object') {
-        this.items = this.normalizeFromObject(storeItems);
-        return true;
-      }
-      return false;
-    },
-
     refresh() {
       if (this.refreshFromStore()) return; // same-tab path
 
@@ -6195,15 +6224,81 @@ document.addEventListener('alpine:init', () => {
       } catch { this.items = []; }
     },
 
+    // Prefer live Alpine store (instant same-tab)
+    refreshFromStore() {
+      const list = this.listFromStore();
+      if (list && list.length) {
+        this.items = this.normalizeListEntries(list);
+        return true;
+      }
+      const storeItems = this.$store?.cart?.items;
+      if (storeItems && typeof storeItems === 'object') {
+        this.items = this.normalizeFromObject(storeItems);
+        return true;
+      }
+      return false;
+    },
+
+    listFromStore() {
+      const store = Alpine.store('cart');
+      if (!store) return null;
+      if (typeof store.groupedItems === 'function') {
+        const groups = store.groupedItems();
+        if (this.group === 'partner') return groups.partner || [];
+        if (this.group === 'ours') return groups.ours || [];
+        return [...(groups.ours || []), ...(groups.partner || [])];
+      }
+      if (typeof store.list === 'function') {
+        return store.list();
+      }
+      return null;
+    },
+
+    normalizeListEntries(list) {
+      const entries = Array.isArray(list) ? list : [];
+      const normalized = entries.map(item => {
+        const product = item.product || {};
+        const image = item.image || this.$store?.cart?.imgFor?.(product) || this.primaryImage(product);
+        return {
+          id: item.id,
+          name: product.name || item.name || 'Produkt v košíku',
+          img: image
+        };
+      }).filter(it => !!it.img);
+      return normalized.filter((v, i, self) =>
+        self.findIndex(x => x.id === v.id && x.img === v.img) === i
+      );
+    },
+
     normalizeFromObject(obj) {
-      const list = Object.values(obj || {}).map(e => e?.product).filter(Boolean);
-      return list.map(p => ({
-        id: p.id,
-        name: p.name || 'Produkt v košíku',
-        img: this.primaryImage(p),
-      }))
-      .filter(it => !!it.img)
-      .filter((v, i, self) => self.findIndex(x => x.id === v.id && x.img === v.img) === i);
+      const list = Object.values(obj || {})
+        .map(e => e?.product)
+        .filter(Boolean)
+        .map(product => ({
+          id: product.id,
+          name: product.name || 'Produkt v košíku',
+          img: this.primaryImage(product),
+          product
+        }))
+        .filter(it => !!it.img);
+      const filtered = this.filterByGroup(list);
+      const deduped = filtered.filter((v, i, self) =>
+        self.findIndex(x => x.id === v.id && x.img === v.img) === i
+      );
+      return deduped.map(({ product, ...rest }) => rest);
+    },
+
+    filterByGroup(list) {
+      if (this.group === 'all') return list;
+      const matcher = this.group === 'partner'
+        ? (product) => this.isPartnerProduct(product)
+        : (product) => !this.isPartnerProduct(product);
+      return list.filter(item => matcher(item.product || item));
+    },
+
+    isPartnerProduct(product = null) {
+      const stock = String(product?.stock || '').toLowerCase();
+      return stock.includes('dodavatel');
     },
 
     // Pick the first usable image across multiple shapes
@@ -6240,7 +6335,9 @@ document.addEventListener('alpine:init', () => {
 
 
 <!-- Delivery & Payment (Alpine component) -->
-<div x-data="deliveryPaymentUI()" x-init="init()" class="grid grid-cols-1 lg:grid-cols-2 gap-12">
+<div x-data="deliveryPaymentUI()" x-init="init()" x-ref="deliveryPayment" class="space-y-12">
+
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-12" x-show="hasPrimaryItems">
 
   <!-- DOPRAVA -->
   <fieldset class="border border-base-300 rounded-xl bg-white shadow-sm p-4 py-8 md:p-10">
@@ -6424,6 +6521,135 @@ document.addEventListener('alpine:init', () => {
       </label>
     </template>
   </fieldset>
+
+  </div>
+
+  <template x-if="hasPartnerItems">
+    <section class="border border-max-blue-200/70 rounded-2xl bg-max-blue-25/50 p-5 md:p-8 space-y-6">
+      <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+        <div>
+          <p class="text-sm uppercase tracking-wider text-secondary font-semibold">Marketplace</p>
+          <h2 class="text-2xl font-semibold">Nákup od dodavatele</h2>
+          <p class="text-base text-base-content/70">
+            Zboží z partnerského skladu doručíme vždy domů a platit budete online – tyto volby proto vybíráte zvlášť.
+          </p>
+        </div>
+        <div x-data="cartAvatars({ key: 'cart.v1', max: 4, group: 'partner' })" x-init="init()" class="flex items-center">
+          <template x-if="items.length">
+            <div class="avatar-group -space-x-6 overflow-visible">
+              <template x-for="it in visible()" :key="it.id + '-' + it.img">
+                <div class="avatar" :title="it.name">
+                  <div class="w-14 xl:w-18">
+                    <img
+                      :src="it.img"
+                      :alt="it.name || 'Produkt v košíku'"
+                      loading="lazy"
+                      @load="$event.target.style.opacity = 1"
+                      @error="$event.target.style.opacity = 0.3"
+                    />
+                  </div>
+                </div>
+              </template>
+              <div class="avatar avatar-placeholder" x-show="overflow() > 0">
+                <div class="w-14 xl:w-18 h-14 xl:h-18 rounded-full bg-neutral text-neutral-content flex items-center justify-center">
+                  <span class="text-sm font-semibold" x-text="'+' + overflow()"></span>
+                </div>
+              </div>
+            </div>
+          </template>
+          <template x-if="!items.length">
+            <div class="avatar placeholder">
+              <div class="w-14 h-14 rounded-full bg-base-200 text-base-content/50 flex items-center justify-center">?</div>
+            </div>
+          </template>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <fieldset class="border border-base-300 rounded-xl bg-white shadow-sm p-4 py-6 md:p-8">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-medium">Doprava partnera</h3>
+            <span class="text-sm text-base-content/60 flex items-center gap-2">
+              <i class="fa-solid fa-truck-fast text-secondary"></i>
+              Vždy domů
+            </span>
+          </div>
+          <template x-if="!partnerDelivery.length">
+            <p class="text-sm text-base-content/70">Žádná doprava partnera není dostupná.</p>
+          </template>
+          <template x-for="opt in partnerDelivery" :key="opt.id">
+            <label :class="rowClasses('delivery', opt, 'partner')"
+                   class="block mb-2 last:mb-0"
+                   @click="handleDeliveryClick(opt, $event, 'partner')">
+              <div class="flex items-center gap-3 min-w-0">
+                <input type="radio"
+                       name="partner-shipping"
+                       class="radio radio-secondary shrink-0"
+                       :checked="selectedPartnerDeliveryId === opt.id"
+                       tabindex="-1" />
+                <img :src="opt.icon" :alt="opt.name"
+                     class="size-7 rounded bg-base-200 object-contain shrink-0"
+                     @error="$event.target.style.opacity=0.3" />
+                <div class="min-w-0">
+                  <div class="font-medium leading-tight" x-text="opt.name"></div>
+                  <p class="text-sm text-base-content/70" x-show="opt.description" x-text="opt.description"></p>
+                </div>
+              </div>
+              <div class="text-right shrink-0">
+                <template x-if="(opt.price || 0) === 0">
+                  <span class="font-semibold">Zdarma</span>
+                </template>
+                <template x-if="(opt.price || 0) > 0">
+                  <span class="font-semibold" x-text="formatCZK(opt.price)"></span>
+                </template>
+              </div>
+            </label>
+          </template>
+        </fieldset>
+
+        <fieldset class="border border-base-300 rounded-xl bg-white shadow-sm p-4 py-6 md:p-8">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-medium">Platba partnera</h3>
+            <span class="text-sm text-base-content/60 flex items-center gap-2">
+              <i class="fa-solid fa-credit-card text-secondary"></i>
+              Pouze online
+            </span>
+          </div>
+          <template x-if="!partnerPayment.length">
+            <p class="text-sm text-base-content/70">Žádná platba partnera není dostupná.</p>
+          </template>
+          <template x-for="opt in partnerPayment" :key="opt.id">
+            <label :class="rowClasses('payment', opt, 'partner')"
+                   class="block mb-2 last:mb-0"
+                   @click="handlePaymentClick(opt, $event, 'partner')">
+              <div class="flex items-center gap-3 min-w-0 mb-1">
+                <input type="radio"
+                       name="partner-payment"
+                       class="radio radio-secondary shrink-0"
+                       :checked="selectedPartnerPaymentId === opt.id"
+                       tabindex="-1" />
+                <img :src="opt.icon" :alt="opt.name"
+                     class="size-7 rounded bg-base-200 object-contain shrink-0"
+                     @error="$event.target.style.opacity=0.3" />
+                <div class="min-w-0">
+                  <div class="font-medium leading-tight" x-text="opt.name"></div>
+                  <p class="text-sm text-base-content/70" x-show="opt.description" x-text="opt.description"></p>
+                </div>
+              </div>
+              <div class="text-right shrink-0">
+                <template x-if="(opt.price || 0) === 0">
+                  <span class="font-semibold">Zdarma</span>
+                </template>
+                <template x-if="(opt.price || 0) > 0">
+                  <span class="font-semibold" x-text="formatCZK(opt.price)"></span>
+                </template>
+              </div>
+            </label>
+          </template>
+        </fieldset>
+      </div>
+    </section>
+  </template>
 
 
 
@@ -6665,10 +6891,17 @@ function deliveryPaymentUI() {
     items: [],
     delivery: [],
     payment: [],
+    partnerOptions: [],
+    partnerDelivery: [],
+    partnerPayment: [],
+    hasPrimaryItems: true,
 
     // current selections
     selectedDeliveryId: null,
     selectedPaymentId: null,
+    selectedPartnerDeliveryId: null,
+    selectedPartnerPaymentId: null,
+    hasPartnerItems: false,
 
     // follow-up handling
     currentFollowup: null,   // { type: 'map'|'timeslot'|'benefits', option, kind }
@@ -6692,16 +6925,28 @@ function deliveryPaymentUI() {
 
     async init() {
       try {
-        const res = await fetch('./data/delivery-payment.json', { cache: 'no-store' });
+        const [res, partnerRes] = await Promise.all([
+          fetch('./data/delivery-payment.json', { cache: 'no-store' }),
+          fetch('./data/delivery-payment-p3.json', { cache: 'no-store' }).catch(() => null)
+        ]);
         this.items = await res.json();
+        const partnerList = partnerRes ? await partnerRes.json() : [];
+        this.partnerOptions = Array.isArray(partnerList) ? partnerList : [];
 
         // split groups
         this.delivery = this.items.filter(i => i.type === 'delivery' || i.type === 'pickup');
         this.payment  = this.items.filter(i => i.type === 'payment');
+        this.partnerDelivery = this.partnerOptions.filter(i => i.type === 'delivery');
+        this.partnerPayment  = this.partnerOptions.filter(i => i.type === 'payment');
+
+        const restoreId = (key) => {
+          const raw = Number(localStorage.getItem(key));
+          return Number.isFinite(raw) && raw > 0 ? raw : null;
+        };
 
         // restore selections
-        const sd = Number(localStorage.getItem('selectedDeliveryId')) || null;
-        const sp = Number(localStorage.getItem('selectedPaymentId')) || null;
+        const sd = restoreId('selectedDeliveryId');
+        const sp = restoreId('selectedPaymentId');
         if (sd && this.delivery.some(d => d.id === sd)) {
           this.selectedDeliveryId = sd;
         }
@@ -6709,7 +6954,16 @@ function deliveryPaymentUI() {
           this.selectedPaymentId = sp;
         }
 
-        // validate existing combination after restore
+        const spd = restoreId('selectedPartnerDeliveryId');
+        const spp = restoreId('selectedPartnerPaymentId');
+        if (spd && this.partnerDelivery.some(d => d.id === spd)) {
+          this.selectedPartnerDeliveryId = spd;
+        }
+        if (spp && this.partnerPayment.some(p => p.id === spp)) {
+          this.selectedPartnerPaymentId = spp;
+        }
+
+        // validate existing combinations after restore
         if (this.selectedPaymentId && this.isPaymentDisabled(this.selectedPaymentId)) {
           this.clearPaymentSelection();
         }
@@ -6719,9 +6973,15 @@ function deliveryPaymentUI() {
         if (this.selectedDeliveryId) {
           this.persistDeliveryMeta(this.selectedDeliveryId);
         }
+        if (this.selectedPartnerDeliveryId) {
+          this.persistDeliveryMeta(this.selectedPartnerDeliveryId, 'partner');
+        }
         this.loadBenefitSelections();
         if (this.selectedPaymentId) {
           this.persistPaymentMeta(this.selectedPaymentId);
+        }
+        if (this.selectedPartnerPaymentId) {
+          this.persistPaymentMeta(this.selectedPartnerPaymentId, 'partner');
         }
         await this.loadBenefitPrograms();
         this._onPickupSelected = (e) => {
@@ -6753,11 +7013,12 @@ function deliveryPaymentUI() {
           }
         }, { once: true });
       } catch (e) {
-        console.error('Failed to load delivery-payment.json', e);
+        console.error('Failed to load delivery/payment data', e);
       } finally {
         this.loading = false;
       }
 
+      this.updateCartContext();
       this.freeShippingActive = this.computeFreeShipping();
       this.$watch(() => Alpine.store('cart')?.totalToPay?.(), () => {
         this.freeShippingActive = this.computeFreeShipping();
@@ -6765,6 +7026,8 @@ function deliveryPaymentUI() {
       this.$watch(() => Alpine.store('cart')?.freeShipThreshold, () => {
         this.freeShippingActive = this.computeFreeShipping();
       });
+      this.$watch(() => Alpine.store('cart')?._version, () => this.updateCartContext());
+      this.syncProceedState();
     },
 
     // ---------- helpers ----------
@@ -6776,8 +7039,116 @@ function deliveryPaymentUI() {
       if (t <= 0) return true;
       return cart.totalToPay() >= t;
     },
-    getSelectedDelivery() {
-      return this.delivery.find(d => d.id === this.selectedDeliveryId) || null;
+    checkoutMetaKey(kind) {
+      return kind === 'payment' ? 'checkout.payment' : 'checkout.delivery';
+    },
+    normalizeCheckoutMeta(value) {
+      if (!value || typeof value !== 'object') {
+        return { ours: null, partner: null, hasPartner: false };
+      }
+      if ('ours' in value || 'partner' in value) {
+        return {
+          ours: value.ours || null,
+          partner: value.partner || null,
+          hasPartner: !!(value.partner || value.hasPartner)
+        };
+      }
+      return { ours: value, partner: null, hasPartner: false };
+    },
+    readCheckoutMeta(kind) {
+      const key = this.checkoutMetaKey(kind);
+      try {
+        const raw = localStorage.getItem(key);
+        if (!raw) return { ours: null, partner: null, hasPartner: false };
+        const parsed = JSON.parse(raw);
+        return this.normalizeCheckoutMeta(parsed);
+      } catch (e) {
+        console.warn('Failed to read checkout meta', kind, e);
+        return { ours: null, partner: null, hasPartner: false };
+      }
+    },
+    persistCheckoutMeta(kind, context, meta) {
+      const key = this.checkoutMetaKey(kind);
+      const base = this.readCheckoutMeta(kind);
+      const next = {
+        ours: context === 'ours' ? meta : base.ours,
+        partner: context === 'partner' ? meta : base.partner,
+        hasPartner: (context === 'partner' && !!meta) ? true : (this.hasPartnerItems || base.hasPartner),
+        updatedAt: Date.now()
+      };
+      if (!next.ours && !next.partner) {
+        try { localStorage.removeItem(key); } catch (_) {}
+        return;
+      }
+      try { localStorage.setItem(key, JSON.stringify(next)); }
+      catch (e) { console.warn('Failed to persist checkout meta', kind, e); }
+    },
+    clearCheckoutMeta(kind, context) {
+      const key = this.checkoutMetaKey(kind);
+      const base = this.readCheckoutMeta(kind);
+      base[context] = null;
+      base.hasPartner = this.hasPartnerItems || !!base.partner;
+      base.updatedAt = Date.now();
+      if (!base.ours && !base.partner) {
+        try { localStorage.removeItem(key); } catch (_) {}
+      } else {
+        try { localStorage.setItem(key, JSON.stringify(base)); }
+        catch (e) { console.warn('Failed to persist checkout meta', kind, e); }
+      }
+    },
+    updateCartContext() {
+      const cart = Alpine.store('cart');
+      if (!cart || typeof cart.groupedTotals !== 'function') {
+        this.hasPrimaryItems = true;
+        this.hasPartnerItems = false;
+        return;
+      }
+      const groups = cart.groupedTotals();
+      const partnerItems = (groups?.partner?.items || []).slice();
+      const oursItems = (groups?.ours?.items || groups?.ours || []);
+      const prevPartner = this.hasPartnerItems;
+      this.hasPrimaryItems = (oursItems || []).length > 0;
+      this.hasPartnerItems = partnerItems.length > 0;
+      if (!this.hasPartnerItems) {
+        this.clearPartnerSelections();
+      } else {
+        if (!this.selectedPartnerDeliveryId && this.partnerDelivery.length === 1) {
+          this.applyDeliverySelection(this.partnerDelivery[0].id, 'partner');
+        }
+        if (!this.selectedPartnerPaymentId && this.partnerPayment.length === 1) {
+          this.applyPaymentSelection(this.partnerPayment[0].id, 'partner');
+        }
+      }
+      if (prevPartner !== this.hasPartnerItems) {
+        if (!this.hasPartnerItems) {
+          this.clearCheckoutMeta('delivery', 'partner');
+          this.clearCheckoutMeta('payment', 'partner');
+        } else {
+          if (this.selectedPartnerDeliveryId) {
+            this.persistDeliveryMeta(this.selectedPartnerDeliveryId, 'partner');
+          }
+          if (this.selectedPartnerPaymentId) {
+            this.persistPaymentMeta(this.selectedPartnerPaymentId, 'partner');
+          }
+        }
+      }
+      this.syncProceedState();
+    },
+    clearPartnerSelections() {
+      if (this.selectedPartnerDeliveryId) {
+        this.clearDeliverySelection(this.selectedPartnerDeliveryId, 'partner');
+      }
+      if (this.selectedPartnerPaymentId) {
+        this.clearPaymentSelection(this.selectedPartnerPaymentId, 'partner');
+      }
+      localStorage.removeItem('selectedPartnerDeliveryId');
+      localStorage.removeItem('selectedPartnerPaymentId');
+      this.syncProceedState();
+    },
+    getSelectedDelivery(context = 'ours') {
+      const source = context === 'partner' ? this.partnerDelivery : this.delivery;
+      const targetId = context === 'partner' ? this.selectedPartnerDeliveryId : this.selectedDeliveryId;
+      return source.find(d => d.id === targetId) || null;
     },
     isPaymentDisabled(paymentId) {
       if (!paymentId) return false;
@@ -6796,6 +7167,27 @@ function deliveryPaymentUI() {
       if (!addr) return '';
       const parts = [addr.street, addr.city, addr.zip].filter(Boolean);
       return parts.join(', ');
+    },
+    canProceed() {
+      const primaryReady = this.hasPrimaryItems
+        ? !!(this.selectedDeliveryId && this.selectedPaymentId)
+        : true;
+      const partnerReady = this.hasPartnerItems
+        ? !!(this.selectedPartnerDeliveryId && this.selectedPartnerPaymentId)
+        : true;
+      return primaryReady && partnerReady;
+    },
+    syncProceedState() {
+      Alpine.store('checkoutFlow')?.setDeliveryReady?.(this.canProceed());
+    },
+    selectedId(kind, context = 'ours') {
+      if (kind === 'delivery') {
+        return context === 'partner' ? this.selectedPartnerDeliveryId : this.selectedDeliveryId;
+      }
+      if (kind === 'payment') {
+        return context === 'partner' ? this.selectedPartnerPaymentId : this.selectedPaymentId;
+      }
+      return null;
     },
 
     timeslotInfo(id) {
@@ -6847,8 +7239,9 @@ function deliveryPaymentUI() {
       return days[0] || null;
     },
 
-    persistDeliveryMeta(id) {
-      const opt = this.delivery.find(d => d.id === id);
+    persistDeliveryMeta(id, context = 'ours') {
+      const list = context === 'partner' ? this.partnerDelivery : this.delivery;
+      const opt = list.find(d => d.id === id);
       if (!opt) return;
       const basePrice = Number(opt.price);
       const computedFinal = this.timeslotPrice(id);
@@ -6864,15 +7257,15 @@ function deliveryPaymentUI() {
         followup: opt.followup || null,
         icon: opt.icon || null,
         finalPrice: Number.isFinite(computedFinal) ? computedFinal : (Number.isFinite(basePrice) ? basePrice : 0),
-        timeslot: this.timeslotInfo(id),
-        pickup: this.pickupInfo(id)
+        timeslot: context === 'partner' ? null : this.timeslotInfo(id),
+        pickup: context === 'partner' ? null : this.pickupInfo(id)
       };
-      try { localStorage.setItem('checkout.delivery', JSON.stringify(meta)); }
-      catch (e) { console.warn('Failed to persist delivery meta', e); }
+      this.persistCheckoutMeta('delivery', context, meta);
     },
 
-    persistPaymentMeta(id) {
-      const opt = this.payment.find(p => p.id === id);
+    persistPaymentMeta(id, context = 'ours') {
+      const list = context === 'partner' ? this.partnerPayment : this.payment;
+      const opt = list.find(p => p.id === id);
       if (!opt) return;
       const benefit = this.benefitInfo(id);
       const basePrice = Number(opt.price);
@@ -6888,8 +7281,7 @@ function deliveryPaymentUI() {
         icon: opt.icon || null,
         benefit: benefit ? { id: benefit.id, name: benefit.name, image: benefit.image || null } : null
       };
-      try { localStorage.setItem('checkout.payment', JSON.stringify(meta)); }
-      catch (e) { console.warn('Failed to persist payment meta', e); }
+      this.persistCheckoutMeta('payment', context, meta);
     },
 
     pickupInfo(id) {
@@ -6910,13 +7302,13 @@ function deliveryPaymentUI() {
       this.$refs.modal?.showModal();
     },
 
-    async openBenefitModal(opt, isChange = false) {
+    async openBenefitModal(opt, isChange = false, context = 'ours') {
       if (!opt) return;
       if (!this.benefitPrograms.length) {
         await this.loadBenefitPrograms();
       }
       const existing = this.benefitInfo(opt.id);
-      this.pending = { kind: 'payment', id: opt.id, opt };
+      this.pending = { kind: 'payment', id: opt.id, opt, context };
       this.currentFollowup = { type: 'benefits', option: opt, kind: 'payment', isChange };
       this.benefitModal.selectedId = existing?.id || '';
       this.$refs.modal?.showModal();
@@ -7007,9 +7399,10 @@ function deliveryPaymentUI() {
       this.persistTimeslotSelections();
 
       const deliveryId = this.pending.id;
+      const context = this.pending.context || 'ours';
       this.pending = null;
       this.currentFollowup = null;
-      this.applyDeliverySelection(deliveryId);
+      this.applyDeliverySelection(deliveryId, context);
       this.resetTimeslotModal();
       this.$refs.modal?.close();
     },
@@ -7025,10 +7418,11 @@ function deliveryPaymentUI() {
       };
       this.persistBenefitSelections();
       const paymentId = this.pending.id;
+      const context = this.pending.context || 'ours';
       this.pending = null;
       this.currentFollowup = null;
       this.resetBenefitModal();
-      this.applyPaymentSelection(paymentId);
+      this.applyPaymentSelection(paymentId, context);
       this.$refs.modal?.close();
     },
 
@@ -7114,7 +7508,7 @@ function deliveryPaymentUI() {
     },
 
     changeBenefit(opt) {
-      this.openBenefitModal(opt, true);
+      this.openBenefitModal(opt, true, 'ours');
     },
 
     mapTypeForOption(opt) {
@@ -7261,9 +7655,9 @@ function deliveryPaymentUI() {
       this.benefitModal.selectedId = '';
     },
 
-    rowClasses(kind, opt) {
-      const selected = (kind === 'delivery' ? this.selectedDeliveryId : this.selectedPaymentId) === opt.id;
-      const disabled = (kind === 'payment') && this.isPaymentDisabled(opt.id);
+    rowClasses(kind, opt, context = 'ours') {
+      const selected = this.selectedId(kind, context) === opt.id;
+      const disabled = this.isOptionDisabled(kind, opt, context);
       const classes = [
         'flex items-center justify-between gap-4 p-3 rounded-lg transition select-none',
       ];
@@ -7277,72 +7671,89 @@ function deliveryPaymentUI() {
       }
       return classes.join(' ');
     },
+    isOptionDisabled(kind, opt, context = 'ours') {
+      if (kind === 'payment' && context === 'ours') {
+        return this.isPaymentDisabled(opt.id);
+      }
+      if (kind === 'delivery' && context === 'partner' && String(opt.type).toLowerCase() === 'pickup') {
+        return true;
+      }
+      return false;
+    },
 
     // ---------- click handlers (Ask #5 behavior) ----------
-    handleDeliveryClick(opt, event) {
-      if (opt.followup === 'timeslot') {
+    handleDeliveryClick(opt, event, context = 'ours') {
+      if (!opt) return;
+      const isPartner = context === 'partner';
+      if (!isPartner && opt.followup === 'timeslot') {
         event?.preventDefault();
         event?.stopPropagation();
         this.openTimeslotModal(opt);
         return;
       }
-      if (opt.followup === 'map') {
+      if (!isPartner && opt.followup === 'map') {
         event?.preventDefault();
         event?.stopPropagation();
         this.openPickupMap(opt);
         return;
       }
       // If followup is required, show modal first and set pending, not the selection
-      if (opt.followup) {
+      if (!isPartner && opt.followup) {
         event?.preventDefault();
         event?.stopPropagation();
-        this.pending = { kind: 'delivery', id: opt.id, opt };
+        this.pending = { kind: 'delivery', id: opt.id, opt, context };
         this.currentFollowup = { type: opt.followup, option: opt, kind: 'delivery' };
         this.$refs.modal?.showModal();
         return;
       }
       // Immediate select when no follow-up
-      this.applyDeliverySelection(opt.id);
+      this.applyDeliverySelection(opt.id, context);
     },
 
-    handlePaymentClick(opt, event) {
-      if (this.isPaymentDisabled(opt.id)) {
+    handlePaymentClick(opt, event, context = 'ours') {
+      if (context === 'ours' && this.isPaymentDisabled(opt.id)) {
         event?.preventDefault();
         event?.stopPropagation();
         // do nothing, and the tooltip on price explains why
         return;
       }
+      if (context === 'partner' && opt.followup) {
+        event?.preventDefault();
+        event?.stopPropagation();
+        this.applyPaymentSelection(opt.id, context);
+        return;
+      }
       if (opt.followup === 'benefits') {
         event?.preventDefault();
         event?.stopPropagation();
-        this.openBenefitModal(opt);
+        this.openBenefitModal(opt, false, context);
         return;
       }
       if (opt.followup) {
         event?.preventDefault();
         event?.stopPropagation();
-        this.pending = { kind: 'payment', id: opt.id, opt };
+        this.pending = { kind: 'payment', id: opt.id, opt, context };
         this.currentFollowup = { type: opt.followup, option: opt, kind: 'payment' };
         this.$refs.modal?.showModal();
         return;
       }
-      this.applyPaymentSelection(opt.id);
+      this.applyPaymentSelection(opt.id, context);
     },
 
     confirmFollowup() {
       if (!this.pending) return this.$refs.modal?.close();
-      if (this.pending.kind === 'delivery') this.applyDeliverySelection(this.pending.id);
-      if (this.pending.kind === 'payment') this.applyPaymentSelection(this.pending.id);
+      if (this.pending.kind === 'delivery') this.applyDeliverySelection(this.pending.id, this.pending.context || 'ours');
+      if (this.pending.kind === 'payment') this.applyPaymentSelection(this.pending.id, this.pending.context || 'ours');
       this.pending = null;
       this.currentFollowup = null;
       this.$refs.modal?.close();
     },
     cancelFollowup() {
       if (this.pending?.kind === 'delivery') {
-        this.clearDeliverySelection(this.pending.id);
+        this.clearDeliverySelection(this.pending.id, this.pending.context || 'ours');
       }
       if (this.pending?.kind === 'payment') {
-        this.clearPaymentSelection(this.pending.id);
+        this.clearPaymentSelection(this.pending.id, this.pending.context || 'ours');
       }
       this.pending = null;
       this.currentFollowup = null;
@@ -7354,55 +7765,82 @@ function deliveryPaymentUI() {
     },
 
     // ---------- selection application ----------
-    applyDeliverySelection(id) {
-      const prev = this.selectedDeliveryId;
-      this.selectedDeliveryId = id;
-      localStorage.setItem('selectedDeliveryId', String(id));
-      this.persistDeliveryMeta(id);
+    applyDeliverySelection(id, context = 'ours') {
+      const storageKey = context === 'partner' ? 'selectedPartnerDeliveryId' : 'selectedDeliveryId';
+      if (context === 'partner') {
+        this.selectedPartnerDeliveryId = id;
+      } else {
+        this.selectedDeliveryId = id;
+      }
+      if (id == null) {
+        localStorage.removeItem(storageKey);
+        this.clearCheckoutMeta('delivery', context);
+        return;
+      }
+      localStorage.setItem(storageKey, String(id));
+      this.persistDeliveryMeta(id, context);
 
-      // Ask #1: if existing payment is now invalid, clear it
-      if (this.selectedPaymentId && this.isPaymentDisabled(this.selectedPaymentId)) {
+      if (context === 'ours' && this.selectedPaymentId && this.isPaymentDisabled(this.selectedPaymentId)) {
         this.clearPaymentSelection();
       }
-
-      // If the delivery actually changed and has its own followup, we already handled via confirm
-      // (nothing else needed here).
+      this.syncProceedState();
     },
-    applyPaymentSelection(id) {
-      this.selectedPaymentId = id;
-      localStorage.setItem('selectedPaymentId', String(id));
-      this.persistPaymentMeta(id);
-    },
-    clearPaymentSelection(id = null) {
-      const target = id ?? this.selectedPaymentId;
-      if (!target) return;
-      if (this.selectedPaymentId === target) {
-        this.selectedPaymentId = null;
-        localStorage.removeItem('selectedPaymentId');
-        try { localStorage.removeItem('checkout.payment'); } catch (_) {}
+    applyPaymentSelection(id, context = 'ours') {
+      const storageKey = context === 'partner' ? 'selectedPartnerPaymentId' : 'selectedPaymentId';
+      if (context === 'partner') {
+        this.selectedPartnerPaymentId = id;
+      } else {
+        this.selectedPaymentId = id;
       }
-      if (this.benefitSelections?.[target]) {
+      if (id == null) {
+        localStorage.removeItem(storageKey);
+        this.clearCheckoutMeta('payment', context);
+        return;
+      }
+      localStorage.setItem(storageKey, String(id));
+      this.persistPaymentMeta(id, context);
+      this.syncProceedState();
+    },
+    clearPaymentSelection(id = null, context = 'ours') {
+      const current = this.selectedId('payment', context);
+      const target = id ?? current;
+      if (!target) return;
+      const storageKey = context === 'partner' ? 'selectedPartnerPaymentId' : 'selectedPaymentId';
+      if (current === target) {
+        if (context === 'partner') this.selectedPartnerPaymentId = null;
+        else this.selectedPaymentId = null;
+        localStorage.removeItem(storageKey);
+        this.clearCheckoutMeta('payment', context);
+      }
+      if (context === 'ours' && this.benefitSelections?.[target]) {
         delete this.benefitSelections[target];
         this.persistBenefitSelections();
       }
+      this.syncProceedState();
     },
 
-    clearDeliverySelection(id = null) {
-      const target = id ?? this.selectedDeliveryId;
+    clearDeliverySelection(id = null, context = 'ours') {
+      const current = this.selectedId('delivery', context);
+      const target = id ?? current;
       if (!target) return;
-      if (this.selectedDeliveryId === target) {
-        this.selectedDeliveryId = null;
-        localStorage.removeItem('selectedDeliveryId');
-        try { localStorage.removeItem('checkout.delivery'); } catch (_) {}
+      const storageKey = context === 'partner' ? 'selectedPartnerDeliveryId' : 'selectedDeliveryId';
+      if (current === target) {
+        if (context === 'partner') this.selectedPartnerDeliveryId = null;
+        else this.selectedDeliveryId = null;
+        localStorage.removeItem(storageKey);
+        this.clearCheckoutMeta('delivery', context);
       }
-      if (this.timeslotSelections?.[target]) {
-        delete this.timeslotSelections[target];
-        this.persistTimeslotSelections();
+      if (context === 'ours') {
+        if (this.timeslotSelections?.[target]) {
+          delete this.timeslotSelections[target];
+          this.persistTimeslotSelections();
+        }
+        if (this.pickupSelections?.[target]) {
+          delete this.pickupSelections[target];
+          this.persistPickupSelections();
+        }
       }
-      if (this.pickupSelections?.[target]) {
-        delete this.pickupSelections[target];
-        this.persistPickupSelections();
-      }
+      this.syncProceedState();
     },
 
     // ---------- follow-up labels ----------
@@ -7425,7 +7863,7 @@ function deliveryPaymentUI() {
             Zpět</button>
 
           <button class="btn btn-primary btn-lg"
-            :disabled="$store.cart.distinctCount() === 0"
+            :disabled="$store.cart.distinctCount() === 0 || !($store.checkoutFlow?.deliveryReady ?? false)"
             @click="location.hash='/addresses'">
             Pokračovat <i class="fa-solid fa-arrow-right fa-sm" aria-hidden="true"></i>
           </button>
@@ -7576,19 +8014,48 @@ function deliveryPaymentUI() {
         </fieldset>
       </template>
 
+      <template x-if="partnerDeliveryRequired() || !hasPrimaryCartItems()">
+        <fieldset class="border border-base-300 rounded-xl bg-white shadow-sm p-6 md:px-16 md:py-10 grid grid-cols-1 gap-y-4 place-content-start">
+          <div class="flex items-start justify-between gap-3">
+            <div>
+              <h2 class="text-xl font-medium leading-tight mt-0 mb-2">Adresa pro doručení</h2>
+              <p class="text-sm text-base-content/70">
+                Tuto adresu použijeme pro doručení domů
+                <template x-if="partnerDeliveryRequired() && hasPrimaryPickup()">
+                  <span>u nákupu od dodavatele, zatímco naše produkty vyzvednete ve výdejním místě.</span>
+                </template>
+              </p>
+            </div>
+          </div>
+          <template x-if="homeAddressSummary().length">
+            <dl class="space-y-2">
+              <template x-for="item in homeAddressSummary()" :key="item.label">
+                <div>
+                  <dt class="text-sm text-base-content/60" x-text="item.label"></dt>
+                  <dd class="text-sm font-medium whitespace-pre-line" x-text="item.value"></dd>
+                </div>
+              </template>
+            </dl>
+          </template>
+          <p class="text-sm text-base-content/70" x-show="!homeAddressSummary().length">
+            Vyplňte prosím adresu v levém formuláři. Objeví se zde pro kontrolu.
+          </p>
+        </fieldset>
+      </template>
+
       <template x-if="isPickupDelivery()">
         <fieldset class="border border-base-300 rounded-xl bg-white shadow-sm p-6 md:px-16 md:py-10 grid grid-cols-1 gap-y-4 place-content-start">
           <h2 class="text-xl font-medium leading-tight mt-0 mb-2">Výdejní místo</h2>
-          <template x-if="checkoutDeliveryMeta?.pickup">
+          <template x-if="deliveryMetaFor('ours')?.pickup">
             <div class="space-y-2">
-              <div class="text-base font-semibold" x-text="checkoutDeliveryMeta.pickup.name || 'Vybrané místo'"></div>
-              <p class="text-sm text-base-content/80 whitespace-pre-line" x-text="checkoutDeliveryMeta.pickup.addressLine || ''"></p>
-              <p class="text-sm text-base-content/80" x-show="checkoutDeliveryMeta.pickup.phone">
-                Kontakt: <span class="font-medium" x-text="checkoutDeliveryMeta.pickup.phone"></span>
+              <div class="text-base font-semibold" x-text="deliveryMetaFor('ours')?.pickup?.name || 'Vybrané místo'"></div>
+              <p class="text-sm text-base-content/80 whitespace-pre-line" x-text="deliveryMetaFor('ours')?.pickup?.addressLine || ''"></p>
+              <p class="text-sm text-base-content/80" x-show="deliveryMetaFor('ours')?.pickup?.phone">
+                Kontakt: <span class="font-medium" x-text="deliveryMetaFor('ours')?.pickup?.phone"></span>
               </p>
             </div>
           </template>
-          <template x-if="!checkoutDeliveryMeta?.pickup">
+          <template x-if="!deliveryMetaFor('ours')?.pickup">
             <p class="text-sm text-base-content/70">
               Výdejní místo je nastaveno v předchozím kroku.
             </p>
@@ -7650,38 +8117,83 @@ function deliveryPaymentUI() {
           </p>
         </article>
 
-        <article class="border border-base-300 rounded-xl bg-white shadow-sm p-6 space-y-4">
-          <div class="flex items-center justify-between">
-            <h2 class="text-xl font-medium">Doručení</h2>
-            <button class="btn btn-xs btn-link text-secondary" type="button" @click="location.hash='/delivery-payment'">
-              Změnit
-            </button>
+        <template x-if="checkoutReview?.orders?.length">
+          <div class="grid gap-6" :class="checkoutReview.orders.length > 1 ? 'md:grid-cols-2' : ''">
+            <template x-for="order in checkoutReview.orders" :key="order.key">
+              <article class="border border-base-300 rounded-xl bg-white shadow-sm p-6 space-y-4">
+                <div class="flex items-start justify-between gap-3">
+                  <div>
+                    <p class="text-sm uppercase tracking-wide text-base-content/60" x-text="order.key === 'partner' ? 'Dodavatel' : 'Naše sklady'"></p>
+                    <h2 class="text-xl font-medium" x-text="order.title"></h2>
+                    <p class="text-sm text-base-content/70" x-show="order.key === 'partner'">
+                      Doručení i platbu zajišťuje partnerský sklad.
+                    </p>
+                  </div>
+                  <button class="btn btn-xs btn-link text-secondary" type="button" @click="location.hash='/delivery-payment'">
+                    Upravit
+                  </button>
+                </div>
+
+                <div class="space-y-4">
+                  <div class="flex items-start justify-between gap-4">
+                    <div>
+                      <div class="text-sm uppercase text-base-content/60 tracking-wide">Doprava</div>
+                      <div class="text-lg font-semibold" x-text="order.delivery?.name || 'Doprava nevybrána'"></div>
+                      <p class="text-sm text-base-content/70" x-show="order.delivery?.description" x-text="order.delivery?.description"></p>
+                      <p class="text-sm text-base-content/80" x-show="order.delivery?.timeslot?.label">
+                        Termín: <span class="font-medium" x-text="order.delivery?.timeslot?.label"></span>
+                      </p>
+                    </div>
+                    <div class="text-lg font-semibold">
+                      <template x-if="(order.delivery?.finalPrice || 0) === 0">
+                        <span>Zdarma</span>
+                      </template>
+                      <template x-if="(order.delivery?.finalPrice || 0) > 0">
+                        <span x-text="formatCZK(order.delivery?.finalPrice || 0)"></span>
+                      </template>
+                    </div>
+                  </div>
+
+                  <template x-if="order.delivery?.pickup">
+                    <div class="border border-dashed border-base-300 rounded-lg p-4 space-y-1">
+                      <div class="text-sm text-base-content/60 uppercase tracking-wide">Výdejní místo</div>
+                      <div class="font-medium" x-text="order.delivery?.pickup?.name || ''"></div>
+                      <p class="text-sm text-base-content/80 whitespace-pre-line" x-text="order.delivery?.pickup?.addressLine || ''"></p>
+                    </div>
+                  </template>
+
+                  <div class="flex items-start justify-between gap-4 pt-3 border-t border-base-200">
+                    <div>
+                      <div class="text-sm uppercase text-base-content/60 tracking-wide">Platba</div>
+                      <div class="text-lg font-semibold" x-text="order.payment?.name || 'Platba nevybrána'"></div>
+                      <p class="text-sm text-base-content/70" x-show="order.payment?.description" x-text="order.payment?.description"></p>
+                      <p class="text-sm text-base-content/80" x-show="order.payment?.benefit?.name">
+                        Benefit: <span class="font-medium" x-text="order.payment?.benefit?.name"></span>
+                      </p>
+                    </div>
+                    <div class="text-lg font-semibold">
+                      <template x-if="(order.payment?.finalPrice || 0) === 0">
+                        <span>Zdarma</span>
+                      </template>
+                      <template x-if="(order.payment?.finalPrice || 0) > 0">
+                        <span x-text="formatCZK(order.payment?.finalPrice || 0)"></span>
+                      </template>
+                    </div>
+                  </div>
+                </div>
+              </article>
+            </template>
           </div>
-          <div class="flex items-start justify-between gap-4">
-            <div>
-              <div class="text-lg font-semibold" x-text="checkoutReview?.delivery?.name || 'Doprava nevybrána'"></div>
-              <p class="text-sm text-base-content/70" x-show="checkoutReview?.delivery?.description" x-text="checkoutReview?.delivery?.description"></p>
-              <p class="text-sm text-base-content/80" x-show="checkoutReview?.delivery?.timeslot?.label">
-                Termín: <span class="font-medium" x-text="checkoutReview?.delivery?.timeslot?.label"></span>
-              </p>
+        </template>
+
+        <template x-if="checkoutReview?.deliveryDetails?.length">
+          <article class="border border-base-300 rounded-xl bg-white shadow-sm p-6 space-y-4">
+            <div class="flex items-center justify-between">
+              <h2 class="text-xl font-medium">Podrobnosti k doručení</h2>
+              <button class="btn btn-xs btn-link text-secondary" type="button" @click="location.hash='/addresses'">
+                Upravit
+              </button>
             </div>
-            <div class="text-lg font-semibold">
-              <template x-if="(checkoutReview?.delivery?.finalPrice || 0) === 0">
-                <span>Zdarma</span>
-              </template>
-              <template x-if="(checkoutReview?.delivery?.finalPrice || 0) > 0">
-                <span x-text="formatCZK(checkoutReview?.delivery?.finalPrice || 0)"></span>
-              </template>
-            </div>
-          </div>
-          <template x-if="checkoutReview?.delivery?.pickup">
-            <div class="border border-dashed border-base-300 rounded-lg p-4 space-y-1">
-              <div class="text-sm text-base-content/60 uppercase tracking-wide">Výdejní místo</div>
-              <div class="font-medium" x-text="checkoutReview?.delivery?.pickup?.name || ''"></div>
-              <p class="text-sm text-base-content/80 whitespace-pre-line" x-text="checkoutReview?.delivery?.pickup?.addressLine || ''"></p>
-            </div>
-          </template>
-          <template x-if="checkoutReview?.deliveryDetails?.length">
             <dl class="grid gap-2">
               <template x-for="item in checkoutReview.deliveryDetails" :key="item.label">
                 <div>
@@ -7690,47 +8202,27 @@ function deliveryPaymentUI() {
                 </div>
               </template>
             </dl>
-          </template>
-          <template x-if="checkoutReview?.companyDetails?.length">
-            <div class="pt-3 border-t border-base-200">
-              <div class="text-sm text-base-content/60 uppercase tracking-wide mb-2">Firemní údaje</div>
-              <dl class="grid gap-2 text-sm">
-                <template x-for="item in checkoutReview.companyDetails" :key="item.label">
-                  <div>
-                    <dt class="text-base-content/60" x-text="item.label"></dt>
-                    <dd class="font-medium whitespace-pre-line" x-text="item.value"></dd>
-                  </div>
-                </template>
-              </dl>
-            </div>
-          </template>
-        </article>
+          </article>
+        </template>
 
-        <article class="border border-base-300 rounded-xl bg-white shadow-sm p-6 space-y-4">
-          <div class="flex items-center justify-between">
-            <h2 class="text-xl font-medium">Platba</h2>
-            <button class="btn btn-xs btn-link text-secondary" type="button" @click="location.hash='/delivery-payment'">
-              Upravit
-            </button>
-          </div>
-          <div class="flex items-start justify-between gap-4">
-            <div>
-              <div class="text-lg font-semibold" x-text="checkoutReview?.payment?.name || 'Platba nevybrána'"></div>
-              <p class="text-sm text-base-content/70" x-show="checkoutReview?.payment?.description" x-text="checkoutReview?.payment?.description"></p>
-              <p class="text-sm text-base-content/80" x-show="checkoutReview?.payment?.benefit?.name">
-                Benefit: <span class="font-medium" x-text="checkoutReview?.payment?.benefit?.name"></span>
-              </p>
+        <template x-if="checkoutReview?.companyDetails?.length">
+          <article class="border border-base-300 rounded-xl bg-white shadow-sm p-6 space-y-4">
+            <div class="flex items-center justify-between">
+              <h2 class="text-xl font-medium">Firemní údaje</h2>
+              <button class="btn btn-xs btn-link text-secondary" type="button" @click="location.hash='/addresses'">
+                Upravit
+              </button>
             </div>
-            <div class="text-lg font-semibold">
-              <template x-if="(checkoutReview?.payment?.finalPrice || 0) === 0">
-                <span>Zdarma</span>
+            <dl class="grid gap-2 text-sm">
+              <template x-for="item in checkoutReview.companyDetails" :key="item.label">
+                <div>
+                  <dt class="text-base-content/60" x-text="item.label"></dt>
+                  <dd class="font-medium whitespace-pre-line" x-text="item.value"></dd>
+                </div>
               </template>
-              <template x-if="(checkoutReview?.payment?.finalPrice || 0) > 0">
-                <span x-text="formatCZK(checkoutReview?.payment?.finalPrice || 0)"></span>
-              </template>
-            </div>
-          </div>
-        </article>
+            </dl>
+          </article>
+        </template>
 
         <article class="border border-base-300 rounded-xl bg-white shadow-sm p-6 space-y-4">
           <h2 class="text-xl font-medium">Obsah košíku</h2>
@@ -7778,19 +8270,19 @@ function deliveryPaymentUI() {
             <div class="flex items-center justify-between">
               <dt>Doprava</dt>
               <dd class="font-medium"
-                  x-text="(checkoutReview?.delivery?.finalPrice || 0) === 0 ? 'Zdarma' : formatCZK(checkoutReview?.delivery?.finalPrice || 0)">
+                  x-text="deliveryFeeTotal() === 0 ? 'Zdarma' : formatCZK(deliveryFeeTotal())">
               </dd>
             </div>
             <div class="flex items-center justify-between">
               <dt>Platba</dt>
               <dd class="font-medium"
-                  x-text="(checkoutReview?.payment?.finalPrice || 0) === 0 ? 'Zdarma' : formatCZK(checkoutReview?.payment?.finalPrice || 0)">
+                  x-text="paymentFeeTotal() === 0 ? 'Zdarma' : formatCZK(paymentFeeTotal())">
               </dd>
             </div>
             <hr class="border-base-200">
             <div class="flex items-center justify-between text-base font-semibold">
               <dt>Celkem k úhradě</dt>
-              <dd x-text="formatCZK((checkoutReview?.cart?.totals?.toPay || 0) + (checkoutReview?.delivery?.finalPrice || 0) + (checkoutReview?.payment?.finalPrice || 0))"></dd>
+              <dd x-text="formatCZK((checkoutReview?.cart?.totals?.toPay || 0) + deliveryFeeTotal() + paymentFeeTotal())"></dd>
             </div>
           </dl>
         </div>
@@ -8416,6 +8908,11 @@ function deliveryPaymentUI() {
                  x-data="{ tab: 'overview', currentId: null }"
                  x-effect="if (!selected || currentId !== (selected?.id ?? null)) { tab = 'overview'; currentId = selected?.id ?? null; }"
                  class="absolute inset-0 md:right-auto md:bottom-auto m-2 w-full md:w-80 lg:w-96 h-full md:h-auto bg-white rounded-none md:rounded-xl shadow-none md:shadow-xl z-[110] flex flex-col overflow-hidden md:max-h-[calc(100vh-4rem)]">
+                
+                 <button class="btn btn-md btn-circle btn-ghost bg-base-100 absolute right-3 top-3 z-10 shadow"
+                        @click="closeDetail()">
+                  <i class="fa-solid fa-xmark fa-lg" aria-hidden="true"></i>
+                </button>
 
              <div class="flex-1 overflow-y-auto">
               <div class="relative">
@@ -8423,10 +8920,6 @@ function deliveryPaymentUI() {
                   <img :src="(selected && selected.photo) || placeholderImg" alt=""
                        class="h-full w-full object-cover object-center" loading="lazy">
                 </div>
-                <button class="btn btn-md btn-circle btn-ghost bg-base-100 absolute right-3 top-3 z-10 shadow"
-                        @click="closeDetail()">
-                  <i class="fa-solid fa-xmark fa-lg" aria-hidden="true"></i>
-                </button>
               </div>
               
               <div class="px-4 pt-2 lg:px-8 flex-1 overflow-y-auto space-y-4 mt-4">
@@ -8443,15 +8936,15 @@ function deliveryPaymentUI() {
                 <div class="flex overflow-x-auto overflow-y-hidden border-b border-base-200">
                   <button type="button"
                           class="relative whitespace-nowrap pr-7 pb-3 pt-2 text-base font-semibold transition-colors"
-                          :class="tab === 'overview' ? 'text-secondary' : 'text-base-content hover:text-base-content/90'"
+                          :class="tab === 'overview' ? 'text-secondary' : 'text-base-content hover:text-base-content/90 cursor-pointer'"
                           @click="tab = 'overview'">
-                    <span>Otevírací doba</span>
+                    <span>Otevřeno</span>
                     <span class="absolute left-0 right-6 -bottom-[1px] h-1 rounded-full bg-secondary"
                           x-show="tab === 'overview'"></span>
                   </button>
                   <button type="button"
                           class="relative whitespace-nowrap pr-7 pb-3 pt-2 text-base font-semibold transition-colors"
-                          :class="tab === 'details' ? 'text-secondary' : 'text-base-content hover:text-base-content/90'"
+                          :class="tab === 'details' ? 'text-secondary' : 'text-base-content hover:text-base-content/90 cursor-pointer'"
                           @click="tab = 'details'">
                     <span>Podrobnosti</span>
                     <span class="absolute left-0 right-6 -bottom-[1px] h-1 rounded-full bg-secondary"
@@ -8460,7 +8953,7 @@ function deliveryPaymentUI() {
                 </div>
               </div>
 
-              <div class="px-4 pb-4 lg:px-8" x-show="tab === 'overview'" x-transition.opacity>
+              <div class="px-4 pb-4 mt-4 lg:px-8" x-show="tab === 'overview'" x-transition.opacity>
                 <div class="overflow-y-auto max-h-[55vh] lg:max-h-max pr-1">
                   <table class="table table-zebra">
                     <tbody>
@@ -8498,24 +8991,6 @@ function deliveryPaymentUI() {
                   </p>
                 </address>
 
-                <template x-if="selected?.billing">
-                  <div>
-                    <h5 class="text-sm font-semibold text-base-content/80 mb-1">Fakturační údaje lékárny</h5>
-                    <p class="text-sm text-base-content/70 whitespace-pre-line" x-text="selected.billing"></p>
-                  </div>
-                </template>
-
-                <template x-if="selected?.brands && selected.brands.length">
-                  <div>
-                    <h5 class="text-sm font-semibold text-base-content/80 mb-2">Dostupná dermokosmetika</h5>
-                    <div class="flex flex-wrap gap-2">
-                      <template x-for="brand in selected.brands" :key="brand">
-                        <span class="badge badge-outline" x-text="brand"></span>
-                      </template>
-                    </div>
-                  </div>
-                </template>
-
                 <div>
                   <h5 class="text-sm font-semibold text-base-content/80 mb-2" x-show="selected?.tags?.length">Služby</h5>
                   <template x-if="selected?.tags && selected.tags.length">
@@ -8529,6 +9004,25 @@ function deliveryPaymentUI() {
                     <p class="text-sm text-base-content/70">Další informace připravujeme.</p>
                   </template>
                 </div>
+
+                <template x-if="selected?.brands && selected.brands.length">
+                  <div>
+                    <h5 class="text-sm font-semibold text-base-content/80 mb-2">Dostupná dermokosmetika</h5>
+                    <div class="flex flex-wrap gap-2">
+                      <template x-for="brand in selected.brands" :key="brand">
+                        <span class="badge badge-outline" x-text="brand"></span>
+                      </template>
+                    </div>
+                  </div>
+                </template>
+
+                <template x-if="selected?.billing">
+                  <div class="mt-6">
+                    <h5 class="text-sm font-semibold text-base-content/80 mb-1">Fakturační údaje lékárny</h5>
+                    <p class="text-sm text-base-content/70 whitespace-pre-line" x-text="selected.billing"></p>
+                  </div>
+                </template>
+
               </div>
             </div>
 
@@ -8934,6 +9428,61 @@ this.$nextTick(() => requestAnimationFrame(focusRealInput));
     return chosen ? new URL(chosen, window.location.href).href : '';
   },
 
+  isPartnerProduct(product = null) {
+    const stock = String(product?.stock || '').toLowerCase();
+    return stock.includes('dodavatel');
+  },
+
+  groupedItems() {
+    const groups = { ours: [], partner: [] };
+    this.list().forEach(item => {
+      if (this.isPartnerProduct(item.product)) {
+        groups.partner.push(item);
+      } else {
+        groups.ours.push(item);
+      }
+    });
+    return groups;
+  },
+
+  groupedTotals() {
+    const groups = this.groupedItems();
+    const sum = (list) => list.reduce((acc, it) => acc + this._linePrice(it), 0);
+    const subtotalOurs = sum(groups.ours);
+    const subtotalPartner = sum(groups.partner);
+    const subtotalAll = subtotalOurs + subtotalPartner;
+    const totalDiscount = this.promoDiscount();
+
+    let discountOurs = 0;
+    let discountPartner = 0;
+    if (totalDiscount > 0 && subtotalAll > 0) {
+      discountOurs = Math.round(totalDiscount * (subtotalOurs / subtotalAll));
+      discountPartner = totalDiscount - discountOurs;
+    }
+
+    return {
+      ours: {
+        items: groups.ours,
+        subtotal: subtotalOurs,
+        discount: discountOurs,
+        total: Math.max(0, subtotalOurs - discountOurs)
+      },
+      partner: {
+        items: groups.partner,
+        subtotal: subtotalPartner,
+        discount: discountPartner,
+        total: Math.max(0, subtotalPartner - discountPartner)
+      },
+      subtotal: subtotalAll,
+      discount: totalDiscount,
+      total: Math.max(0, subtotalAll - totalDiscount)
+    };
+  },
+
+  hasPartnerItems() {
+    return this.groupedItems().partner.length > 0;
+  },
+
   list() {
     // normalize a flat view for table: { id, qty, product, price, priceBefore, image, name, badges }
     return Object.entries(this.items).map(([id, rec]) => {
@@ -9184,6 +9733,14 @@ this.$nextTick(() => requestAnimationFrame(focusRealInput));
   }
 });
 
+  // checkout flow readiness shared state
+  Alpine.store('checkoutFlow', {
+    deliveryReady: false,
+    setDeliveryReady(value) {
+      this.deliveryReady = !!value;
+    }
+  });
+
 
 
       // TOASTS
@@ -9217,6 +9774,7 @@ this.$nextTick(() => requestAnimationFrame(focusRealInput));
 
     // ---- state ----
     product: { badges: [], description: '', parameters: [] },
+    detailSourceId: null,
     images: [],
     variants: [],
     selectedVariant: null,
@@ -9234,6 +9792,8 @@ this.$nextTick(() => requestAnimationFrame(focusRealInput));
     // ================================
     async init() {
       this._ensureSavedStoreLoaded();
+      this.id = this._normalizeId(this.id ?? this._extractIdFromUrl(this.fetchUrl));
+
       this.$watch(() => this.product?.id, () => {
         this.shareModal.open = false;
         this.shareModal.copied = false;
@@ -9258,6 +9818,8 @@ this.$nextTick(() => requestAnimationFrame(focusRealInput));
       if (!url) return;
       if (url === this._currentUrl && !this.initialProduct) return; // nothing to do
       this._currentUrl = url;
+      const urlId = this._extractIdFromUrl(url);
+      if (urlId) this.id = this._normalizeId(urlId);
 
       // cancel previous request if any
       if (this._abort) try { this._abort.abort(); } catch {}
@@ -9284,7 +9846,17 @@ this.$nextTick(() => requestAnimationFrame(focusRealInput));
 
     _applyData(data) {
       const d = data || {};
-      this.product = d;
+      const normalizedProduct = { ...d };
+      this.product = normalizedProduct;
+      this.detailSourceId = this._normalizeId(
+        d.id ?? d.productId ?? d.product_id ?? d.slug ?? d.SKU ?? d.sku ?? null
+      ) || this.detailSourceId;
+      if (!this.id) {
+        this.id = this.detailSourceId || this._normalizeId(d.comparison_id ?? null);
+      }
+      if (!normalizedProduct.slug && this.detailSourceId && this.detailSourceId !== this.id) {
+        normalizedProduct.slug = this.detailSourceId;
+      }
 
       // images: prefer array; fallback to single image
       const imgs = Array.isArray(d.images) ? d.images.slice() : (d.image ? [d.image] : []);
@@ -9295,6 +9867,69 @@ this.$nextTick(() => requestAnimationFrame(focusRealInput));
       this.variants = Array.isArray(d.variants) ? d.variants.slice() : [];
       const def = this.variants.find(v => v.default) || this.variants[0] || null;
       this.selectedVariant = def;
+    },
+
+    cartItemId() {
+      return this._normalizeId(
+        this.id
+        ?? this.detailSourceId
+        ?? this.product?.id
+        ?? this.product?.productId
+        ?? this.product?.product_id
+        ?? this.product?.slug
+        ?? this.product?.SKU
+        ?? this.product?.sku
+      );
+    },
+
+    _normalizeId(value) {
+      if (value == null) return null;
+      const str = String(value).trim();
+      return str.length ? str : null;
+    },
+
+    _extractIdFromUrl(url) {
+      if (typeof url !== 'string' || !url.length) return null;
+      const match = url.match(/product-details\/([^/.]+)(?:\.json)?/i);
+      return match ? match[1] : null;
+    },
+
+    _cartPayload() {
+      const id = this.cartItemId();
+      if (!id) return null;
+      const base = this.product || {};
+      const payload = { ...base, id };
+      const variant = this.selectedVariant;
+      if (variant) {
+        if (variant.id != null) payload.variantId = variant.id;
+        const variantName = String(variant?.name || '').trim();
+        if (variantName) {
+          const baseName = String(base.name || '').trim();
+          payload.name = [baseName, variantName].filter(Boolean).join(' – ') || variantName;
+        }
+        if (variant.price != null) payload.price = variant.price;
+        if (variant.discounted_price != null) payload.discounted_price = variant.discounted_price;
+      }
+      if (!payload.image) {
+        const galleryImage = Array.isArray(this.images)
+          ? (this.images[this.currentImage] || this.images.find(Boolean))
+          : null;
+        if (galleryImage) payload.image = galleryImage;
+      }
+      if (this.detailSourceId && this.detailSourceId !== id) {
+        payload.detailId = this.detailSourceId;
+        if (!payload.slug) payload.slug = this.detailSourceId;
+      }
+      return payload;
+    },
+
+    addCurrentToCart() {
+      const payload = this._cartPayload();
+      if (!payload) {
+        this.$store?.toast?.push?.('Produkt nelze přidat do košíku – chybí ID.', 'warning');
+        return;
+      }
+      this.$store?.cart?.add(payload);
     },
 
     // ================================
@@ -9398,8 +10033,9 @@ this.$nextTick(() => requestAnimationFrame(focusRealInput));
         ? (this.images[this.currentImage] || this.images.find(Boolean))
         : null;
       const image = product.image || galleryImage || '';
+      const canonicalId = this.cartItemId();
       const payload = {
-        id: product.id ?? null,
+        id: canonicalId ?? (product.id ?? null),
         name,
         image,
         price: this.priceOriginal(),
@@ -9408,7 +10044,15 @@ this.$nextTick(() => requestAnimationFrame(focusRealInput));
         perex: product.perex || '',
       };
       if (variant?.id != null) payload.variantId = variant.id;
-      if (product.slug) payload.slug = product.slug;
+      if (!payload.slug && product.slug) payload.slug = product.slug;
+      if (!payload.slug && product.id && payload.id && String(product.id) !== String(payload.id)) {
+        payload.slug = product.id;
+      }
+      if (payload.id && product.id && String(payload.id) !== String(product.id)) {
+        payload.productId = product.id;
+      } else if (!payload.productId && product.productId) {
+        payload.productId = product.productId;
+      }
       if (product.url) payload.url = product.url;
       if (!payload.url) payload.url = this.shareUrl();
       return payload;
@@ -9417,6 +10061,11 @@ this.$nextTick(() => requestAnimationFrame(focusRealInput));
       const store = this.savedStore();
       const payload = this.buildSavedPayload();
       if (!store || !payload?.id) return;
+      const canonical = String(payload.id);
+      const legacy = this.product?.id != null ? String(this.product.id) : null;
+      if (legacy && legacy !== canonical && store.isSaved(legacy)) {
+        store.remove(legacy);
+      }
       const saved = store.toggle(payload);
       const name = payload.name || 'Produkt';
       const toast = this.$store?.toast;
@@ -9428,10 +10077,14 @@ this.$nextTick(() => requestAnimationFrame(focusRealInput));
     },
     isSavedCurrent() {
       const store = this.savedStore();
-      return !!(store && store.isSaved(this.product?.id));
+      if (!store) return false;
+      const canonical = this.cartItemId();
+      if (canonical && store.isSaved(canonical)) return true;
+      const legacy = this.product?.id;
+      return legacy ? store.isSaved(legacy) : false;
     },
     shareUrl() {
-      const productId = this.product?.id;
+      const productId = this.cartItemId() || this.product?.id;
       try {
         if (!productId) return window.location.href;
         const { origin, pathname } = window.location;
@@ -9925,7 +10578,7 @@ search: '',
 selectedCategory: '',
 selectedForm: '',
 selectedConsumers: [],            // multi
-onlyInStock: false,
+stockFilter: 'all',
 benefitOnly: false,
 onlyDiscounted: false,
 priceBounds: { min: 0, max: 0 },
@@ -9972,8 +10625,8 @@ addressFormLoading: false,
 addressFormSubmitAttempted: false,
 addressFormMessage: '',
 checkoutFormData: null,
-checkoutDeliveryMeta: null,
-checkoutPaymentMeta: null,
+checkoutDeliveryMeta: { ours: null, partner: null },
+checkoutPaymentMeta: { ours: null, partner: null },
 checkoutReview: null,
 checkoutConsents: {
   terms: false,
@@ -10008,7 +10661,7 @@ init() {
   this.$watch('selectedCategory', trigger);
   this.$watch('selectedForm', trigger);
   this.$watch('selectedConsumers', trigger);
-  this.$watch('onlyInStock', trigger);
+  this.$watch('stockFilter', trigger);
   this.$watch('benefitOnly', trigger);
   this.$watch('onlyDiscounted', trigger);
   this.$watch('sortOrder', trigger);
@@ -10064,7 +10717,7 @@ init() {
   this.$watch('selectedCategory', refreshCatalog);
   this.$watch('selectedForm', refreshCatalog);
   this.$watch('selectedConsumers', refreshCatalog);
-  this.$watch('onlyInStock', refreshCatalog);
+  this.$watch('stockFilter', refreshCatalog);
   this.$watch('benefitOnly', refreshCatalog);
   this.$watch('onlyDiscounted', refreshCatalog);
   this.$watch('sortOrder', refreshCatalog);
@@ -10362,7 +11015,10 @@ consumersLabel() {
 },
 optionsLabel() {
   const on = [];
-  if (this.onlyInStock)     on.push(window.t('routes.products.quickFilters.inStock', 'Pouze skladem'));
+  if (this.isStockFiltered()) {
+    const label = this.stockFilterLabel();
+    if (label) on.push(label);
+  }
   if (this.benefitOnly)     on.push(window.t('routes.products.quickFilters.benefit', 'Lze platit benefity'));
   if (this.onlyDiscounted)  on.push(window.t('routes.products.quickFilters.discounted', 'Produkty v akci'));
   if (!on.length) {
@@ -10536,11 +11192,23 @@ topProductsShuffledFor(key, count = 12) {
     const src = this._topSource();
     if (!Array.isArray(src) || src.length === 0) return [];
     const arr = src.slice();
+    // shuffle
     for (let i = arr.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
       [arr[i], arr[j]] = [arr[j], arr[i]];
     }
-    this._topProdCacheMap[key] = arr;
+    // ensure unique IDs first
+    const seen = new Set();
+    const unique = [];
+    arr.forEach(item => {
+      const id = item?.id;
+      if (id != null) {
+        if (seen.has(id)) return;
+        seen.add(id);
+      }
+      unique.push(item);
+    });
+    this._topProdCacheMap[key] = unique;
   }
   return this._topProdCacheMap[key].slice(0, count);
 },
@@ -10858,6 +11526,38 @@ toggleConsumer(val) {
   else this.selectedConsumers.push(val);
   this.selectedConsumers = [...this.selectedConsumers]; // normalize
 },
+stockFilterOptions() {
+  const label = (key, fallback) => window.t(`routes.products.filters.sections.stock.options.${key}`, fallback);
+  return [
+    { value: 'all', label: label('all', 'Vše') },
+    { value: 'any', label: label('any', 'Pouze skladem') },
+    { value: 'drmax', label: label('drmax', 'U Dr. Max') },
+    { value: 'supplier', label: label('supplier', 'U dodavatele') }
+  ];
+},
+stockFilterLabel(value = this.stockFilter) {
+  const match = this.stockFilterOptions().find(opt => opt.value === value);
+  return match ? match.label : '';
+},
+isStockFiltered() { return this.stockFilter !== 'all'; },
+toggleStockQuickFilter() {
+  this.stockFilter = this.isStockFiltered() ? 'all' : 'any';
+},
+_matchesStockFilter(product) {
+  const raw = String(product?.stock || '').trim();
+  if (!raw) return false;
+  const normalized = raw.toLowerCase();
+  switch (this.stockFilter) {
+    case 'any':
+      return normalized.includes('sklad');
+    case 'drmax':
+      return normalized === 'skladem';
+    case 'supplier':
+      return normalized === 'skladem u dodavatele';
+    default:
+      return true;
+  }
+},
 applyPriceQuickRange(idx) {
   if (idx === null || typeof idx === 'undefined') {
     this.resetPriceFilter();
@@ -10886,7 +11586,7 @@ hasActiveFilters() {
     this.selectedCategory ||
     this.selectedForm ||
     this.selectedConsumers.length ||
-    this.onlyInStock ||
+    this.isStockFiltered() ||
     this.benefitOnly ||
     this.onlyDiscounted ||
     this._priceRangeActive()
@@ -10898,7 +11598,7 @@ activeFiltersCount() {
   if (this.selectedCategory) n++;
   if (this.selectedForm) n++;
   n += this.selectedConsumers.length;
-  if (this.onlyInStock) n++;
+  if (this.isStockFiltered()) n++;
   if (this.benefitOnly) n++;
   if (this.onlyDiscounted) n++;
   if (this._priceRangeActive()) n++;
@@ -10909,7 +11609,7 @@ clearFilters() {
   this.selectedCategory = '';
   this.selectedForm = '';
   this.selectedConsumers = [];
-  this.onlyInStock = false;
+  this.stockFilter = 'all';
   this.benefitOnly = false;
   this.onlyDiscounted = false;
   this.sortOrder = '';
@@ -10949,8 +11649,8 @@ filteredProducts() {
       return this.selectedConsumers.some(c => arr.includes(c)); // ANY match
     });
   }
-  if (this.onlyInStock) {
-    items = items.filter(p => String(p.stock || '').toLowerCase().includes('sklad'));
+  if (this.isStockFiltered()) {
+    items = items.filter(p => this._matchesStockFilter(p));
   }
   if (this.benefitOnly) {
     items = items.filter(p => !!p.benefitPayment);
@@ -11081,6 +11781,49 @@ async loadAddressSuggestions() {
   return this.addressAutocompleteOptions;
 },
 
+normalizeCheckoutMetaValue(raw) {
+  if (!raw || typeof raw !== 'object') {
+    return { ours: null, partner: null, hasPartner: false };
+  }
+  if ('ours' in raw || 'partner' in raw) {
+    return {
+      ours: raw.ours || null,
+      partner: raw.partner || null,
+      hasPartner: !!(raw.partner || raw.hasPartner)
+    };
+  }
+  return { ours: raw, partner: null, hasPartner: false };
+},
+deliveryMetaFor(context = 'ours') {
+  return this.checkoutDeliveryMeta?.[context] || null;
+},
+paymentMetaFor(context = 'ours') {
+  return this.checkoutPaymentMeta?.[context] || null;
+},
+    partnerDeliveryRequired() {
+      if (this.deliveryMetaFor('partner')) return true;
+      const cart = Alpine.store('cart');
+      return !!(cart?.hasPartnerItems?.());
+    },
+    hasPrimaryCartItems() {
+      const cart = Alpine.store('cart');
+      if (!cart || typeof cart.groupedTotals !== 'function') return true;
+      const totals = cart.groupedTotals();
+      const ours = totals?.ours?.items || [];
+      return Array.isArray(ours) ? ours.length > 0 : false;
+    },
+hasPrimaryPickup() {
+  const meta = this.deliveryMetaFor('ours');
+  const type = String(meta?.type || '').toLowerCase();
+  if (type === 'pickup') return true;
+  if (!type && meta?.pickup) return true;
+  return false;
+},
+requiresHomeAddress() {
+  if (this.partnerDeliveryRequired()) return true;
+  return !this.hasPrimaryPickup();
+},
+
 loadCheckoutMeta() {
   const parse = (key) => {
     try {
@@ -11091,8 +11834,8 @@ loadCheckoutMeta() {
       return null;
     }
   };
-  this.checkoutDeliveryMeta = parse('checkout.delivery');
-  this.checkoutPaymentMeta = parse('checkout.payment');
+  this.checkoutDeliveryMeta = this.normalizeCheckoutMetaValue(parse('checkout.delivery'));
+  this.checkoutPaymentMeta = this.normalizeCheckoutMetaValue(parse('checkout.payment'));
 },
 
 cartHasItems() {
@@ -11402,19 +12145,14 @@ persistAddressForm() {
 },
 
 isPickupDelivery() {
-  const meta = this.checkoutDeliveryMeta;
-  if (!meta) return false;
-  const type = String(meta.type || '').toLowerCase();
-  if (type === 'pickup') return true;
-  if (!type && meta.pickup) return true;
-  return false;
+  return this.hasPrimaryPickup();
 },
 
 shouldShowSection(name) {
   if (!name) return true;
   const normalized = String(name).trim().toLowerCase();
   if (normalized === 'doručovací adresa') {
-    return !this.isPickupDelivery();
+    return this.requiresHomeAddress();
   }
   return true;
 },
@@ -11617,6 +12355,16 @@ sectionSummary(sectionName, saved = null) {
       value: this.formatFieldValue(field, values[field.key])
     }));
 },
+liveSectionSummary(sectionName) {
+  const payload = {
+    values: this.contactFormValues,
+    groups: this.contactFormGroups
+  };
+  return this.sectionSummary(sectionName, payload);
+},
+homeAddressSummary() {
+  return this.liveSectionSummary('Doručovací adresa');
+},
 
 groupSummary(groupName, saved = null) {
   const data = saved || this.checkoutFormData || this.loadSavedAddressForm();
@@ -11657,10 +12405,28 @@ checkoutCartSummary() {
   };
 },
 
-isSelectedPaymentOnline() {
-  const name = (this.checkoutReview?.payment?.name || this.checkoutPaymentMeta?.name || '').toLowerCase();
-  const patterns = ['kartou online', 'benefitní kartou online'];
+deliveryFeeTotal() {
+  const orders = this.checkoutReview?.orders || [];
+  return orders.reduce((sum, order) => sum + Number(order.delivery?.finalPrice || 0), 0);
+},
+paymentFeeTotal() {
+  const orders = this.checkoutReview?.orders || [];
+  return orders.reduce((sum, order) => sum + Number(order.payment?.finalPrice || 0), 0);
+},
+isOnlinePaymentMeta(meta) {
+  if (!meta) return false;
+  const name = String(meta.name || '').toLowerCase();
+  const patterns = ['kartou online', 'benefitní kartou online', 'online platba'];
   return patterns.some(label => name.includes(label));
+},
+
+isSelectedPaymentOnline() {
+  const orders = this.checkoutReview?.orders || this.buildCheckoutOrders();
+  const hasPartnerOrder = orders.some(order => order.key === 'partner');
+  if (hasPartnerOrder) return true;
+  const oursOrder = orders.find(order => order.key === 'ours');
+  const paymentMeta = oursOrder?.payment || this.paymentMetaFor('ours');
+  return this.isOnlinePaymentMeta(paymentMeta);
 },
 
 paygateTotal() {
@@ -11668,11 +12434,44 @@ paygateTotal() {
     const num = Number(value);
     return Number.isFinite(num) ? num : 0;
   };
-  const cartTotal = toNumber(this.checkoutReview?.cart?.totals?.toPay || 0);
-  const delivery = toNumber(this.checkoutReview?.delivery?.finalPrice || 0);
-  const payment = toNumber(this.checkoutReview?.payment?.finalPrice || 0);
-  const total = cartTotal + delivery + payment;
+  const orders = this.checkoutReview?.orders || this.buildCheckoutOrders();
+  const total = orders.reduce((sum, order) => {
+    const requiresOnline = order.key === 'partner' || this.isOnlinePaymentMeta(order.payment);
+    if (!requiresOnline) return sum;
+    const items = toNumber(order.totals?.total || 0);
+    const delivery = toNumber(order.delivery?.finalPrice || 0);
+    const payment = toNumber(order.payment?.finalPrice || 0);
+    return sum + items + delivery + payment;
+  }, 0);
   return total > 0 ? total : 0;
+},
+
+buildCheckoutOrders() {
+  const cart = Alpine.store('cart');
+  const grouped = cart?.groupedTotals?.() || {};
+  const orders = [];
+  const pushOrder = (key, title) => {
+    const delivery = this.deliveryMetaFor(key);
+    const payment = this.paymentMetaFor(key);
+    const items = grouped?.[key]?.items || [];
+    if (!delivery && !payment && !items.length) return;
+    orders.push({
+      key,
+      title,
+      delivery,
+      payment,
+      totals: grouped?.[key]
+        ? {
+            subtotal: grouped[key].subtotal || 0,
+            discount: grouped[key].discount || 0,
+            total: grouped[key].total || 0
+          }
+        : { subtotal: 0, discount: 0, total: 0 }
+    });
+  };
+  pushOrder('ours', 'Nákup u nás');
+  pushOrder('partner', 'Nákup od dodavatele');
+  return orders;
 },
 
 openPaygate() {
@@ -11764,8 +12563,8 @@ finalizePurchase() {
     try {
       orderStore.createFromCheckout({
         review: reviewSnapshot,
-        deliveryMeta: this.checkoutDeliveryMeta,
-        paymentMeta: this.checkoutPaymentMeta
+        deliveryMeta: this.deliveryMetaFor('ours'),
+        paymentMeta: this.paymentMetaFor('ours')
       });
     } catch (e) {
       console.warn('activeOrder: failed to create order snapshot', e);
@@ -11791,8 +12590,7 @@ refreshCheckoutReview() {
     contact: this.sectionSummary('Kontaktní údaje', saved),
     deliveryDetails: this.groupSummary('Podrobnosti k doručení', saved),
     companyDetails: this.groupSummary('Firemní údaje', saved),
-    delivery: this.checkoutDeliveryMeta,
-    payment: this.checkoutPaymentMeta,
+    orders: this.buildCheckoutOrders(),
     cart: this.checkoutCartSummary()
   };
   this.checkoutReview = review;
@@ -11830,10 +12628,14 @@ submitPurchaseReview() {
 },
 
 loadCheckoutReviewFromStorage() {
+  this.loadCheckoutMeta();
   try {
     const raw = localStorage.getItem('checkout.review');
     const parsed = raw ? JSON.parse(raw) : null;
     if (parsed && typeof parsed === 'object') {
+      if (!Array.isArray(parsed.orders)) {
+        parsed.orders = this.buildCheckoutOrders();
+      }
       this.checkoutReview = parsed;
     }
   } catch (e) {
