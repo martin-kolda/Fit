@@ -1,0 +1,63 @@
+[
+  {
+    "id": 3,
+    "slug": "zdravi-a-leky",
+    "default": true,
+    "aliases": ["default", "main"],
+    "dataSource": "data/products.json",
+    "title": "Zdraví a léky",
+    "breadcrumbs": [
+      { "label": "Domů", "route": "home" },
+      { "label": "Zdraví a léky" }
+    ],
+    "categoryHeading": "Inspirace",
+    "descriptionHeading": "Zdraví a léky",
+    "description": "V kategorii Zdraví a léky naleznete volně prodejné léčivé přípravky, které pomáhají při různých obtížích. Jsou to například léky proti bolesti, při rýmě či kašli, na zvýšenou teplotu nebo při chřipce a nachlazení. Léčbu těmito přípravky zvládnete sami doma. V případě opakujících se nebo déle přetrvávajících obtíží je vždy na místě vyhledat pomoc lékaře. O vhodném léku se nejprve poraďte s lékárníkem.",
+    "search": { "include": true, "label": "Zdraví a léky", "preload": false }
+  },
+  {
+    "id": 301,
+    "slug": "vitaminy-a-doplnky",
+    "aliases": ["vitaminy", "doplnky"],
+    "dataSource": "data/products-vitaminy.json",
+    "title": "Vitamíny a doplňky",
+    "breadcrumbs": [
+      { "label": "Domů", "route": "home" },
+      { "label": "Vitamíny a doplňky" }
+    ],
+    "categoryHeading": "Nápady pro imunitu",
+    "descriptionHeading": "Posilte imunitu",
+    "description": "Výběr oblíbených doplňků stravy s vitaminy a minerály, které podporují obranyschopnost a pomáhají regeneraci organismu během náročných období.",
+    "search": { "include": true, "label": "Vitamíny", "preload": true }
+  },
+  {
+    "id": 302,
+    "slug": "bolest-a-horecka",
+    "aliases": ["bolest", "horecka"],
+    "dataSource": "data/products-bolest.json",
+    "title": "Úleva od bolesti",
+    "breadcrumbs": [
+      { "label": "Domů", "route": "home" },
+      { "label": "Bolest a horečka" }
+    ],
+    "categoryHeading": "Rychlá úleva",
+    "descriptionHeading": "Bolest a horečka",
+    "description": "Praktické balíčky léčiv určené pro rychlou úlevu při nachlazení, zvýšené teplotě nebo unavujících bolestech hlavy a kloubů.",
+    "search": { "include": true, "label": "Bolest a horečka", "preload": true }
+  },
+  {
+    "id": 303,
+    "slug": "kasel-a-ryma",
+    "aliases": ["kasel", "ryma", "nachlazeni"],
+    "dataSource": "data/products-kasel.json",
+    "title": "Kašel a rýma",
+    "breadcrumbs": [
+      { "label": "Domů", "route": "home" },
+      { "label": "Kašel a rýma" }
+    ],
+    "categoryHeading": "Pro klidné dýchání",
+    "descriptionHeading": "Kašel a rýma",
+    "description": "Léky a spreje, které ulevují od kašle, ucpaného nosu a dalších příznaků nachlazení během chladných dní.",
+    "search": { "include": true, "label": "Kašel a rýma", "preload": true }
+  }
+]

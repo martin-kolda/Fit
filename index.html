@@ -6572,13 +6572,9 @@ document.addEventListener('alpine:init', () => {
 
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <fieldset class="border border-base-300 rounded-xl bg-white shadow-sm p-4 py-6 md:p-8 space-y-3">
-          <div class="flex items-center justify-between">
-            <h3 class="text-lg font-medium" x-text="`Doprava od dodavatele (${partnerDelivery.length})`"></h3>
-            <span class="text-sm text-base-content/60 flex items-center gap-2">
-              <i class="fa-solid fa-truck-fast text-secondary"></i>
-              Domů i na výdejních místech
-            </span>
-          </div>
+
+            <h3 class="text-lg font-medium">Doprava od dodavatele</h3>
+
           <template x-if="!partnerDelivery.length">
             <p class="text-sm text-base-content/70">Žádná doprava partnera není dostupná.</p>
           </template>
@@ -6620,16 +6616,14 @@ document.addEventListener('alpine:init', () => {
               </div>
             </label>
           </template>
+            <span class="text-sm text-base-content/60 flex items-center mt-8" x-text="`Dodavatel nabízí pouze ${partnerDelivery.length} možnosti`">
+            </span>
         </fieldset>
 
         <fieldset class="border border-base-300 rounded-xl bg-white shadow-sm p-4 py-6 md:p-8 space-y-3">
-          <div class="flex items-center justify-between">
-            <h3 class="text-lg font-medium" x-text="`Platba partnera (${partnerPayment.length})`"></h3>
-            <span class="text-sm text-base-content/60 flex items-center gap-2">
-              <i class="fa-solid fa-credit-card text-secondary"></i>
-              Pouze online
-            </span>
-          </div>
+
+            <h3 class="text-lg font-medium">Platba dodavateli</h3>
+
           <template x-if="!partnerPayment.length">
             <p class="text-sm text-base-content/70">Žádná platba partnera není dostupná.</p>
           </template>
@@ -6661,6 +6655,8 @@ document.addEventListener('alpine:init', () => {
               </div>
             </label>
           </template>
+                  <span class="text-sm text-base-content/60 flex items-center mt-8" x-text="`Dodavatel nabízí pouze ${partnerPayment.length} možnost`">
+            </span>
         </fieldset>
       </div>
     </section>
@@ -7896,192 +7892,381 @@ function deliveryPaymentUI() {
 <!-- ROUTE == ADDRESSES -->
 <section x-show="is('addresses')" x-cloak>
   <section class="w-auto md:w-11/12 xl:w-8/12 mx-auto px-4 pt-2 md:pt-12 pb-32" x-init="ensureAddressForm()">
-    <h1 class="text-3xl mx-auto mb-6">Adresy</h1>
-
+      <h1 class="text-3xl mb-4">Adresa a kontakty</h1>
     <template x-if="addressFormLoading">
       <div class="border border-base-300 rounded-xl bg-white shadow-sm p-6 text-base-content/70">
         Načítám formulář…
       </div>
     </template>
 
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-12" x-show="addressFormLoaded">
-      <template x-for="section in contactFormSections" :key="section.name">
-        <fieldset x-show="shouldShowSection(section.name)"
-                  class="border border-base-300 rounded-xl bg-white shadow-sm p-6 md:px-16 md:py-10 grid grid-cols-1 gap-y-4 place-content-start">
-          <h2 class="text-xl font-medium leading-tight mt-0 mb-4" x-text="section.name"></h2>
-
-          <template x-for="field in section.fields" :key="field.key">
-            <div x-show="isFieldVisible(field)" class="space-y-2">
-              <template x-if="field.isToggle">
-                <div class="py-1">
-                  <label class="flex items-center gap-3 text-base text-base-content/80">
-                    <input type="checkbox"
-                           class="checkbox checkbox-secondary"
-                           x-model="contactFormValues[field.key]"
-                           @change="handleGroupToggle(field.key)">
-                    <span class="leading-tight" x-text="field.label"></span>
-                  </label>
-                  <p class="text-sm text-base-content/70" x-show="field.note" x-text="field.note"></p>
-                </div>
-              </template>
-
-              <template x-if="!field.isToggle">
-                <fieldset class="fieldset">
-                  <legend class="fieldset-legend text-sm text-max-gray-600" x-text="field.label"></legend>
-
-                  <template x-if="field.type === 'textarea'">
-                    <textarea class="textarea textarea-bordered h-28 w-full text-lg"
-                              x-bind:placeholder="field.placeholder ?? undefined"
-                              x-model="contactFormValues[field.key]"
-                              @input="handleFieldInput(field.key)"
-                              @blur="handleFieldBlur(field.key)"
-                              :class="contactFormErrors[field.key].length ? 'textarea-error' : ''"></textarea>
-                  </template>
-
-                  <template x-if="field.type === 'address'">
-                    <div x-data="addressAutocomplete(field.key)" x-init="init()" class="space-y-3">
-                      <div class="relative">
-                        <input type="text"
-                               class="input input-lg w-full pr-12"
-                               :class="contactFormErrors[field.key].length ? 'input-error' : ''"
-                               x-model="query"
-                               x-ref="input"
-                               x-bind:placeholder="field.placeholder ?? 'Zadejte adresu'"
-                               @input="onInput($event)"
-                               @focus="openSuggestions()"
-                               @blur="onBlur()"
-                               @keydown.arrow-down.prevent="highlightNext()"
-                               @keydown.arrow-up.prevent="highlightPrev()"
-                               @keydown.enter.prevent="selectHighlighted()"
-                               @keydown.escape="closeSuggestions()" />
-                        <button type="button"
-                                class="btn btn-ghost btn-sm absolute right-2 top-1/2 -translate-y-1/2"
-                                x-show="hasValue"
-                                @mousedown.prevent
-                                @click="clearSelection()">
-                          <span class="sr-only">Vymazat adresu</span>
-                          ×
-                        </button>
-
-                        <div class="absolute left-0 right-0 z-20 mt-1 rounded-lg border border-base-300 bg-white shadow-lg"
-                             x-cloak
-                             x-show="open && filteredOptions.length">
-                          <ul class="max-h-60 overflow-y-auto">
-                            <template x-for="(opt, idx) in filteredOptions" :key="opt.id">
-                              <li>
-                                <button type="button"
-                                        class="w-full text-left px-4 py-2 hover:bg-base-200 focus:bg-base-200"
-                                        :class="idx === highlighted ? 'bg-base-200' : ''"
-                                        @mousedown.prevent="selectOption(opt)"
-                                        @mouseenter="highlighted = idx">
-                                  <div class="font-medium" x-text="opt.label"></div>
-                                  <div class="text-sm text-base-content/70" x-text="opt.cityLine"></div>
-                                </button>
-                              </li>
-                            </template>
-                          </ul>
-                        </div>
-                      </div>
-
-                      <template x-if="hasValue">
-                        <div class="rounded-lg border border-dashed border-base-300 bg-base-100 p-4 text-sm leading-snug">
-                          <div class="font-semibold text-base-content">Vybraná adresa</div>
-                          <div class="text-base-content/80 whitespace-pre-line" x-text="summaryBody"></div>
-                        </div>
-                      </template>
-                    </div>
-                  </template>
-
-                  <template x-if="isPhoneField(field)">
-                    <label class="input input-lg w-full" :class="contactFormErrors[field.key].length ? 'input-error' : ''">
-                      <span class="label" x-show="field.prefix" x-text="field.prefix"></span>
-                      <div class="relative grow min-w-0">
-                        <input :type="field.type === 'tel' ? 'tel' : 'text'"
-                               class="grow bg-transparent focus:outline-none tabular-nums"
-                               :style="contactFormValues[field.key] ? 'color: transparent; caret-color: var(--fallback-bc, currentColor);' : ''"
-                               x-bind:placeholder="field.placeholder ?? undefined"
-                               x-model="contactFormValues[field.key]"
-                               @input="handleFieldInput(field.key)"
-                               @blur="handleFieldBlur(field.key)" />
-                        <span class="pointer-events-none select-none absolute inset-0 flex items-center justify-start text-base-content truncate w-full tabular-nums"
-                              :class="contactFormValues[field.key] ? 'opacity-100' : 'opacity-0'"
-                              aria-hidden="true"
-                              x-text="formatPhoneDisplay(contactFormValues[field.key])"></span>
-                      </div>
-                    </label>
-                  </template>
-
-                  <template x-if="['text','email'].includes(field.type) && !isPhoneField(field)">
-                    <label class="input input-lg w-full" :class="contactFormErrors[field.key].length ? 'input-error' : ''">
-                      <span class="label" x-show="field.prefix" x-text="field.prefix"></span>
-                      <input :type="field.type === 'email' ? 'email' : 'text'"
-                             class="grow"
-                             x-bind:placeholder="field.placeholder ?? undefined"
-                             x-model="contactFormValues[field.key]"
-                             @input="handleFieldInput(field.key)"
-                             @blur="handleFieldBlur(field.key)" />
-                    </label>
-                  </template>
-
-                  <p class="text-sm text-base-content/70" x-show="field.note" x-text="field.note"></p>
-                  <template x-if="contactFormErrors[field.key].length">
-                    <p class="text-sm text-error" x-text="contactFormErrors[field.key][0]"></p>
-                  </template>
-                </fieldset>
-              </template>
-            </div>
-          </template>
-        </fieldset>
-      </template>
-
-      <template x-if="partnerDeliveryRequired() || !hasPrimaryCartItems()">
-        <fieldset class="border border-base-300 rounded-xl bg-white shadow-sm p-6 md:px-16 md:py-10 grid grid-cols-1 gap-y-4 place-content-start">
-          <div class="flex items-start justify-between gap-3">
+    <div class="space-y-8" x-show="addressFormLoaded">
+      <template x-if="hasPrimaryCartItems()">
+        <article class="border border-base-300 rounded-2xl bg-white shadow-sm p-6 md:p-10 space-y-6">
+          <div class="flex flex-col gap-4 md:flex-row md:items-center">
             <div>
-              <h2 class="text-xl font-medium leading-tight mt-0 mb-2">Adresa pro doručení</h2>
-              <p class="text-sm text-base-content/70">
-                Tuto adresu použijeme pro doručení domů
-                <template x-if="partnerDeliveryRequired() && hasPrimaryPickup()">
-                  <span>u nákupu od dodavatele, zatímco naše produkty vyzvednete ve výdejním místě.</span>
+              <h2 class="text-2xl font-medium">Nákup</h2>
+            </div>
+            <div class="flex items-center gap-4">
+              <div x-data="cartAvatars({ key: 'cart.v1', max: 4, group: 'ours' })" x-init="init()" class="shrink-0">
+                <template x-if="items.length">
+                  <div class="avatar-group -space-x-6 overflow-visible" aria-label="Produkty v košíku">
+                    <template x-for="it in visible()" :key="it.id + '-' + it.img">
+                      <div class="avatar shadow-md" :title="it.name">
+                        <div class="w-14 xl:w-18 h-14 xl:h-18 rounded-full bg-base-200 overflow-hidden">
+                          <img
+                            :src="it.img"
+                            :alt="it.name || 'Produkt v košíku'"
+                            loading="lazy"
+                            class="w-full h-full object-cover transition-opacity duration-150"
+                            @load="$event.target.style.opacity = 1"
+                            @error="$event.target.style.opacity = 0.3"
+                          />
+                        </div>
+                      </div>
+                    </template>
+                    <div class="avatar avatar-placeholder" x-show="overflow() > 0">
+                      <div class="w-14 xl:w-18 h-14 xl:h-18 rounded-full bg-neutral text-neutral-content flex items-center justify-center">
+                        <span class="text-sm font-semibold" x-text="'+' + overflow()"></span>
+                      </div>
+                    </div>
+                  </div>
                 </template>
-              </p>
+              </div>
             </div>
           </div>
-          <template x-if="homeAddressSummary().length">
-            <dl class="space-y-2">
-              <template x-for="item in homeAddressSummary()" :key="item.label">
+
+          <div class="space-y-6">
+            <template x-if="hasPrimaryPickup()">
+              <div class="border border-dashed border-base-300 rounded-xl p-4 space-y-2 bg-max-green-25 flex justify-between items-center">
                 <div>
-                  <dt class="text-sm text-base-content/60" x-text="item.label"></dt>
-                  <dd class="text-sm font-medium whitespace-pre-line" x-text="item.value"></dd>
+                <div class="text-sm text-base-content/60 uppercase tracking-wide">Vyzvednutí zásilky</div>
+                <div class="text-base font-semibold" x-text="pickupSummary('ours')?.name || 'Vybrané místo'"></div>
+                <p class="text-sm text-base-content/80 whitespace-pre-line" x-text="pickupSummary('ours')?.addressLine || 'Výdejní místo je nastaveno v předchozím kroku.'"></p>
+                <p class="text-sm text-base-content/80" x-show="pickupSummary('ours')?.phone">
+                  Kontakt: <span class="font-medium" x-text="pickupSummary('ours')?.phone"></span>
+                </p>
                 </div>
-              </template>
-            </dl>
-          </template>
-          <p class="text-sm text-base-content/70" x-show="!homeAddressSummary().length">
-            Vyplňte prosím adresu v levém formuláři. Objeví se zde pro kontrolu.
-          </p>
-        </fieldset>
+                <div class="flex">
+                  <i class="fa-solid fa-check text-max-green-500 text-2xl"></i>
+                </div>
+              </div>
+            </template>
+
+            <template x-if="renderHomeFormIn('ours')">
+              <div class="space-y-6">
+                <template x-for="section in addressFormSections('delivery')" :key="'ours-' + section.name">
+                  <fieldset x-show="shouldShowSection(section.name)"
+                            class="border border-base-300 rounded-xl bg-white shadow-sm p-6 md:p-8 grid gap-y-4">
+                    <h3 class="text-xl font-medium" x-text="section.name"></h3>
+                    <template x-for="field in section.fields" :key="field.key">
+                      <div x-show="isFieldVisible(field)" class="space-y-2">
+                        <template x-if="field.isToggle">
+                          <div class="py-1">
+                            <label class="flex items-center gap-3 text-base text-base-content/80">
+                              <input type="checkbox"
+                                     class="checkbox checkbox-secondary"
+                                     x-model="contactFormValues[field.key]"
+                                     @change="handleGroupToggle(field.key)">
+                              <span class="leading-tight" x-text="field.label"></span>
+                            </label>
+                            <p class="text-sm text-base-content/70" x-show="field.note" x-text="field.note"></p>
+                          </div>
+                        </template>
+
+                        <template x-if="!field.isToggle">
+                          <fieldset class="fieldset">
+                            <legend class="fieldset-legend text-sm text-max-gray-600" x-text="field.label"></legend>
+
+                            <template x-if="field.type === 'textarea'">
+                              <textarea class="textarea textarea-bordered h-28 w-full text-lg"
+                                        x-bind:placeholder="field.placeholder ?? undefined"
+                                        x-model="contactFormValues[field.key]"
+                                        @input="handleFieldInput(field.key)"
+                                        @blur="handleFieldBlur(field.key)"
+                                        :class="contactFormErrors[field.key].length ? 'textarea-error' : ''"></textarea>
+                            </template>
+
+                            <template x-if="field.type === 'address'">
+                              <div x-data="addressAutocomplete(field.key)" x-init="init()" class="space-y-3">
+                                <div class="relative">
+                                  <input type="text"
+                                         class="input input-lg w-full pr-12"
+                                         :class="contactFormErrors[field.key].length ? 'input-error' : ''"
+                                         x-model="query"
+                                         x-ref="input"
+                                         x-bind:placeholder="field.placeholder ?? 'Zadejte adresu'"
+                                         @input="onInput($event)"
+                                         @focus="openSuggestions()"
+                                         @blur="onBlur()"
+                                         @keydown.arrow-down.prevent="highlightNext()"
+                                         @keydown.arrow-up.prevent="highlightPrev()"
+                                         @keydown.enter.prevent="selectHighlighted()"
+                                         @keydown.escape="closeSuggestions()" />
+                                  <button type="button"
+                                          class="btn btn-ghost btn-sm absolute right-2 top-1/2 -translate-y-1/2"
+                                          x-show="hasValue"
+                                          @mousedown.prevent
+                                          @click="clearSelection()">
+                                    <span class="sr-only">Vymazat adresu</span>
+                                    ×
+                                  </button>
+
+                                  <div class="absolute left-0 right-0 z-20 mt-1 rounded-lg border border-base-300 bg-white shadow-lg"
+                                       x-cloak
+                                       x-show="open && filteredOptions.length">
+                                    <ul class="max-h-60 overflow-y-auto">
+                                      <template x-for="(opt, idx) in filteredOptions" :key="opt.id">
+                                        <li>
+                                          <button type="button"
+                                                  class="w-full text-left px-4 py-2 hover:bg-base-200 focus:bg-base-200"
+                                                  :class="idx === highlighted ? 'bg-base-200' : ''"
+                                                  @mousedown.prevent="selectOption(opt)"
+                                                  @mouseenter="highlighted = idx">
+                                            <div class="font-medium" x-text="opt.label"></div>
+                                            <p class="text-sm text-base-content/70" x-text="opt.address"></p>
+                                          </button>
+                                        </li>
+                                      </template>
+                                    </ul>
+                                  </div>
+                                </div>
+                                <p class="text-sm text-base-content/70" x-text="summaryBody"></p>
+                              </div>
+                            </template>
+
+                            <template x-if="!['textarea', 'address'].includes(field.type)">
+                              <label class="input input-bordered input-lg flex items-center gap-2"
+                                     :class="contactFormErrors[field.key].length ? 'input-error' : ''">
+                                <span class="text-base text-base-content/80 whitespace-nowrap" x-show="field.prefix" x-text="field.prefix"></span>
+                                <input
+                                  :type="field.type === 'tel' ? 'tel' : 'text'"
+                                  class="grow"
+                                  x-model="contactFormValues[field.key]"
+                                  x-bind:placeholder="field.placeholder ?? undefined"
+                                  @input="handleFieldInput(field.key)"
+                                  @blur="handleFieldBlur(field.key)">
+                              </label>
+                            </template>
+
+                            <p class="text-sm text-base-content/70" x-show="field.note" x-text="field.note"></p>
+                            <template x-if="contactFormErrors[field.key].length">
+                              <p class="text-sm text-error" x-text="contactFormErrors[field.key][0]"></p>
+                            </template>
+                          </fieldset>
+                        </template>
+                      </div>
+                    </template>
+                  </fieldset>
+                </template>
+              </div>
+            </template>
+          </div>
+        </article>
       </template>
 
-      <template x-if="isPickupDelivery()">
-        <fieldset class="border border-base-300 rounded-xl bg-white shadow-sm p-6 md:px-16 md:py-10 grid grid-cols-1 gap-y-4 place-content-start">
-          <h2 class="text-xl font-medium leading-tight mt-0 mb-2">Výdejní místo</h2>
-          <template x-if="deliveryMetaFor('ours')?.pickup">
-            <div class="space-y-2">
-              <div class="text-base font-semibold" x-text="deliveryMetaFor('ours')?.pickup?.name || 'Vybrané místo'"></div>
-              <p class="text-sm text-base-content/80 whitespace-pre-line" x-text="deliveryMetaFor('ours')?.pickup?.addressLine || ''"></p>
-              <p class="text-sm text-base-content/80" x-show="deliveryMetaFor('ours')?.pickup?.phone">
-                Kontakt: <span class="font-medium" x-text="deliveryMetaFor('ours')?.pickup?.phone"></span>
-              </p>
+      <template x-if="hasPartnerCartItems()">
+        <article class="border border-base-300 rounded-2xl bg-white shadow-sm p-6 md:p-10 space-y-6">
+          <div class="flex flex-col gap-4 md:flex-row md:items-center">
+            <div>
+              <p class="text-sm uppercase tracking-wide text-base-content/60">Marketplace</p>
+              <h2 class="text-2xl font-medium">Nákup od dodavatele</h2>
+              <p class="text-sm text-base-content/70 mt-1">Samostatná zásilka</p>
             </div>
-          </template>
-          <template x-if="!deliveryMetaFor('ours')?.pickup">
-            <p class="text-sm text-base-content/70">
-              Výdejní místo je nastaveno v předchozím kroku.
-            </p>
-          </template>
-        </fieldset>
+            <div class="flex items-center gap-4">
+              <div x-data="cartAvatars({ key: 'cart.v1', max: 4, group: 'partner' })" x-init="init()" class="shrink-0">
+                <template x-if="items.length">
+                  <div class="avatar-group -space-x-6 overflow-visible" aria-label="Produkty od dodavatele">
+                    <template x-for="it in visible()" :key="it.id + '-' + it.img">
+                      <div class="avatar shadow-md" :title="it.name">
+                        <div class="w-14 xl:w-18 h-14 xl:h-18 rounded-full bg-base-200 overflow-hidden">
+                          <img
+                            :src="it.img"
+                            :alt="it.name || 'Produkt v košíku'"
+                            loading="lazy"
+                            class="w-full h-full object-cover transition-opacity duration-150"
+                            @load="$event.target.style.opacity = 1"
+                            @error="$event.target.style.opacity = 0.3"
+                          />
+                        </div>
+                      </div>
+                    </template>
+                    <div class="avatar avatar-placeholder" x-show="overflow() > 0">
+                      <div class="w-14 xl:w-18 h-14 xl:h-18 rounded-full bg-neutral text-neutral-content flex items-center justify-center">
+                        <span class="text-sm font-semibold" x-text="'+' + overflow()"></span>
+                      </div>
+                    </div>
+                  </div>
+                </template>
+              </div>
+            </div>
+          </div>
+
+          <div class="space-y-6">
+            <template x-if="renderHomeFormIn('partner')">
+              <div class="space-y-6">
+                <template x-for="section in addressFormSections('delivery')" :key="'partner-' + section.name">
+                  <fieldset x-show="shouldShowSection(section.name)"
+                            class="border border-base-300 rounded-xl bg-white shadow-sm p-6 md:p-8 grid gap-y-4">
+                    <h3 class="text-xl font-medium" x-text="section.name"></h3>
+                    <template x-for="field in section.fields" :key="field.key">
+                      <div x-show="isFieldVisible(field)" class="space-y-2">
+                        <template x-if="field.isToggle">
+                          <div class="py-1">
+                            <label class="flex items-center gap-3 text-base text-base-content/80">
+                              <input type="checkbox"
+                                     class="checkbox checkbox-secondary"
+                                     x-model="contactFormValues[field.key]"
+                                     @change="handleGroupToggle(field.key)">
+                              <span class="leading-tight" x-text="field.label"></span>
+                            </label>
+                            <p class="text-sm text-base-content/70" x-show="field.note" x-text="field.note"></p>
+                          </div>
+                        </template>
+
+                        <template x-if="!field.isToggle">
+                          <fieldset class="fieldset">
+                            <legend class="fieldset-legend text-sm text-max-gray-600" x-text="field.label"></legend>
+                            <template x-if="field.type === 'textarea'">
+                              <textarea class="textarea textarea-bordered h-28 w-full text-lg"
+                                        x-bind:placeholder="field.placeholder ?? undefined"
+                                        x-model="contactFormValues[field.key]"
+                                        @input="handleFieldInput(field.key)"
+                                        @blur="handleFieldBlur(field.key)"
+                                        :class="contactFormErrors[field.key].length ? 'textarea-error' : ''"></textarea>
+                            </template>
+                            <template x-if="field.type === 'address'">
+                              <div x-data="addressAutocomplete(field.key)" x-init="init()" class="space-y-3">
+                                <div class="relative">
+                                  <input type="text"
+                                         class="input input-lg w-full pr-12"
+                                         :class="contactFormErrors[field.key].length ? 'input-error' : ''"
+                                         x-model="query"
+                                         x-ref="input"
+                                         x-bind:placeholder="field.placeholder ?? 'Zadejte adresu'"
+                                         @input="onInput($event)"
+                                         @focus="openSuggestions()"
+                                         @blur="onBlur()"
+                                         @keydown.arrow-down.prevent="highlightNext()"
+                                         @keydown.arrow-up.prevent="highlightPrev()"
+                                         @keydown.enter.prevent="selectHighlighted()"
+                                         @keydown.escape="closeSuggestions()" />
+                                  <button type="button"
+                                          class="btn btn-ghost btn-sm absolute right-2 top-1/2 -translate-y-1/2"
+                                          x-show="hasValue"
+                                          @mousedown.prevent
+                                          @click="clearSelection()">
+                                    <span class="sr-only">Vymazat adresu</span>
+                                    ×
+                                  </button>
+
+                                  <div class="absolute left-0 right-0 z-20 mt-1 rounded-lg border border-base-300 bg-white shadow-lg"
+                                       x-cloak
+                                       x-show="open && filteredOptions.length">
+                                    <ul class="max-h-60 overflow-y-auto">
+                                      <template x-for="(opt, idx) in filteredOptions" :key="opt.id">
+                                        <li>
+                                          <button type="button"
+                                                  class="w-full text-left px-4 py-2 hover:bg-base-200 focus:bg-base-200"
+                                                  :class="idx === highlighted ? 'bg-base-200' : ''"
+                                                  @mousedown.prevent="selectOption(opt)"
+                                                  @mouseenter="highlighted = idx">
+                                            <div class="font-medium" x-text="opt.label"></div>
+                                            <p class="text-sm text-base-content/70" x-text="opt.address"></p>
+                                          </button>
+                                        </li>
+                                      </template>
+                                    </ul>
+                                  </div>
+                                </div>
+                                <p class="text-sm text-base-content/70" x-text="summaryBody"></p>
+                              </div>
+                            </template>
+
+                            <template x-if="!['textarea', 'address'].includes(field.type)">
+                              <label class="input input-bordered input-lg flex items-center gap-2"
+                                     :class="contactFormErrors[field.key].length ? 'input-error' : ''">
+                                <span class="text-base text-base-content/80 whitespace-nowrap" x-show="field.prefix" x-text="field.prefix"></span>
+                                <input
+                                  :type="field.type === 'tel' ? 'tel' : 'text'"
+                                  class="grow"
+                                  x-model="contactFormValues[field.key]"
+                                  x-bind:placeholder="field.placeholder ?? undefined"
+                                  @input="handleFieldInput(field.key)"
+                                  @blur="handleFieldBlur(field.key)">
+                              </label>
+                            </template>
+
+                            <p class="text-sm text-base-content/70" x-show="field.note" x-text="field.note"></p>
+                            <template x-if="contactFormErrors[field.key].length">
+                              <p class="text-sm text-error" x-text="contactFormErrors[field.key][0]"></p>
+                            </template>
+                          </fieldset>
+                        </template>
+                      </div>
+                    </template>
+                  </fieldset>
+                </template>
+              </div>
+            </template>
+
+            <template x-if="!renderHomeFormIn('partner') && requiresHomeAddress()">
+              <div class="border border-dashed border-base-300 rounded-xl p-4 space-y-2">
+                <div class="text-sm text-base-content/60 uppercase tracking-wide">Adresa pro doručení</div>
+                <template x-if="homeAddressSummary().length">
+                  <dl class="space-y-2">
+                    <template x-for="item in homeAddressSummary()" :key="'summary-' + item.label">
+                      <div>
+                        <dt class="text-sm text-base-content/60" x-text="item.label"></dt>
+                        <dd class="text-sm font-medium whitespace-pre-line" x-text="item.value"></dd>
+                      </div>
+                    </template>
+                  </dl>
+                </template>
+                <p class="text-sm text-base-content/70" x-show="!homeAddressSummary().length">
+                  Vyplňte prosím adresu v sekci „Nákup“. Objeví se zde pro kontrolu.
+                </p>
+              </div>
+            </template>
+          </div>
+        </article>
       </template>
+
+      <article class="border border-base-300 rounded-2xl bg-white shadow-sm p-6 md:p-10 space-y-6">
+        <div class="flex items-center justify-between">
+            <h2 class="text-2xl font-medium">Kontaktní údaje</h2>
+        </div>
+
+        <div class="space-y-6">
+          <template x-for="section in addressFormSections('contact')" :key="'contact-' + section.name">
+            <fieldset class="grid gap-y-4">
+              <template x-for="field in section.fields" :key="field.key">
+                <div class="space-y-2">
+                  <fieldset class="fieldset">
+                    <legend class="fieldset-legend text-sm text-max-gray-600" x-text="field.label"></legend>
+
+                    <label class="input input-bordered input-lg flex items-center gap-2"
+                           :class="contactFormErrors[field.key].length ? 'input-error' : ''">
+                      <span class="text-base text-base-content/80 whitespace-nowrap" x-show="field.prefix" x-text="field.prefix"></span>
+                      <input
+                        :type="field.type === 'tel' ? 'tel' : (field.type === 'email' ? 'email' : 'text')"
+                        class="grow"
+                        x-model="contactFormValues[field.key]"
+                        x-bind:placeholder="field.placeholder ?? undefined"
+                        @input="handleFieldInput(field.key)"
+                        @blur="handleFieldBlur(field.key)">
+                    </label>
+
+                    <p class="text-sm text-base-content/70" x-show="field.note" x-text="field.note"></p>
+                    <template x-if="contactFormErrors[field.key].length">
+                      <p class="text-sm text-error" x-text="contactFormErrors[field.key][0]"></p>
+                    </template>
+                  </fieldset>
+                </div>
+              </template>
+            </fieldset>
+          </template>
+        </div>
+      </article>
     </div>
 
     <p class="mt-6 text-sm text-error" x-show="addressFormMessage" x-text="addressFormMessage"></p>
@@ -8101,7 +8286,6 @@ function deliveryPaymentUI() {
     </div>
   </div>
 </section>
-
 <!-- ROUTE == PURCHASE REVIEW -->
 <section x-show="is('purchase-review')" x-cloak>
   <section class="w-auto md:w-11/12 xl:w-11/12 mx-auto px-4 pt-2 md:pt-12 pb-32">
@@ -10595,10 +10779,10 @@ this.$nextTick(() => requestAnimationFrame(focusRealInput));
       const t = String(txt).trim();
       return t.length > n ? t.slice(0, n - 1) + '…' : t;
     }
-  })),
+  }));
 
     // STORE CORE + ROUTER
-    Alpine.data('storeApp', () => ({
+    const storeAppDefinition = () => ({
 
 // persisted prefs
 locale: Alpine.$persist('cs-CZ').as('locale'),
@@ -12163,6 +12347,35 @@ requiresHomeAddress() {
   if (this.partnerDeliveryRequired()) return true;
   return !this.hasPrimaryPickup();
 },
+hasPartnerCartItems() {
+  const cart = Alpine.store('cart');
+  return !!(cart?.hasPartnerItems?.());
+},
+homeAddressContext() {
+  if (!this.hasPrimaryPickup()) return 'ours';
+  if (this.partnerDeliveryRequired()) return 'partner';
+  return null;
+},
+renderHomeFormIn(context = 'ours') {
+  return this.homeAddressContext() === context;
+},
+addressFormSections(kind = 'all') {
+  const sections = Array.isArray(this.contactFormSections) ? this.contactFormSections : [];
+  if (kind === 'contact') {
+    return sections.filter(sec => this.isContactSection(sec.name));
+  }
+  if (kind === 'delivery') {
+    return sections.filter(sec => !this.isContactSection(sec.name));
+  }
+  return sections;
+},
+isContactSection(name) {
+  return String(name || '').trim().toLowerCase() === 'kontaktní údaje';
+},
+pickupSummary(context = 'ours') {
+  const meta = this.deliveryMetaFor(context);
+  return meta?.pickup || null;
+},
 
 loadCheckoutMeta() {
   const parse = (key) => {
@@ -12998,7 +13211,11 @@ loadCheckoutReviewFromStorage() {
   }
 }
 
-})),
+});
+
+    Alpine.data('storeApp', storeAppDefinition);
+    window.storeApp = storeAppDefinition;
+
 
   // HAMBURGER MENU  
   Alpine.store('menu', {

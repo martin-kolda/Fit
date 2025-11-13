@@ -1,0 +1,198 @@
+[
+  {
+    "id": 26,
+    "name": "Milgamma N 100 měkkých tobolek",
+    "price": 665,
+    "image": "./images/milgamma.webp",
+    "description": "Milgamma N tobolky obsahují kombinaci vitaminu B1 (ve formě benfotiaminu), B6 a vitaminu B12, které jsou důležité pro metabolismus nervových buněk u dospělých.",
+    "category": "Vitamíny",
+    "stock": "Skladem",
+    "badges": [],
+    "benefitPayment": true,
+    "consumers": [
+      "Pro dospělé"
+    ],
+    "form": "Tablety, pastilky, tobolky"
+  },
+  {
+    "id": 37,
+    "name": "Celaskon 250 mg 100 tablet",
+    "price": 119,
+    "discounted_price": 119,
+    "image": "./images/celaskon-250-100.webp",
+    "description": "Vitamin C tablety (250 mg) pro prevenci a léčbu onemocnění spojených s nedostatkem vitaminu C. Vitamin C podporuje tvorbu kostí, zubů a pojivové tkáně, zvyšuje vstřebávání železa a přispívá k normální funkci imunitního systému.",
+    "category": "Vitamíny",
+    "stock": "Skladem",
+    "badges": [
+      "Super cena"
+    ],
+    "benefitPayment": false,
+    "consumers": [
+      "Dospělí",
+      "Děti"
+    ],
+    "form": "Tablety, pastilky, tobolky"
+  },
+  {
+    "id": 38,
+    "name": "Neurobion 100 mg/50 mg/1 mg 30 tablet",
+    "price": 259,
+    "discounted_price": 259,
+    "image": "./images/neurobion-100.webp",
+    "description": "Lék s vitaminy B1, B6 a B12 pro prevenci a léčbu jejich nedostatku. Pomáhá zmírňovat příznaky jako mravenčení, necitlivost nebo svalové křeče a podporuje regeneraci a ochranu nervových buněk.",
+    "category": "Vitamíny",
+    "stock": "Skladem",
+    "badges": [
+      "Super cena"
+    ],
+    "benefitPayment": false,
+    "consumers": [
+      "Dospělí"
+    ],
+    "form": "Tablety, pastilky, tobolky"
+  },
+  {
+    "id": 39,
+    "name": "Celaskon Červený pomeranč 500 mg 30 šumivých tablet",
+    "price": 179,
+    "discounted_price": 179,
+    "image": "./images/celaskon-red-500.webp",
+    "description": "Šumivé tablety s 500 mg vitaminu C s příchutí červeného pomeranče. Posilují imunitu během chřipky a nachlazení, podporují tvorbu kolagenu, funkci kostí, zubů a vstřebávání železa. Pro dospělé a děti od 3 let; 1 tableta denně rozpuštěná ve vodě.",
+    "category": "Vitamíny",
+    "stock": "Skladem",
+    "badges": [
+      "Super cena",
+      "KUPON"
+    ],
+    "benefitPayment": false,
+    "consumers": [
+      "Dospělí",
+      "Děti 3+"
+    ],
+    "form": "Tablety, pastilky, tobolky"
+  },
+  {
+    "id": 40,
+    "name": "Multi-sanostol sirup 300 g",
+    "price": 239,
+    "discounted_price": 239,
+    "image": "./images/multisanostol-300.webp",
+    "description": "Multivitaminový sirup s devíti esenciálními vitaminy a vápníkem. Doplní vitaminy při fyzické či psychické zátěži, nechuti k jídlu, poruchách růstu a rekonvalescenci. Pro děti od 1 roku, dospívající i dospělé; dávkování 5–10 ml 2× denně.",
+    "category": "Vitamíny",
+    "stock": "Skladem",
+    "badges": [
+      "Super cena",
+      "KUPON"
+    ],
+    "benefitPayment": false,
+    "consumers": [
+      "Děti",
+      "Dospělí"
+    ],
+    "form": "Sirup"
+  },
+  {
+    "id": 41,
+    "name": "Celaskon Long Effect 500 mg 60 tobolek",
+    "price": 275,
+    "discounted_price": 275,
+    "image": "./images/celaskon-long-60.webp",
+    "description": "Kapsle s postupným uvolňováním vitaminu C po dobu 8–12 hodin pro podporu imunity. Používají se k prevenci i léčbě nedostatku vitaminu C, zejména v období chřipky a nachlazení. Dospělí a děti od 3 let užívají 1 kapsli denně, maximálně 4 kapsle denně po doporučení lékaře.",
+    "category": "Vitamíny",
+    "stock": "Skladem",
+    "badges": [],
+    "benefitPayment": false,
+    "consumers": [
+      "Dospělí",
+      "Děti 3+"
+    ],
+    "form": "Tablety, pastilky, tobolky"
+  },
+  {
+    "id": 42,
+    "name": "Milgamma 50 mg/250 µg 100 obalených tablet",
+    "price": 719,
+    "discounted_price": 719,
+    "image": "./images/milgamma-100.webp",
+    "description": "Lék obsahující vitamin B1 (benfotiamin) a vitamin B12 pro léčbu onemocnění periferních nervů, jako je zánět nervů, diabetická neuropatie, obrna lícního nervu nebo pásový opar. Dospělí užívají 3 tablety denně; u mírných stavů 1–2 tablety denně.",
+    "category": "Vitamíny",
+    "stock": "Skladem",
+    "badges": [],
+    "benefitPayment": false,
+    "consumers": [
+      "Dospělí"
+    ],
+    "form": "Tablety, pastilky, tobolky"
+  },
+  {
+    "id": 43,
+    "name": "Milgamma N 50 měkkých tobolek",
+    "price": 435,
+    "discounted_price": 435,
+    "image": "./images/milgamma-n-50.webp",
+    "description": "Kombinace vitaminů B1, B6 a B12 ve formě měkkých tobolek. Působí na metabolismus nervových buněk a pomáhá léčit některé příčiny bolesti zad a další neuropatické potíže. Obvyklá dávka je 1 tobolka 3× denně, při lehčích potížích 1–2 tobolky denně.",
+    "category": "Vitamíny",
+    "stock": "Skladem",
+    "badges": [
+      "FKSP"
+    ],
+    "benefitPayment": true,
+    "consumers": [
+      "Dospělí"
+    ],
+    "form": "Tablety, pastilky, tobolky"
+  },
+  {
+    "id": 44,
+    "name": "Celaskon Long Effect 500 mg 30 tobolek",
+    "price": 185,
+    "discounted_price": 185,
+    "image": "./images/celaskon-long-30.webp",
+    "description": "Tobolky s vitaminem C, který se uvolňuje postupně 8–12 hodin. Podporují imunitu a používají se k prevenci a léčbě nedostatku vitaminu C. Pro dospělé a děti od 3 let; doporučené dávkování 1 tobolka denně.",
+    "category": "Vitamíny",
+    "stock": "Skladem",
+    "badges": [],
+    "benefitPayment": false,
+    "consumers": [
+      "Dospělí",
+      "Děti 3+"
+    ],
+    "form": "Tablety, pastilky, tobolky"
+  },
+  {
+    "id": 45,
+    "name": "Fultium D3 800 IU 90 měkkých tobolek",
+    "price": 215,
+    "discounted_price": 215,
+    "image": "./images/fultium-d3-800.webp",
+    "description": "Léčivý přípravek s vitaminem D3 (cholekalciferol) v dávce 800 IU. Vitamin D podporuje vstřebávání a metabolismus vápníku a pomáhá udržovat zdravé kosti a zuby. Vhodný pro dospělé, starší osoby a dospívající od 12 let.",
+    "category": "Vitamíny",
+    "stock": "Skladem",
+    "badges": [],
+    "benefitPayment": false,
+    "consumers": [
+      "Dospělí",
+      "Děti 12+"
+    ],
+    "form": "Tablety, pastilky, tobolky"
+  },
+  {
+    "id": 46,
+    "name": "Additiva Vitamin C Blutorange 20 šumivých tablet",
+    "price": 145,
+    "discounted_price": 109,
+    "image": "./images/additiva-blutorange.webp",
+    "description": "Šumivé tablety s vysokým obsahem vitaminu C a příchutí krvavého pomeranče. Doplňují nedostatek vitaminu C během období zvýšené potřeby a podporují imunitu. Tabletu rozpusťte ve sklenici vody a vypijte.",
+    "category": "Vitamíny",
+    "stock": "Skladem",
+    "badges": [
+      "Sleva 24%"
+    ],
+    "benefitPayment": false,
+    "consumers": [
+      "Dospělí",
+      "Děti"
+    ],
+    "form": "Tablety, pastilky, tobolky"
+  }
+]

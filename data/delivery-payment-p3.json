@@ -1,7 +1,7 @@
 [
     {
         "id": 1,
-        "name": "Doručení od dodavatele",
+        "name": "Doručení na adresu",
         "tooltip": null,
         "type": "delivery",
         "price_from": false,

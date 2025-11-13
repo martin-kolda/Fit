@@ -1,0 +1,175 @@
+[
+  {
+    "id": 3,
+    "name": "Ibalgin 400 mg 48 tablet",
+    "price": 125,
+    "image": "./images/ibalgin.webp",
+    "description": "Zmírňuje bolest a zánět různého původu a snižuje horečku. Pro dospělé a dospívající od 12 let.",
+    "category": "Bolest a horečka",
+    "stock": "Skladem",
+    "badges": [],
+    "benefitPayment": true,
+    "consumers": [
+      "Pro větší děti",
+      "Pro dospělé"
+    ],
+    "form": "Tablety, pastilky, tobolky"
+  },
+  {
+    "id": 4,
+    "name": "Paralen 500 mg 24 tablet",
+    "price": 55,
+    "discounted_price": 39,
+    "image": "./images/paralen.webp",
+    "description": "Lék proti bolesti a horečce s obsahem paracetamolu. Vhodný při chřipce a nachlazení, bolestech hlavy či zubů.",
+    "category": "Bolest a horečka",
+    "stock": "Skladem",
+    "badges": [
+      "Sleva 29%"
+    ],
+    "benefitPayment": true,
+    "consumers": [
+      "Pro větší děti",
+      "Pro dospělé"
+    ],
+    "form": "Tablety, pastilky, tobolky"
+  },
+  {
+    "id": 10,
+    "name": "Panadol Extra Novum 500 mg/65 mg 24 tablet",
+    "price": 129,
+    "image": "./images/panadol.webp",
+    "description": "Úleva od bolesti (hlava, zuby, menstruace) a snížení horečky. Kombinace paracetamolu a kofeinu.",
+    "category": "Bolest a horečka",
+    "stock": "Skladem",
+    "badges": [],
+    "benefitPayment": true,
+    "consumers": [
+      "Pro větší děti",
+      "Pro dospělé"
+    ],
+    "form": "Tablety, pastilky, tobolky"
+  },
+  {
+    "id": 16,
+    "name": "Aspirin 500 mg 20 tablet",
+    "price": 155,
+    "image": "./images/aspirin-500mg.webp",
+    "description": "Tablety s kyselinou acetylsalicylovou snižují horečku a tlumí bolest hlavy, zubů a svalů.",
+    "category": "Bolest a horečka",
+    "stock": "Skladem",
+    "badges": [],
+    "benefitPayment": true,
+    "consumers": [
+      "Pro dospívající",
+      "Pro dospělé"
+    ],
+    "form": "Tablety, pastilky, tobolky"
+  },
+  {
+    "id": 20,
+    "name": "Voltaren Forte 20 mg/g gel 180 g",
+    "price": 399,
+    "image": "./images/voltaren-forte.webp",
+    "description": "Gel s diclofenacem pro úlevu od bolesti svalů a kloubů, tlumí zánět a otok až na 12 hodin.",
+    "category": "Bolest kloubů, svalů",
+    "stock": "Skladem",
+    "badges": [
+      "Akce -20%"
+    ],
+    "benefitPayment": true,
+    "consumers": [
+      "Pro dospívající",
+      "Pro dospělé"
+    ],
+    "form": "Mast, gel"
+  },
+  {
+    "id": 22,
+    "name": "Ibalgin Rapidcaps 400 mg 30 měkkých tobolek",
+    "price": 159,
+    "image": "./images/ibalgin-rapidcaps.webp",
+    "description": "Měkké kapsle s ibuprofenem pro rychlou úlevu od bolesti a snížení horečky.",
+    "category": "Bolest a horečka",
+    "stock": "Skladem",
+    "badges": [],
+    "benefitPayment": true,
+    "consumers": [
+      "Pro dospívající",
+      "Pro dospělé"
+    ],
+    "form": "Tablety, pastilky, tobolky"
+  },
+  {
+    "id": 25,
+    "name": "Dr. Max Ibuprofen 400 mg 100 potahovaných tablet",
+    "price": 159,
+    "discounted_price": 119,
+    "image": "./images/ibuprofen-400.webp",
+    "description": "Ibuprofen Dr. Max 400 mg se používá ke tlumení bolesti (např. hlavy včetně migrény, zubů, při pohmoždění), bolesti při menstruaci a snižuje horečku.",
+    "category": "Bolest a horečka",
+    "stock": "Skladem",
+    "badges": [
+      "Sleva 25%"
+    ],
+    "benefitPayment": true,
+    "consumers": [
+      "Pro dospívající",
+      "Pro dospělé"
+    ],
+    "form": "Tablety, pastilky, tobolky"
+  },
+  {
+    "id": 28,
+    "name": "Ibalgin 400 mg 96 tablet",
+    "price": 199,
+    "image": "./images/ibalgin-96.webp",
+    "description": "balgin 400 zmírňuje bolest a zánět různého původu a zároveň tlumí horečku provázející nemoci z nachlazení u dospělých a dospívajících od 12 let.",
+    "category": "Bolest a horečka",
+    "stock": "Skladem",
+    "badges": [],
+    "benefitPayment": true,
+    "consumers": [
+      "Pro dospívající",
+      "Pro dospělé"
+    ],
+    "form": "Tablety, pastilky, tobolky"
+  },
+  {
+    "id": 31,
+    "name": "Dr. Max Parapyrex 500 mg 30 tablet",
+    "price": 55,
+    "discounted_price": 39,
+    "image": "./images/parapyrex.webp",
+    "description": "Dr. Max Parapyrex 500 mg pomáhá při mírné až střední bolesti (bolest hlavy, zubů, zad, svalů a kloubů při chřipce) a snižuje horečku. Je určen pro dospělé a děti od 6 let.",
+    "category": "Bolest a horečka",
+    "stock": "Skladem",
+    "badges": [
+      "Sleva 29%"
+    ],
+    "benefitPayment": true,
+    "consumers": [
+      "Pro děti",
+      "Pro dospívající",
+      "Pro dospělé"
+    ],
+    "form": "Tablety, pastilky, tobolky"
+  },
+  {
+    "id": 33,
+    "name": "Dr. Max Paracetamol 500 mg 20 tablet",
+    "price": 35,
+    "image": "./images/paracetamol.webp",
+    "description": "Dr. Max Paracetamol 500 mg pomáhá při mírné až střední bolesti (bolest hlavy, zubů, zad, svalů a kloubů při chřipce) a snižuje horečku. Je určen pro dospělé a děti od 6 let.",
+    "category": "Bolest a horečka",
+    "stock": "Skladem",
+    "badges": [],
+    "benefitPayment": true,
+    "consumers": [
+      "Pro děti",
+      "Pro dospívající",
+      "Pro dospělé"
+    ],
+    "form": "Tablety, pastilky, tobolky"
+  }
+]
