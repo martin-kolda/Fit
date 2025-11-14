@@ -1,5 +1,11 @@
 [
   {
+    "image": "./images/categories-grid/drmax.webp",
+    "label": "Dr. Max produkty",
+    "background": "bg-max-gray-100",
+    "slug": "drmax"
+  },
+  {
     "image": "./images/categories-grid/zdravotnicke-pomucky.webp",
     "label": "Zdravotnické pomůcky",
     "background": "bg-max-gray-100",
