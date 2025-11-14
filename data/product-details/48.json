@@ -1,0 +1,33 @@
+{
+  "id": "Dr.-Max-Vitamin-D-Baby-10-ml",
+  "name": "Dr. Max Vitamin D Baby 10 ml",
+  "registeredMedicament": false,
+  "brand": "DR. MAX",
+  "productLine": "",
+  "reviews": {
+    "average": 5.0,
+    "count": 1,
+    "items": [
+      {
+        "name": "Barbora",
+        "date": "02. 12. 2024",
+        "source": "Recenze od Heureka",
+        "rating": "Výborný"
+      }
+    ]
+  },
+  "perex": "Přípravek Dr. Max Vitamin D Baby obsahuje vitamin D, který napomáhá zdravé imunitě Vašich dětí a příznivě ovlivňuje růst a vývoj kostí a zubů. Pro děti od 14 dní věku i dospělé.",
+  "category": "Vitamíny",
+  "stock": "Skladem",
+  "pharmacyStock": "Ve 546 lekárnach",
+  "SKU": "50126237",
+  "badges": ["Do 15 minut"],
+  "images": [
+    "./images/Dr.Max_Vitamin_D_Baby.webp"
+  ],
+  "price": 199,
+  "discounted_price": null,
+  "comparison_id": 2,
+  "description": "<section class=\"space-y-5 text-gray-800 leading-relaxed\">\n  <h2 class=\"text-2xl font-semibold text-gray-900 mt-6 mb-2 first:mt-0\">Úvod</h2>\n  <p class=\"text-base leading-relaxed\">Vitamin D pro zdravou imunitu Vašich dětí. Přípravek Vitamin D Baby ve formě kapek mohou užívat kojenci od 14&nbsp;dní věku, děti i dospělí. Vitamin D je důležitý nejen pro správný růst a vývin kostí u dětí, ale i pro seniory, ženy v menopauze nebo osoby se zvýšenou fyzickou aktivitou.</p>\n\n  <h3 class=\"text-xl font-semibold text-gray-900 mt-5 mb-2\">Hlavní vlastnosti vitaminu D:</h3>\n  <ul class=\"list-disc pl-6 space-y-1 text-base leading-relaxed\">\n    <li>přispívá k udržení normální funkce svalů a zdravých kostí a zubů</li>\n    <li>příznivě ovlivňuje hladinu vápníku v krvi</li>\n    <li>napomáhá normálnímu vstřebávání a využití vápníku a fosforu</li>\n    <li>přispívá ke správné funkci imunitního systému</li>\n  </ul>\n</section>"
+  
+  }

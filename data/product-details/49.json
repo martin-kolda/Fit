@@ -1,0 +1,54 @@
+{
+  "id": "Dr.-Max-Vitamin-D-2000-IU-20-sumivych-tablet",
+  "name": "Dr. Max Vitamin D 2000 IU 20 šumivých tablet",
+  "registeredMedicament": false,
+  "brand": "DR. MAX",
+  "productLine": "",
+  "reviews": {
+    "average": 4.5,
+    "count": 2,
+    "items": [
+      {
+        "name": "Veronika",
+        "date": "03. 09. 2025",
+        "source": "Recenze od Heureka",
+        "rating": "Velmi dobrý",
+        "review": "Nic moc chuť"
+      },
+      {
+        "name": "Jiřina",
+        "date": "09. 12. 2024",
+        "source": "Recenze od Heureka",
+        "rating": "Výborný",
+        "review": "Ok"
+      }
+    ]
+  },
+  "perex": "Dr. Max Vitamin D 2000 IU obsahuje enkapsulovaný vitamin D ve formě šumivých tablet s příchutí citrónů a limetek pro správné fungování imunitního systému a zdravé kosti.",
+  "category": "Vitamíny",
+  "stock": "Skladem",
+  "pharmacyStock": "Ve 546 lekárnach",
+  "SKU": "50140553",
+  "badges": ["Do 15 minut"],
+  "images": [
+    "./images/Dr.Max_Vitamin_D_2000_IU.webp"
+  ],
+  "price": 99,
+  "discounted_price": null,
+  "comparison_id": 2,
+  "description": "<section class=\"space-y-5 text-gray-800 leading-relaxed\">\n  <h2 class=\"text-2xl font-semibold text-gray-900 mt-6 mb-2 first:mt-0\">Úvod</h2>\n  <p class=\"text-base leading-relaxed\">Zdravá imunita a pevné kosti. Přípravek Dr. Max Vitamin D 2000&nbsp;IU obsahuje enkapsulovaný vitamin&nbsp;D ve formě šumivých tablet s osvěžující příchutí citronů a limetek. Speciální mikrokapsle umožňují rozpustnost vitaminu&nbsp;D ve vodě. Vitamin&nbsp;D je důležitý pro správnou funkci imunitního systému a přispívá k normálnímu stavu kostí, zubů a činnosti svalů.</p>\n\n  <h3 class=\"text-xl font-semibold text-gray-900 mt-5 mb-2\">Hlavní vlastnosti vitaminu D:</h3>\n  <ul class=\"list-disc pl-6 space-y-1 text-base leading-relaxed\">\n    <li>přispívá k udržení normální funkce svalů a zdravých kostí a zubů</li>\n    <li>příznivě ovlivňuje hladinu vápníku v krvi</li>\n    <li>napomáhá normálnímu vstřebávání a využití vápníku a fosforu</li>\n    <li>přispívá ke správné funkci imunitního systému</li>\n    <li>podílí se na procesu dělení buněk</li>\n  </ul>\n\n  <h3 class=\"text-xl font-semibold text-gray-900 mt-5 mb-2\">Dávkování</h3>\n  <p class=\"text-base leading-relaxed\">Užívejte 1&nbsp;šumivou tabletu denně. Tabletu nechte rozpustit ve sklenici vody (250&nbsp;ml) a vypijte.</p>\n\n  <h3 class=\"text-xl font-semibold text-gray-900 mt-5 mb-2\">Složení</h3>\n  <p class=\"text-base leading-relaxed\"><strong>Vitamin D3</strong> 50&nbsp;µg (2000&nbsp;IU) v jedné tabletě (1000&nbsp;% referenční hodnoty příjmu).</p>\n  <p class=\"text-base leading-relaxed\">Regulátory kyselosti (kyselina citronová, uhličitany sodné), zahušťovadlo (sorbitol), odpěňovač (polyethylenglykol), maltodextrin, sladidlo (sukralóza), přírodní citronové a limetkové aroma, modifikovaný kukuřičný škrob, emulgátor (arabská guma), sacharóza, barvivo (riboflavin), cholekalciferol.</p>\n\n  <h3 class=\"text-xl font-semibold text-gray-900 mt-5 mb-2\">Upozornění</h3>\n  <p class=\"text-base leading-relaxed\">Doplněk stravy se sladidlem. Nepřekračujte doporučené denní dávkování. Není určeno jako náhrada pestré stravy. Dbejte na vyváženou a pestrou stravu a zdravý životní styl. Nevhodné pro děti, těhotné a kojící ženy. Ukládejte mimo dosah dětí. Nadměrná konzumace může vyvolat projímavé účinky.</p>\n</section>",
+  "parameters": [
+    {
+      "name": "Léková forma",
+      "value": "Tablety šumivé"
+    },
+    {
+      "name": "Počet tablet",
+      "value": "20"
+    },
+    {
+      "name": "Skupiny vitamínů",
+      "value": "Vitamin D3"
+    }
+  ]
+}

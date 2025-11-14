@@ -57,5 +57,49 @@
         "badges": []
         }
     ]
+    },
+{
+      "id": 2,
+      "product_comparison": [
+        {
+        "image": "./images/Dr.Max_Vitamin_D3_Kids.webp",
+        "name": "Dr. Max Vitamin D3 Kids 30 kapslí",
+        "price": 99,
+        "unit": "ks",
+        "volume": 30,
+        "form": "Tablety, pastilky, tobolky",
+        "medicinal_substance": "",
+        "description": "Kapsle s obsahem vitaminu D3, který je potřebný pro normální růst a vývoj kostí Vašich dětí a pro zdravou imunitu.",
+        "category": "Vitamíny",
+        "stock": "Skladem",
+        "badges": ["Do 15 minut"]
+        },
+        {
+        "image": "./images/Dr.Max_Vitamin_D_Baby.webp",
+        "name": "Dr. Max Vitamin D Baby 10 ml",
+        "price": 245,
+        "unit": "ml",
+        "volume": 10,
+        "form": "Kapky",
+        "medicinal_substance": "",
+        "description": "Přípravek Dr. Max Vitamin D Baby obsahuje vitamin D, který napomáhá zdravé imunitě Vašich dětí a příznivě ovlivňuje růst a vývoj kostí a zubů. Pro děti od 14 dní věku i dospělé.",
+        "category": "Vitamíny",
+        "stock": "Skladem",
+        "badges": ["Do 15 minut"]
+        },        
+        {
+        "image": "./images/Dr.Max_Vitamin_D_2000_IU.webp",
+        "name": "Dr. Max Vitamin D 2000 IU 20 šumivých tablet",
+        "price": 99,
+        "unit": "ks",
+        "volume": 20,
+        "form": "Tablety, pastilky, tobolky",
+        "medicinal_substance": "",
+        "description": "Dr. Max Vitamin D 2000 IU obsahuje enkapsulovaný vitamin D ve formě šumivých tablet s příchutí citrónů a limetek pro správné fungování imunitního systému a zdravé kosti.",
+        "category": "Vitamíny",
+        "stock": "Skladem",
+        "badges": ["Do 15 minut"]
+        }      
+    ]
     }
 ]

@@ -1,0 +1,79 @@
+{
+  "id": "Dr.-Max-Vitamin-D3-Kids-30-kapsli",
+  "name": "Dr. Max Vitamin D3 Kids 30 kapslí",
+  "registeredMedicament": false,
+  "brand": "DR. MAX",
+  "productLine": "",
+  "reviews": {
+    "average": 5.0,
+    "count": 6,
+    "items": [
+      {
+        "name": "Markéta",
+        "date": "27. 03. 2025",
+        "source": "Recenze od Heureka",
+        "rating": "Výborný",
+        "review": "Ok"
+      },
+      {
+        "name": "Jana",
+        "date": "02. 03. 2025",
+        "source": "Recenze od Heureka",
+        "rating": "Výborný",
+        "review": "výhoda"
+      },
+      {
+        "name": "Veronika",
+        "date": "16. 01. 2025",
+        "source": "Recenze od Heureka",
+        "rating": "Výborný"
+      },
+      {
+        "name": "Jitka",
+        "date": "16. 11. 2024",
+        "source": "Recenze od Heureka",
+        "rating": "Výborný",
+        "review": "Vitamin D3 od Dr. Max kupuji vnoučatům pravidelně. Děti jsou s ním spokojené, baví je i forma rybiček."
+      },
+      {
+        "name": "Josef",
+        "date": "24. 10. 2024",
+        "source": "Recenze od Heureka",
+        "rating": "Výborný"
+      },
+      {
+        "name": "Marie",
+        "date": "01. 10. 2024",
+        "source": "Recenze od Heureka",
+        "rating": "Výborný"
+      }
+    ]
+  },
+  "perex": "Kapsle s obsahem vitaminu D3, který je potřebný pro normální růst a vývoj kostí Vašich dětí a pro zdravou imunitu.",
+  "category": "Vitamíny",
+  "stock": "Skladem",
+  "pharmacyStock": "Ve 547 lekárnach",
+  "SKU": "50118284",
+  "badges": ["Do 15 minut"],
+  "images": [
+    "./images/Dr.Max_Vitamin_D3_Kids.webp"
+  ],
+  "price": 99,
+  "discounted_price": null,
+  "comparison_id": 2,
+  "description": "<section class=\"space-y-5 text-gray-800 leading-relaxed\">\n  <h2 class=\"text-2xl font-semibold text-gray-900 mt-6 mb-2 first:mt-0\">Úvod</h2>\n  <p class=\"text-base leading-relaxed\">Prémiový výživový doplněk obsahuje v denní dávce 10&nbsp;000&nbsp;mg hovězího kolagenu, glukosamin, MSM, chondroitin, kyselinu boswellovou, prášek z kurkumy, kyselinu hyaluronovou, selen, mangan a vitamíny C, E a D3, které podporují pohybový aparát a jeho regeneraci. Díky vysoce vstřebatelné formě je Flexicoll ideální pro aktivní osoby, sportovce i ty, kteří chtějí pečovat o své klouby a udržet je v dobré kondici.</p>\n  <h3 class=\"text-xl font-semibold text-gray-900 mt-5 mb-2\">Dávkování a návod na použití</h3>\n  <ol class=\"list-decimal pl-6 space-y-1 text-base leading-relaxed\">\n    <li>Jednu odměrku výživového doplňku rozpusťte v 200–300&nbsp;ml vody a dobře promíchejte.</li>\n    <li>Po rozpuštění nápoj vypijte.</li>\n  </ol>\n  <p class=\"text-base leading-relaxed\"><strong>Doporučená denní dávka:</strong> 14&nbsp;g (jedna odměrka). Balení obsahuje 30 dávek.</p>\n  <h2 class=\"text-2xl font-semibold text-gray-900 mt-6 mb-2\">Složení</h2>\n  <ul class=\"list-disc pl-6 space-y-1 text-base leading-relaxed\">\n    <li>hovězí kolagen (PEPTAN&reg; B)</li>\n    <li>glukosamin sulfát</li>\n    <li>MSM (methylsulfonylmethan)</li>\n    <li>chondroitin sulfát</li>\n    <li>regulátor kyselosti: kyselina citronová</li>\n    <li>vitamín C (kyselina L-askorbová)</li>\n    <li>aroma: citron</li>\n    <li>prášek z kurkumy</li>\n    <li>barvivo: betakaroten</li>\n    <li>sladidlo: sukralóza</li>\n    <li>vitamín D3</li>\n  </ul>\n</section>",
+  "parameters": [
+    {
+      "name": "Léková forma",
+      "value": "Kapsle"
+    },
+    {
+      "name": "Počet kapslí",
+      "value": "30"
+    },
+    {
+      "name": "Skupiny vitamínů",
+      "value": "Vitamin D3"
+    }
+  ]
+}

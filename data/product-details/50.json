@@ -1,0 +1,49 @@
+{
+  "id": "Luvene-FlexiColl-Kloubni-vyziva-FlexiColl-citron",
+  "name": "Luvené FlexiColl Kloubní výživa FlexiColl citron",
+  "registeredMedicament": false,
+  "brand": "LUVENÉ FLEXICOLL",
+  "productLine": "",
+  "reviews": {
+    "average": 5,
+    "count": 1,
+    "items": [
+      {
+        "name": "Jaroslav",
+        "date": "29. 05. 2025",
+        "source": "Recenze od Heureka",
+        "rating": "Výborný",
+        "review": "Užívám 5 dní, kloub už nebolí tak moc. Uvidíme za měsíc."
+      }
+    ]
+  },
+  "perex": "Kloubní výživa pro podporu kloubů, vazů a šlach ve svěží citronové příchuti. Doplněk stravy obsahuje celkem 12 účinných látek.",
+  "category": "Vitamíny",
+  "stock": "Skladem u dodavatele",
+  "pharmacyStock": "",
+  "SKU": "696982947647064269",
+  "badges": [],
+  "images": [
+    "./images/Luvené_FlexiColl_Kloubní_výživa_FlexiColl.webp"
+  ],
+  "price": 699,
+  "discounted_price": null,
+  "comparison_id": null,
+  "description": "<section class=\"space-y-5 text-gray-800 leading-relaxed\">\n  <h2 class=\"text-2xl font-semibold text-gray-900 mt-6 mb-2 first:mt-0\">Úvod</h2>\n  <p class=\"text-base leading-relaxed\">Prémiový výživový doplněk obsahuje v denní dávce 10&nbsp;000&nbsp;mg hovězího kolagenu, glukosamin, MSM, chondroitin, kyselinu boswellovou, prášek z kurkumy, kyselinu hyaluronovou, selen, mangan a vitamíny C, E a D3, které podporují pohybový aparát a jeho regeneraci. Díky vysoce vstřebatelné formě je Flexicoll ideální pro aktivní osoby, sportovce i ty, kteří chtějí pečovat o své klouby a udržet je v dobré kondici.</p>\n\n  <h3 class=\"text-xl font-semibold text-gray-900 mt-5 mb-2\">Dávkování a návod na použití</h3>\n  <ol class=\"list-decimal pl-6 space-y-1 text-base leading-relaxed\">\n    <li>Jednu odměrku výživového doplňku rozpusťte v 200–300&nbsp;ml vody a dobře promíchejte.</li>\n    <li>Po rozpuštění nápoj vypijte.</li>\n  </ol>\n  <p class=\"text-base leading-relaxed\"><strong>Doporučená denní dávka:</strong> 14&nbsp;g (jedna odměrka). Balení obsahuje 30&nbsp;dávek.</p>\n\n  <h2 class=\"text-2xl font-semibold text-gray-900 mt-6 mb-2\">Složení</h2>\n  <ul class=\"list-disc pl-6 space-y-1 text-base leading-relaxed\">\n    <li>hovězí kolagen (PEPTAN&reg; B)</li>\n    <li>glukosamin sulfát</li>\n    <li>MSM (methylsulfonylmethan)</li>\n    <li>chondroitin sulfát</li>\n    <li>regulátor kyselosti: kyselina citronová</li>\n    <li>vitamín C (kyselina L-askorbová)</li>\n    <li>aroma: citron</li>\n    <li>prášek z kurkumy</li>\n    <li>barvivo: betakaroten</li>\n    <li>sladidlo: sukralóza</li>\n    <li>vitamín D3</li>\n  </ul>\n</section>",
+  "parameters": [
+    {
+      "name": "Složení",
+      "value": "hovězí kolagen (PEPTAN®B), glukosamin sulfát, MSM (methylsulfonylmethan), chondroitin sulfát, regulátor kyselosti: kyselina citronová, vitamín C (kyselina L-askorbová), aroma citron, extrakt z Boswellie Serrata (kyselina boswellová), prášek z kurkumy"
+    }
+  ],
+  "supplier": [
+    {
+      "name": "Adresa dodavatele",
+      "value": "Davídkova 2476/48, Libeň, 180 00 Praha 8"
+    },
+    {
+      "name": "Kontaktní e-mailová adresa",
+      "value": "info@lovio.cz"
+    }
+  ]
+}
