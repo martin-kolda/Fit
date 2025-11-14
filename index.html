@@ -409,7 +409,7 @@
     if (!Alpine.store('appConfig')) {
       const storageKey = 'fit:app-config';
       const defaults = {
-        showBreakpointBadge: true,
+        showBreakpointBadge: false,
         locale: (window.__fitI18n && window.__fitI18n.defaultLocale) || 'cs-CZ',
         currency: (window.__fitI18n && window.__fitI18n.defaultCurrency) || 'CZK',
         drMaxWomanPromo: false,
@@ -504,6 +504,95 @@
       emit('currency', cfgStore.currency);
       emit('drMaxWomanPromo', cfgStore.drMaxWomanPromo);
       emit('showTranslationHints', cfgStore.showTranslationHints);
+    }
+
+    const deliveryPickupRuntime = (() => {
+      const now = new Date();
+      const pad = (value) => String(value).padStart(2, '0');
+      const date = new Date(now);
+      date.setDate(date.getDate() + 3);
+      const dateLabel = `${pad(date.getDate())}.${pad(date.getMonth() + 1)}.`;
+      const plus30 = new Date(now.getTime() + 30 * 60 * 1000);
+      const timeLabel = `${pad(plus30.getHours())}:${pad(plus30.getMinutes())}`;
+      const minutesNow = now.getHours() * 60 + now.getMinutes();
+      const openStart = 9 * 60 + 1;
+      const openEnd = 16 * 60 + 59;
+      const isOpen = minutesNow >= openStart && minutesNow <= openEnd;
+      const openLabel = isOpen ? 'Otevřeno' : 'Zavřeno';
+      const isOpenHtml = `<span class="font-semibold ${isOpen ? 'text-success' : 'text-error'}">${openLabel}</span>`;
+      return {
+        dateLabel,
+        timeLabel,
+        isOpen,
+        openLabel,
+        isOpenHtml
+      };
+    })();
+
+    if (!Alpine.store('deliveryPickup')) {
+      const placeholders = {
+        '{{DATE_TODAY_PLUS_3_DAYS}}': deliveryPickupRuntime.dateLabel,
+        '{{PHARMACIES_AVAILABLE}}': '447',
+        '{{TIME_NOW_PLUS_3O_MINUTES}}': deliveryPickupRuntime.timeLabel,
+        '{{TIME_NOW_PLUS_30_MINUTES}}': deliveryPickupRuntime.timeLabel,
+        '{{IS_OPEN}}': deliveryPickupRuntime.isOpenHtml
+      };
+      Alpine.store('deliveryPickup', {
+        items: [],
+        loaded: false,
+        loading: false,
+        placeholders,
+        _promise: null,
+        ensure() {
+          if (this.loaded) return Promise.resolve(this.items);
+          if (this.loading && this._promise) return this._promise;
+          this.loading = true;
+          this._promise = fetch('data/delivery-pickup-times.json', { cache: 'no-store' })
+            .then(res => res.json())
+            .then(arr => Array.isArray(arr) ? arr.map(item => this._normalize(item)) : [])
+            .catch(err => {
+              console.warn('delivery-pickup-times load failed', err);
+              return [];
+            })
+            .then(items => {
+              this.items = items;
+              this.loaded = true;
+              return items;
+            })
+            .finally(() => { this.loading = false; });
+          return this._promise;
+        },
+        _normalize(entry) {
+          const src = entry && typeof entry === 'object' ? entry : {};
+          return {
+            delivery_icon: String(src.delivery_icon || '').trim() || 'fa-regular fa-truck-fast',
+            pickup_icon: String(src.pickup_icon || '').trim() || 'fa-regular fa-shop',
+            delivery_long: this._apply(src.delivery_long || ''),
+            delivery_short: this._apply(src.delivery_short || ''),
+            pickup_long: this._apply(src.pickup_long || ''),
+            pickup_short: this._apply(src.pickup_short || '')
+          };
+        },
+        _apply(value) {
+          if (typeof value !== 'string') return value;
+          let result = value;
+          Object.entries(this.placeholders || {}).forEach(([token, replacement]) => {
+            result = result.split(token).join(replacement);
+          });
+          return result;
+        },
+        info(kind = 'long') {
+          if (!this.items.length) return null;
+          const base = this.items[0];
+          const useShort = String(kind).toLowerCase() === 'short';
+          return {
+            delivery: useShort ? base.delivery_short : base.delivery_long,
+            pickup: useShort ? base.pickup_short : base.pickup_long,
+            deliveryIcon: base.delivery_icon,
+            pickupIcon: base.pickup_icon
+          };
+        }
+      });
     }
 
     if (!Alpine.store('auth')) {
@@ -1035,7 +1124,8 @@
             case 'checkbox_toggle_fieldset':
               return false;
             case 'address':
-              return { street: '', extra: '', city: '', zip: '' };
+            case 'billing_address':
+              return { street: '', extra: '', city: '', zip: '', district: '' };
             default:
               return '';
           }
@@ -1050,7 +1140,7 @@
           if (field.type === 'email') reg.fieldRefs.email = key;
           if (field.type === 'password') reg.fieldRefs.password = key;
           if (field.type === 'tel') reg.fieldRefs.phone = key;
-          if (field.type === 'address') reg.fieldRefs.address = key;
+          if (this.registrationIsAddressField(field)) reg.fieldRefs.address = key;
           if (field.type === 'date') reg.fieldRefs.birthDate = key;
           if (field.type === 'radio' && /v[ěe]rnostn/i.test(field.fieldset_group || '')) {
             reg.fieldRefs.gender = key;
@@ -1104,7 +1194,7 @@
             const digits = String(reg.values[fieldKey] || '').replace(/\D+/g, '');
             reg.values[fieldKey] = digits.slice(0, 12);
           }
-          if (field.type === 'address') {
+          if (this.registrationIsAddressField(field)) {
             reg.values[fieldKey] = this.normalizeRegistrationAddress(reg.values[fieldKey]);
           }
           if (reg.fieldRefs.email === fieldKey) {
@@ -1143,12 +1233,17 @@
         registrationIsPhoneField(field) {
           return !!field && field.type === 'tel';
         },
+        registrationIsAddressField(field) {
+          if (!field) return false;
+          const type = String(field.type || '').toLowerCase();
+          return type === 'address' || type === 'billing_address';
+        },
         registrationHasValue(field, value) {
           if (!field) return false;
           if (field.type === 'checkbox' || field.type === 'checkbox_toggle_fieldset') {
             return !!value;
           }
-          if (field.type === 'address') {
+          if (this.registrationIsAddressField(field)) {
             const addr = this.normalizeRegistrationAddress(value);
             return !!(addr.street || addr.city || addr.zip);
           }
@@ -1161,7 +1256,7 @@
           const value = reg.values[field.key];
           const errors = [];
           const validations = Array.isArray(field.validations) ? field.validations : [];
-          const addr = field.type === 'address' ? this.normalizeRegistrationAddress(value) : null;
+          const addr = this.registrationIsAddressField(field) ? this.normalizeRegistrationAddress(value) : null;
           const textValue = typeof value === 'string' ? value.trim() : String(value ?? '').trim();
           for (const rule of validations) {
             const type = (rule?.type || '').toLowerCase();
@@ -1376,13 +1471,22 @@
             query: '',
             open: false,
             highlighted: -1,
+            isCommitted: false,
             init() {
               store.registrationEnsureAddressOptions().then(() => {
-                this.syncFromStore();
+                this.syncFromStore(store.registration.values[this.fieldKey]);
               });
               this.$watch(
                 () => JSON.stringify(store.normalizeRegistrationAddress(store.registration.values[this.fieldKey] || {})),
-                () => this.syncFromStore()
+                (json) => {
+                  let parsed;
+                  try {
+                    parsed = JSON.parse(json);
+                  } catch (err) {
+                    parsed = store.normalizeRegistrationAddress(store.registration.values[this.fieldKey]);
+                  }
+                  this.syncFromStore(parsed);
+                }
               );
             },
             get options() {
@@ -1393,12 +1497,23 @@
             },
             get hasValue() {
               const val = store.normalizeRegistrationAddress(store.registration.values[this.fieldKey]);
-              return !!(val.street || val.extra || val.city || val.zip);
+              return !!(val.street || val.extra || val.city || val.zip || val.district);
+            },
+            get hasSelection() {
+              return this.isCommitted && !!this.summaryBody;
+            },
+            get shouldShowLabel() {
+              if (this.hasSelection) return false;
+              return !((this.query || '').trim().length);
             },
             get summaryBody() {
-              return store.formatRegistrationAddressDisplay(store.registration.values[this.fieldKey]);
+              return store.formatRegistrationAddressSummary(store.registration.values[this.fieldKey]);
+            },
+            get summaryHeading() {
+              return store.formatRegistrationAddressStreet(store.registration.values[this.fieldKey]);
             },
             openSuggestions() {
+              if (this.hasSelection) return;
               this.open = true;
               if (this.highlighted === -1 && this.options.length) {
                 this.highlighted = 0;
@@ -1410,6 +1525,7 @@
             },
             onInput(event) {
               this.query = event.target.value;
+              this.isCommitted = false;
               const next = store.normalizeRegistrationAddress(store.registration.values[this.fieldKey]);
               store.registration.values[this.fieldKey] = { ...next, street: this.query };
               store.registrationHandleInput(this.fieldKey);
@@ -1438,19 +1554,51 @@
               store.registration.values[this.fieldKey] = value;
               store.registrationHandleInput(this.fieldKey);
               store.registrationHandleBlur(this.fieldKey);
-              this.query = store.formatRegistrationAddressLine(value);
+              this.isCommitted = this.hasCompleteValue(value);
+              this.query = this.isCommitted ? '' : store.formatRegistrationAddressLine(value);
               this.closeSuggestions();
             },
-            clearSelection() {
+            clearSelection(focusAfter = false) {
               store.registration.values[this.fieldKey] = store.normalizeRegistrationAddress({});
               this.query = '';
+              this.isCommitted = false;
               store.registrationHandleInput(this.fieldKey);
               store.registrationHandleBlur(this.fieldKey);
               this.closeSuggestions();
+              if (focusAfter) {
+                this.focusInputSoon();
+                this.openSuggestions();
+              }
             },
-            syncFromStore() {
-              const normalized = store.normalizeRegistrationAddress(store.registration.values[this.fieldKey]);
-              this.query = store.formatRegistrationAddressLine(normalized);
+            syncFromStore(value) {
+              const normalized = store.normalizeRegistrationAddress(value);
+              const current = store.normalizeRegistrationAddress(store.registration.values[this.fieldKey]);
+              if (!this.addressesEqual(normalized, current)) {
+                store.registration.values[this.fieldKey] = normalized;
+              }
+              this.isCommitted = this.hasCompleteValue(normalized);
+              this.query = this.isCommitted ? '' : store.formatRegistrationAddressLine(normalized);
+              if (this.hasSelection) {
+                this.closeSuggestions();
+              }
+            },
+            addressesEqual(a, b) {
+              if (!a && !b) return true;
+              const keys = ['street', 'extra', 'city', 'zip', 'district'];
+              return keys.every(k => String(a?.[k] ?? '') === String(b?.[k] ?? ''));
+            },
+            hasCompleteValue(addr) {
+              const normalized = store.normalizeRegistrationAddress(addr);
+              return !!(normalized.street && (normalized.city || normalized.zip));
+            },
+            focusInputSoon() {
+              this.$nextTick(() => {
+                requestAnimationFrame(() => {
+                  if (this.$refs?.input && typeof this.$refs.input.focus === 'function') {
+                    this.$refs.input.focus();
+                  }
+                });
+              });
             }
           };
         },
@@ -1460,13 +1608,14 @@
               street: String(val.street ?? val.line1 ?? '').trim(),
               extra: String(val.extra ?? val.line2 ?? '').trim(),
               city: String(val.city ?? '').trim(),
-              zip: String(val.zip ?? '').trim()
+              zip: String(val.zip ?? '').trim(),
+              district: String(val.district ?? '').trim()
             };
           }
           if (typeof val === 'string') {
-            return { street: val.trim(), extra: '', city: '', zip: '' };
+            return { street: val.trim(), extra: '', city: '', zip: '', district: '' };
           }
-          return { street: '', extra: '', city: '', zip: '' };
+          return { street: '', extra: '', city: '', zip: '', district: '' };
         },
         formatRegistrationAddressLine(val) {
           const addr = this.normalizeRegistrationAddress(val);
@@ -1483,6 +1632,18 @@
           if (addr.extra) parts.push(addr.extra);
           const cityLine = [addr.zip, addr.city].filter(Boolean).join(' ');
           if (cityLine) parts.push(cityLine);
+          return parts.join('\n');
+        },
+        formatRegistrationAddressStreet(val) {
+          return this.normalizeRegistrationAddress(val).street || '';
+        },
+        formatRegistrationAddressSummary(val) {
+          const addr = this.normalizeRegistrationAddress(val);
+          const parts = [];
+          if (addr.extra) parts.push(addr.extra);
+          const cityLine = [addr.zip, addr.city].filter(Boolean).join(' ');
+          if (cityLine) parts.push(cityLine);
+          if (addr.district) parts.push(addr.district);
           return parts.join('\n');
         },
         registrationFormatPhoneDisplay(val) {
@@ -4952,10 +5113,20 @@
   
             <div class="text-sm mt-1 gap-1 grid">
               <div class="text-success font-semibold text-xl" x-text="product?.stock || 'Skladem'"></div>
-
-              <div class="text-base"><i class="fa-classic fa-md fa-regular fa-truck-fast"></i> Odešleme ještě dnes, předpokládané doručení 1.10.</div>
-              <div class="text-base"><i class="fa-classic fa-md fa-regular fa-shop"></i> Dostupné také v 347 lékárnách</div>
-             
+              <div x-data="deliveryPickupTimes('long')" x-cloak>
+                <template x-if="info">
+                  <div class="space-y-1">
+                  <div class="text-base flex items-start gap-2">
+                    <i class="fa-classic fa-md text-base-content/80" :class="info?.deliveryIcon || 'fa-regular fa-truck-fast'"></i>
+                    <span class="leading-tight" x-html="info?.delivery || ''"></span>
+                  </div>
+                  <div class="text-base flex items-start gap-2">
+                    <i class="fa-classic fa-md text-base-content/80" :class="info?.pickupIcon || 'fa-regular fa-shop'"></i>
+                    <span class="leading-tight" x-html="info?.pickup || ''"></span>
+                  </div>
+                  </div>
+                </template>
+              </div>
             </div>
   
             <div class="pt-2">
@@ -7015,9 +7186,10 @@ function deliveryPaymentUI() {
             [deliveryId]: record
           };
           this.persistPickupSelections();
-          const group = detail.group === 'partner'
-            ? 'partner'
-            : (this.partnerDelivery.some(d => d.id === deliveryId) ? 'partner' : 'ours');
+          let group = detail.group;
+          if (group !== 'partner' && group !== 'ours') {
+            group = this.partnerDelivery.some(d => d.id === deliveryId) ? 'partner' : 'ours';
+          }
           this.applyDeliverySelection(deliveryId, group);
         };
         window.addEventListener('pickup:selected', this._onPickupSelected);
@@ -7902,7 +8074,7 @@ function deliveryPaymentUI() {
         <article class="border border-base-300 rounded-2xl bg-white shadow-sm p-6 md:p-10 space-y-6">
           <div class="flex flex-col gap-4 md:flex-row md:items-center">
             <div>
-              <h2 class="text-2xl font-medium">Nákup</h2>
+              <h2 class="text-2xl font-medium" x-text="hasPrimaryPickup() ? 'Vyzvednutí' : 'Doručení'"></h2>
             </div>
             <div class="flex items-center gap-4">
               <div x-data="cartAvatars({ key: 'cart.v1', max: 4, group: 'ours' })" x-init="init()" class="shrink-0">
@@ -7936,15 +8108,21 @@ function deliveryPaymentUI() {
           <div class="space-y-6">
             <template x-if="hasPrimaryPickup()">
               <div class="border border-dashed border-base-300 rounded-xl p-4 space-y-2 bg-max-green-25 flex justify-between items-center">
-                <div>
-                <div class="text-sm text-base-content/60 uppercase tracking-wide">Vyzvednutí zásilky</div>
+                <div class="flex flex-col space-y-2">
+                <div class="text-sm text-base-content/60 uppercase tracking-wide">Výdejní místo</div>
                 <div class="text-base font-semibold" x-text="pickupSummary('ours')?.name || 'Vybrané místo'"></div>
                 <p class="text-sm text-base-content/80 whitespace-pre-line" x-text="pickupSummary('ours')?.addressLine || 'Výdejní místo je nastaveno v předchozím kroku.'"></p>
                 <p class="text-sm text-base-content/80" x-show="pickupSummary('ours')?.phone">
                   Kontakt: <span class="font-medium" x-text="pickupSummary('ours')?.phone"></span>
                 </p>
+
                 </div>
-                <div class="flex">
+                <div class="flex items-center gap-2">
+                  <div class="text-sm text-base-content/80" x-data="deliveryPickupTimes('short')" x-cloak>
+                    <template x-if="addressSummaryPrefersPickup('ours') && info">
+                      <p class="leading-tight" x-html="info?.pickup || ''"></p>
+                    </template>
+                  </div>
                   <i class="fa-solid fa-check text-max-green-500 text-2xl"></i>
                 </div>
               </div>
@@ -7954,15 +8132,15 @@ function deliveryPaymentUI() {
               <div class="space-y-6">
                 <template x-for="section in addressFormSections('delivery')" :key="'ours-' + section.name">
                   <fieldset x-show="shouldShowSection(section.name)"
-                            class="border border-base-300 rounded-xl bg-white shadow-sm p-6 md:p-8 grid gap-y-4">
-                    <h3 class="text-xl font-medium" x-text="section.name"></h3>
+                            class="grid gap-y-4">
+                  
                     <template x-for="field in section.fields" :key="field.key">
                       <div x-show="isFieldVisible(field)" class="space-y-2">
                         <template x-if="field.isToggle">
                           <div class="py-1">
                             <label class="flex items-center gap-3 text-base text-base-content/80">
                               <input type="checkbox"
-                                     class="checkbox checkbox-secondary"
+                                     class="checkbox checkbox-secondary rounded-md"
                                      x-model="contactFormValues[field.key]"
                                      @change="handleGroupToggle(field.key)">
                               <span class="leading-tight" x-text="field.label"></span>
@@ -7972,8 +8150,12 @@ function deliveryPaymentUI() {
                         </template>
 
                         <template x-if="!field.isToggle">
-                          <fieldset class="fieldset">
-                            <legend class="fieldset-legend text-sm text-max-gray-600" x-text="field.label"></legend>
+                          <fieldset class="fieldset"
+                                    x-data="isAddressField(field) ? addressAutocomplete(field.key) : {}"
+                                    x-init="isAddressField(field) && typeof init === 'function' ? init() : null">
+                            <legend class="fieldset-legend text-sm text-max-gray-600"
+                                    x-text="field.label"
+                                    x-show="!isAddressField(field) || shouldShowLabel"></legend>
 
                             <template x-if="field.type === 'textarea'">
                               <textarea class="textarea textarea-bordered h-28 w-full text-lg"
@@ -7984,55 +8166,86 @@ function deliveryPaymentUI() {
                                         :class="contactFormErrors[field.key].length ? 'textarea-error' : ''"></textarea>
                             </template>
 
-                            <template x-if="field.type === 'address'">
-                              <div x-data="addressAutocomplete(field.key)" x-init="init()" class="space-y-3">
-                                <div class="relative">
-                                  <input type="text"
-                                         class="input input-lg w-full pr-12"
-                                         :class="contactFormErrors[field.key].length ? 'input-error' : ''"
-                                         x-model="query"
-                                         x-ref="input"
-                                         x-bind:placeholder="field.placeholder ?? 'Zadejte adresu'"
-                                         @input="onInput($event)"
-                                         @focus="openSuggestions()"
-                                         @blur="onBlur()"
-                                         @keydown.arrow-down.prevent="highlightNext()"
-                                         @keydown.arrow-up.prevent="highlightPrev()"
-                                         @keydown.enter.prevent="selectHighlighted()"
-                                         @keydown.escape="closeSuggestions()" />
-                                  <button type="button"
-                                          class="btn btn-ghost btn-sm absolute right-2 top-1/2 -translate-y-1/2"
-                                          x-show="hasValue"
-                                          @mousedown.prevent
-                                          @click="clearSelection()">
-                                    <span class="sr-only">Vymazat adresu</span>
-                                    ×
-                                  </button>
+                            <template x-if="isAddressField(field)">
+                              <div class="space-y-3">
+                                <template x-if="!hasSelection">
+                                  <div class="space-y-3">
+                                    <div class="relative">
+                                      <input type="text"
+                                             class="input input-lg w-full pr-12"
+                                             :class="contactFormErrors[field.key].length ? 'input-error' : ''"
+                                             x-model="query"
+                                             x-ref="input"
+                                             x-bind:placeholder="field.placeholder ?? 'Zadejte adresu'"
+                                             @input="onInput($event)"
+                                             @focus="openSuggestions()"
+                                             @blur="onBlur()"
+                                             @keydown.arrow-down.prevent="highlightNext()"
+                                             @keydown.arrow-up.prevent="highlightPrev()"
+                                             @keydown.enter.prevent="selectHighlighted()"
+                                             @keydown.escape="closeSuggestions()" />
+                                      <button type="button"
+                                              class="btn btn-ghost btn-sm absolute right-2 top-1/2 -translate-y-1/2"
+                                              x-show="hasValue"
+                                              @mousedown.prevent
+                                              @click="clearSelection(false)">
+                                        <span class="sr-only">Vymazat adresu</span>
+                                        ×
+                                      </button>
 
-                                  <div class="absolute left-0 right-0 z-20 mt-1 rounded-lg border border-base-300 bg-white shadow-lg"
-                                       x-cloak
-                                       x-show="open && filteredOptions.length">
-                                    <ul class="max-h-60 overflow-y-auto">
-                                      <template x-for="(opt, idx) in filteredOptions" :key="opt.id">
-                                        <li>
-                                          <button type="button"
-                                                  class="w-full text-left px-4 py-2 hover:bg-base-200 focus:bg-base-200"
-                                                  :class="idx === highlighted ? 'bg-base-200' : ''"
-                                                  @mousedown.prevent="selectOption(opt)"
-                                                  @mouseenter="highlighted = idx">
-                                            <div class="font-medium" x-text="opt.label"></div>
-                                            <p class="text-sm text-base-content/70" x-text="opt.address"></p>
-                                          </button>
-                                        </li>
-                                      </template>
-                                    </ul>
+                                      <div class="absolute left-0 right-0 z-20 mt-1 rounded-lg border border-base-300 bg-white shadow-lg"
+                                           x-cloak
+                                           x-show="open && filteredOptions.length">
+                                        <ul class="max-h-60 overflow-y-auto">
+                                          <template x-for="(opt, idx) in filteredOptions" :key="opt.id">
+                                            <li>
+                                              <button type="button"
+                                                      class="w-full text-left text-base px-4 py-2 hover:bg-base-200 focus:bg-base-200"
+                                                      :class="idx === highlighted ? 'bg-base-200' : ''"
+                                                      @mousedown.prevent="selectOption(opt)"
+                                                      @mouseenter="highlighted = idx">
+                                                <div class="font-medium" x-text="opt.label"></div>
+                                                <p class="text-sm text-base-content/70" x-text="opt.address"></p>
+                                              </button>
+                                            </li>
+                                          </template>
+                                        </ul>
+                                      </div>
+                                    </div>
                                   </div>
-                                </div>
-                                <p class="text-sm text-base-content/70" x-text="summaryBody"></p>
+                                </template>
+
+                                <template x-if="hasSelection">
+                                  <div class="border border-dashed border-base-300 rounded-xl p-4 bg-max-green-25 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                                    <div class="space-y-3 flex-1">
+                                      <div class="text-sm text-base-content/60 uppercase tracking-wide"
+                                           x-text="addressSummaryLabel(field)"></div>
+                                      <div class="text-base font-semibold"
+                                           x-text="summaryHeading || field.summaryTitle || 'Vybraná adresa'"></div>
+                                      <p class="text-sm text-base-content/80 whitespace-pre-line" x-text="summaryBody"></p>
+                                      <button type="button"
+                                              class="btn btn-sm btn-ghost text-max-blue-500 px-0"
+                                              @click="clearSelection(true)">
+                                        Změnit adresu
+                                      </button>
+                                    </div>
+                                    <div class="flex items-center gap-2 shrink-0">
+                                      <template x-if="!addressSummaryIsBilling(field)">
+                                        <div class="text-sm text-base-content/80" x-data="deliveryPickupTimes('short')" x-cloak>
+                                          <template x-if="info">
+                                            <p class="leading-tight"
+                                               x-html="addressSummaryPrefersPickup('ours') ? (info?.pickup || '') : (info?.delivery || '')"></p>
+                                          </template>
+                                        </div>
+                                      </template>
+                                      <i class="fa-solid fa-check text-max-green-500 text-2xl"></i>
+                                    </div>
+                                  </div>
+                                </template>
                               </div>
                             </template>
 
-                            <template x-if="!['textarea', 'address'].includes(field.type)">
+                            <template x-if="field.type !== 'textarea' && !isAddressField(field)">
                               <label class="input input-bordered input-lg flex items-center gap-2"
                                      :class="contactFormErrors[field.key].length ? 'input-error' : ''">
                                 <span class="text-base text-base-content/80 whitespace-nowrap" x-show="field.prefix" x-text="field.prefix"></span>
@@ -8067,8 +8280,7 @@ function deliveryPaymentUI() {
           <div class="flex flex-col gap-4 md:flex-row md:items-center">
             <div>
               <p class="text-sm uppercase tracking-wide text-base-content/60">Marketplace</p>
-              <h2 class="text-2xl font-medium">Nákup od dodavatele</h2>
-              <p class="text-sm text-base-content/70 mt-1">Samostatná zásilka</p>
+              <h2 class="text-2xl font-medium">Doručení od dodavatele</h2>
             </div>
             <div class="flex items-center gap-4">
               <div x-data="cartAvatars({ key: 'cart.v1', max: 4, group: 'partner' })" x-init="init()" class="shrink-0">
@@ -8104,15 +8316,15 @@ function deliveryPaymentUI() {
               <div class="space-y-6">
                 <template x-for="section in addressFormSections('delivery')" :key="'partner-' + section.name">
                   <fieldset x-show="shouldShowSection(section.name)"
-                            class="border border-base-300 rounded-xl bg-white shadow-sm p-6 md:p-8 grid gap-y-4">
-                    <h3 class="text-xl font-medium" x-text="section.name"></h3>
+                            class="grid gap-y-4">
+                  
                     <template x-for="field in section.fields" :key="field.key">
                       <div x-show="isFieldVisible(field)" class="space-y-2">
                         <template x-if="field.isToggle">
                           <div class="py-1">
                             <label class="flex items-center gap-3 text-base text-base-content/80">
                               <input type="checkbox"
-                                     class="checkbox checkbox-secondary"
+                                     class="checkbox checkbox-secondary rounded-md"
                                      x-model="contactFormValues[field.key]"
                                      @change="handleGroupToggle(field.key)">
                               <span class="leading-tight" x-text="field.label"></span>
@@ -8122,8 +8334,12 @@ function deliveryPaymentUI() {
                         </template>
 
                         <template x-if="!field.isToggle">
-                          <fieldset class="fieldset">
-                            <legend class="fieldset-legend text-sm text-max-gray-600" x-text="field.label"></legend>
+                          <fieldset class="fieldset"
+                                    x-data="isAddressField(field) ? addressAutocomplete(field.key) : {}"
+                                    x-init="isAddressField(field) && typeof init === 'function' ? init() : null">
+                            <legend class="fieldset-legend text-sm text-max-gray-600"
+                                    x-text="field.label"
+                                    x-show="!isAddressField(field) || shouldShowLabel"></legend>
                             <template x-if="field.type === 'textarea'">
                               <textarea class="textarea textarea-bordered h-28 w-full text-lg"
                                         x-bind:placeholder="field.placeholder ?? undefined"
@@ -8132,55 +8348,86 @@ function deliveryPaymentUI() {
                                         @blur="handleFieldBlur(field.key)"
                                         :class="contactFormErrors[field.key].length ? 'textarea-error' : ''"></textarea>
                             </template>
-                            <template x-if="field.type === 'address'">
-                              <div x-data="addressAutocomplete(field.key)" x-init="init()" class="space-y-3">
-                                <div class="relative">
-                                  <input type="text"
-                                         class="input input-lg w-full pr-12"
-                                         :class="contactFormErrors[field.key].length ? 'input-error' : ''"
-                                         x-model="query"
-                                         x-ref="input"
-                                         x-bind:placeholder="field.placeholder ?? 'Zadejte adresu'"
-                                         @input="onInput($event)"
-                                         @focus="openSuggestions()"
-                                         @blur="onBlur()"
-                                         @keydown.arrow-down.prevent="highlightNext()"
-                                         @keydown.arrow-up.prevent="highlightPrev()"
-                                         @keydown.enter.prevent="selectHighlighted()"
-                                         @keydown.escape="closeSuggestions()" />
-                                  <button type="button"
-                                          class="btn btn-ghost btn-sm absolute right-2 top-1/2 -translate-y-1/2"
-                                          x-show="hasValue"
-                                          @mousedown.prevent
-                                          @click="clearSelection()">
-                                    <span class="sr-only">Vymazat adresu</span>
-                                    ×
-                                  </button>
+                            <template x-if="isAddressField(field)">
+                              <div class="space-y-3">
+                                <template x-if="!hasSelection">
+                                  <div class="space-y-3">
+                                    <div class="relative">
+                                      <input type="text"
+                                             class="input input-lg w-full pr-12"
+                                             :class="contactFormErrors[field.key].length ? 'input-error' : ''"
+                                             x-model="query"
+                                             x-ref="input"
+                                             x-bind:placeholder="field.placeholder ?? 'Zadejte adresu'"
+                                             @input="onInput($event)"
+                                             @focus="openSuggestions()"
+                                             @blur="onBlur()"
+                                             @keydown.arrow-down.prevent="highlightNext()"
+                                             @keydown.arrow-up.prevent="highlightPrev()"
+                                             @keydown.enter.prevent="selectHighlighted()"
+                                             @keydown.escape="closeSuggestions()" />
+                                      <button type="button"
+                                              class="btn btn-ghost btn-sm absolute right-2 top-1/2 -translate-y-1/2"
+                                              x-show="hasValue"
+                                              @mousedown.prevent
+                                              @click="clearSelection(false)">
+                                        <span class="sr-only">Vymazat adresu</span>
+                                        ×
+                                      </button>
 
-                                  <div class="absolute left-0 right-0 z-20 mt-1 rounded-lg border border-base-300 bg-white shadow-lg"
-                                       x-cloak
-                                       x-show="open && filteredOptions.length">
-                                    <ul class="max-h-60 overflow-y-auto">
-                                      <template x-for="(opt, idx) in filteredOptions" :key="opt.id">
-                                        <li>
-                                          <button type="button"
-                                                  class="w-full text-left px-4 py-2 hover:bg-base-200 focus:bg-base-200"
-                                                  :class="idx === highlighted ? 'bg-base-200' : ''"
-                                                  @mousedown.prevent="selectOption(opt)"
-                                                  @mouseenter="highlighted = idx">
-                                            <div class="font-medium" x-text="opt.label"></div>
-                                            <p class="text-sm text-base-content/70" x-text="opt.address"></p>
-                                          </button>
-                                        </li>
-                                      </template>
-                                    </ul>
+                                      <div class="absolute left-0 right-0 z-20 mt-1 rounded-lg border border-base-300 bg-white shadow-lg"
+                                           x-cloak
+                                           x-show="open && filteredOptions.length">
+                                        <ul class="max-h-60 overflow-y-auto">
+                                          <template x-for="(opt, idx) in filteredOptions" :key="opt.id">
+                                            <li>
+                                              <button type="button"
+                                                      class="w-full text-left text-base px-4 py-2 hover:bg-base-200 focus:bg-base-200"
+                                                      :class="idx === highlighted ? 'bg-base-200' : ''"
+                                                      @mousedown.prevent="selectOption(opt)"
+                                                      @mouseenter="highlighted = idx">
+                                                <div class="font-medium" x-text="opt.label"></div>
+                                                <p class="text-sm text-base-content/70" x-text="opt.address"></p>
+                                              </button>
+                                            </li>
+                                          </template>
+                                        </ul>
+                                      </div>
+                                    </div>
                                   </div>
-                                </div>
-                                <p class="text-sm text-base-content/70" x-text="summaryBody"></p>
+                                </template>
+
+                                <template x-if="hasSelection">
+                                  <div class="border border-dashed border-base-300 rounded-xl p-4 bg-max-green-25 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                                    <div class="space-y-3 flex-1">
+                                      <div class="text-sm text-base-content/60 uppercase tracking-wide"
+                                           x-text="addressSummaryLabel(field)"></div>
+                                      <div class="text-base font-semibold"
+                                           x-text="summaryHeading || field.summaryTitle || 'Vybraná adresa'"></div>
+                                      <p class="text-sm text-base-content/80 whitespace-pre-line" x-text="summaryBody"></p>
+                                      <button type="button"
+                                              class="btn btn-sm btn-ghost text-max-blue-500 px-0"
+                                              @click="clearSelection(true)">
+                                        Změnit adresu
+                                      </button>
+                                    </div>
+                                    <div class="flex items-center gap-2 shrink-0">
+                                      <template x-if="!addressSummaryIsBilling(field)">
+                                        <div class="text-sm text-base-content/80" x-data="deliveryPickupTimes('short')" x-cloak>
+                                          <template x-if="info">
+                                            <p class="leading-tight"
+                                               x-html="addressSummaryPrefersPickup('partner') ? (info?.pickup || '') : (info?.delivery || '')"></p>
+                                          </template>
+                                        </div>
+                                      </template>
+                                      <i class="fa-solid fa-check text-max-green-500 text-2xl"></i>
+                                    </div>
+                                  </div>
+                                </template>
                               </div>
                             </template>
 
-                            <template x-if="!['textarea', 'address'].includes(field.type)">
+                            <template x-if="field.type !== 'textarea' && !isAddressField(field)">
                               <label class="input input-bordered input-lg flex items-center gap-2"
                                      :class="contactFormErrors[field.key].length ? 'input-error' : ''">
                                 <span class="text-base text-base-content/80 whitespace-nowrap" x-show="field.prefix" x-text="field.prefix"></span>
@@ -8221,7 +8468,7 @@ function deliveryPaymentUI() {
                   </dl>
                 </template>
                 <p class="text-sm text-base-content/70" x-show="!homeAddressSummary().length">
-                  Vyplňte prosím adresu v sekci „Nákup“. Objeví se zde pro kontrolu.
+                  Adresa bude stejná jakou vyplníte výše.
                 </p>
               </div>
             </template>
@@ -8229,42 +8476,186 @@ function deliveryPaymentUI() {
         </article>
       </template>
 
-      <article class="border border-base-300 rounded-2xl bg-white shadow-sm p-6 md:p-10 space-y-6">
-        <div class="flex items-center justify-between">
-            <h2 class="text-2xl font-medium">Kontaktní údaje</h2>
-        </div>
+      <div class="grid gap-6" :class="shouldShowCourierDetails() ? 'lg:grid-cols-2' : ''">
+        <article class="border border-base-300 rounded-2xl bg-white shadow-sm p-6 md:p-10 space-y-6">
+          <div class="flex items-center justify-between">
+              <h2 class="text-2xl font-medium">Kontaktní údaje</h2>
+          </div>
 
-        <div class="space-y-6">
-          <template x-for="section in addressFormSections('contact')" :key="'contact-' + section.name">
-            <fieldset class="grid gap-y-4">
-              <template x-for="field in section.fields" :key="field.key">
-                <div class="space-y-2">
-                  <fieldset class="fieldset">
-                    <legend class="fieldset-legend text-sm text-max-gray-600" x-text="field.label"></legend>
+          <div class="space-y-6">
+              <div class="space-y-6">
+            <template x-for="section in addressFormSections('contact')" :key="'contact-' + section.name">
+            <fieldset class="grid gap-y-6">
+                <template x-for="field in section.fields" :key="field.key">
+                  <div class="space-y-2">
+                    <fieldset class="fieldset">
+                      <legend class="fieldset-legend text-sm text-max-gray-600" x-text="field.label"></legend>
 
-                    <label class="input input-bordered input-lg flex items-center gap-2"
-                           :class="contactFormErrors[field.key].length ? 'input-error' : ''">
-                      <span class="text-base text-base-content/80 whitespace-nowrap" x-show="field.prefix" x-text="field.prefix"></span>
-                      <input
-                        :type="field.type === 'tel' ? 'tel' : (field.type === 'email' ? 'email' : 'text')"
-                        class="grow"
-                        x-model="contactFormValues[field.key]"
-                        x-bind:placeholder="field.placeholder ?? undefined"
-                        @input="handleFieldInput(field.key)"
-                        @blur="handleFieldBlur(field.key)">
-                    </label>
+                      <label class="input input-bordered input-lg flex items-center gap-2"
+                             :class="contactFormErrors[field.key].length ? 'input-error' : ''">
+                        <span class="text-base text-base-content/80 whitespace-nowrap" x-show="field.prefix" x-text="field.prefix"></span>
+                        <input
+                          :type="field.type === 'tel' ? 'tel' : (field.type === 'email' ? 'email' : 'text')"
+                          class="grow"
+                          x-model="contactFormValues[field.key]"
+                          x-bind:placeholder="field.placeholder ?? undefined"
+                          @input="handleFieldInput(field.key)"
+                          @blur="handleFieldBlur(field.key)">
+                      </label>
 
-                    <p class="text-sm text-base-content/70" x-show="field.note" x-text="field.note"></p>
-                    <template x-if="contactFormErrors[field.key].length">
-                      <p class="text-sm text-error" x-text="contactFormErrors[field.key][0]"></p>
-                    </template>
-                  </fieldset>
-                </div>
-              </template>
+                      <p class="text-sm text-base-content/70" x-show="field.note" x-text="field.note"></p>
+                      <template x-if="contactFormErrors[field.key].length">
+                        <p class="text-sm text-error" x-text="contactFormErrors[field.key][0]"></p>
+                      </template>
+                    </fieldset>
+                  </div>
+                </template>
             </fieldset>
           </template>
-        </div>
-      </article>
+              </div>
+          </div>
+        </article>
+
+        <template x-if="shouldShowCourierDetails()">
+          <article class="border border-base-300 rounded-2xl bg-white shadow-sm p-6 md:p-10 space-y-6">
+            <div class="flex items-center justify-between">
+                <h2 class="text-2xl font-medium">Podrobnosti pro kurýra</h2>
+            </div>
+
+            <div class="space-y-6">
+              <template x-for="section in addressFormSections('courier')" :key="'courier-' + section.name">
+                <fieldset x-show="shouldShowSection(section.name)" class="grid gap-y-4">
+                  <template x-for="field in section.fields" :key="field.key" class="grid gap-y-6">
+                    <div x-show="isFieldVisible(field)" class="grid">
+                      <template x-if="field.isToggle">
+                        <div class="py-1">
+                          <label class="flex items-center gap-3 text-base text-base-content/80">
+                            <input type="checkbox"
+                                   class="checkbox checkbox-secondary rounded-md"
+                                   x-model="contactFormValues[field.key]"
+                                   @change="handleGroupToggle(field.key)">
+                            <span class="leading-tight" x-text="field.label"></span>
+                          </label>
+                          <p class="text-sm text-base-content/70" x-show="field.note" x-text="field.note"></p>
+                        </div>
+                      </template>
+
+                      <template x-if="!field.isToggle">
+                        <fieldset class="fieldset"
+                                  x-data="isAddressField(field) ? addressAutocomplete(field.key) : {}"
+                                  x-init="isAddressField(field) && typeof init === 'function' ? init() : null">
+                          <legend class="fieldset-legend text-sm text-max-gray-600"
+                                  x-text="field.label"
+                                  x-show="!isAddressField(field) || shouldShowLabel"></legend>
+
+                          <template x-if="field.type === 'textarea'">
+                            <textarea class="textarea textarea-bordered h-28 w-full text-lg"
+                                      x-bind:placeholder="field.placeholder ?? undefined"
+                                      x-model="contactFormValues[field.key]"
+                                      @input="handleFieldInput(field.key)"
+                                      @blur="handleFieldBlur(field.key)"
+                                      :class="contactFormErrors[field.key].length ? 'textarea-error' : ''"></textarea>
+                          </template>
+
+                          <template x-if="isAddressField(field)">
+                            <div class="space-y-3">
+                              <template x-if="!hasSelection">
+                                <div class="space-y-3">
+                                  <div class="relative">
+                                    <input type="text"
+                                           class="input input-lg w-full pr-12"
+                                           :class="contactFormErrors[field.key].length ? 'input-error' : ''"
+                                           x-model="query"
+                                           x-ref="input"
+                                           x-bind:placeholder="field.placeholder ?? 'Zadejte adresu'"
+                                           @input="onInput($event)"
+                                           @focus="openSuggestions()"
+                                           @blur="onBlur()"
+                                           @keydown.arrow-down.prevent="highlightNext()"
+                                           @keydown.arrow-up.prevent="highlightPrev()"
+                                           @keydown.enter.prevent="selectHighlighted()"
+                                           @keydown.escape="closeSuggestions()" />
+                                    <button type="button"
+                                            class="btn btn-ghost btn-sm absolute right-2 top-1/2 -translate-y-1/2"
+                                            x-show="hasValue"
+                                            @mousedown.prevent
+                                            @click="clearSelection(false)">
+                                      <span class="sr-only">Vymazat adresu</span>
+                                      ×
+                                    </button>
+
+                                    <div class="absolute left-0 right-0 z-20 mt-1 rounded-lg border border-base-300 bg-white shadow-lg"
+                                         x-cloak
+                                         x-show="open && filteredOptions.length">
+                                      <ul class="max-h-60 overflow-y-auto">
+                                        <template x-for="(opt, idx) in filteredOptions" :key="opt.id">
+                                          <li>
+                                            <button type="button"
+                                                    class="w-full text-left text-base px-4 py-2 hover:bg-base-200 focus:bg-base-200"
+                                                    :class="idx === highlighted ? 'bg-base-200' : ''"
+                                                    @mousedown.prevent="selectOption(opt)"
+                                                    @mouseenter="highlighted = idx">
+                                              <div class="font-medium" x-text="opt.label"></div>
+                                              <p class="text-sm text-base-content/70" x-text="opt.address"></p>
+                                            </button>
+                                          </li>
+                                        </template>
+                                      </ul>
+                                    </div>
+                                  </div>
+                                </div>
+                              </template>
+
+                              <template x-if="hasSelection">
+                                <div class="border border-dashed border-base-300 rounded-xl p-4 bg-max-green-25 flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
+                                  <div class="space-y-3 flex-1">
+                                    <div class="text-sm text-base-content/60 uppercase tracking-wide"
+                                         x-text="addressSummaryLabel(field)"></div>
+                                    <div class="text-base font-semibold"
+                                         x-text="summaryHeading || field.summaryTitle || 'Vybraná adresa'"></div>
+                                    <p class="text-sm text-base-content/80 whitespace-pre-line" x-text="summaryBody"></p>
+                                    <button type="button"
+                                            class="btn btn-sm btn-ghost text-max-blue-500 px-0"
+                                            @click="clearSelection(true)">
+                                      Změnit adresu
+                                    </button>
+                                  </div>
+                                  <div class="flex">
+                                    <i class="fa-solid fa-check text-max-green-500 text-2xl"></i>
+                                  </div>
+                                </div>
+                              </template>
+                            </div>
+                          </template>
+
+                          <template x-if="field.type !== 'textarea' && !isAddressField(field)">
+                            <label class="input input-bordered input-lg flex items-center gap-2"
+                                   :class="contactFormErrors[field.key].length ? 'input-error' : ''">
+                              <span class="text-base text-base-content/80 whitespace-nowrap" x-show="field.prefix" x-text="field.prefix"></span>
+                              <input
+                                :type="field.type === 'tel' ? 'tel' : 'text'"
+                                class="grow"
+                                x-model="contactFormValues[field.key]"
+                                x-bind:placeholder="field.placeholder ?? undefined"
+                                @input="handleFieldInput(field.key)"
+                                @blur="handleFieldBlur(field.key)">
+                            </label>
+                          </template>
+
+                          <p class="text-sm text-base-content/70" x-show="field.note" x-text="field.note"></p>
+                          <template x-if="contactFormErrors[field.key].length">
+                            <p class="text-sm text-error" x-text="contactFormErrors[field.key][0]"></p>
+                          </template>
+                        </fieldset>
+                      </template>
+                    </div>
+                  </template>
+                </fieldset>
+              </template>
+            </div>
+          </article>
+        </template>
+      </div>
     </div>
 
     <p class="mt-6 text-sm text-error" x-show="addressFormMessage" x-text="addressFormMessage"></p>
@@ -8305,7 +8696,7 @@ function deliveryPaymentUI() {
               <article class="border border-base-300 rounded-xl bg-white shadow-sm p-6 space-y-4">
                 <div class="flex items-start justify-between gap-3">
                   <div>
-                    <p class="text-sm uppercase tracking-wide text-base-content/60" x-text="order.key === 'partner' ? 'Dodavatel' : 'Naše sklady'"></p>
+                    <p class="text-sm uppercase tracking-wide text-base-content/60" x-text="order.label || (order.key === 'partner' ? 'Dodavatel' : 'Naše sklady')"></p>
                     <h2 class="text-xl font-medium" x-text="order.title"></h2>
                     <p class="text-sm text-base-content/70" x-show="order.key === 'partner'">
                       Doručení i platbu zajišťuje partnerský sklad.
@@ -8322,16 +8713,22 @@ function deliveryPaymentUI() {
                       <div class="text-sm uppercase text-base-content/60 tracking-wide">Doprava</div>
                       <div class="text-lg font-semibold" x-text="order.delivery?.name || 'Doprava nevybrána'"></div>
                       <p class="text-sm text-base-content/70" x-show="order.delivery?.description" x-text="order.delivery?.description"></p>
+                      <div class="text-sm text-base-content/80" x-data="deliveryPickupTimes('short')" x-cloak>
+                        <template x-if="info">
+                          <p class="leading-tight"
+                             x-html="orderDeliverySummary(order, info)"></p>
+                        </template>
+                      </div>
                       <p class="text-sm text-base-content/80" x-show="order.delivery?.timeslot?.label">
                         Termín: <span class="font-medium" x-text="order.delivery?.timeslot?.label"></span>
                       </p>
                     </div>
                     <div class="text-lg font-semibold">
-                      <template x-if="(order.delivery?.finalPrice || 0) === 0">
+                      <template x-if="effectiveDeliveryPrice(order) === 0">
                         <span>Zdarma</span>
                       </template>
-                      <template x-if="(order.delivery?.finalPrice || 0) > 0">
-                        <span x-text="formatCZK(order.delivery?.finalPrice || 0)"></span>
+                      <template x-if="effectiveDeliveryPrice(order) > 0">
+                        <span x-text="formatCZK(effectiveDeliveryPrice(order))"></span>
                       </template>
                     </div>
                   </div>
@@ -8341,6 +8738,16 @@ function deliveryPaymentUI() {
                       <div class="text-sm text-base-content/60 uppercase tracking-wide">Výdejní místo</div>
                       <div class="font-medium" x-text="order.delivery?.pickup?.name || ''"></div>
                       <p class="text-sm text-base-content/80 whitespace-pre-line" x-text="order.delivery?.pickup?.addressLine || ''"></p>
+                    </div>
+                  </template>
+                  <template x-if="!order.delivery?.pickup && checkoutReview?.shippingAddress?.length">
+                    <div class="border border-dashed border-base-300 rounded-lg p-4 space-y-1">
+                      <div class="text-sm text-base-content/60 uppercase tracking-wide" x-text="orderShippingHeading(order)"></div>
+                      <div class="space-y-1">
+                        <template x-for="item in checkoutReview.shippingAddress" :key="'order-shipping-' + item.label">
+                          <p class="text-sm font-medium whitespace-pre-line" x-text="item.value"></p>
+                        </template>
+                      </div>
                     </div>
                   </template>
 
@@ -8703,6 +9110,18 @@ function deliveryPaymentUI() {
         <p class="text-base-content/70">Nastavení se ukládá lokálně do prohlížeče pod klíčem <code>fit:app-config</code>.</p>
       </header>
 
+      <p class="text-xs text-base-content/60 flex items-center gap-3">
+        <button type="button" class="btn btn-md btn-error" @click="resetAll()">
+          Resetovat vše
+        </button>
+        <span class="badge badge-success badge-outline uppercase tracking-wide text-[0.6rem]"
+              x-show="resetJustHappened"
+              x-transition.opacity>
+              <i class="fa-solid fa-check"></i>
+          Reset dokončen
+        </span>
+      </p>
+
       <div class="rounded-2xl border border-base-300 bg-white shadow-sm p-6 space-y-4">
         <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
@@ -8914,11 +9333,7 @@ function deliveryPaymentUI() {
         <h2 class="text-sm font-semibold text-base-content/70 mb-2">Aktuální konfigurace</h2>
         <pre class="text-xs whitespace-pre-wrap font-mono text-base-content/70" x-text="snapshot"></pre>
       </div>
-      <p class="text-xs text-base-content/60">
-        <button type="button" class="btn btn-ghost btn-sm" @click="resetAll()">
-          Resetovat vše
-        </button>
-      </p>
+
     </div>
   </section>
 </section>
@@ -9982,6 +10397,26 @@ this.$nextTick(() => requestAnimationFrame(focusRealInput));
     }
   });
     // PRODUCT DETAIL
+  Alpine.data('deliveryPickupTimes', (kind = 'long') => ({
+    kind,
+    info: null,
+    async init() {
+      const store = Alpine.store('deliveryPickup');
+      if (!store || typeof store.ensure !== 'function') return;
+      try {
+        await store.ensure();
+      } catch (err) {
+        console.warn('deliveryPickupTimes ensure failed', err);
+      }
+      this.refresh();
+      this.$watch(() => store.items, () => this.refresh());
+    },
+    refresh() {
+      const store = Alpine.store('deliveryPickup');
+      this.info = store?.info?.(this.kind) || null;
+    }
+  }));
+
   Alpine.data('productDetail', (opts = {}) => ({
     // ---- inputs ----
     id: opts.id ?? null,
@@ -12253,10 +12688,17 @@ async ensureAddressForm() {
   if (this.addressFormLoaded || this.addressFormLoading) return;
   this.addressFormLoading = true;
   try {
-    const res = await fetch('data/forms/contacts-delivery.json', { cache: 'no-store' });
-    const schema = await res.json();
-    this.contactFormSchema = Array.isArray(schema) ? schema : [];
-    this.initAddressForm(this.contactFormSchema);
+    const [contactSchema, courierSchema] = await Promise.all([
+      fetch('data/forms/contacts-delivery.json', { cache: 'no-store' })
+        .then(res => res.json())
+        .catch(() => []),
+      this.loadCourierOptionalSchema()
+    ]);
+    const base = Array.isArray(contactSchema) ? contactSchema : [];
+    const courier = Array.isArray(courierSchema) ? courierSchema : [];
+    const combined = [...base, ...courier];
+    this.contactFormSchema = combined;
+    this.initAddressForm(combined);
   } catch (e) {
     console.warn('contacts-delivery.json load failed', e);
     this.contactFormSchema = [];
@@ -12267,7 +12709,9 @@ async ensureAddressForm() {
 },
 
 async loadAddressSuggestions() {
-  if (this.addressAutocompleteLoaded) return this.addressAutocompleteOptions;
+  if (this.addressAutocompleteLoaded) {
+    return this.addressAutocompleteOptions;
+  }
   try {
     const res = await fetch('data/addresses/prague.json', { cache: 'no-store' });
     const list = await res.json();
@@ -12301,6 +12745,17 @@ async loadAddressSuggestions() {
     this.addressAutocompleteLoaded = true;
   }
   return this.addressAutocompleteOptions;
+},
+
+async loadCourierOptionalSchema() {
+  try {
+    const res = await fetch('data/forms/courier-delivery.json', { cache: 'no-store' });
+    const schema = await res.json();
+    return Array.isArray(schema) ? schema : [];
+  } catch (e) {
+    console.warn('courier-delivery.json load failed', e);
+    return [];
+  }
 },
 
 normalizeCheckoutMetaValue(raw) {
@@ -12341,6 +12796,59 @@ hasPrimaryPickup() {
   if (!type && meta?.pickup) return true;
   return false;
 },
+isPickupMeta(meta) {
+  if (!meta) return false;
+  const type = String(meta.type || '').toLowerCase();
+  if (type === 'pickup') return true;
+  if (!type && meta.pickup) return true;
+  return false;
+},
+isPharmacyPickupMeta(meta) {
+  if (!meta) return false;
+  if (!this.isPickupMeta(meta)) return false;
+  const mapType = String(meta.mapType || meta.map_type || meta.pickup?.mapType || '').toLowerCase();
+  if (mapType === 'pharmacy') return true;
+  const pickupType = String(meta.pickup?.type || '').toLowerCase();
+  if (pickupType === 'pharmacy') return true;
+  const name = String(meta.name || meta.pickup?.name || '').toLowerCase();
+  return name.includes('lékárn');
+},
+isPharmacyPickup(context = 'ours') {
+  const meta = this.deliveryMetaFor(context);
+  return this.isPharmacyPickupMeta(meta);
+},
+addressSummaryPrefersPickup(context = 'ours') {
+  return this.isPharmacyPickup(context);
+},
+addressSummaryIsBilling(field) {
+  return this.isBillingAddressField(field);
+},
+addressSummaryLabel(field) {
+  if (!field) return 'Adresa pro doručení';
+  if (this.addressSummaryIsBilling(field)) return 'Fakturační adresa';
+  return field.summaryEyebrow || 'Adresa pro doručení';
+},
+shippingAddressHeading() {
+  const meta = this.deliveryMetaFor('ours');
+  return this.isPickupMeta(meta) ? 'Výdejní místo' : 'Doručovací adresa';
+},
+orderShippingHeading(order) {
+  if (!order) return 'Doručovací adresa';
+  if (this.isPickupMeta(order.delivery)) return 'Výdejní místo';
+  if (order.key === 'partner') return 'Doručovací adresa';
+  return this.shippingAddressHeading();
+},
+orderDeliverySummary(order, info) {
+  if (!order || !info) return '';
+  if (order.delivery?.pickup) {
+    return this.isPharmacyPickupMeta(order.delivery) ? (info.pickup || '') : (info.delivery || '');
+  }
+  return info.delivery || '';
+},
+shouldShowCourierDetails() {
+  if (this.hasPrimaryPickup()) return false;
+  return this.addressFormSections('courier').length > 0;
+},
 requiresHomeAddress() {
   if (this.partnerDeliveryRequired()) return true;
   return !this.hasPrimaryPickup();
@@ -12363,12 +12871,18 @@ addressFormSections(kind = 'all') {
     return sections.filter(sec => this.isContactSection(sec.name));
   }
   if (kind === 'delivery') {
-    return sections.filter(sec => !this.isContactSection(sec.name));
+    return sections.filter(sec => !this.isContactSection(sec.name) && !this.isCourierSection(sec.name));
+  }
+  if (kind === 'courier') {
+    return sections.filter(sec => this.isCourierSection(sec.name));
   }
   return sections;
 },
 isContactSection(name) {
   return String(name || '').trim().toLowerCase() === 'kontaktní údaje';
+},
+isCourierSection(name) {
+  return String(name || '').trim().toLowerCase() === 'podrobnosti pro kurýra';
 },
 pickupSummary(context = 'ours') {
   const meta = this.deliveryMetaFor(context);
@@ -12471,7 +12985,7 @@ initAddressForm(schema = []) {
       this.contactFormGroups[field.groupKey] = false;
     }
 
-    if (field.type === 'address') {
+    if (this.isAddressField(field)) {
       this.contactFormValues[key] = this.normalizeAddressValue(savedValues[key] ?? this.contactFormValues[key]);
     } else if (!field.isToggle && Object.prototype.hasOwnProperty.call(savedValues, key)) {
       this.contactFormValues[key] = savedValues[key];
@@ -12509,10 +13023,33 @@ defaultFieldValue(field) {
     case 'tel':
       return '';
     case 'address':
-      return { street: '', extra: '', city: '', zip: '' };
+    case 'billing_address':
+      return { street: '', extra: '', city: '', zip: '', district: '' };
     default:
       return '';
   }
+},
+
+fieldTypeValue(field) {
+  if (field && typeof field === 'object') {
+    return String(field.type || '').toLowerCase();
+  }
+  return String(field || '').toLowerCase();
+},
+isAddressType(value) {
+  const t = this.fieldTypeValue(value);
+  return t === 'address' || t === 'billing_address';
+},
+isAddressField(field) {
+  return !!field && this.isAddressType(field);
+},
+isBillingAddressField(field) {
+  if (!field) return false;
+  if (this.fieldTypeValue(field) === 'billing_address') return true;
+  const key = String(field.key || '').toLowerCase();
+  const label = String(field.label || '').toLowerCase();
+  const name = String(field.name || '').toLowerCase();
+  return key.includes('billing') || label.includes('faktura') || label.includes('billing') || name.includes('faktura') || name.includes('billing');
 },
 
 normalizeAddressValue(val) {
@@ -12521,13 +13058,14 @@ normalizeAddressValue(val) {
       street: String(val.street ?? val.line1 ?? '').trim(),
       extra: String(val.extra ?? val.line2 ?? '').trim(),
       city: String(val.city ?? '').trim(),
-      zip: String(val.zip ?? '').trim()
+      zip: String(val.zip ?? '').trim(),
+      district: String(val.district ?? '').trim()
     };
   }
   if (typeof val === 'string') {
-    return { street: val.trim(), extra: '', city: '', zip: '' };
+    return { street: val.trim(), extra: '', city: '', zip: '', district: '' };
   }
-  return { street: '', extra: '', city: '', zip: '' };
+  return { street: '', extra: '', city: '', zip: '', district: '' };
 },
 
 addressAutocomplete(fieldKey) {
@@ -12537,6 +13075,7 @@ addressAutocomplete(fieldKey) {
     query: '',
     open: false,
     highlighted: -1,
+    isCommitted: false,
     init() {
       store.loadAddressSuggestions().then(() => {
         this.syncFromValue(store.contactFormValues[this.fieldKey]);
@@ -12554,12 +13093,23 @@ addressAutocomplete(fieldKey) {
     },
     get hasValue() {
       const value = store.normalizeAddressValue(store.contactFormValues[this.fieldKey]);
-      return !!(value.street || value.extra || value.city || value.zip);
+      return !!(value.street || value.extra || value.city || value.zip || value.district);
+    },
+    get hasSelection() {
+      return this.isCommitted && !!this.summaryBody;
+    },
+    get shouldShowLabel() {
+      if (this.hasSelection) return false;
+      return !((this.query || '').trim().length);
     },
     get summaryBody() {
-      return store.formatAddressDisplay(store.contactFormValues[this.fieldKey]);
+      return store.formatAddressSummary(store.contactFormValues[this.fieldKey]);
+    },
+    get summaryHeading() {
+      return store.formatAddressStreet(store.contactFormValues[this.fieldKey]);
     },
     openSuggestions() {
+      if (this.hasSelection) return;
       this.open = true;
       if (this.highlighted === -1 && this.filteredOptions.length) {
         this.highlighted = 0;
@@ -12571,6 +13121,7 @@ addressAutocomplete(fieldKey) {
     },
     onInput(event) {
       this.query = event.target.value;
+      this.isCommitted = false;
       const next = store.normalizeAddressValue(store.contactFormValues[this.fieldKey]);
       const updated = { ...next, street: this.query };
       store.contactFormValues[this.fieldKey] = updated;
@@ -12600,15 +13151,21 @@ addressAutocomplete(fieldKey) {
       store.contactFormValues[this.fieldKey] = value;
       store.handleFieldInput(this.fieldKey);
       store.handleFieldBlur(this.fieldKey);
-      this.query = store.formatAddressLine(value);
+      this.isCommitted = this.hasCompleteValue(value);
+      this.query = this.isCommitted ? '' : store.formatAddressLine(value);
       this.closeSuggestions();
     },
-    clearSelection() {
+    clearSelection(focusAfter = false) {
       store.contactFormValues[this.fieldKey] = store.normalizeAddressValue({});
       this.query = '';
+      this.isCommitted = false;
       store.handleFieldInput(this.fieldKey);
       store.handleFieldBlur(this.fieldKey);
       this.closeSuggestions();
+      if (focusAfter) {
+        this.focusInputSoon();
+        this.openSuggestions();
+      }
     },
     syncFromValue(value) {
       const normalized = store.normalizeAddressValue(value);
@@ -12616,18 +13173,35 @@ addressAutocomplete(fieldKey) {
       if (!this.addressesEqual(normalized, current)) {
         store.contactFormValues[this.fieldKey] = normalized;
       }
-      this.query = store.formatAddressLine(normalized);
+      this.isCommitted = this.hasCompleteValue(normalized);
+      this.query = this.isCommitted ? '' : store.formatAddressLine(normalized);
+      if (this.hasSelection) {
+        this.closeSuggestions();
+      }
     },
     addressesEqual(a, b) {
       if (!a && !b) return true;
-      const keys = ['street', 'extra', 'city', 'zip'];
+      const keys = ['street', 'extra', 'city', 'zip', 'district'];
       return keys.every(k => String(a?.[k] ?? '') === String(b?.[k] ?? ''));
+    },
+    hasCompleteValue(addr) {
+      const normalized = store.normalizeAddressValue(addr);
+      return !!(normalized.street && (normalized.city || normalized.zip));
+    },
+    focusInputSoon() {
+      this.$nextTick(() => {
+        requestAnimationFrame(() => {
+          if (this.$refs?.input && typeof this.$refs.input.focus === 'function') {
+            this.$refs.input.focus();
+          }
+        });
+      });
     }
   };
 },
 
 addressPlaceholder(field, part) {
-  if (!field || field.type !== 'address') return undefined;
+  if (!this.isAddressField(field)) return undefined;
   const ph = field.placeholder;
   if (ph && typeof ph === 'object') {
     const val = ph?.[part];
@@ -12670,7 +13244,7 @@ hydrateAddressFormValues() {
         : !!values[key];
       this.contactFormGroups[field.groupKey] = boolVal;
       this.contactFormValues[key] = boolVal;
-    } else if (field.type === 'address') {
+    } else if (this.isAddressField(field)) {
       this.contactFormValues[key] = this.normalizeAddressValue(values[key] ?? this.contactFormValues[key]);
     } else if (!field.isToggle && Object.prototype.hasOwnProperty.call(values, key)) {
       this.contactFormValues[key] = values[key];
@@ -12704,6 +13278,9 @@ shouldShowSection(name) {
   const normalized = String(name).trim().toLowerCase();
   if (normalized === 'doručovací adresa') {
     return this.requiresHomeAddress();
+  }
+  if (this.isCourierSection(name)) {
+    return this.shouldShowCourierDetails();
   }
   return true;
 },
@@ -12769,7 +13346,7 @@ computeFieldErrors(field) {
     switch (rule?.type) {
       case 'required': {
         let ok = true;
-        if (field.type === 'address') {
+        if (this.isAddressField(field)) {
           const addr = this.normalizeAddressValue(value);
           ok = !!(addr.street && addr.city && addr.zip);
         } else if (typeof value === 'boolean') {
@@ -12863,6 +13440,20 @@ formatAddressLine(val) {
   return parts.join(', ');
 },
 
+formatAddressStreet(val) {
+  return this.normalizeAddressValue(val).street || '';
+},
+
+formatAddressSummary(val) {
+  const addr = this.normalizeAddressValue(val);
+  const parts = [];
+  if (addr.extra) parts.push(addr.extra);
+  const cityLine = [addr.zip, addr.city].filter(Boolean).join(' ');
+  if (cityLine) parts.push(cityLine);
+  if (addr.district) parts.push(addr.district);
+  return parts.join('\n');
+},
+
 formatAddressDisplay(val) {
   const addr = this.normalizeAddressValue(val);
   const parts = [];
@@ -12875,7 +13466,7 @@ formatAddressDisplay(val) {
 
 formatFieldValue(field, value) {
   if (!field) return '';
-  if (field.type === 'address') {
+  if (this.isAddressField(field)) {
     return this.formatAddressDisplay(value);
   }
   if (this.isPhoneField(field)) {
@@ -12956,9 +13547,23 @@ checkoutCartSummary() {
   };
 },
 
+cartFreeShippingActive() {
+  const cart = Alpine.store('cart');
+  if (!cart) return false;
+  if (typeof cart.hasFreeShipping === 'function') return !!cart.hasFreeShipping();
+  const threshold = Number(cart.freeShipThreshold || 0);
+  if (threshold <= 0) return false;
+  return Number(cart.totalToPay?.() || 0) >= threshold;
+},
+effectiveDeliveryPrice(order) {
+  if (!order || !order.delivery) return 0;
+  if (order.key === 'ours' && this.cartFreeShippingActive()) return 0;
+  return Number(order.delivery.finalPrice || 0);
+},
+
 deliveryFeeTotal() {
   const orders = this.checkoutReview?.orders || [];
-  return orders.reduce((sum, order) => sum + Number(order.delivery?.finalPrice || 0), 0);
+  return orders.reduce((sum, order) => sum + this.effectiveDeliveryPrice(order), 0);
 },
 paymentFeeTotal() {
   const orders = this.checkoutReview?.orders || [];
@@ -12990,7 +13595,7 @@ paygateTotal() {
     const requiresOnline = order.key === 'partner' || this.isOnlinePaymentMeta(order.payment);
     if (!requiresOnline) return sum;
     const items = toNumber(order.totals?.total || 0);
-    const delivery = toNumber(order.delivery?.finalPrice || 0);
+    const delivery = toNumber(this.effectiveDeliveryPrice(order));
     const payment = toNumber(order.payment?.finalPrice || 0);
     return sum + items + delivery + payment;
   }, 0);
@@ -13001,7 +13606,7 @@ buildCheckoutOrders() {
   const cart = Alpine.store('cart');
   const grouped = cart?.groupedTotals?.() || {};
   const orders = [];
-  const pushOrder = (key, title) => {
+  const pushOrder = (key) => {
     const delivery = this.deliveryMetaFor(key);
     const payment = this.paymentMetaFor(key);
     const rawItems = grouped?.[key]?.items || [];
@@ -13020,9 +13625,14 @@ buildCheckoutOrders() {
       };
     });
     if (!delivery && !payment && !items.length) return;
+    const label = key === 'partner' ? 'Dodavatel' : 'Naše sklady';
+    const title = key === 'partner'
+      ? 'Doručení od dodavatele'
+      : (this.isPickupMeta(delivery) ? 'Vyzvednutí' : 'Doručení');
     orders.push({
       key,
       title,
+      label,
       delivery,
       payment,
       items,
@@ -13035,8 +13645,8 @@ buildCheckoutOrders() {
         : { subtotal: 0, discount: 0, total: 0 }
     });
   };
-  pushOrder('ours', 'Nákup u nás');
-  pushOrder('partner', 'Nákup od dodavatele');
+  pushOrder('ours');
+  pushOrder('partner');
   return orders;
 },
 
@@ -13154,6 +13764,7 @@ refreshCheckoutReview() {
   this.checkoutFormData = saved;
   const review = {
     contact: this.sectionSummary('Kontaktní údaje', saved),
+    shippingAddress: this.sectionSummary('Doručovací adresa', saved),
     deliveryDetails: this.groupSummary('Podrobnosti k doručení', saved),
     companyDetails: this.groupSummary('Firemní údaje', saved),
     orders: this.buildCheckoutOrders(),
@@ -14516,6 +15127,9 @@ link(name, params = {}) {
       authFallbackDraft: '',
       authFallbackError: '',
       authThrottleDraft: 1300,
+      resetFlashKey: 'fit:config-reset-flag',
+      resetJustHappened: false,
+      resetBadgeTimer: null,
       init() {
         this.store = Alpine.store('appConfig');
         this.orderStore = Alpine.store('activeOrder');
@@ -14538,6 +15152,18 @@ link(name, params = {}) {
         this.$watch(() => this.authStore?.throttleMs, (value) => {
           this.authThrottleDraft = Number(value ?? 0);
         });
+        try {
+          if (typeof sessionStorage !== 'undefined') {
+            const flash = sessionStorage.getItem(this.resetFlashKey);
+            if (flash) {
+              this.showResetBadge();
+              sessionStorage.removeItem(this.resetFlashKey);
+              Alpine.store('toast')?.push?.('Lokální data byla obnovena.', 'success', 4000);
+            }
+          }
+        } catch (err) {
+          console.warn('resetAll: failed to read reset flag', err);
+        }
       },
       formatFallback(data) {
         try {
@@ -14657,12 +15283,90 @@ link(name, params = {}) {
         if (!code) return;
         this.localeStore?.setCurrency?.(code);
       },
+      showResetBadge() {
+        if (this.resetBadgeTimer) {
+          clearTimeout(this.resetBadgeTimer);
+          this.resetBadgeTimer = null;
+        }
+        this.resetJustHappened = true;
+        this.resetBadgeTimer = setTimeout(() => {
+          this.resetJustHappened = false;
+          this.resetBadgeTimer = null;
+        }, 5000);
+      },
       resetAll() {
+        const safeRemove = (key) => {
+          if (!key || typeof localStorage === 'undefined') return;
+          try {
+            localStorage.removeItem(key);
+          } catch (err) {
+            console.warn('resetAll: failed to remove', key, err);
+          }
+        };
+        const storageKeys = [
+          'fit:app-config',
+          'cart.v1',
+          'recentAny',
+          'selectedDeliveryId',
+          'selectedPaymentId',
+          'selectedPartnerDeliveryId',
+          'selectedPartnerPaymentId',
+          'pickupSelectionContext',
+          'deliveryTimeslots',
+          'deliveryPickupSelections',
+          'deliveryBenefitSelections',
+          'checkout.delivery',
+          'checkout.payment',
+          'checkout.addressForm',
+          'checkout.review',
+          'fit:saved-products',
+          'fit:active-order',
+          'selectedPickupPoint'
+        ];
+        storageKeys.forEach(safeRemove);
+
         if (typeof this.store?.reset === 'function') {
           this.store.reset();
         } else {
-          this.setBadge(this.store?.defaults?.showBreakpointBadge ?? true);
+          this.setBadge(this.store?.defaults?.showBreakpointBadge ?? false);
+          this.store?.persist?.();
         }
+
+        const cartStore = Alpine.store('cart');
+        cartStore?.clear?.();
+
+        const savedStore = Alpine.store('saved');
+        savedStore?.replace?.([]);
+
+        const activeOrderStore = Alpine.store('activeOrder');
+        activeOrderStore?.clearOrder?.();
+        this.orderStore?.clearOrder?.();
+        this.selectedStep = '';
+
+        Alpine.store('checkoutFlow')?.setDeliveryReady?.(false);
+
+        // ensure auth goes back to mocked defaults but keeps fallback data
+        if (this.authStore?.reset) {
+          this.authStore.reset();
+          this.authFallbackDraft = this.formatFallback(this.authStore?.fallbackAccount);
+          this.authThrottleDraft = Number(this.authStore?.throttleMs ?? 1300);
+        } else if (this.authStore?.resetRegistrationState) {
+          this.authStore.resetRegistrationState({ hard: true });
+        }
+
+        try {
+          if (typeof sessionStorage !== 'undefined') {
+            sessionStorage.setItem(this.resetFlashKey, String(Date.now()));
+          }
+        } catch (err) {
+          console.warn('resetAll: failed to persist flash flag', err);
+        }
+        this.showResetBadge();
+
+        // hard reload guarantees in-memory checkout/address state is rebuilt from clean storage
+        setTimeout(() => {
+          window.location.reload();
+        }, 120);
       },
       get snapshot() {
         try {
@@ -16614,49 +17318,73 @@ function precartModal() {
                               </label>
                             </template>
 
-                            <template x-if="field.type === 'address'">
+                            <template x-if="$store.auth.registrationIsAddressField(field)">
                               <div x-data="$store.auth.registrationAddressField(field.key)" x-init="init()" class="space-y-2">
                                 <label class="form-control w-full gap-2">
-                                  <span class="text-sm font-semibold text-base-content/80" x-text="field.label"></span>
-                                  <div class="relative">
-                                    <input type="text"
-                                           class="input input-bordered w-full"
-                                           :placeholder="(field.placeholder && field.placeholder.street) || 'Začněte psát adresu'"
-                                           x-model="query"
-                                           @focus="openSuggestions()"
-                                           @input="onInput($event)"
-                                           @blur="onBlur()"
-                                           @keydown.arrow-down.prevent="highlightNext()"
-                                           @keydown.arrow-up.prevent="highlightPrev()"
-                                           @keydown.enter.prevent="selectHighlighted()">
-                                    <button type="button"
-                                            class="btn btn-xs btn-ghost absolute right-2 top-1/2 -translate-y-1/2"
-                                            @click="clearSelection()"
-                                            x-show="hasValue">
-                                      Vymazat
-                                    </button>
-                                  </div>
-                                </label>
-                                <div class="relative" x-show="open && options.length">
-                                  <ul class="menu absolute z-10 w-full rounded-xl border border-base-200 bg-base-100 shadow">
-                                    <template x-for="(option, index) in options" :key="option.id">
-                                      <li>
+                                  <span class="text-sm font-semibold text-base-content/80"
+                                        x-text="field.label"
+                                        x-show="!hasSelection || !((query || '').trim().length)"></span>
+                                  <template x-if="!hasSelection">
+                                    <div class="space-y-3">
+                                      <div class="relative">
+                                        <input type="text"
+                                               class="input input-bordered w-full"
+                                               :placeholder="(field.placeholder && field.placeholder.street) || 'Začněte psát adresu'"
+                                               x-model="query"
+                                               x-ref="input"
+                                               @focus="openSuggestions()"
+                                               @input="onInput($event)"
+                                               @blur="onBlur()"
+                                               @keydown.arrow-down.prevent="highlightNext()"
+                                               @keydown.arrow-up.prevent="highlightPrev()"
+                                               @keydown.enter.prevent="selectHighlighted()">
                                         <button type="button"
-                                                class="flex flex-col items-start"
-                                                :class="{ 'active text-primary': highlighted === index }"
-                                                @mouseenter="highlighted = index"
-                                                @click="selectOption(option)">
-                                          <span class="font-semibold" x-text="option.label"></span>
-                                          <span class="text-xs text-base-content/70" x-text="option.cityLine"></span>
+                                                class="btn btn-xs btn-ghost absolute right-2 top-1/2 -translate-y-1/2"
+                                                x-show="hasValue"
+                                                @mousedown.prevent
+                                                @click="clearSelection(false)">
+                                          Vymazat
                                         </button>
-                                      </li>
-                                    </template>
-                                  </ul>
-                                </div>
-                                <div class="rounded-lg border border-dashed border-base-300 bg-base-100 p-4 text-sm" x-show="hasValue">
-                                  <div class="font-semibold text-base-content">Vybraná adresa</div>
-                                  <p class="text-base-content/70 whitespace-pre-line" x-text="summaryBody"></p>
-                                </div>
+                                      </div>
+                                      <div class="relative" x-show="open && options.length">
+                                        <ul class="menu absolute z-10 w-full rounded-xl border border-base-200 bg-base-100 shadow">
+                                          <template x-for="(option, index) in options" :key="option.id">
+                                            <li>
+                                              <button type="button"
+                                                      class="flex flex-col items-start text-base"
+                                                      :class="{ 'active text-primary': highlighted === index }"
+                                                      @mouseenter="highlighted = index"
+                                                      @click="selectOption(option)">
+                                                <span class="font-semibold" x-text="option.label"></span>
+                                                <span class="text-xs text-base-content/70" x-text="option.cityLine"></span>
+                                              </button>
+                                            </li>
+                                          </template>
+                                        </ul>
+                                      </div>
+                                    </div>
+                                  </template>
+
+                                  <template x-if="hasSelection">
+                                    <div class="border border-dashed border-base-300 rounded-xl p-4 bg-max-green-25 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                                      <div class="space-y-2">
+                                        <div class="text-sm text-base-content/60 uppercase tracking-wide"
+                                             x-text="field.summaryEyebrow || field.label || 'Adresa'"></div>
+                                        <div class="text-base font-semibold"
+                                             x-text="summaryHeading || field.summaryTitle || 'Vybraná adresa'"></div>
+                                        <p class="text-sm text-base-content/80 whitespace-pre-line" x-text="summaryBody"></p>
+                                      </div>
+                                      <div class="flex items-center gap-3 shrink-0">
+                                        <button type="button"
+                                                class="btn btn-xs btn-ghost text-max-green-500"
+                                                @click="clearSelection(true)">
+                                          Změnit adresu
+                                        </button>
+                                        <i class="fa-solid fa-check text-max-green-500 text-xl"></i>
+                                      </div>
+                                    </div>
+                                  </template>
+                                </label>
                               </div>
                             </template>
 
@@ -16797,49 +17525,73 @@ function precartModal() {
                           </label>
                         </template>
 
-                        <template x-if="field.type === 'address'">
+                        <template x-if="$store.auth.registrationIsAddressField(field)">
                           <div x-data="$store.auth.registrationAddressField(field.key)" x-init="init()" class="space-y-2">
                             <label class="form-control w-full gap-2">
-                              <span class="text-sm font-semibold text-base-content/80" x-text="field.label"></span>
-                              <div class="relative">
-                                <input type="text"
-                                       class="input input-bordered w-full"
-                                       :placeholder="(field.placeholder && field.placeholder.street) || 'Začněte psát adresu'"
-                                       x-model="query"
-                                       @focus="openSuggestions()"
-                                       @input="onInput($event)"
-                                       @blur="onBlur()"
-                                       @keydown.arrow-down.prevent="highlightNext()"
-                                       @keydown.arrow-up.prevent="highlightPrev()"
-                                       @keydown.enter.prevent="selectHighlighted()">
-                                <button type="button"
-                                        class="btn btn-xs btn-ghost absolute right-2 top-1/2 -translate-y-1/2"
-                                        @click="clearSelection()"
-                                        x-show="hasValue">
-                                  Vymazat
-                                </button>
-                              </div>
-                            </label>
-                            <div class="relative" x-show="open && options.length">
-                              <ul class="menu absolute z-10 w-full rounded-xl border border-base-200 bg-base-100 shadow">
-                                <template x-for="(option, index) in options" :key="option.id">
-                                  <li>
+                              <span class="text-sm font-semibold text-base-content/80"
+                                    x-text="field.label"
+                                    x-show="!hasSelection || !((query || '').trim().length)"></span>
+                              <template x-if="!hasSelection">
+                                <div class="space-y-3">
+                                  <div class="relative">
+                                    <input type="text"
+                                           class="input input-bordered w-full"
+                                           :placeholder="(field.placeholder && field.placeholder.street) || 'Začněte psát adresu'"
+                                           x-model="query"
+                                           x-ref="input"
+                                           @focus="openSuggestions()"
+                                           @input="onInput($event)"
+                                           @blur="onBlur()"
+                                           @keydown.arrow-down.prevent="highlightNext()"
+                                           @keydown.arrow-up.prevent="highlightPrev()"
+                                           @keydown.enter.prevent="selectHighlighted()">
                                     <button type="button"
-                                            class="flex flex-col items-start"
-                                            :class="{ 'active text-primary': highlighted === index }"
-                                            @mouseenter="highlighted = index"
-                                            @click="selectOption(option)">
-                                      <span class="font-semibold" x-text="option.label"></span>
-                                      <span class="text-xs text-base-content/70" x-text="option.cityLine"></span>
+                                            class="btn btn-xs btn-ghost absolute right-2 top-1/2 -translate-y-1/2"
+                                            x-show="hasValue"
+                                            @mousedown.prevent
+                                            @click="clearSelection(false)">
+                                      Vymazat
                                     </button>
-                                  </li>
-                                </template>
-                              </ul>
-                            </div>
-                            <div class="rounded-lg border border-dashed border-base-300 bg-base-100 p-4 text-sm" x-show="hasValue">
-                              <div class="font-semibold text-base-content">Vybraná adresa</div>
-                              <p class="text-base-content/70 whitespace-pre-line" x-text="summaryBody"></p>
-                            </div>
+                                  </div>
+                                  <div class="relative" x-show="open && options.length">
+                                    <ul class="menu absolute z-10 w-full rounded-xl border border-base-200 bg-base-100 shadow">
+                                      <template x-for="(option, index) in options" :key="option.id">
+                                        <li>
+                                          <button type="button"
+                                                  class="flex flex-col items-start text-base"
+                                                  :class="{ 'active text-primary': highlighted === index }"
+                                                  @mouseenter="highlighted = index"
+                                                  @click="selectOption(option)">
+                                            <span class="font-semibold" x-text="option.label"></span>
+                                            <span class="text-xs text-base-content/70" x-text="option.cityLine"></span>
+                                          </button>
+                                        </li>
+                                      </template>
+                                    </ul>
+                                  </div>
+                                </div>
+                              </template>
+
+                              <template x-if="hasSelection">
+                                <div class="border border-dashed border-base-300 rounded-xl p-4 bg-max-green-25 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                                  <div class="space-y-2">
+                                    <div class="text-sm text-base-content/60 uppercase tracking-wide"
+                                         x-text="field.summaryEyebrow || field.label || 'Adresa'"></div>
+                                    <div class="text-base font-semibold"
+                                         x-text="summaryHeading || field.summaryTitle || 'Vybraná adresa'"></div>
+                                    <p class="text-sm text-base-content/80 whitespace-pre-line" x-text="summaryBody"></p>
+                                  </div>
+                                  <div class="flex items-center gap-3 shrink-0">
+                                    <button type="button"
+                                            class="btn btn-xs btn-ghost text-max-green-500"
+                                            @click="clearSelection(true)">
+                                      Změnit adresu
+                                    </button>
+                                    <i class="fa-solid fa-check text-max-green-500 text-xl"></i>
+                                  </div>
+                                </div>
+                              </template>
+                            </label>
                           </div>
                         </template>
 
@@ -16911,7 +17663,7 @@ function precartModal() {
     if (!badge) return;
     const STORAGE_KEY = 'fit:app-config';
     const SETTING_KEY = 'showBreakpointBadge';
-    const DEFAULT_VISIBLE = true;
+    const DEFAULT_VISIBLE = false;
     const labelEl = badge.querySelector('[data-label]');
     const widthEl = badge.querySelector('[data-width]');
     const breakpoints = [

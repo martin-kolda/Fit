@@ -1,0 +1,51 @@
+[
+    {
+        "form_section": "Podrobnosti pro kurýra",
+        "fieldset_group": "Kurýr",
+        "type": "checkbox_toggle_fieldset",
+        "label": "Přidat upřesnění k doručení",
+        "validations": null
+    },  
+    {
+        "form_section": "Doručovací adresa",
+        "fieldset_group": "Kurýr",
+        "type": "text",
+        "label": "Doručit do firmy / na recepci",
+        "placeholder": "Název firmy",
+        "prefix": null,
+        "note": "",
+        "validations": null
+    },                
+    {
+        "form_section": "Podrobnosti pro kurýra",
+        "fieldset_group": "Kurýr",
+        "type": "text",
+        "label": "Zásilku převezme někdo jiný",
+        "placeholder": "Jméno a příjmení",
+        "prefix": null,
+        "note": null,
+        "validations": null
+    },
+    {
+        "form_section": "Podrobnosti pro kurýra",
+        "fieldset_group": "Kurýr",
+        "type": "text",
+        "label": "Při předání zásliky kurýr volá",
+        "placeholder": null,
+        "prefix": "+420",
+        "note": null,
+        "validations": [
+            {"type": "phone", "fails": "Nesprávný formát telefonu"}
+        ]
+    },
+    {
+        "form_section": "Podrobnosti pro kurýra",
+        "fieldset_group": "Kurýr",
+        "type": "textarea",
+        "label": "Podrobné instrukce",
+        "placeholder": "Např. patro, zvonek, vchod apod.",
+        "prefix": null,
+        "note": null,
+        "validations": null
+    }
+]

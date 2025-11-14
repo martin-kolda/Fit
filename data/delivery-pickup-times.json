@@ -1,0 +1,11 @@
+[
+    {
+      "delivery_icon": "fa-regular fa-truck",
+      "delivery_long": "Odešleme ještě dnes, předpokládané doručení {{DATE_TODAY_PLUS_3_DAYS}}",
+      "delivery_short": "Předpokládané doručení {{DATE_TODAY_PLUS_3_DAYS}}",
+      "pickup_icon": "fa-regular fa-building",
+      "pickup_long": "Dostupné také v {{PHARMACIES_AVAILABLE}} lékárnách, k vyzvednutí {{TIME_NOW_PLUS_3O_MINUTES}}",
+      "pickup_short": "{{IS_OPEN}}. K vyzvednutí v {{TIME_NOW_PLUS_3O_MINUTES}}"
+    }
+
+]
