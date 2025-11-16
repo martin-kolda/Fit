@@ -14319,7 +14319,7 @@ link(name, params = {}) {
       district: '',
       typeFilter: 'pharmacy',
       defaultType: 'pharmacy',
-      districts: ['Praha 1','Praha 2','Praha 3','Praha 4','Praha 5','Praha 6','Praha 7','Praha 8','Praha 9','Praha 10'],
+      districts: [],
       types: [],
       typeOptions: [],
       typeLabels: {},
@@ -14505,6 +14505,18 @@ link(name, params = {}) {
             .filter(Boolean).join(' ').toLowerCase()
           };
           return entry;
+        });
+        const districtSet = new Set();
+        this.all.forEach(p => {
+          const city = (p.address?.city || '').trim();
+          if (city) districtSet.add(city);
+        });
+        this.districts = Array.from(districtSet).sort((a, b) => {
+          try {
+            return a.localeCompare(b, 'cs', { numeric: true, sensitivity: 'base' });
+          } catch (_) {
+            return a.localeCompare(b);
+          }
         });
         const uniqueTypes = Array.from(new Set(this.all.map(p => (p.type || '').toLowerCase()).filter(Boolean)));
         this.types = uniqueTypes;
@@ -14746,11 +14758,11 @@ link(name, params = {}) {
           this.search = newQuery;
         }
         const q = (this.search || '').toLowerCase().trim();
-        const d = this.district;
+        const normalizedDistrict = (this.district || '').trim().toLowerCase();
         const t = this.typeFilter || this.defaultType || 'pharmacy';
         this.filtered = this.all.filter(p => {
           const okQ = q ? p.searchIndex.includes(q) : true;
-          const okD = d ? (p.address?.city||'').toLowerCase().includes(d.toLowerCase()) : true;
+          const okD = normalizedDistrict ? ((p.address?.city || '').trim().toLowerCase() === normalizedDistrict) : true;
           const okT = (t === 'all') ? true : (p.type || '').toLowerCase() === t;
           return okQ && okD && okT;
         });

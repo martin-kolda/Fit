@@ -1,21 +1,50 @@
 [
-{
+  {
     "id": 1,
-    "name": "Lékárna OC Nový Smíchov",
+    "name": "Lékárna u vchodu OC Nový Smíchov",
     "type": "pharmacy",
     "address": {
-      "street": "Plzeňská 8", "city": "Praha 5", "district": "Smíchov", "zip": "150 00"
+      "street": "Plzeňská 233/8",
+      "city": "Praha 5",
+      "district": "Smíchov",
+      "zip": "150 00"
     },
-    "coords": { "lat": "50.07304441605697", "lng": "14.402445318181172" },
+    "coords": {
+      "lat": "50.07304441605697",
+      "lng": "14.402445318181172"
+    },
     "phone": "+420 225 574 422",
     "photo": "./images/pup-photos/1.webp",
     "opening_hours": {
-      "Mon": "08:00–20:00", "Tue": "08:00–20:00", "Wed": "08:00–20:00", "Thu": "08:00–20:00", "Fri": "08:00–20:00", "Sat": "09:00–18:00", "Sun": "10:00–17:00"
+      "Mon": "08:00–20:00",
+      "Tue": "08:00–20:00",
+      "Wed": "08:00–20:00",
+      "Thu": "08:00–20:00",
+      "Fri": "08:00–20:00",
+      "Sat": "09:00–18:00",
+      "Sun": "10:00–17:00"
     },
-    "tags": ["Dermoporadenství", "Analýza vlasů", "Bezbariérový přístup"],
+    "tags": [
+      "Dermoporadenství",
+      "Analýza vlasů",
+      "Bezbariérový přístup"
+    ],
     "note": "U hlavního vchodu OC",
     "billing": "PHARMAVIT spol. s r.o., Aupark, Einsteinova 18, 160 00, Praha 6, IČO: 31321160, DIČ: 2020350189 / SK7120000195",
-    "brands": ["Aderma", "Apivita", "Avene", "Bioderma", "La Roche-Posay", "Nuance", "Klorane", "Eucerin", "Ducray", "Dr. Max", "Skinexpert" ,"Vichy"],
+    "brands": [
+      "Aderma",
+      "Apivita",
+      "Avene",
+      "Bioderma",
+      "La Roche-Posay",
+      "Nuance",
+      "Klorane",
+      "Eucerin",
+      "Ducray",
+      "Dr. Max",
+      "Skinexpert",
+      "Vichy"
+    ],
     "senior_pharmacist": "PharmDr. Jana Nováková"
   },
   {
@@ -23,18 +52,47 @@
     "name": "Lékárna I.P. Pavlova",
     "type": "pharmacy",
     "address": {
-      "street": "Bělehradská 114", "city": "Praha 2", "district": "Vinohrady", "zip": "120 00"
+      "street": "Bělehradská 479/114",
+      "city": "Praha 2",
+      "district": "Vinohrady",
+      "zip": "120 00"
     },
-    "coords": { "lat": "50.077344212474095", "lng": "14.43289659927707" },
+    "coords": {
+      "lat": "50.077344212474095",
+      "lng": "14.43289659927707"
+    },
     "phone": "+420 225 574 651",
     "photo": "./images/pup-photos/2.webp",
     "opening_hours": {
-      "Mon": "08:00–20:00", "Tue": "08:00–20:00", "Wed": "08:00–20:00", "Thu": "08:00–20:00", "Fri": "08:00–20:00", "Sat": "09:00–18:00", "Sun": "10:00–17:00"
+      "Mon": "08:00–20:00",
+      "Tue": "08:00–20:00",
+      "Wed": "08:00–20:00",
+      "Thu": "08:00–20:00",
+      "Fri": "08:00–20:00",
+      "Sat": "09:00–18:00",
+      "Sun": "10:00–17:00"
     },
-    "tags": ["Dermoporadenství", "Analýza vlasů", "Bezbariérový přístup"],
+    "tags": [
+      "Dermoporadenství",
+      "Analýza vlasů",
+      "Bezbariérový přístup"
+    ],
     "note": "Roh Legerovy a Rumunské",
     "billing": "PHARMAVIT spol. s r.o., Aupark, Einsteinova 18, 160 00, Praha 6, IČO: 31321160, DIČ: 2020350189 / SK7120000195",
-    "brands": ["Aderma", "Apivita", "Avene", "Bioderma", "La Roche-Posay", "Nuance", "Klorane", "Eucerin", "Ducray", "Dr. Max", "Skinexpert" ,"Vichy"],
+    "brands": [
+      "Aderma",
+      "Apivita",
+      "Avene",
+      "Bioderma",
+      "La Roche-Posay",
+      "Nuance",
+      "Klorane",
+      "Eucerin",
+      "Ducray",
+      "Dr. Max",
+      "Skinexpert",
+      "Vichy"
+    ],
     "senior_pharmacist": "PharmDr. Jana Nováková"
   },
   {
@@ -42,18 +100,47 @@
     "name": "Lékárna Karlovo náměstí",
     "type": "pharmacy",
     "address": {
-      "street": "Karlovo náměstí 8", "city": "Praha 2", "district": "Nové Město", "zip": "120 00"
+      "street": "Karlovo náměstí 313/8",
+      "city": "Praha 2",
+      "district": "Nové Město",
+      "zip": "120 00"
     },
-    "coords": { "lat": "50.079053751718234", "lng": "14.419983615681621" },
+    "coords": {
+      "lat": "50.079053751718234",
+      "lng": "14.419983615681621"
+    },
     "phone": "+420 225 574 236",
     "photo": "./images/pup-photos/3.webp",
     "opening_hours": {
-      "Mon": "08:00–20:00", "Tue": "08:00–20:00", "Wed": "08:00–20:00", "Thu": "08:00–20:00", "Fri": "08:00–20:00", "Sat": "09:00–18:00", "Sun": "10:00–17:00"
+      "Mon": "08:00–20:00",
+      "Tue": "08:00–20:00",
+      "Wed": "08:00–20:00",
+      "Thu": "08:00–20:00",
+      "Fri": "08:00–20:00",
+      "Sat": "09:00–18:00",
+      "Sun": "10:00–17:00"
     },
-    "tags": ["Homeopatika", "Měření tlaku krve", "Bezbariérový přístup"],
+    "tags": [
+      "Homeopatika",
+      "Měření tlaku krve",
+      "Bezbariérový přístup"
+    ],
     "note": "",
     "billing": "PHARMAVIT spol. s r.o., Aupark, Einsteinova 18, 160 00, Praha 6, IČO: 31321160, DIČ: 2020350189 / SK7120000195",
-    "brands": ["Aderma", "Apivita", "Avene", "Bioderma", "La Roche-Posay", "Nuance", "Klorane", "Eucerin", "Ducray", "Dr. Max", "Skinexpert" ,"Vichy"],
+    "brands": [
+      "Aderma",
+      "Apivita",
+      "Avene",
+      "Bioderma",
+      "La Roche-Posay",
+      "Nuance",
+      "Klorane",
+      "Eucerin",
+      "Ducray",
+      "Dr. Max",
+      "Skinexpert",
+      "Vichy"
+    ],
     "senior_pharmacist": "PharmDr. Jana Nováková"
   },
   {
@@ -61,18 +148,47 @@
     "name": "Lékárna Národní",
     "type": "pharmacy",
     "address": {
-      "street": "Národní 35", "city": "Praha 1", "district": "Staré Město", "zip": "110 00"
+      "street": "Národní 35",
+      "city": "Praha 1",
+      "district": "Staré Město",
+      "zip": "110 00"
     },
-    "coords": { "lat": "50.08713403498753", "lng": "14.420548470705576" },
+    "coords": {
+      "lat": "50.08713403498753",
+      "lng": "14.420548470705576"
+    },
     "phone": "+420 225 574 155",
     "photo": "./images/pup-photos/4.webp",
     "opening_hours": {
-      "Mon": "08:00–20:00", "Tue": "08:00–20:00", "Wed": "08:00–20:00", "Thu": "08:00–20:00", "Fri": "08:00–20:00", "Sat": "09:00–18:00", "Sun": "10:00–17:00"
+      "Mon": "08:00–20:00",
+      "Tue": "08:00–20:00",
+      "Wed": "08:00–20:00",
+      "Thu": "08:00–20:00",
+      "Fri": "08:00–20:00",
+      "Sat": "09:00–18:00",
+      "Sun": "10:00–17:00"
     },
-    "tags": ["Homeopatika", "Měření tlaku krve", "Dermoporadenství"],
+    "tags": [
+      "Homeopatika",
+      "Měření tlaku krve",
+      "Dermoporadenství"
+    ],
     "note": "Naproti OD MY",
     "billing": "PHARMAVIT spol. s r.o., Aupark, Einsteinova 18, 160 00, Praha 6, IČO: 31321160, DIČ: 2020350189 / SK7120000195",
-    "brands": ["Aderma", "Apivita", "Avene", "Bioderma", "La Roche-Posay", "Nuance", "Klorane", "Eucerin", "Ducray", "Dr. Max", "Skinexpert" ,"Vichy"],
+    "brands": [
+      "Aderma",
+      "Apivita",
+      "Avene",
+      "Bioderma",
+      "La Roche-Posay",
+      "Nuance",
+      "Klorane",
+      "Eucerin",
+      "Ducray",
+      "Dr. Max",
+      "Skinexpert",
+      "Vichy"
+    ],
     "senior_pharmacist": "PharmDr. Jana Nováková"
   },
   {
@@ -80,18 +196,47 @@
     "name": "Lékárna Vodičkova",
     "type": "pharmacy",
     "address": {
-      "street": "Vodičkova 40", "city": "Praha 1", "district": "Nové Město", "zip": "110 00"
+      "street": "Vodičkova 792/40",
+      "city": "Praha 1",
+      "district": "Nové Město",
+      "zip": "110 00"
     },
-    "coords": { "lat": "50.08635771099769", "lng": "14.425476779476389" },
+    "coords": {
+      "lat": "50.08635771099769",
+      "lng": "14.425476779476389"
+    },
     "phone": "+420 225 574 111",
     "photo": "./images/pup-photos/5.webp",
     "opening_hours": {
-      "Mon": "08:00–20:00", "Tue": "08:00–20:00", "Wed": "08:00–20:00", "Thu": "08:00–20:00", "Fri": "08:00–20:00", "Sat": "09:00–18:00", "Sun": "10:00–17:00"
+      "Mon": "08:00–20:00",
+      "Tue": "08:00–20:00",
+      "Wed": "08:00–20:00",
+      "Thu": "08:00–20:00",
+      "Fri": "08:00–20:00",
+      "Sat": "09:00–18:00",
+      "Sun": "10:00–17:00"
     },
-    "tags": ["Analýza vlasů", "Měření tlaku krve", "Dermoporadenství"],
+    "tags": [
+      "Analýza vlasů",
+      "Měření tlaku krve",
+      "Dermoporadenství"
+    ],
     "note": "UPOZORNĚNÍ: Internetové objednávky z e-shopu je možné vyzvednout v lékárně Dr.Max v suterénu v pracovní dny pouze v době od 10:00 - 18:00 hodin.",
     "billing": "PHARMAVIT spol. s r.o., Aupark, Einsteinova 18, 160 00, Praha 6, IČO: 31321160, DIČ: 2020350189 / SK7120000195",
-    "brands": ["Aderma", "Apivita", "Avene", "Bioderma", "La Roche-Posay", "Nuance", "Klorane", "Eucerin", "Ducray", "Dr. Max", "Skinexpert" ,"Vichy"],
+    "brands": [
+      "Aderma",
+      "Apivita",
+      "Avene",
+      "Bioderma",
+      "La Roche-Posay",
+      "Nuance",
+      "Klorane",
+      "Eucerin",
+      "Ducray",
+      "Dr. Max",
+      "Skinexpert",
+      "Vichy"
+    ],
     "senior_pharmacist": "PharmDr. Jana Nováková"
   },
   {
@@ -99,18 +244,47 @@
     "name": "Lékárna Hlavní nádraží",
     "type": "pharmacy",
     "address": {
-      "street": "Wilsonova 8", "city": "Praha 2", "district": "Vinohrady", "zip": "120 00"
+      "street": "Wilsonova 300/8",
+      "city": "Praha 2",
+      "district": "Vinohrady",
+      "zip": "120 00"
     },
-    "coords": { "lat": "50.08453890402103", "lng": "14.435087461134499" },
+    "coords": {
+      "lat": "50.08453890402103",
+      "lng": "14.435087461134499"
+    },
     "phone": "+420 225 574 358",
     "photo": "./images/pup-photos/6.webp",
     "opening_hours": {
-      "Mon": "08:00–20:00", "Tue": "08:00–20:00", "Wed": "08:00–20:00", "Thu": "08:00–20:00", "Fri": "08:00–20:00", "Sat": "09:00–18:00", "Sun": "10:00–17:00"
+      "Mon": "08:00–20:00",
+      "Tue": "08:00–20:00",
+      "Wed": "08:00–20:00",
+      "Thu": "08:00–20:00",
+      "Fri": "08:00–20:00",
+      "Sat": "09:00–18:00",
+      "Sun": "10:00–17:00"
     },
-    "tags": ["Parkování", "Měření tlaku krve", "Dermoporadenství"],
+    "tags": [
+      "Parkování",
+      "Měření tlaku krve",
+      "Dermoporadenství"
+    ],
     "note": "",
     "billing": "PHARMAVIT spol. s r.o., Aupark, Einsteinova 18, 160 00, Praha 6, IČO: 31321160, DIČ: 2020350189 / SK7120000195",
-    "brands": ["Aderma", "Apivita", "Avene", "Bioderma", "La Roche-Posay", "Nuance", "Klorane", "Eucerin", "Ducray", "Dr. Max", "Skinexpert" ,"Vichy"],
+    "brands": [
+      "Aderma",
+      "Apivita",
+      "Avene",
+      "Bioderma",
+      "La Roche-Posay",
+      "Nuance",
+      "Klorane",
+      "Eucerin",
+      "Ducray",
+      "Dr. Max",
+      "Skinexpert",
+      "Vichy"
+    ],
     "senior_pharmacist": "PharmDr. Jana Nováková"
   },
   {
@@ -118,18 +292,48 @@
     "name": "Lékárna Na Poříčí",
     "type": "pharmacy",
     "address": {
-      "street": "Na poříčí 30", "city": "Praha 1", "district": "Nové Město", "zip": "110 00"
+      "street": "Na poříčí 30",
+      "city": "Praha 1",
+      "district": "Nové Město",
+      "zip": "110 00"
     },
-    "coords": { "lat": "50.08453890402103", "lng": "14.435087461134499" },
+    "coords": {
+      "lat": "50.08453890402103",
+      "lng": "14.435087461134499"
+    },
     "phone": "+420 225 574 191",
     "photo": "./images/pup-photos/7.webp",
     "opening_hours": {
-      "Mon": "08:00–20:00", "Tue": "08:00–20:00", "Wed": "08:00–20:00", "Thu": "08:00–20:00", "Fri": "08:00–20:00", "Sat": "09:00–18:00", "Sun": "10:00–17:00"
+      "Mon": "08:00–20:00",
+      "Tue": "08:00–20:00",
+      "Wed": "08:00–20:00",
+      "Thu": "08:00–20:00",
+      "Fri": "08:00–20:00",
+      "Sat": "09:00–18:00",
+      "Sun": "10:00–17:00"
     },
-    "tags": ["Parkování", "Měření tlaku krve", "Dermoporadenství", "Bezbariérový přístup"],
+    "tags": [
+      "Parkování",
+      "Měření tlaku krve",
+      "Dermoporadenství",
+      "Bezbariérový přístup"
+    ],
     "note": "Naproti OD Bílá Labuť",
     "billing": "PHARMAVIT spol. s r.o., Aupark, Einsteinova 18, 160 00, Praha 6, IČO: 31321160, DIČ: 2020350189 / SK7120000195",
-    "brands": ["Aderma", "Apivita", "Avene", "Bioderma", "La Roche-Posay", "Nuance", "Klorane", "Eucerin", "Ducray", "Dr. Max", "Skinexpert" ,"Vichy"],
+    "brands": [
+      "Aderma",
+      "Apivita",
+      "Avene",
+      "Bioderma",
+      "La Roche-Posay",
+      "Nuance",
+      "Klorane",
+      "Eucerin",
+      "Ducray",
+      "Dr. Max",
+      "Skinexpert",
+      "Vichy"
+    ],
     "senior_pharmacist": "PharmDr. Jana Nováková"
   },
   {
@@ -137,13 +341,25 @@
     "name": "Box Na Florenci",
     "type": "box",
     "address": {
-      "street": "Na Florenci 2116", "city": "Praha 1", "district": "Nové Město", "zip": "110 00"
+      "street": "Na Florenci 2116",
+      "city": "Praha 1",
+      "district": "Nové Město",
+      "zip": "110 00"
     },
-    "coords": { "lat": "50.089417364247964", "lng": "14.435216147309758" },
+    "coords": {
+      "lat": "50.089417364247964",
+      "lng": "14.435216147309758"
+    },
     "phone": null,
     "photo": "./images/pup-photos/8.webp",
     "opening_hours": {
-      "Mon": "nonstop", "Tue": "nonstop", "Wed": "nonstop", "Thu": "nonstop", "Fri": "nonstop", "Sat": "nonstop", "Sun": "nonstop"
+      "Mon": "nonstop",
+      "Tue": "nonstop",
+      "Wed": "nonstop",
+      "Thu": "nonstop",
+      "Fri": "nonstop",
+      "Sat": "nonstop",
+      "Sun": "nonstop"
     },
     "tags": [],
     "note": "V obchodní pasáži naproti východu ze supermarketu Albert, vedle Alzaboxu."
@@ -153,13 +369,25 @@
     "name": "Box U Viktorie",
     "type": "box",
     "address": {
-      "street": "U Viktorie 3", "city": "Praha 3", "district": "Žižkov", "zip": "130 00"
+      "street": "U Viktorie 3",
+      "city": "Praha 3",
+      "district": "Žižkov",
+      "zip": "130 00"
     },
-    "coords": { "lat": "50.08511816432585", "lng": "14.44541955530668" },
+    "coords": {
+      "lat": "50.08511816432585",
+      "lng": "14.44541955530668"
+    },
     "phone": null,
     "photo": "./images/pup-photos/9.webp",
     "opening_hours": {
-      "Mon": "nonstop", "Tue": "nonstop", "Wed": "nonstop", "Thu": "nonstop", "Fri": "nonstop", "Sat": "nonstop", "Sun": "nonstop"
+      "Mon": "nonstop",
+      "Tue": "nonstop",
+      "Wed": "nonstop",
+      "Thu": "nonstop",
+      "Fri": "nonstop",
+      "Sat": "nonstop",
+      "Sun": "nonstop"
     },
     "tags": [],
     "note": "V samostatné místnosti přístupné z ulice U Viktorie, vedle Alzaboxu. Pro vstup do budovy využijte přístupový kód, který obdržíte do SMS."
@@ -169,18 +397,47 @@
     "name": "Lékárna Revoluční",
     "type": "pharmacy",
     "address": {
-      "street": "Revoluční 19", "city": "Praha 1", "district": "Staré Město", "zip": "110 00"
+      "street": "Revoluční 765/19",
+      "city": "Praha 1",
+      "district": "Staré Město",
+      "zip": "110 00"
     },
-    "coords": { "lat": "50.09184616150929", "lng": "14.427328387657893" },
+    "coords": {
+      "lat": "50.09184616150929",
+      "lng": "14.427328387657893"
+    },
     "phone": "+420 225 574 229",
     "photo": "./images/pup-photos/10.webp",
     "opening_hours": {
-      "Mon": "08:00–20:00", "Tue": "08:00–20:00", "Wed": "08:00–20:00", "Thu": "08:00–20:00", "Fri": "08:00–20:00", "Sat": "09:00–18:00", "Sun": "10:00–17:00"
+      "Mon": "08:00–20:00",
+      "Tue": "08:00–20:00",
+      "Wed": "08:00–20:00",
+      "Thu": "08:00–20:00",
+      "Fri": "08:00–20:00",
+      "Sat": "09:00–18:00",
+      "Sun": "10:00–17:00"
     },
-    "tags": ["Homeopatika", "Měření tlaku krve", "Bezbariérový přístup"],
+    "tags": [
+      "Homeopatika",
+      "Měření tlaku krve",
+      "Bezbariérový přístup"
+    ],
     "note": "",
     "billing": "PHARMAVIT spol. s r.o., Aupark, Einsteinova 18, 160 00, Praha 6, IČO: 31321160, DIČ: 2020350189 / SK7120000195",
-    "brands": ["Aderma", "Apivita", "Avene", "Bioderma", "La Roche-Posay", "Nuance", "Klorane", "Eucerin", "Ducray", "Dr. Max", "Skinexpert" ,"Vichy"],
+    "brands": [
+      "Aderma",
+      "Apivita",
+      "Avene",
+      "Bioderma",
+      "La Roche-Posay",
+      "Nuance",
+      "Klorane",
+      "Eucerin",
+      "Ducray",
+      "Dr. Max",
+      "Skinexpert",
+      "Vichy"
+    ],
     "senior_pharmacist": "PharmDr. Jana Nováková"
   },
   {
@@ -188,18 +445,2248 @@
     "name": "Z-BOX Římská",
     "type": "z-box",
     "address": {
-      "street": "Římská 17", "city": "Praha 2", "district": "Vinohrady", "zip": "120 00"
+      "street": "Římská 17",
+      "city": "Praha 2",
+      "district": "Vinohrady",
+      "zip": "120 00"
     },
-    "coords": { "lat": "50.07769026119714", "lng": "14.434473468755824" },
+    "coords": {
+      "lat": "50.07769026119714",
+      "lng": "14.434473468755824"
+    },
     "phone": null,
     "photo": "./images/pup-photos/11.webp",
     "opening_hours": {
-      "Mon": "06:00–23:00", "Tue": "06:00–23:00", "Wed": "06:00–23:00", "Thu": "06:00–23:00", "Fri": "06:00–23:00", "Sat": "09:00–18:00", "Sun": "10:00–17:00"
+      "Mon": "06:00–23:00",
+      "Tue": "06:00–23:00",
+      "Wed": "06:00–23:00",
+      "Thu": "06:00–23:00",
+      "Fri": "06:00–23:00",
+      "Sat": "09:00–18:00",
+      "Sun": "10:00–17:00"
     },
-    "tags": ["Zásilka do 15 kg", "Výdejní i podací místo", "Z-BOX má klávesnici"],
+    "tags": [
+      "Zásilka do 15 kg",
+      "Výdejní i podací místo",
+      "Z-BOX má klávesnici"
+    ],
     "note": "Nachází v prodejně potravin Žabka",
     "billing": "PHARMAVIT spol. s r.o., Aupark, Einsteinova 18, 160 00, Praha 6, IČO: 31321160, DIČ: 2020350189 / SK7120000195",
-    "brands": ["Aderma", "Apivita", "Avene", "Bioderma", "La Roche-Posay", "Nuance", "Klorane", "Eucerin", "Ducray", "Dr. Max", "Skinexpert" ,"Vichy"],
+    "brands": [
+      "Aderma",
+      "Apivita",
+      "Avene",
+      "Bioderma",
+      "La Roche-Posay",
+      "Nuance",
+      "Klorane",
+      "Eucerin",
+      "Ducray",
+      "Dr. Max",
+      "Skinexpert",
+      "Vichy"
+    ],
     "senior_pharmacist": "PharmDr. Jana Nováková"
+  },
+  {
+    "id": 12,
+    "name": "Lékárna Kaufland Praha 13",
+    "type": "pharmacy",
+    "address": {
+      "street": "Pod hranicí 1344/15",
+      "city": "Praha 13",
+      "district": "",
+      "zip": ""
+    },
+    "coords": {
+      "lat": "50.051676",
+      "lng": "14.336077"
+    },
+    "phone": null,
+    "photo": "./images/pup-photos/12.webp",
+    "opening_hours": {
+      "Mon": "08:00–20:00",
+      "Tue": "08:00–20:00",
+      "Wed": "08:00–20:00",
+      "Thu": "08:00–20:00",
+      "Fri": "08:00–20:00",
+      "Sat": "09:00–18:00",
+      "Sun": "10:00–17:00"
+    },
+    "tags": [],
+    "note": "",
+    "billing": "",
+    "brands": [],
+    "senior_pharmacist": ""
+  },
+  {
+    "id": 13,
+    "name": "Lékárna Kaufland Praha 4",
+    "type": "pharmacy",
+    "address": {
+      "street": "U Plynárny 1432/64",
+      "city": "Praha 4",
+      "district": "Michle",
+      "zip": ""
+    },
+    "coords": {
+      "lat": "50.055722",
+      "lng": "14.470552"
+    },
+    "phone": null,
+    "photo": "./images/pup-photos/13.webp",
+    "opening_hours": {
+      "Mon": "08:00–20:00",
+      "Tue": "08:00–20:00",
+      "Wed": "08:00–20:00",
+      "Thu": "08:00–20:00",
+      "Fri": "08:00–20:00",
+      "Sat": "09:00–18:00",
+      "Sun": "10:00–17:00"
+    },
+    "tags": [],
+    "note": "",
+    "billing": "",
+    "brands": [],
+    "senior_pharmacist": ""
+  },
+  {
+    "id": 14,
+    "name": "Lékárna Anny Drabíkové",
+    "type": "pharmacy",
+    "address": {
+      "street": "Anny Drabíkové 534/3",
+      "city": "Praha 11",
+      "district": "Háje",
+      "zip": ""
+    },
+    "coords": {
+      "lat": "50.0329809",
+      "lng": "14.5284247"
+    },
+    "phone": null,
+    "photo": "./images/pup-photos/14.webp",
+    "opening_hours": {
+      "Mon": "08:00–20:00",
+      "Tue": "08:00–20:00",
+      "Wed": "08:00–20:00",
+      "Thu": "08:00–20:00",
+      "Fri": "08:00–20:00",
+      "Sat": "09:00–18:00",
+      "Sun": "10:00–17:00"
+    },
+    "tags": [],
+    "note": "",
+    "billing": "",
+    "brands": [],
+    "senior_pharmacist": ""
+  },
+  {
+    "id": 16,
+    "name": "Lékárna Albert Horní Měcholupy",
+    "type": "pharmacy",
+    "address": {
+      "street": "Veronské nám. 403",
+      "city": "Praha 15",
+      "district": "Horní Měcholupy",
+      "zip": ""
+    },
+    "coords": {
+      "lat": "50.0406161",
+      "lng": "14.5588367"
+    },
+    "phone": null,
+    "photo": "./images/pup-photos/16.webp",
+    "opening_hours": {
+      "Mon": "08:00–20:00",
+      "Tue": "08:00–20:00",
+      "Wed": "08:00–20:00",
+      "Thu": "08:00–20:00",
+      "Fri": "08:00–20:00",
+      "Sat": "09:00–18:00",
+      "Sun": "10:00–17:00"
+    },
+    "tags": [],
+    "note": "",
+    "billing": "",
+    "brands": [],
+    "senior_pharmacist": ""
+  },
+  {
+    "id": 18,
+    "name": "Lékárna Kaufland Praha 8",
+    "type": "pharmacy",
+    "address": {
+      "street": "Voctářova 2401/8",
+      "city": "Praha 8",
+      "district": "Libeň",
+      "zip": ""
+    },
+    "coords": {
+      "lat": "50.1020533",
+      "lng": "14.4683455"
+    },
+    "phone": null,
+    "photo": "./images/pup-photos/18.webp",
+    "opening_hours": {
+      "Mon": "08:00–20:00",
+      "Tue": "08:00–20:00",
+      "Wed": "08:00–20:00",
+      "Thu": "08:00–20:00",
+      "Fri": "08:00–20:00",
+      "Sat": "09:00–18:00",
+      "Sun": "10:00–17:00"
+    },
+    "tags": [],
+    "note": "",
+    "billing": "",
+    "brands": [],
+    "senior_pharmacist": ""
+  },
+  {
+    "id": 19,
+    "name": "Lékárna Kaufland Praha 9",
+    "type": "pharmacy",
+    "address": {
+      "street": "V Třešňovce 232/2",
+      "city": "Praha 9",
+      "district": "Hrdlořezy",
+      "zip": ""
+    },
+    "coords": {
+      "lat": "50.0928301",
+      "lng": "14.4996718"
+    },
+    "phone": null,
+    "photo": "./images/pup-photos/19.webp",
+    "opening_hours": {
+      "Mon": "08:00–20:00",
+      "Tue": "08:00–20:00",
+      "Wed": "08:00–20:00",
+      "Thu": "08:00–20:00",
+      "Fri": "08:00–20:00",
+      "Sat": "09:00–18:00",
+      "Sun": "10:00–17:00"
+    },
+    "tags": [],
+    "note": "",
+    "billing": "",
+    "brands": [],
+    "senior_pharmacist": ""
+  },
+  {
+    "id": 20,
+    "name": "Lékárna Dukelských hrdinů",
+    "type": "pharmacy",
+    "address": {
+      "street": "Dukelských hrdinů 406/23",
+      "city": "Praha 7",
+      "district": "Holešovice",
+      "zip": ""
+    },
+    "coords": {
+      "lat": "50.0982139",
+      "lng": "14.4328976"
+    },
+    "phone": null,
+    "photo": "./images/pup-photos/20.webp",
+    "opening_hours": {
+      "Mon": "08:00–20:00",
+      "Tue": "08:00–20:00",
+      "Wed": "08:00–20:00",
+      "Thu": "08:00–20:00",
+      "Fri": "08:00–20:00",
+      "Sat": "09:00–18:00",
+      "Sun": "10:00–17:00"
+    },
+    "tags": [],
+    "note": "",
+    "billing": "",
+    "brands": [],
+    "senior_pharmacist": ""
+  },
+  {
+    "id": 21,
+    "name": "Lékárna Národní naproti OD MY",
+    "type": "pharmacy",
+    "address": {
+      "street": "Národní 417/35",
+      "city": "Praha 1",
+      "district": "Staré Město",
+      "zip": "110 00"
+    },
+    "coords": {
+      "lat": "50.0828505",
+      "lng": "14.4199639"
+    },
+    "phone": null,
+    "photo": "./images/pup-photos/21.webp",
+    "opening_hours": {
+      "Mon": "08:00–20:00",
+      "Tue": "08:00–20:00",
+      "Wed": "08:00–20:00",
+      "Thu": "08:00–20:00",
+      "Fri": "08:00–20:00",
+      "Sat": "09:00–18:00",
+      "Sun": "10:00–17:00"
+    },
+    "tags": [],
+    "note": "",
+    "billing": "",
+    "brands": [],
+    "senior_pharmacist": ""
+  },
+  {
+    "id": 23,
+    "name": "Lékárna Albert Butovice",
+    "type": "pharmacy",
+    "address": {
+      "street": "Radlická 520/117",
+      "city": "Praha 5",
+      "district": "Butovice",
+      "zip": "150 00"
+    },
+    "coords": {
+      "lat": "50.0476058",
+      "lng": "14.3537456"
+    },
+    "phone": null,
+    "photo": "./images/pup-photos/23.webp",
+    "opening_hours": {
+      "Mon": "08:00–20:00",
+      "Tue": "08:00–20:00",
+      "Wed": "08:00–20:00",
+      "Thu": "08:00–20:00",
+      "Fri": "08:00–20:00",
+      "Sat": "09:00–18:00",
+      "Sun": "10:00–17:00"
+    },
+    "tags": [],
+    "note": "",
+    "billing": "",
+    "brands": [],
+    "senior_pharmacist": ""
+  },
+  {
+    "id": 24,
+    "name": "Lékárna Čestmírova",
+    "type": "pharmacy",
+    "address": {
+      "street": "Čestmírova 363/1",
+      "city": "Praha 4",
+      "district": "Nusle",
+      "zip": ""
+    },
+    "coords": {
+      "lat": "50.064263",
+      "lng": "14.4415996"
+    },
+    "phone": null,
+    "photo": "./images/pup-photos/24.webp",
+    "opening_hours": {
+      "Mon": "08:00–20:00",
+      "Tue": "08:00–20:00",
+      "Wed": "08:00–20:00",
+      "Thu": "08:00–20:00",
+      "Fri": "08:00–20:00",
+      "Sat": "09:00–18:00",
+      "Sun": "10:00–17:00"
+    },
+    "tags": [],
+    "note": "",
+    "billing": "",
+    "brands": [],
+    "senior_pharmacist": ""
+  },
+  {
+    "id": 25,
+    "name": "Lékárna OC Shopping point Řepy",
+    "type": "pharmacy",
+    "address": {
+      "street": "Makovského 1349/2a",
+      "city": "Praha 17",
+      "district": "Řepy",
+      "zip": ""
+    },
+    "coords": {
+      "lat": "50.0648554",
+      "lng": "14.3085797"
+    },
+    "phone": null,
+    "photo": "./images/pup-photos/25.webp",
+    "opening_hours": {
+      "Mon": "08:00–20:00",
+      "Tue": "08:00–20:00",
+      "Wed": "08:00–20:00",
+      "Thu": "08:00–20:00",
+      "Fri": "08:00–20:00",
+      "Sat": "09:00–18:00",
+      "Sun": "10:00–17:00"
+    },
+    "tags": [],
+    "note": "",
+    "billing": "",
+    "brands": [],
+    "senior_pharmacist": ""
+  },
+  {
+    "id": 26,
+    "name": "Lékárna Kaufland Dejvice",
+    "type": "pharmacy",
+    "address": {
+      "street": "Pod Paťankou 2743/1b",
+      "city": "Praha 6",
+      "district": "Dejvice",
+      "zip": ""
+    },
+    "coords": {
+      "lat": "50.111679",
+      "lng": "14.393141"
+    },
+    "phone": null,
+    "photo": "./images/pup-photos/26.webp",
+    "opening_hours": {
+      "Mon": "08:00–20:00",
+      "Tue": "08:00–20:00",
+      "Wed": "08:00–20:00",
+      "Thu": "08:00–20:00",
+      "Fri": "08:00–20:00",
+      "Sat": "09:00–18:00",
+      "Sun": "10:00–17:00"
+    },
+    "tags": [],
+    "note": "",
+    "billing": "",
+    "brands": [],
+    "senior_pharmacist": ""
+  },
+  {
+    "id": 27,
+    "name": "Lékárna Vajgarská",
+    "type": "pharmacy",
+    "address": {
+      "street": "Vajgarská 1141",
+      "city": "Praha 14",
+      "district": "Kyje",
+      "zip": ""
+    },
+    "coords": {
+      "lat": "50.1016994",
+      "lng": "14.5542196"
+    },
+    "phone": null,
+    "photo": "./images/pup-photos/27.webp",
+    "opening_hours": {
+      "Mon": "08:00–20:00",
+      "Tue": "08:00–20:00",
+      "Wed": "08:00–20:00",
+      "Thu": "08:00–20:00",
+      "Fri": "08:00–20:00",
+      "Sat": "09:00–18:00",
+      "Sun": "10:00–17:00"
+    },
+    "tags": [],
+    "note": "",
+    "billing": "",
+    "brands": [],
+    "senior_pharmacist": ""
+  },
+  {
+    "id": 28,
+    "name": "Lékárna Kaufland Modřany",
+    "type": "pharmacy",
+    "address": {
+      "street": "Lhotecká 2109/2d",
+      "city": "Praha 4",
+      "district": "Modřany",
+      "zip": ""
+    },
+    "coords": {
+      "lat": "50.013497",
+      "lng": "14.419314"
+    },
+    "phone": null,
+    "photo": "./images/pup-photos/28.webp",
+    "opening_hours": {
+      "Mon": "08:00–20:00",
+      "Tue": "08:00–20:00",
+      "Wed": "08:00–20:00",
+      "Thu": "08:00–20:00",
+      "Fri": "08:00–20:00",
+      "Sat": "09:00–18:00",
+      "Sun": "10:00–17:00"
+    },
+    "tags": [],
+    "note": "",
+    "billing": "",
+    "brands": [],
+    "senior_pharmacist": ""
+  },
+  {
+    "id": 30,
+    "name": "Lékárna metro Střížkov",
+    "type": "pharmacy",
+    "address": {
+      "street": "Vysočanská 242/111",
+      "city": "Praha 9",
+      "district": "Střížkov",
+      "zip": ""
+    },
+    "coords": {
+      "lat": "50.12649",
+      "lng": "14.489025"
+    },
+    "phone": null,
+    "photo": "./images/pup-photos/30.webp",
+    "opening_hours": {
+      "Mon": "08:00–20:00",
+      "Tue": "08:00–20:00",
+      "Wed": "08:00–20:00",
+      "Thu": "08:00–20:00",
+      "Fri": "08:00–20:00",
+      "Sat": "09:00–18:00",
+      "Sun": "10:00–17:00"
+    },
+    "tags": [],
+    "note": "",
+    "billing": "",
+    "brands": [],
+    "senior_pharmacist": ""
+  },
+  {
+    "id": 31,
+    "name": "Lékárna metro Ládví",
+    "type": "pharmacy",
+    "address": {
+      "street": "Burešova 1660/1",
+      "city": "Praha 8",
+      "district": "Ládví",
+      "zip": ""
+    },
+    "coords": {
+      "lat": "50.126606",
+      "lng": "14.469871"
+    },
+    "phone": null,
+    "photo": "./images/pup-photos/31.webp",
+    "opening_hours": {
+      "Mon": "08:00–20:00",
+      "Tue": "08:00–20:00",
+      "Wed": "08:00–20:00",
+      "Thu": "08:00–20:00",
+      "Fri": "08:00–20:00",
+      "Sat": "09:00–18:00",
+      "Sun": "10:00–17:00"
+    },
+    "tags": [],
+    "note": "",
+    "billing": "",
+    "brands": [],
+    "senior_pharmacist": ""
+  },
+  {
+    "id": 33,
+    "name": "Lékárna Vojenova",
+    "type": "pharmacy",
+    "address": {
+      "street": "Vojenova 2540/8",
+      "city": "Praha 8",
+      "district": "Libeň",
+      "zip": ""
+    },
+    "coords": {
+      "lat": "50.104755",
+      "lng": "14.4725"
+    },
+    "phone": null,
+    "photo": "./images/pup-photos/33.webp",
+    "opening_hours": {
+      "Mon": "08:00–20:00",
+      "Tue": "08:00–20:00",
+      "Wed": "08:00–20:00",
+      "Thu": "08:00–20:00",
+      "Fri": "08:00–20:00",
+      "Sat": "09:00–18:00",
+      "Sun": "10:00–17:00"
+    },
+    "tags": [],
+    "note": "",
+    "billing": "",
+    "brands": [],
+    "senior_pharmacist": ""
+  },
+  {
+    "id": 34,
+    "name": "Lékárna Hviezdoslavova",
+    "type": "pharmacy",
+    "address": {
+      "street": "Hviezdoslavova 1600/6",
+      "city": "Praha 4",
+      "district": "Litochleby",
+      "zip": ""
+    },
+    "coords": {
+      "lat": "50.0320324",
+      "lng": "14.5193228"
+    },
+    "phone": null,
+    "photo": "./images/pup-photos/34.webp",
+    "opening_hours": {
+      "Mon": "08:00–20:00",
+      "Tue": "08:00–20:00",
+      "Wed": "08:00–20:00",
+      "Thu": "08:00–20:00",
+      "Fri": "08:00–20:00",
+      "Sat": "09:00–18:00",
+      "Sun": "10:00–17:00"
+    },
+    "tags": [],
+    "note": "",
+    "billing": "",
+    "brands": [],
+    "senior_pharmacist": ""
+  },
+  {
+    "id": 35,
+    "name": "Lékárna Jugoslávských partyzánů",
+    "type": "pharmacy",
+    "address": {
+      "street": "Jugoslávských partyzánů 636/20",
+      "city": "Praha 6",
+      "district": "Bubeneč",
+      "zip": ""
+    },
+    "coords": {
+      "lat": "50.104687",
+      "lng": "14.3953249"
+    },
+    "phone": null,
+    "photo": "./images/pup-photos/35.webp",
+    "opening_hours": {
+      "Mon": "08:00–20:00",
+      "Tue": "08:00–20:00",
+      "Wed": "08:00–20:00",
+      "Thu": "08:00–20:00",
+      "Fri": "08:00–20:00",
+      "Sat": "09:00–18:00",
+      "Sun": "10:00–17:00"
+    },
+    "tags": [],
+    "note": "",
+    "billing": "",
+    "brands": [],
+    "senior_pharmacist": ""
+  },
+  {
+    "id": 36,
+    "name": "Lékárna Jabloňová",
+    "type": "pharmacy",
+    "address": {
+      "street": "Jabloňová 2137/13",
+      "city": "Praha 10",
+      "district": "Záběhlice",
+      "zip": ""
+    },
+    "coords": {
+      "lat": "50.056738",
+      "lng": "14.4961896"
+    },
+    "phone": null,
+    "photo": "./images/pup-photos/36.webp",
+    "opening_hours": {
+      "Mon": "08:00–20:00",
+      "Tue": "08:00–20:00",
+      "Wed": "08:00–20:00",
+      "Thu": "08:00–20:00",
+      "Fri": "08:00–20:00",
+      "Sat": "09:00–18:00",
+      "Sun": "10:00–17:00"
+    },
+    "tags": [],
+    "note": "",
+    "billing": "",
+    "brands": [],
+    "senior_pharmacist": ""
+  },
+  {
+    "id": 37,
+    "name": "Lékárna Tesco Strašnice",
+    "type": "pharmacy",
+    "address": {
+      "street": "Přetlucká 3295/50",
+      "city": "Praha 10",
+      "district": "Strašnice",
+      "zip": ""
+    },
+    "coords": {
+      "lat": "50.0707778",
+      "lng": "14.5108705"
+    },
+    "phone": null,
+    "photo": "./images/pup-photos/37.webp",
+    "opening_hours": {
+      "Mon": "08:00–20:00",
+      "Tue": "08:00–20:00",
+      "Wed": "08:00–20:00",
+      "Thu": "08:00–20:00",
+      "Fri": "08:00–20:00",
+      "Sat": "09:00–18:00",
+      "Sun": "10:00–17:00"
+    },
+    "tags": [],
+    "note": "",
+    "billing": "",
+    "brands": [],
+    "senior_pharmacist": ""
+  },
+  {
+    "id": 38,
+    "name": "Lékárna Penny Kunratice",
+    "type": "pharmacy",
+    "address": {
+      "street": "Dobronická 1256",
+      "city": "Praha 4",
+      "district": "Kunratice",
+      "zip": ""
+    },
+    "coords": {
+      "lat": "50.0109633",
+      "lng": "14.4753428"
+    },
+    "phone": null,
+    "photo": "./images/pup-photos/38.webp",
+    "opening_hours": {
+      "Mon": "08:00–20:00",
+      "Tue": "08:00–20:00",
+      "Wed": "08:00–20:00",
+      "Thu": "08:00–20:00",
+      "Fri": "08:00–20:00",
+      "Sat": "09:00–18:00",
+      "Sun": "10:00–17:00"
+    },
+    "tags": [],
+    "note": "",
+    "billing": "",
+    "brands": [],
+    "senior_pharmacist": ""
+  },
+  {
+    "id": 40,
+    "name": "Lékárna Krčská",
+    "type": "pharmacy",
+    "address": {
+      "street": "Krčská 1079/59",
+      "city": "Praha 4",
+      "district": "Krč",
+      "zip": ""
+    },
+    "coords": {
+      "lat": "50.0422903",
+      "lng": "14.441615"
+    },
+    "phone": null,
+    "photo": "./images/pup-photos/40.webp",
+    "opening_hours": {
+      "Mon": "08:00–20:00",
+      "Tue": "08:00–20:00",
+      "Wed": "08:00–20:00",
+      "Thu": "08:00–20:00",
+      "Fri": "08:00–20:00",
+      "Sat": "09:00–18:00",
+      "Sun": "10:00–17:00"
+    },
+    "tags": [],
+    "note": "",
+    "billing": "",
+    "brands": [],
+    "senior_pharmacist": ""
+  },
+  {
+    "id": 41,
+    "name": "Lékárna NC Eden",
+    "type": "pharmacy",
+    "address": {
+      "street": "U Slavie 1527/3",
+      "city": "Praha 10",
+      "district": "Vršovice",
+      "zip": ""
+    },
+    "coords": {
+      "lat": "50.0677682",
+      "lng": "14.4680777"
+    },
+    "phone": null,
+    "photo": "./images/pup-photos/41.webp",
+    "opening_hours": {
+      "Mon": "08:00–20:00",
+      "Tue": "08:00–20:00",
+      "Wed": "08:00–20:00",
+      "Thu": "08:00–20:00",
+      "Fri": "08:00–20:00",
+      "Sat": "09:00–18:00",
+      "Sun": "10:00–17:00"
+    },
+    "tags": [],
+    "note": "",
+    "billing": "",
+    "brands": [],
+    "senior_pharmacist": ""
+  },
+  {
+    "id": 42,
+    "name": "Lékárna Kubánské náměstí",
+    "type": "pharmacy",
+    "address": {
+      "street": "Kubánské náměstí 1271/5",
+      "city": "Praha 10",
+      "district": "Vršovice",
+      "zip": ""
+    },
+    "coords": {
+      "lat": "50.0716234",
+      "lng": "14.4779452"
+    },
+    "phone": null,
+    "photo": "./images/pup-photos/42.webp",
+    "opening_hours": {
+      "Mon": "08:00–20:00",
+      "Tue": "08:00–20:00",
+      "Wed": "08:00–20:00",
+      "Thu": "08:00–20:00",
+      "Fri": "08:00–20:00",
+      "Sat": "09:00–18:00",
+      "Sun": "10:00–17:00"
+    },
+    "tags": [],
+    "note": "",
+    "billing": "",
+    "brands": [],
+    "senior_pharmacist": ""
+  },
+  {
+    "id": 43,
+    "name": "Lékárna Sokolovská",
+    "type": "pharmacy",
+    "address": {
+      "street": "Sokolovská 351/213",
+      "city": "Praha 9",
+      "district": "Vysočany",
+      "zip": ""
+    },
+    "coords": {
+      "lat": "50.1100963",
+      "lng": "14.4977793"
+    },
+    "phone": null,
+    "photo": "./images/pup-photos/43.webp",
+    "opening_hours": {
+      "Mon": "08:00–20:00",
+      "Tue": "08:00–20:00",
+      "Wed": "08:00–20:00",
+      "Thu": "08:00–20:00",
+      "Fri": "08:00–20:00",
+      "Sat": "09:00–18:00",
+      "Sun": "10:00–17:00"
+    },
+    "tags": [],
+    "note": "",
+    "billing": "",
+    "brands": [],
+    "senior_pharmacist": ""
+  },
+  {
+    "id": 44,
+    "name": "Lékárna OC Metropole Zličín u Alberta",
+    "type": "pharmacy",
+    "address": {
+      "street": "Řevnická 121/1",
+      "city": "Praha 5",
+      "district": "Zličín",
+      "zip": "150 00"
+    },
+    "coords": {
+      "lat": "50.0528297",
+      "lng": "14.2854567"
+    },
+    "phone": null,
+    "photo": "./images/pup-photos/44.webp",
+    "opening_hours": {
+      "Mon": "08:00–20:00",
+      "Tue": "08:00–20:00",
+      "Wed": "08:00–20:00",
+      "Thu": "08:00–20:00",
+      "Fri": "08:00–20:00",
+      "Sat": "09:00–18:00",
+      "Sun": "10:00–17:00"
+    },
+    "tags": [],
+    "note": "",
+    "billing": "",
+    "brands": [],
+    "senior_pharmacist": ""
+  },
+  {
+    "id": 45,
+    "name": "Lékárna Michnova",
+    "type": "pharmacy",
+    "address": {
+      "street": "Michnova 1622/4",
+      "city": "Praha 11",
+      "district": "Chodov",
+      "zip": ""
+    },
+    "coords": {
+      "lat": "50.0313548",
+      "lng": "14.5209056"
+    },
+    "phone": null,
+    "photo": "./images/pup-photos/45.webp",
+    "opening_hours": {
+      "Mon": "08:00–20:00",
+      "Tue": "08:00–20:00",
+      "Wed": "08:00–20:00",
+      "Thu": "08:00–20:00",
+      "Fri": "08:00–20:00",
+      "Sat": "09:00–18:00",
+      "Sun": "10:00–17:00"
+    },
+    "tags": [],
+    "note": "",
+    "billing": "",
+    "brands": [],
+    "senior_pharmacist": ""
+  },
+  {
+    "id": 47,
+    "name": "Lékárna Suchdolské náměstí",
+    "type": "pharmacy",
+    "address": {
+      "street": "Suchdolské náměstí 445/7",
+      "city": "Praha 6",
+      "district": "Suchdol",
+      "zip": ""
+    },
+    "coords": {
+      "lat": "50.13657680000001",
+      "lng": "14.3807072"
+    },
+    "phone": null,
+    "photo": "./images/pup-photos/47.webp",
+    "opening_hours": {
+      "Mon": "08:00–20:00",
+      "Tue": "08:00–20:00",
+      "Wed": "08:00–20:00",
+      "Thu": "08:00–20:00",
+      "Fri": "08:00–20:00",
+      "Sat": "09:00–18:00",
+      "Sun": "10:00–17:00"
+    },
+    "tags": [],
+    "note": "",
+    "billing": "",
+    "brands": [],
+    "senior_pharmacist": ""
+  },
+  {
+    "id": 48,
+    "name": "Lékárna Vítězné náměstí Kulaťák",
+    "type": "pharmacy",
+    "address": {
+      "street": "Vítězné náměstí 997/13",
+      "city": "Praha 6",
+      "district": "Bubeneč",
+      "zip": ""
+    },
+    "coords": {
+      "lat": "50.1002831",
+      "lng": "14.396991"
+    },
+    "phone": null,
+    "photo": "./images/pup-photos/48.webp",
+    "opening_hours": {
+      "Mon": "08:00–20:00",
+      "Tue": "08:00–20:00",
+      "Wed": "08:00–20:00",
+      "Thu": "08:00–20:00",
+      "Fri": "08:00–20:00",
+      "Sat": "09:00–18:00",
+      "Sun": "10:00–17:00"
+    },
+    "tags": [],
+    "note": "",
+    "billing": "",
+    "brands": [],
+    "senior_pharmacist": ""
+  },
+  {
+    "id": 49,
+    "name": "Lékárna Vinohradská",
+    "type": "pharmacy",
+    "address": {
+      "street": "Vinohradská 2577/178",
+      "city": "Praha 3",
+      "district": "Vinohrady",
+      "zip": "130 00"
+    },
+    "coords": {
+      "lat": "50.077831",
+      "lng": "14.470134"
+    },
+    "phone": null,
+    "photo": "./images/pup-photos/49.webp",
+    "opening_hours": {
+      "Mon": "08:00–20:00",
+      "Tue": "08:00–20:00",
+      "Wed": "08:00–20:00",
+      "Thu": "08:00–20:00",
+      "Fri": "08:00–20:00",
+      "Sat": "09:00–18:00",
+      "Sun": "10:00–17:00"
+    },
+    "tags": [],
+    "note": "",
+    "billing": "",
+    "brands": [],
+    "senior_pharmacist": ""
+  },
+  {
+    "id": 50,
+    "name": "Lékárna Albert Švehlova",
+    "type": "pharmacy",
+    "address": {
+      "street": "Švehlova 1391/32",
+      "city": "Praha 15",
+      "district": "Hostivař",
+      "zip": ""
+    },
+    "coords": {
+      "lat": "50.0537372999999",
+      "lng": "14.5177601"
+    },
+    "phone": null,
+    "photo": "./images/pup-photos/50.webp",
+    "opening_hours": {
+      "Mon": "08:00–20:00",
+      "Tue": "08:00–20:00",
+      "Wed": "08:00–20:00",
+      "Thu": "08:00–20:00",
+      "Fri": "08:00–20:00",
+      "Sat": "09:00–18:00",
+      "Sun": "10:00–17:00"
+    },
+    "tags": [],
+    "note": "",
+    "billing": "",
+    "brands": [],
+    "senior_pharmacist": ""
+  },
+  {
+    "id": 51,
+    "name": "Lékárna Seifertova",
+    "type": "pharmacy",
+    "address": {
+      "street": "Seifertova 612/89",
+      "city": "Praha 3",
+      "district": "Žižkov",
+      "zip": "130 00"
+    },
+    "coords": {
+      "lat": "50.0842474",
+      "lng": "14.4524959"
+    },
+    "phone": null,
+    "photo": "./images/pup-photos/51.webp",
+    "opening_hours": {
+      "Mon": "08:00–20:00",
+      "Tue": "08:00–20:00",
+      "Wed": "08:00–20:00",
+      "Thu": "08:00–20:00",
+      "Fri": "08:00–20:00",
+      "Sat": "09:00–18:00",
+      "Sun": "10:00–17:00"
+    },
+    "tags": [],
+    "note": "",
+    "billing": "",
+    "brands": [],
+    "senior_pharmacist": ""
+  },
+  {
+    "id": 52,
+    "name": "Lékárna Zdislavická",
+    "type": "pharmacy",
+    "address": {
+      "street": "Zdislavická 963/1",
+      "city": "Praha 12 ",
+      "district": "",
+      "zip": ""
+    },
+    "coords": {
+      "lat": "50.017561",
+      "lng": "14.443144"
+    },
+    "phone": null,
+    "photo": "./images/pup-photos/52.webp",
+    "opening_hours": {
+      "Mon": "08:00–20:00",
+      "Tue": "08:00–20:00",
+      "Wed": "08:00–20:00",
+      "Thu": "08:00–20:00",
+      "Fri": "08:00–20:00",
+      "Sat": "09:00–18:00",
+      "Sun": "10:00–17:00"
+    },
+    "tags": [],
+    "note": "",
+    "billing": "",
+    "brands": [],
+    "senior_pharmacist": ""
+  },
+  {
+    "id": 54,
+    "name": "Lékárna Tesco Letňany",
+    "type": "pharmacy",
+    "address": {
+      "street": "Veselská 663",
+      "city": "Praha 9",
+      "district": "Letňany",
+      "zip": ""
+    },
+    "coords": {
+      "lat": "50.1350535",
+      "lng": "14.5012747"
+    },
+    "phone": null,
+    "photo": "./images/pup-photos/54.webp",
+    "opening_hours": {
+      "Mon": "08:00–20:00",
+      "Tue": "08:00–20:00",
+      "Wed": "08:00–20:00",
+      "Thu": "08:00–20:00",
+      "Fri": "08:00–20:00",
+      "Sat": "09:00–18:00",
+      "Sun": "10:00–17:00"
+    },
+    "tags": [],
+    "note": "",
+    "billing": "",
+    "brands": [],
+    "senior_pharmacist": ""
+  },
+  {
+    "id": 55,
+    "name": "Lékárna Mochovská",
+    "type": "pharmacy",
+    "address": {
+      "street": "Mochovská 535/38",
+      "city": "Praha 14",
+      "district": "Hloubětín",
+      "zip": ""
+    },
+    "coords": {
+      "lat": "50.1067713",
+      "lng": "14.5373052"
+    },
+    "phone": null,
+    "photo": "./images/pup-photos/55.webp",
+    "opening_hours": {
+      "Mon": "08:00–20:00",
+      "Tue": "08:00–20:00",
+      "Wed": "08:00–20:00",
+      "Thu": "08:00–20:00",
+      "Fri": "08:00–20:00",
+      "Sat": "09:00–18:00",
+      "Sun": "10:00–17:00"
+    },
+    "tags": [],
+    "note": "",
+    "billing": "",
+    "brands": [],
+    "senior_pharmacist": ""
+  },
+  {
+    "id": 56,
+    "name": "Lékárna poliklinika Modřany",
+    "type": "pharmacy",
+    "address": {
+      "street": "Soukalova 3355/3",
+      "city": "Praha 12",
+      "district": "Modřany",
+      "zip": ""
+    },
+    "coords": {
+      "lat": "50.006049",
+      "lng": "14.414054"
+    },
+    "phone": null,
+    "photo": "./images/pup-photos/56.webp",
+    "opening_hours": {
+      "Mon": "08:00–20:00",
+      "Tue": "08:00–20:00",
+      "Wed": "08:00–20:00",
+      "Thu": "08:00–20:00",
+      "Fri": "08:00–20:00",
+      "Sat": "09:00–18:00",
+      "Sun": "10:00–17:00"
+    },
+    "tags": [],
+    "note": "",
+    "billing": "",
+    "brands": [],
+    "senior_pharmacist": ""
+  },
+  {
+    "id": 57,
+    "name": "Lékárna Globus Čakovice",
+    "type": "pharmacy",
+    "address": {
+      "street": "Kostelecká 822/75",
+      "city": "Praha 9",
+      "district": "Čakovice",
+      "zip": ""
+    },
+    "coords": {
+      "lat": "50.1500816",
+      "lng": "14.5050896"
+    },
+    "phone": null,
+    "photo": "./images/pup-photos/57.webp",
+    "opening_hours": {
+      "Mon": "08:00–20:00",
+      "Tue": "08:00–20:00",
+      "Wed": "08:00–20:00",
+      "Thu": "08:00–20:00",
+      "Fri": "08:00–20:00",
+      "Sat": "09:00–18:00",
+      "Sun": "10:00–17:00"
+    },
+    "tags": [],
+    "note": "",
+    "billing": "",
+    "brands": [],
+    "senior_pharmacist": ""
+  },
+  {
+    "id": 58,
+    "name": "Lékárna OC ODRA",
+    "type": "pharmacy",
+    "address": {
+      "street": "Lodžská 399/26",
+      "city": "Praha 8",
+      "district": "Bohnice",
+      "zip": ""
+    },
+    "coords": {
+      "lat": "50.1304652",
+      "lng": "14.4233464"
+    },
+    "phone": null,
+    "photo": "./images/pup-photos/58.webp",
+    "opening_hours": {
+      "Mon": "08:00–20:00",
+      "Tue": "08:00–20:00",
+      "Wed": "08:00–20:00",
+      "Thu": "08:00–20:00",
+      "Fri": "08:00–20:00",
+      "Sat": "09:00–18:00",
+      "Sun": "10:00–17:00"
+    },
+    "tags": [],
+    "note": "",
+    "billing": "",
+    "brands": [],
+    "senior_pharmacist": ""
+  },
+  {
+    "id": 59,
+    "name": "Lékárna uprostřed OC Smíchov",
+    "type": "pharmacy",
+    "address": {
+      "street": "Plzeňská 233/8",
+      "city": "Praha 5",
+      "district": "Smíchov",
+      "zip": "150 00"
+    },
+    "coords": {
+      "lat": "50.0735236",
+      "lng": "14.4024733"
+    },
+    "phone": null,
+    "photo": "./images/pup-photos/59.webp",
+    "opening_hours": {
+      "Mon": "08:00–20:00",
+      "Tue": "08:00–20:00",
+      "Wed": "08:00–20:00",
+      "Thu": "08:00–20:00",
+      "Fri": "08:00–20:00",
+      "Sat": "09:00–18:00",
+      "Sun": "10:00–17:00"
+    },
+    "tags": [],
+    "note": "",
+    "billing": "",
+    "brands": [],
+    "senior_pharmacist": ""
+  },
+  {
+    "id": 60,
+    "name": "Lékárna zdravotnické středisko Walterovo náměstí",
+    "type": "pharmacy",
+    "address": {
+      "street": "Walterovo náměstí 329/2",
+      "city": "Praha 5",
+      "district": "Jinonice",
+      "zip": "150 00"
+    },
+    "coords": {
+      "lat": "50.05615",
+      "lng": "14.3721325"
+    },
+    "phone": null,
+    "photo": "./images/pup-photos/60.webp",
+    "opening_hours": {
+      "Mon": "08:00–20:00",
+      "Tue": "08:00–20:00",
+      "Wed": "08:00–20:00",
+      "Thu": "08:00–20:00",
+      "Fri": "08:00–20:00",
+      "Sat": "09:00–18:00",
+      "Sun": "10:00–17:00"
+    },
+    "tags": [],
+    "note": "",
+    "billing": "",
+    "brands": [],
+    "senior_pharmacist": ""
+  },
+  {
+    "id": 61,
+    "name": "Lékárna poliklinika Marjánka",
+    "type": "pharmacy",
+    "address": {
+      "street": "Pod Marjánkou 1906/12",
+      "city": "Praha 6",
+      "district": "Břevnov",
+      "zip": ""
+    },
+    "coords": {
+      "lat": "50.084816",
+      "lng": "14.365985"
+    },
+    "phone": null,
+    "photo": "./images/pup-photos/61.webp",
+    "opening_hours": {
+      "Mon": "08:00–20:00",
+      "Tue": "08:00–20:00",
+      "Wed": "08:00–20:00",
+      "Thu": "08:00–20:00",
+      "Fri": "08:00–20:00",
+      "Sat": "09:00–18:00",
+      "Sun": "10:00–17:00"
+    },
+    "tags": [],
+    "note": "",
+    "billing": "",
+    "brands": [],
+    "senior_pharmacist": ""
+  },
+  {
+    "id": 62,
+    "name": "Lékárna poliklinika Stodůlky",
+    "type": "pharmacy",
+    "address": {
+      "street": "Hostinského 1533/4",
+      "city": "Praha 13",
+      "district": "Stodůlky",
+      "zip": ""
+    },
+    "coords": {
+      "lat": "50.046003",
+      "lng": "14.314794"
+    },
+    "phone": null,
+    "photo": "./images/pup-photos/62.webp",
+    "opening_hours": {
+      "Mon": "08:00–20:00",
+      "Tue": "08:00–20:00",
+      "Wed": "08:00–20:00",
+      "Thu": "08:00–20:00",
+      "Fri": "08:00–20:00",
+      "Sat": "09:00–18:00",
+      "Sun": "10:00–17:00"
+    },
+    "tags": [],
+    "note": "",
+    "billing": "",
+    "brands": [],
+    "senior_pharmacist": ""
+  },
+  {
+    "id": 63,
+    "name": "Lékárna Lidl Štěrboholy",
+    "type": "pharmacy",
+    "address": {
+      "street": "Kutnohorská 531",
+      "city": "Praha 10",
+      "district": "Štěrboholy",
+      "zip": ""
+    },
+    "coords": {
+      "lat": "50.067724",
+      "lng": "14.54675"
+    },
+    "phone": null,
+    "photo": "./images/pup-photos/63.webp",
+    "opening_hours": {
+      "Mon": "08:00–20:00",
+      "Tue": "08:00–20:00",
+      "Wed": "08:00–20:00",
+      "Thu": "08:00–20:00",
+      "Fri": "08:00–20:00",
+      "Sat": "09:00–18:00",
+      "Sun": "10:00–17:00"
+    },
+    "tags": [],
+    "note": "",
+    "billing": "",
+    "brands": [],
+    "senior_pharmacist": ""
+  },
+  {
+    "id": 64,
+    "name": "Lékárna naproti nádraží Radotín",
+    "type": "pharmacy",
+    "address": {
+      "street": "Vrážská 1643/2a",
+      "city": "Praha 5",
+      "district": "Radotín",
+      "zip": "150 00"
+    },
+    "coords": {
+      "lat": "49.985059",
+      "lng": "14.364053"
+    },
+    "phone": null,
+    "photo": "./images/pup-photos/64.webp",
+    "opening_hours": {
+      "Mon": "08:00–20:00",
+      "Tue": "08:00–20:00",
+      "Wed": "08:00–20:00",
+      "Thu": "08:00–20:00",
+      "Fri": "08:00–20:00",
+      "Sat": "09:00–18:00",
+      "Sun": "10:00–17:00"
+    },
+    "tags": [],
+    "note": "",
+    "billing": "",
+    "brands": [],
+    "senior_pharmacist": ""
+  },
+  {
+    "id": 65,
+    "name": "Lékárna Masarykovo nádraží",
+    "type": "pharmacy",
+    "address": {
+      "street": "Hybernská 1014/13",
+      "city": "Praha 1",
+      "district": "Nové Město",
+      "zip": "110 00"
+    },
+    "coords": {
+      "lat": "50.0874011",
+      "lng": "14.4334919"
+    },
+    "phone": null,
+    "photo": "./images/pup-photos/65.webp",
+    "opening_hours": {
+      "Mon": "08:00–20:00",
+      "Tue": "08:00–20:00",
+      "Wed": "08:00–20:00",
+      "Thu": "08:00–20:00",
+      "Fri": "08:00–20:00",
+      "Sat": "09:00–18:00",
+      "Sun": "10:00–17:00"
+    },
+    "tags": [],
+    "note": "",
+    "billing": "",
+    "brands": [],
+    "senior_pharmacist": ""
+  },
+  {
+    "id": 66,
+    "name": "Lékárna Tovární",
+    "type": "pharmacy",
+    "address": {
+      "street": "Tovární 1342/12",
+      "city": "Praha 7",
+      "district": "",
+      "zip": ""
+    },
+    "coords": {
+      "lat": "50.1023933",
+      "lng": "14.4465744"
+    },
+    "phone": null,
+    "photo": "./images/pup-photos/66.webp",
+    "opening_hours": {
+      "Mon": "08:00–20:00",
+      "Tue": "08:00–20:00",
+      "Wed": "08:00–20:00",
+      "Thu": "08:00–20:00",
+      "Fri": "08:00–20:00",
+      "Sat": "09:00–18:00",
+      "Sun": "10:00–17:00"
+    },
+    "tags": [],
+    "note": "",
+    "billing": "",
+    "brands": [],
+    "senior_pharmacist": ""
+  },
+  {
+    "id": 67,
+    "name": "Lékárna NC Camera Barrandov",
+    "type": "pharmacy",
+    "address": {
+      "street": "Tilleho náměstí 792/2",
+      "city": "Praha 5",
+      "district": "Hlubočepy",
+      "zip": "150 00"
+    },
+    "coords": {
+      "lat": "50.034352",
+      "lng": "14.376929"
+    },
+    "phone": null,
+    "photo": "./images/pup-photos/67.webp",
+    "opening_hours": {
+      "Mon": "08:00–20:00",
+      "Tue": "08:00–20:00",
+      "Wed": "08:00–20:00",
+      "Thu": "08:00–20:00",
+      "Fri": "08:00–20:00",
+      "Sat": "09:00–18:00",
+      "Sun": "10:00–17:00"
+    },
+    "tags": [],
+    "note": "",
+    "billing": "",
+    "brands": [],
+    "senior_pharmacist": ""
+  },
+  {
+    "id": 68,
+    "name": "Lékárna Hartigova",
+    "type": "pharmacy",
+    "address": {
+      "street": "Hartigova 2427/205",
+      "city": "Praha 3",
+      "district": "Žižkov",
+      "zip": "130 00"
+    },
+    "coords": {
+      "lat": "50.0928603",
+      "lng": "14.4861802"
+    },
+    "phone": null,
+    "photo": "./images/pup-photos/68.webp",
+    "opening_hours": {
+      "Mon": "08:00–20:00",
+      "Tue": "08:00–20:00",
+      "Wed": "08:00–20:00",
+      "Thu": "08:00–20:00",
+      "Fri": "08:00–20:00",
+      "Sat": "09:00–18:00",
+      "Sun": "10:00–17:00"
+    },
+    "tags": [],
+    "note": "",
+    "billing": "",
+    "brands": [],
+    "senior_pharmacist": ""
+  },
+  {
+    "id": 69,
+    "name": "Lékárna Dukelských hrdinů",
+    "type": "pharmacy",
+    "address": {
+      "street": "Dukelských hrdinů 691/33",
+      "city": "Praha 7",
+      "district": "Holešovice",
+      "zip": ""
+    },
+    "coords": {
+      "lat": "50.0990389",
+      "lng": "14.4330778"
+    },
+    "phone": null,
+    "photo": "./images/pup-photos/69.webp",
+    "opening_hours": {
+      "Mon": "08:00–20:00",
+      "Tue": "08:00–20:00",
+      "Wed": "08:00–20:00",
+      "Thu": "08:00–20:00",
+      "Fri": "08:00–20:00",
+      "Sat": "09:00–18:00",
+      "Sun": "10:00–17:00"
+    },
+    "tags": [],
+    "note": "Přední strana budovy",
+    "billing": "",
+    "brands": [],
+    "senior_pharmacist": ""
+  },
+  {
+    "id": 70,
+    "name": "Lékárna Skandinávská",
+    "type": "pharmacy",
+    "address": {
+      "street": "Skandinávská 144/25c",
+      "city": "Praha 13",
+      "district": "Třebonice",
+      "zip": ""
+    },
+    "coords": {
+      "lat": "50.0496878",
+      "lng": "14.2945428"
+    },
+    "phone": null,
+    "photo": "./images/pup-photos/70.webp",
+    "opening_hours": {
+      "Mon": "08:00–20:00",
+      "Tue": "08:00–20:00",
+      "Wed": "08:00–20:00",
+      "Thu": "08:00–20:00",
+      "Fri": "08:00–20:00",
+      "Sat": "09:00–18:00",
+      "Sun": "10:00–17:00"
+    },
+    "tags": [],
+    "note": "",
+    "billing": "",
+    "brands": [],
+    "senior_pharmacist": ""
+  },
+  {
+    "id": 71,
+    "name": "Lékárna Olbrachtova",
+    "type": "pharmacy",
+    "address": {
+      "street": "Olbrachtova 1929/62",
+      "city": "Praha 4",
+      "district": "Krč",
+      "zip": ""
+    },
+    "coords": {
+      "lat": "50.0444656",
+      "lng": "14.4484444"
+    },
+    "phone": null,
+    "photo": "./images/pup-photos/71.webp",
+    "opening_hours": {
+      "Mon": "08:00–20:00",
+      "Tue": "08:00–20:00",
+      "Wed": "08:00–20:00",
+      "Thu": "08:00–20:00",
+      "Fri": "08:00–20:00",
+      "Sat": "09:00–18:00",
+      "Sun": "10:00–17:00"
+    },
+    "tags": [],
+    "note": "",
+    "billing": "",
+    "brands": [],
+    "senior_pharmacist": ""
+  },
+  {
+    "id": 72,
+    "name": "Lékárna Pod sídlištěm",
+    "type": "pharmacy",
+    "address": {
+      "street": "Pod sídlištěm 188/8",
+      "city": "Praha 8",
+      "district": "Kobylisy",
+      "zip": ""
+    },
+    "coords": {
+      "lat": "50.124581",
+      "lng": "14.455741"
+    },
+    "phone": null,
+    "photo": "./images/pup-photos/72.webp",
+    "opening_hours": {
+      "Mon": "08:00–20:00",
+      "Tue": "08:00–20:00",
+      "Wed": "08:00–20:00",
+      "Thu": "08:00–20:00",
+      "Fri": "08:00–20:00",
+      "Sat": "09:00–18:00",
+      "Sun": "10:00–17:00"
+    },
+    "tags": [],
+    "note": "",
+    "billing": "",
+    "brands": [],
+    "senior_pharmacist": ""
+  },
+  {
+    "id": 73,
+    "name": "Lékárna Ječná 550/1",
+    "type": "pharmacy",
+    "address": {
+      "street": "Ječná 550/1",
+      "city": "Praha 2",
+      "district": "Nové Město",
+      "zip": "120 00"
+    },
+    "coords": {
+      "lat": "50.07578669999999",
+      "lng": "14.4210887"
+    },
+    "phone": null,
+    "photo": "./images/pup-photos/73.webp",
+    "opening_hours": {
+      "Mon": "08:00–20:00",
+      "Tue": "08:00–20:00",
+      "Wed": "08:00–20:00",
+      "Thu": "08:00–20:00",
+      "Fri": "08:00–20:00",
+      "Sat": "09:00–18:00",
+      "Sun": "10:00–17:00"
+    },
+    "tags": [],
+    "note": "",
+    "billing": "",
+    "brands": [],
+    "senior_pharmacist": ""
+  },
+  {
+    "id": 74,
+    "name": "Lékárna Sluneční náměstí",
+    "type": "pharmacy",
+    "address": {
+      "street": "Sluneční náměstí 2561/3",
+      "city": "Praha 13",
+      "district": "Stodůlky",
+      "zip": ""
+    },
+    "coords": {
+      "lat": "50.0503317",
+      "lng": "14.3421242"
+    },
+    "phone": null,
+    "photo": "./images/pup-photos/74.webp",
+    "opening_hours": {
+      "Mon": "08:00–20:00",
+      "Tue": "08:00–20:00",
+      "Wed": "08:00–20:00",
+      "Thu": "08:00–20:00",
+      "Fri": "08:00–20:00",
+      "Sat": "09:00–18:00",
+      "Sun": "10:00–17:00"
+    },
+    "tags": [],
+    "note": "",
+    "billing": "",
+    "brands": [],
+    "senior_pharmacist": ""
+  },
+  {
+    "id": 75,
+    "name": "Lékárna Globus Zličín",
+    "type": "pharmacy",
+    "address": {
+      "street": "Sárská 133/5",
+      "city": "Praha 5",
+      "district": "Třebonice",
+      "zip": ""
+    },
+    "coords": {
+      "lat": "50.0530861",
+      "lng": "14.2971872"
+    },
+    "phone": null,
+    "photo": "./images/pup-photos/75.webp",
+    "opening_hours": {
+      "Mon": "08:00–20:00",
+      "Tue": "08:00–20:00",
+      "Wed": "08:00–20:00",
+      "Thu": "08:00–20:00",
+      "Fri": "08:00–20:00",
+      "Sat": "09:00–18:00",
+      "Sun": "10:00–17:00"
+    },
+    "tags": [],
+    "note": "",
+    "billing": "",
+    "brands": [],
+    "senior_pharmacist": ""
+  },
+  {
+    "id": 76,
+    "name": "Lékárna Victoria Palace",
+    "type": "pharmacy",
+    "address": {
+      "street": "Vítězné náměstí 1145/8",
+      "city": "Praha 6",
+      "district": "",
+      "zip": ""
+    },
+    "coords": {
+      "lat": "50.1015772",
+      "lng": "14.3958783"
+    },
+    "phone": null,
+    "photo": "./images/pup-photos/76.webp",
+    "opening_hours": {
+      "Mon": "08:00–20:00",
+      "Tue": "08:00–20:00",
+      "Wed": "08:00–20:00",
+      "Thu": "08:00–20:00",
+      "Fri": "08:00–20:00",
+      "Sat": "09:00–18:00",
+      "Sun": "10:00–17:00"
+    },
+    "tags": [],
+    "note": "",
+    "billing": "",
+    "brands": [],
+    "senior_pharmacist": ""
+  },
+  {
+    "id": 77,
+    "name": "Lékárna Starostrašnická",
+    "type": "pharmacy",
+    "address": {
+      "street": "Starostrašnická 164/38",
+      "city": "Praha 10",
+      "district": "Strašnice",
+      "zip": ""
+    },
+    "coords": {
+      "lat": "50.0742758",
+      "lng": "14.4907497"
+    },
+    "phone": null,
+    "photo": "./images/pup-photos/77.webp",
+    "opening_hours": {
+      "Mon": "08:00–20:00",
+      "Tue": "08:00–20:00",
+      "Wed": "08:00–20:00",
+      "Thu": "08:00–20:00",
+      "Fri": "08:00–20:00",
+      "Sat": "09:00–18:00",
+      "Sun": "10:00–17:00"
+    },
+    "tags": [],
+    "note": "",
+    "billing": "",
+    "brands": [],
+    "senior_pharmacist": ""
+  },
+  {
+    "id": 78,
+    "name": "Lékárna Bořislavka u Lidlu",
+    "type": "pharmacy",
+    "address": {
+      "street": "Evropská 866/71",
+      "city": "Praha 6",
+      "district": "Vokovice",
+      "zip": ""
+    },
+    "coords": {
+      "lat": "50.0984469",
+      "lng": "14.3654367"
+    },
+    "phone": null,
+    "photo": "./images/pup-photos/78.webp",
+    "opening_hours": {
+      "Mon": "08:00–20:00",
+      "Tue": "08:00–20:00",
+      "Wed": "08:00–20:00",
+      "Thu": "08:00–20:00",
+      "Fri": "08:00–20:00",
+      "Sat": "09:00–18:00",
+      "Sun": "10:00–17:00"
+    },
+    "tags": [],
+    "note": "",
+    "billing": "",
+    "brands": [],
+    "senior_pharmacist": ""
+  },
+  {
+    "id": 81,
+    "name": "Prodejna zdravotnických potřeb Soukalova",
+    "type": "pharmacy",
+    "address": {
+      "street": "Soukalova 3355/3",
+      "city": "Praha 12",
+      "district": "Modřany",
+      "zip": ""
+    },
+    "coords": {
+      "lat": "50.00577089999999",
+      "lng": "14.4140233"
+    },
+    "phone": null,
+    "photo": "./images/pup-photos/81.webp",
+    "opening_hours": {
+      "Mon": "08:00–20:00",
+      "Tue": "08:00–20:00",
+      "Wed": "08:00–20:00",
+      "Thu": "08:00–20:00",
+      "Fri": "08:00–20:00",
+      "Sat": "09:00–18:00",
+      "Sun": "10:00–17:00"
+    },
+    "tags": [],
+    "note": "POUZE prodejna zdravotnických potřeb",
+    "billing": "",
+    "brands": [],
+    "senior_pharmacist": ""
+  },
+  {
+    "id": 85,
+    "name": "Lékárna Na Pankráci",
+    "type": "pharmacy",
+    "address": {
+      "street": "Na Pankráci 1727/86",
+      "city": "Praha 4",
+      "district": "",
+      "zip": ""
+    },
+    "coords": {
+      "lat": "50.05090389999999",
+      "lng": "14.4382785"
+    },
+    "phone": null,
+    "photo": "./images/pup-photos/85.webp",
+    "opening_hours": {
+      "Mon": "08:00–20:00",
+      "Tue": "08:00–20:00",
+      "Wed": "08:00–20:00",
+      "Thu": "08:00–20:00",
+      "Fri": "08:00–20:00",
+      "Sat": "09:00–18:00",
+      "Sun": "10:00–17:00"
+    },
+    "tags": [],
+    "note": "",
+    "billing": "",
+    "brands": [],
+    "senior_pharmacist": ""
+  },
+  {
+    "id": 86,
+    "name": "Lékárna Žitavského",
+    "type": "pharmacy",
+    "address": {
+      "street": "Žitavského 497",
+      "city": "Praha 5",
+      "district": "Zbraslav",
+      "zip": ""
+    },
+    "coords": {
+      "lat": "49.9738272",
+      "lng": "14.3954336"
+    },
+    "phone": null,
+    "photo": "./images/pup-photos/86.webp",
+    "opening_hours": {
+      "Mon": "08:00–20:00",
+      "Tue": "08:00–20:00",
+      "Wed": "08:00–20:00",
+      "Thu": "08:00–20:00",
+      "Fri": "08:00–20:00",
+      "Sat": "09:00–18:00",
+      "Sun": "10:00–17:00"
+    },
+    "tags": [],
+    "note": "",
+    "billing": "",
+    "brands": [],
+    "senior_pharmacist": ""
+  },
+  {
+    "id": 87,
+    "name": "Lékárna Chilská",
+    "type": "pharmacy",
+    "address": {
+      "street": "Chilská 1",
+      "city": "Praha 11",
+      "district": "Chodov",
+      "zip": ""
+    },
+    "coords": {
+      "lat": "50.0274847",
+      "lng": "14.5075994"
+    },
+    "phone": null,
+    "photo": "./images/pup-photos/87.webp",
+    "opening_hours": {
+      "Mon": "08:00–20:00",
+      "Tue": "08:00–20:00",
+      "Wed": "08:00–20:00",
+      "Thu": "08:00–20:00",
+      "Fri": "08:00–20:00",
+      "Sat": "09:00–18:00",
+      "Sun": "10:00–17:00"
+    },
+    "tags": [],
+    "note": "",
+    "billing": "",
+    "brands": [],
+    "senior_pharmacist": ""
+  },
+  {
+    "id": 88,
+    "name": "Lékárna Ďáblická",
+    "type": "pharmacy",
+    "address": {
+      "street": "Ďáblická 1061",
+      "city": "Praha 8",
+      "district": "Ďáblice",
+      "zip": ""
+    },
+    "coords": {
+      "lat": "50.1601889",
+      "lng": "14.4852719"
+    },
+    "phone": null,
+    "photo": "./images/pup-photos/88.webp",
+    "opening_hours": {
+      "Mon": "08:00–20:00",
+      "Tue": "08:00–20:00",
+      "Wed": "08:00–20:00",
+      "Thu": "08:00–20:00",
+      "Fri": "08:00–20:00",
+      "Sat": "09:00–18:00",
+      "Sun": "10:00–17:00"
+    },
+    "tags": [],
+    "note": "",
+    "billing": "",
+    "brands": [],
+    "senior_pharmacist": ""
+  },
+  {
+    "id": 89,
+    "name": "Lékárna Křižíkova",
+    "type": "pharmacy",
+    "address": {
+      "street": "Křižíkova 2136/2a",
+      "city": "Praha 8",
+      "district": "Nové město",
+      "zip": ""
+    },
+    "coords": {
+      "lat": "50.0895603",
+      "lng": "14.4385025"
+    },
+    "phone": null,
+    "photo": "./images/pup-photos/89.webp",
+    "opening_hours": {
+      "Mon": "08:00–20:00",
+      "Tue": "08:00–20:00",
+      "Wed": "08:00–20:00",
+      "Thu": "08:00–20:00",
+      "Fri": "08:00–20:00",
+      "Sat": "09:00–18:00",
+      "Sun": "10:00–17:00"
+    },
+    "tags": [],
+    "note": "",
+    "billing": "",
+    "brands": [],
+    "senior_pharmacist": ""
+  },
+  {
+    "id": 90,
+    "name": "Lékárna Poděbradská",
+    "type": "pharmacy",
+    "address": {
+      "street": "Poděbradská 489/116",
+      "city": "Praha 14",
+      "district": "Vysočany",
+      "zip": ""
+    },
+    "coords": {
+      "lat": "50.1053194",
+      "lng": "14.5377586"
+    },
+    "phone": null,
+    "photo": "./images/pup-photos/90.webp",
+    "opening_hours": {
+      "Mon": "08:00–20:00",
+      "Tue": "08:00–20:00",
+      "Wed": "08:00–20:00",
+      "Thu": "08:00–20:00",
+      "Fri": "08:00–20:00",
+      "Sat": "09:00–18:00",
+      "Sun": "10:00–17:00"
+    },
+    "tags": [],
+    "note": "",
+    "billing": "",
+    "brands": [],
+    "senior_pharmacist": ""
+  },
+  {
+    "id": 91,
+    "name": "Lékárna OC Krakov",
+    "type": "pharmacy",
+    "address": {
+      "street": "Lodžská 850/6",
+      "city": "Praha 8",
+      "district": "Troja",
+      "zip": ""
+    },
+    "coords": {
+      "lat": "50.1278144",
+      "lng": "14.4190042"
+    },
+    "phone": null,
+    "photo": "./images/pup-photos/91.webp",
+    "opening_hours": {
+      "Mon": "08:00–20:00",
+      "Tue": "08:00–20:00",
+      "Wed": "08:00–20:00",
+      "Thu": "08:00–20:00",
+      "Fri": "08:00–20:00",
+      "Sat": "09:00–18:00",
+      "Sun": "10:00–17:00"
+    },
+    "tags": [],
+    "note": "",
+    "billing": "",
+    "brands": [],
+    "senior_pharmacist": ""
+  },
+  {
+    "id": 92,
+    "name": "Lékárna Nuselská",
+    "type": "pharmacy",
+    "address": {
+      "street": "Nuselská 1754/53c",
+      "city": "Praha 4",
+      "district": "Nusle",
+      "zip": ""
+    },
+    "coords": {
+      "lat": "50.0608617",
+      "lng": "14.4484603"
+    },
+    "phone": null,
+    "photo": "./images/pup-photos/92.webp",
+    "opening_hours": {
+      "Mon": "08:00–20:00",
+      "Tue": "08:00–20:00",
+      "Wed": "08:00–20:00",
+      "Thu": "08:00–20:00",
+      "Fri": "08:00–20:00",
+      "Sat": "09:00–18:00",
+      "Sun": "10:00–17:00"
+    },
+    "tags": [],
+    "note": "",
+    "billing": "",
+    "brands": [],
+    "senior_pharmacist": ""
+  },
+  {
+    "id": 93,
+    "name": "Bjut - OC Chodov",
+    "type": "pharmacy",
+    "address": {
+      "street": "Roztylská 2321/19",
+      "city": "Praha 11",
+      "district": "Chodov",
+      "zip": ""
+    },
+    "coords": {
+      "lat": "50.0312078",
+      "lng": "14.4902753"
+    },
+    "phone": null,
+    "photo": "./images/pup-photos/93.webp",
+    "opening_hours": {
+      "Mon": "08:00–20:00",
+      "Tue": "08:00–20:00",
+      "Wed": "08:00–20:00",
+      "Thu": "08:00–20:00",
+      "Fri": "08:00–20:00",
+      "Sat": "09:00–18:00",
+      "Sun": "10:00–17:00"
+    },
+    "tags": [],
+    "note": "1. patro",
+    "billing": "",
+    "brands": [],
+    "senior_pharmacist": ""
+  },
+  {
+    "id": 94,
+    "name": "Lékárna Spálená",
+    "type": "pharmacy",
+    "address": {
+      "street": "Spálená 108/51",
+      "city": "Praha 1",
+      "district": "",
+      "zip": "110 00"
+    },
+    "coords": {
+      "lat": "50.0816981",
+      "lng": "14.4192758"
+    },
+    "phone": null,
+    "photo": "./images/pup-photos/94.webp",
+    "opening_hours": {
+      "Mon": "08:00–20:00",
+      "Tue": "08:00–20:00",
+      "Wed": "08:00–20:00",
+      "Thu": "08:00–20:00",
+      "Fri": "08:00–20:00",
+      "Sat": "09:00–18:00",
+      "Sun": "10:00–17:00"
+    },
+    "tags": [],
+    "note": "Naproti tram.zastávky Národní třída",
+    "billing": "",
+    "brands": [],
+    "senior_pharmacist": ""
+  },
+  {
+    "id": 95,
+    "name": "Lékárna Ohmova",
+    "type": "pharmacy",
+    "address": {
+      "street": "Ohmova 271/2",
+      "city": "Praha 10",
+      "district": "Petrovice",
+      "zip": ""
+    },
+    "coords": {
+      "lat": "50.0387567",
+      "lng": "14.5597892"
+    },
+    "phone": null,
+    "photo": "./images/pup-photos/95.webp",
+    "opening_hours": {
+      "Mon": "08:00–20:00",
+      "Tue": "08:00–20:00",
+      "Wed": "08:00–20:00",
+      "Thu": "08:00–20:00",
+      "Fri": "08:00–20:00",
+      "Sat": "09:00–18:00",
+      "Sun": "10:00–17:00"
+    },
+    "tags": [],
+    "note": "",
+    "billing": "",
+    "brands": [],
+    "senior_pharmacist": ""
   }
 ]
