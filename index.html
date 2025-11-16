@@ -4975,6 +4975,18 @@
         <li><a href="#/products">Zdraví a léky</a></li>
       </ul>
     </div>
+    <div
+      x-show="isFallback"
+      class="mb-6 rounded-lg border border-amber-200 bg-amber-50 p-4 text-amber-900 flex gap-3"
+      role="status"
+      x-cloak
+    >
+      <i class="fa-regular fa-circle-info fa-lg mt-1"></i>
+      <div>
+        <p class="font-semibold mb-1">Prototypová data</p>
+        <p class="text-sm leading-relaxed" x-text="fallbackMessage"></p>
+      </div>
+    </div>
     <!-- gallery -->
     <div class="grid md:grid-cols-2 gap-6 items-start">
       <section class="relative">
@@ -10431,6 +10443,9 @@ this.$nextTick(() => requestAnimationFrame(focusRealInput));
     selectedVariant: null,
     currentImage: 0,
     ctaVisible: false,
+    isFallback: false,
+    fallbackMessage: '',
+    fallbackSource: null,
     shareModal: { open: false, copied: false },
     askModal: { open: false, message: '', email: '', error: '', submitting: false },
 
@@ -10474,6 +10489,9 @@ this.$nextTick(() => requestAnimationFrame(focusRealInput));
 
       // cancel previous request if any
       if (this._abort) try { this._abort.abort(); } catch {}
+      this.isFallback = false;
+      this.fallbackMessage = '';
+      this.fallbackSource = null;
 
       try {
         let data;
@@ -10490,6 +10508,10 @@ this.$nextTick(() => requestAnimationFrame(focusRealInput));
         this._applyData(data);
       } catch (e) {
         console.error('productDetail.load error:', e);
+        const fallback = await this._fetchFallbackDetail();
+        if (fallback) {
+          this._applyData(fallback);
+        }
       } finally {
         this._abort = null;
       }
@@ -10497,6 +10519,20 @@ this.$nextTick(() => requestAnimationFrame(focusRealInput));
 
     _applyData(data) {
       const d = data || {};
+      this.isFallback = !!d?.__fallback;
+      if (this.isFallback) {
+        const listTitle = d?.__fallbackListTitle || '';
+        this.fallbackSource = listTitle || null;
+        this.fallbackMessage = d?.__fallbackMessage
+          || `Detail tohoto produktu zatím nemá v prototypu kompletní data. ${
+            listTitle
+              ? `Zobrazujeme základní informace z kategorie ${listTitle}.`
+              : 'Zobrazujeme základní informace z produktového seznamu.'
+          }`;
+      } else {
+        this.fallbackSource = null;
+        this.fallbackMessage = '';
+      }
       const normalizedProduct = { ...d };
       this.product = normalizedProduct;
       this.detailSourceId = this._normalizeId(
@@ -10518,6 +10554,27 @@ this.$nextTick(() => requestAnimationFrame(focusRealInput));
       this.variants = Array.isArray(d.variants) ? d.variants.slice() : [];
       const def = this.variants.find(v => v.default) || this.variants[0] || null;
       this.selectedVariant = def;
+    },
+    async _fetchFallbackDetail() {
+      const fallbackId = this._normalizeId(
+        this.id
+        ?? this.detailSourceId
+        ?? this._extractIdFromUrl(this._currentUrl)
+      );
+      if (!fallbackId) return null;
+      let store = null;
+      if (typeof window !== 'undefined' && window.__fitAppStore) {
+        store = window.__fitAppStore;
+      } else if (typeof Alpine !== 'undefined' && typeof Alpine.store === 'function') {
+        store = Alpine.store('app');
+      }
+      if (!store || typeof store.getFallbackDetailById !== 'function') return null;
+      try {
+        return await store.getFallbackDetailById(fallbackId);
+      } catch (err) {
+        console.warn('productDetail fallback fetch failed', err);
+        return null;
+      }
     },
 
     cartItemId() {
@@ -11236,6 +11293,8 @@ activeProductListMeta: null,
 searchProducts: [],
 _searchListCache: {},
 _searchListPromises: {},
+_listDataCache: {},
+_listDataPromises: {},
 
 search: '',
 selectedCategory: '',
@@ -11344,6 +11403,10 @@ init() {
       this.redirectToCartIfEmpty();
     }
   });
+
+  if (typeof window !== 'undefined') {
+    window.__fitAppStore = this;
+  }
 
   this._onLocaleChange = () => {
     this.reloadLocalizedContent();
@@ -12107,6 +12170,33 @@ async ensureSearchCacheFor(list) {
     .finally(() => { delete this._searchListPromises[key]; });
   return this._searchListPromises[key];
 },
+async ensureListData(list) {
+  if (!list || !list.key) return [];
+  const key = list.key;
+  if (key === this.activeProductListKey) {
+    return Array.isArray(this.products) ? this.products : [];
+  }
+  if (this._listDataCache[key]) return this._listDataCache[key];
+  if (this._searchListCache[key]) {
+    this._listDataCache[key] = this._searchListCache[key].slice();
+    return this._listDataCache[key];
+  }
+  if (this._listDataPromises[key]) return this._listDataPromises[key];
+  this._listDataPromises[key] = fetch(list.dataSource, { cache: 'no-store' })
+    .then(res => (res.ok ? res.json() : []))
+    .then(arr => {
+      const normalized = Array.isArray(arr) ? arr : [];
+      this._listDataCache[key] = normalized;
+      return normalized;
+    })
+    .catch(err => {
+      console.warn('ensureListData failed', list?.dataSource, err);
+      this._listDataCache[key] = [];
+      return [];
+    })
+    .finally(() => { delete this._listDataPromises[key]; });
+  return this._listDataPromises[key];
+},
 
 // --- Pricing helpers (supports discounted_price from your feed) ---
 formatPrice(v) {
@@ -12371,6 +12461,47 @@ async getDetailById(id) {
   const res = await fetch(`data/product-details/${id}.json`);
   if (!res.ok) throw new Error(`detail ${id} ${res.status}`);
   return await res.json();
+},
+async getFallbackDetailById(id) {
+  const normalizedId = String(id ?? '').trim();
+  if (!normalizedId) return null;
+  await this.ensureProductLists();
+  const lists = Array.isArray(this.productLists) ? this.productLists : [];
+  const matchFrom = (items) => {
+    if (!Array.isArray(items)) return null;
+    return items.find(item => String(item?.id ?? '') === normalizedId);
+  };
+  const activeKey = String(this.activeProductListKey || '').toLowerCase();
+  const activeList = activeKey ? (this.productListMap?.[activeKey] || null) : null;
+  const buildPayload = (product, listMeta = null) => {
+    if (!product) return null;
+    const clone = { ...product };
+    if (!Array.isArray(clone.parameters)) clone.parameters = [];
+    if (!Array.isArray(clone.images)) {
+      const single = clone.image ? [clone.image] : [];
+      clone.images = single;
+    }
+    if (!clone.perex && clone.description) clone.perex = clone.description;
+    if (!clone.description && clone.perex) clone.description = clone.perex;
+    clone.__fallback = true;
+    clone.__fallbackListKey = listMeta?.key || null;
+    clone.__fallbackListTitle = listMeta?.title || null;
+    return clone;
+  };
+  const seen = new Set();
+  let found = matchFrom(this.products);
+  if (found) return buildPayload(found, activeList);
+  for (const list of lists) {
+    const key = list?.key;
+    if (!key || seen.has(key)) continue;
+    seen.add(key);
+    const dataset = key === this.activeProductListKey
+      ? this.products
+      : await this.ensureListData(list);
+    found = matchFrom(dataset);
+    if (found) return buildPayload(found, list);
+  }
+  return null;
 },
 
 _mergeDetailPrice(detailObj, id) {
