@@ -4,7 +4,7 @@
         "fieldset_group": null,
         "step": 1,
         "type": "radio",
-        "label": "Jsem nový člen",
+        "label": "Chci založit nový účet",
         "placeholder": null,
         "prefix": null,
         "note": null,
@@ -114,7 +114,7 @@
         "label": "Telefonní číslo",
         "placeholder": null,
         "prefix": "+420",
-        "note": "Pro kontakt Dr. Max",
+        "note": "",
         "validations": [
             {"type": "required", "fails": "Tato položka je povinná"},
             {"type": "phone", "fails": "Nesprávný formát telefonu"}
@@ -125,10 +125,10 @@
         "fieldset_group": null,
         "step": 3,
         "type": "address",
-        "label": "Adresa",
+        "label": "Doručovací adresa",
         "placeholder": null,
         "prefix": null,
-        "note": "Začněte psát a vyberte z našeptavače",
+        "note": "",
         "validations": [
             {"type": "required", "fails": "Tato položka je povinná"},
             {"type": "address", "fails": "Nesprávný formát adresy"}
