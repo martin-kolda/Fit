@@ -16,14 +16,29 @@
     "search": { "include": true, "label": "Zdraví a léky", "preload": false }
   },
   {
-    "id": 301,
-    "slug": "vitaminy-a-doplnky",
-    "aliases": ["vitaminy", "doplnky"],
-    "dataSource": "data/products-vitaminy.json",
-    "title": "Vitamíny a doplňky",
+    "id": 4,
+    "slug": "dr-max-private-label",
+    "aliases": ["dr-max"],
+    "dataSource": "data/products-drmax.json",
+    "title": "Produkty Dr. Max",
     "breadcrumbs": [
       { "label": "Domů", "route": "home" },
-      { "label": "Vitamíny a doplňky" }
+      { "label": "Produkty Dr. Max" }
+    ],
+    "categoryHeading": "Category Dr. Max",
+    "descriptionHeading": "Produktům s logem Dr. Max naplno věříme",
+    "description": "Produkty Dr. Max jsou s námi již od roku 2011. Při jejich výrobě vám chceme nabídnout kvalitu za férovou cenu. Kvalita je zaručena hned několikanásobně. Díky dlouhodobým zkušenostem spolupracujeme výhradně s renomovanými a certifikovanými výrobci. Kvalitu všech našich produktů sami nezávisle ověřujeme. Při vývoji produktů pozorně nasloucháme odborným názorům zkušených lékárnic a lékárníků, a i vašim potřebám.",
+    "search": { "include": true, "label": "Produkty Dr. Max", "preload": true }
+  },  
+  {
+    "id": 301,
+    "slug": "vitaminy-a-imunita",
+    "aliases": ["vitaminy", "doplnky"],
+    "dataSource": "data/products-vitaminy.json",
+    "title": "Vitamíny a imunita",
+    "breadcrumbs": [
+      { "label": "Domů", "route": "home" },
+      { "label": "Vitamíny a imunita" }
     ],
     "categoryHeading": "Nápady pro imunitu",
     "descriptionHeading": "Posilte imunitu",
@@ -60,4 +75,5 @@
     "description": "Léky a spreje, které ulevují od kašle, ucpaného nosu a dalších příznaků nachlazení během chladných dní.",
     "search": { "include": true, "label": "Kašel a rýma", "preload": true }
   }
+
 ]

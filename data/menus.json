@@ -20,7 +20,7 @@
             { "name": "Procházet kategorie", "iconSet": "fa-regular", "icon": "shopping-bag", "linkMenuId": 2 },
             { "name": "Zdravé léto", "iconSet": "fa-regular", "icon": "sun" },
             { "name": "Bjut: Luxusní kosmetika", "iconSet": "fa-regular", "icon": "spray-can-sparkles" },
-            { "name": "Produkty Dr. Max", "iconSet": "fa-regular", "icon": "prescription-bottle-pill" },
+            { "name": "Produkty Dr. Max", "iconSet": "fa-regular", "icon": "prescription-bottle-pill", "route": "products/dr-max-private-label" },
             { "name": "3 za 2", "iconSet": "fa-regular", "icon": "boxes" }
           ]
         },
@@ -74,7 +74,7 @@
         {
           "name": "Značky",
           "items": [
-            { "name": "Dr. Max produkty", "iconSet": "fa-regular", "icon": "box-open-full" },
+            { "name": "Dr. Max produkty", "iconSet": "fa-regular", "icon": "box-open-full", "route": "products/dr-max-private-label"  },
             { "name": "Dr. Max dárkové karty", "iconSet": "fa-regular", "icon": "gift-card" },
             { "name": "Procházet všechny značky", "iconSet": "fa-regular", "icon": "rectangle-history" }
           ]

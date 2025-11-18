@@ -3779,7 +3779,7 @@
             type="button"
             data-left-item
             :data-index="idx"
-            class="flex items-center h-full px-3 lg:px-4 text-sm lg:text-base font-medium whitespace-nowrap transition-colors duration-150 hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
+            class="flex items-center h-full px-3 lg:px-4 text-sm lg:text-base font-medium whitespace-nowrap transition-colors duration-150 hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40 cursor-pointer"
             :class="isLeftHidden(idx) ? 'hidden' : ''"
             @click="handleItemClick(item)"
           >
@@ -3969,7 +3969,7 @@
   </div>
   <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-7 xl:grid-cols-10 gap-4 gap-y-4">
     <template x-for="tile in categoriesGrid" :key="tile.slug || `${tile.label}-${tile.image}`">
-      <a :href="link('products')"
+      <a :href="link('products', { listSlug: tile.slug })"
          class="group flex flex-col items-center gap-3 text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 transition-transform duration-200">
         <div class="w-full max-w-[200px] aspect-square rounded-2xl flex items-center justify-center transition-all duration-200 transform group-hover:-translate-y-1 group-hover:shadow-md"
              :class="tile.background">
@@ -12341,6 +12341,10 @@ productsByCategory(cat, limit = 10) {
 // link helper router
 link(name, params = {}) {
   if (name === 'home')    return '/';
+  if (name === 'products') {
+    const target = params?.listSlug ?? params?.slug ?? params?.key ?? null;
+    return target ? this.productListRoute(target) : this.defaultProductListHash();
+  }
   if (name === 'product') return `#/product/${params.id}${params.tab ? '/' + params.tab : ''}`;
   if (name === 'cart')    return '#/cart';
   if (name === 'config')  return '#/config';
