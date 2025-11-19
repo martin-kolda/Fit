@@ -14,7 +14,7 @@
     "description": "Získáte dárky k narozeninám, lepší ceny u vybraných produktů i vlastní kupóny ve věrnostním programu.",
     "status": "pending",
     "actions": [
-      { "label": "Doplnit profil", "action": "openLoyalty", "variant": "primary" },
+      { "label": "Doplňte profil", "action": "openLoyalty", "variant": "primary" },
       { "label": "Ochrana osobních údajů", "action": "openLoyaltyTerms", "variant": "ghost" }
     ]
   },
@@ -24,7 +24,7 @@
     "description": "Zobrazíme Vám skladovou dostupnost, umožníme rychlé rezervace i vyřízení eReceptu online.",
     "status": "pending",
     "actions": [
-      { "label": "Vybrat lékárnu", "action": "pickPharmacy", "variant": "primary" }
+      { "label": "Vyberte lékárnu", "action": "pickPharmacy", "variant": "primary" }
     ]
   },
   {
@@ -33,7 +33,7 @@
     "description": "Nakoupíte rychleji a neunikne Vám žádná sleva.",
     "status": "pending",
     "actions": [
-      { "label": "Najít produkt", "action": "goFavorites", "variant": "primary" }
+      { "label": "Uložte produkt", "action": "goFavorites", "variant": "primary" }
     ]
   }
 ]

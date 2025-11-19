@@ -877,8 +877,13 @@
           this.resetRegistrationState({ keepSchema: true });
         },
         handleAccountClick() {
+          const hadTooltip = !!this.accountTooltip?.visible;
+          this.hideAccountTooltip();
           if (this.isAuthenticated) {
             location.hash = '/my-account';
+            if (hadTooltip) {
+              setTimeout(() => this.hideAccountTooltip(), 50);
+            }
             return;
           }
           this.openModal('login');
@@ -3757,7 +3762,7 @@ const normalizedPartnerOrders = partnerOrders.map(order => {
           <div class="relative rounded-xl border border-base-300/60 bg-base-content text-base-100 pl-3 pr-5 py-2 text-xs font-semibold shadow-lg min-w-[11rem]">
             <span class="pr-6" x-text="$store.auth?.accountTooltip?.message || 'Váš účet'"></span>
             <button type="button"
-                    class="absolute right-1.5 top-3 -translate-y-1/2 btn btn-ghost btn-xs btn-circle text-base-100 hover:text-base-100/80"
+                    class="absolute right-1.5 top-3 -translate-y-1/2 btn btn-ghost btn-xs btn-circle text-base-100 hover:text-base-100/10"
                     aria-label="Zavřít tooltip účtu"
                     @click="$store.auth?.hideAccountTooltip()">
               <i class="fa-solid fa-xmark text-xs"></i>
@@ -4523,7 +4528,7 @@ const normalizedPartnerOrders = partnerOrders.map(order => {
         <div class="space-y-3" x-data="{ showAllCategories: false, limit: 6 }">
           <h3 class="font-semibold text-base"
               x-text="t('routes.products.filters.sections.categories.title', 'Kategorie')"></h3>
-          <div class="space-y-2">
+          <div class="space-y-2 mb-0">
             <label class="label cursor-pointer justify-start gap-2 text-max-gray-800 w-full touch-target-md">
               <input type="radio" name="cat" class="radio radio-sm radio-secondary" value="" x-model="selectedCategory">
               <span x-text="t('routes.products.filters.sections.categories.all', 'Všechny kategorie')"></span>
@@ -4550,12 +4555,12 @@ const normalizedPartnerOrders = partnerOrders.map(order => {
               </template>
             </div>
           </div>
-          <div class="pt-1">
+          <div>
             <button type="button"
-                    class="btn btn-ghost btn-xs px-0"
+                    class="btn btn-ghost btn-md px-0 text-secondary hover:text-max-red-600 hover:border-transparent hover:bg-transparent hover:shadow-none"
                     x-show="categories.length > limit"
                     @click="showAllCategories = !showAllCategories">
-              <span x-text="showAllCategories ? t('routes.products.filters.expand.less', 'Méně') : t('routes.products.filters.expand.more', 'Více')"></span>
+              <span class="underline" x-text="showAllCategories ? t('routes.products.filters.expand.less', 'Méně') : t('routes.products.filters.expand.more', 'Více')"></span>
               <i class="fa-solid fa-chevron-down ml-1 transition-transform"
                  :class="showAllCategories ? 'rotate-180' : ''"></i>
             </button>
@@ -4565,7 +4570,7 @@ const normalizedPartnerOrders = partnerOrders.map(order => {
         <div class="space-y-3" x-data="{ showAllForms: false, limit: 6 }">
           <h3 class="font-semibold text-base"
               x-text="t('routes.products.filters.sections.forms.title', 'Forma')"></h3>
-          <div class="space-y-2">
+          <div class="space-y-2 mb-0">
             <label class="label cursor-pointer justify-start gap-2 text-max-gray-800 w-full touch-target-md">
               <input type="radio" name="form" class="radio radio-sm radio-secondary" value="" x-model="selectedForm">
               <span x-text="t('routes.products.filters.sections.forms.all', 'Všechny typy')"></span>
@@ -4592,38 +4597,21 @@ const normalizedPartnerOrders = partnerOrders.map(order => {
               </template>
             </div>
           </div>
-          <div class="pt-1" x-show="forms.length > limit" x-cloak>
+          <div x-show="forms.length > limit" x-cloak>
             <button type="button"
-                    class="btn btn-ghost btn-xs px-0"
+                    class="btn btn-ghost btn-md px-0 text-secondary hover:text-max-red-600 hover:border-transparent hover:bg-transparent hover:shadow-none"
                     @click="showAllForms = !showAllForms">
-              <span x-text="showAllForms ? t('routes.products.filters.expand.less', 'Méně') : t('routes.products.filters.expand.more', 'Více')"></span>
+              <span class="underline" x-text="showAllForms ? t('routes.products.filters.expand.less', 'Méně') : t('routes.products.filters.expand.more', 'Více')"></span>
               <i class="fa-solid fa-chevron-down ml-1 transition-transform"
                  :class="showAllForms ? 'rotate-180' : ''"></i>
             </button>
           </div>
         </div>
 
-        <div class="space-y-3">
-          <h3 class="font-semibold text-base"
-              x-text="t('routes.products.filters.sections.stock.title', 'Dostupnost')"></h3>
-          <div class="space-y-2">
-            <template x-for="opt in availabilityFilterOptions()" :key="'availability-'+opt.value">
-              <label class="label cursor-pointer justify-start gap-2 text-max-gray-800 w-full touch-target-md">
-                <input type="radio"
-                       name="availability-filter"
-                       class="radio radio-sm radio-secondary"
-                       :value="opt.value"
-                       x-model="availabilityFilter">
-                <span x-text="opt.label"></span>
-              </label>
-            </template>
-          </div>
-        </div>
-
         <div class="space-y-3" x-data="{ showAllConsumers: false, limit: 8 }">
           <h3 class="font-semibold text-base"
               x-text="t('routes.products.filters.sections.consumers.title', 'Vhodné pro')"></h3>
-          <div class="space-y-2">
+          <div class="space-y-2 mb-0">
             <template x-for="opt in consumersList.slice(0, limit)" :key="'cons-'+opt">
               <label class="label cursor-pointer justify-start gap-2 text-max-gray-800 w-full touch-target-md">
                 <input type="checkbox"
@@ -4654,11 +4642,11 @@ const normalizedPartnerOrders = partnerOrders.map(order => {
               </template>
             </div>
           </div>
-          <div class="pt-1" x-show="consumersList.length > limit" x-cloak>
+          <div x-show="consumersList.length > limit" x-cloak>
             <button type="button"
-                    class="btn btn-ghost btn-xs px-0"
+                    class="btn btn-ghost btn-md px-0 text-secondary hover:text-max-red-600 hover:border-transparent hover:bg-transparent hover:shadow-none"
                     @click="showAllConsumers = !showAllConsumers">
-              <span x-text="showAllConsumers ? t('routes.products.filters.expand.less', 'Méně') : t('routes.products.filters.expand.more', 'Více')"></span>
+              <span class="underline" x-text="showAllConsumers ? t('routes.products.filters.expand.less', 'Méně') : t('routes.products.filters.expand.more', 'Více')"></span>
               <i class="fa-solid fa-chevron-down ml-1 transition-transform"
                  :class="showAllConsumers ? 'rotate-180' : ''"></i>
             </button>
@@ -4711,6 +4699,23 @@ const normalizedPartnerOrders = partnerOrders.map(order => {
           </div>
           <div class="text-sm text-base-content/60" x-show="priceBounds.max <= priceBounds.min"
                x-text="t('routes.products.filters.sections.price.unavailable', 'Ceny nejsou k dispozici.')">
+          </div>
+        </div>
+
+        <div class="space-y-3">
+          <h3 class="font-semibold text-base"
+              x-text="t('routes.products.filters.sections.stock.title', 'Dostupnost')"></h3>
+          <div class="space-y-2">
+            <template x-for="opt in availabilityFilterOptions()" :key="'availability-'+opt.value">
+              <label class="label cursor-pointer justify-start gap-2 text-max-gray-800 w-full touch-target-md">
+                <input type="radio"
+                       name="availability-filter"
+                       class="radio radio-sm radio-secondary"
+                       :value="opt.value"
+                       x-model="availabilityFilter">
+                <span x-text="opt.label"></span>
+              </label>
+            </template>
           </div>
         </div>
 
@@ -5466,7 +5471,7 @@ const normalizedPartnerOrders = partnerOrders.map(order => {
     
       <!-- ACCORIDONS -->
        <section class="space-y-2 py-6">
-
+<!--
         <div class="collapse bg-base-100 collapse-arrow border-yellow-300 border p-2">
           <input type="checkbox" />
           <div class="collapse-title font-medium text-lg text-max-gray-600 inline-flex gap-3 items-center"><i class="fa-classic fa-md fa-solid fa-truck-fast"></i>Jak získat dopravu zdrama?</div>
@@ -5483,7 +5488,7 @@ const normalizedPartnerOrders = partnerOrders.map(order => {
             <button class="btn btn-secondary btn-md">Přihlásit se</button>
           </div>
         </div>
-
+-->
 
       <div class="collapse collapse-open bg-base-100 collapse-arrow border-base-300 border p-3">
         <input type="checkbox" />
@@ -5973,35 +5978,31 @@ const normalizedPartnerOrders = partnerOrders.map(order => {
           <i class="fa-solid fa-xmark"></i>
         </button>
         <header class="space-y-1 pr-10">
-          <h2 class="text-xl font-semibold">Zeptat se na produkt</h2>
-          <p class="text-sm text-base-content/70">Odpověď posíláme do 48 hodin na e-mail.</p>
+          <h2 class="text-xl font-semibold">Zeptat se lékárníka</h2>
+          <p class="text-sm text-base-content/70">Na dotazy týkající se vašeho zdraví odpoví lékárník nejpozději do 48&nbsp;hodin do vaší e-mailové schránky. Pro skladovou dostupnost a sledování zásilky kontaktujte klientskou linku.</p>
         </header>
 
         <form class="space-y-4" @submit.prevent="submitAsk()">
-          <label class="form-control">
-            <span class="label-text font-medium">Váš dotaz</span>
-            <textarea class="textarea textarea-bordered h-32"
+          <label class="form-control w-full">
+            <span class="label-text font-medium block mb-1">Váš dotaz</span>
+            <textarea class="textarea textarea-bordered h-32 w-full"
                       placeholder="Co vás zajímá?"
                       x-model="askModal.message"
                       required></textarea>
           </label>
 
-          <label class="form-control">
-            <span class="label-text font-medium">E-mail</span>
+          <label class="form-control w-full">
+            <span class="label-text font-medium block mt-4 mb-1">E-mail</span>
             <input type="email"
-                   class="input input-bordered"
+                   class="input input-bordered w-full"
                    placeholder="jmeno@domena.cz"
                    x-model="askModal.email"
                    required>
           </label>
 
-          <div class="text-sm text-base-content/70">
-            Na dotazy reagujeme nejpozději do 48&nbsp;hodin. Odpověď dorazí do vaší e-mailové schránky.
-          </div>
-
           <p class="text-sm text-error" x-show="askModal.error" x-text="askModal.error"></p>
 
-          <div class="flex flex-col sm:flex-row sm:justify-end gap-2">
+          <div class="flex flex-col sm:flex-row sm:justify-end gap-2 mt-6">
             <button type="button" class="btn btn-ghost sm:w-auto w-full" @click="closeAskModal()">Zrušit</button>
             <button type="submit"
                     class="btn btn-primary sm:w-auto w-full"
@@ -6821,7 +6822,7 @@ document.addEventListener('alpine:init', () => {
           <button type="button"
                   class="bg-max-blue-500 backdrop-blur rounded-full px-3 py-2 flex items-center gap-2 shadow text-white pointer-events-auto"
                   @click="
-                    scrollHintVisible = false;
+                    dismissScrollHint();
                     const target = $refs.partnerSection;
                     target?.scrollIntoView({ behavior: 'smooth', block: 'start' });
                   ">
@@ -7394,6 +7395,7 @@ function deliveryPaymentUI() {
     hasPrimaryItems: true,
     partnerHintVisible: false,
     partnerHintDismissed: false,
+    partnerScrollHintDismissed: false,
 
     // current selections
     selectedDeliveryId: null,
@@ -7446,7 +7448,8 @@ function deliveryPaymentUI() {
       this.persistPickupSelections();
       this.persistBenefitSelections();
       this.syncProceedState();
-      this.scrollHintVisible = this.hasPartnerItems;
+      this.partnerScrollHintDismissed = false;
+      this.updateScrollHintState();
     },
 
     async init() {
@@ -7558,27 +7561,8 @@ function deliveryPaymentUI() {
       });
       this.$watch(() => Alpine.store('cart')?._version, () => this.updateCartContext());
       this.syncProceedState();
-      this.scrollHintVisible = this.hasPartnerItems;
-      const hideHintOnScroll = () => {
-        if (this.scrollHintVisible && window.scrollY > 220) {
-          this.scrollHintVisible = false;
-          window.removeEventListener('scroll', hideHintOnScroll);
-          if (this.scrollHintObserver) this.scrollHintObserver.disconnect();
-        }
-      };
-      window.addEventListener('scroll', hideHintOnScroll, { passive: true });
-      const partnerEl = this.$refs?.partnerSection;
-      if (partnerEl && 'IntersectionObserver' in window) {
-        this.scrollHintObserver = new IntersectionObserver((entries) => {
-          const visible = entries.some(e => e.isIntersecting);
-          if (visible) {
-            this.scrollHintVisible = false;
-            this.scrollHintObserver.disconnect();
-            window.removeEventListener('scroll', hideHintOnScroll);
-          }
-        }, { threshold: 0.25 });
-        this.scrollHintObserver.observe(partnerEl);
-      }
+      this.partnerScrollHintDismissed = false;
+      this.updateScrollHintState();
     },
 
     // ---------- helpers ----------
@@ -7666,11 +7650,13 @@ function deliveryPaymentUI() {
         this.clearPartnerSelections();
         this.partnerHintVisible = false;
         this.partnerHintDismissed = false;
+        this.partnerScrollHintDismissed = false;
         this.scrollHintVisible = false;
+        this.teardownScrollHintObserver();
       } else if (!this.partnerHintDismissed) {
         this.partnerHintVisible = true;
-        this.scrollHintVisible = true;
       }
+      this.updateScrollHintState();
       if (prevPartner !== this.hasPartnerItems) {
         if (!this.hasPartnerItems) {
           this.clearCheckoutMeta('delivery', 'partner');
@@ -7700,6 +7686,38 @@ function deliveryPaymentUI() {
     dismissPartnerHint() {
       this.partnerHintDismissed = true;
       this.partnerHintVisible = false;
+    },
+    dismissScrollHint() {
+      this.partnerScrollHintDismissed = true;
+      this.scrollHintVisible = false;
+      this.teardownScrollHintObserver();
+    },
+    setupScrollHintObserver() {
+      if (this.scrollHintObserver) return;
+      const partnerEl = this.$refs?.partnerSection;
+      if (!partnerEl || !('IntersectionObserver' in window)) return;
+      this.scrollHintObserver = new IntersectionObserver((entries) => {
+        const visible = entries.some(entry => entry.isIntersecting);
+        if (visible) {
+          this.dismissScrollHint();
+        }
+      }, { threshold: 0.2 });
+      this.scrollHintObserver.observe(partnerEl);
+    },
+    teardownScrollHintObserver() {
+      if (this.scrollHintObserver) {
+        this.scrollHintObserver.disconnect();
+        this.scrollHintObserver = null;
+      }
+    },
+    updateScrollHintState() {
+      if (this.hasPartnerItems && !this.partnerScrollHintDismissed) {
+        this.scrollHintVisible = true;
+        this.$nextTick(() => this.setupScrollHintObserver());
+      } else {
+        this.scrollHintVisible = false;
+        this.teardownScrollHintObserver();
+      }
     },
     getSelectedDelivery(context = 'ours') {
       const source = context === 'partner' ? this.partnerDelivery : this.delivery;
@@ -10022,7 +10040,7 @@ function deliveryPaymentUI() {
       </div>
       <div class="text-sm text-base-content/70 flex items-center gap-2">
         <i class="fa-regular fa-shield-check text-primary"></i>
-        Účet byl úspěšně vytvořen
+        Ověřte svůj e-mail
       </div>
     </header>
 
@@ -10055,7 +10073,7 @@ function deliveryPaymentUI() {
               <button type="button"
                       class="w-full flex items-center gap-2 px-5 py-3 text-left hover:bg-base-200 transition"
                       @click="goTo(item)">
-                <span class="w-10 h-10 rounded-xl bg-base-100 text-primary grid place-items-center">
+                <span class="w-10 h-10 rounded-xl text-primary grid place-items-center">
                   <i :class="[item.iconSet || 'fa-regular', `fa-${item.icon || 'circle'}`, 'text-lg']"></i>
                 </span>
                 <span class="text-base font-medium text-base-content/90" x-text="item.name"></span>
@@ -10112,7 +10130,7 @@ function deliveryPaymentUI() {
                   <div class="flex flex-wrap gap-2 mt-2" x-show="task.status !== 'done'">
                     <template x-for="action in task.actions" :key="action.label">
                       <button type="button"
-                              class="btn btn-md btn-secondary"
+                              class="btn btn-md btn-secondary btn-disabled"
                               :class="action.variant === 'ghost' ? 'btn-ghost' : (action.variant === 'secondary' ? 'btn-outline' : 'btn-primary')"
                               @click="handleTask(action)">
                         <span x-text="action.label"></span>
