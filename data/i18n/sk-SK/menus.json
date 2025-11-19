@@ -312,7 +312,8 @@
           {
             "name": "Zákaznícka linka",
             "iconSet": "fa-regular",
-            "icon": "phone"
+            "icon": "phone",
+            "action": "contact"
           },
           {
             "name": "Otázky na stav objednávky",
@@ -632,7 +633,8 @@
           {
             "name": "Registrácia / Prihlásenie",
             "iconSet": "fa-regular",
-            "icon": "key"
+            "icon": "key",
+            "action": "account"
           }
         ]
       }

@@ -46,8 +46,11 @@
   .reflection {-webkit-box-reflect: below -80px linear-gradient(transparent 60%, rgba(0, 0, 0, .5) 100%);}
   .free-ship-bar .fill { position: relative; }
   .free-ship-bar .fill.shimmer::after {content: "";position: absolute;inset: 0; background-image: linear-gradient(120deg,rgba(255,255,255,0) 0%,rgba(255,255,255,0.35) 18%,rgba(255,255,255,0) 36%);background-size: 200% 100%;animation: bar-shimmer 2.6s linear infinite;pointer-events: none;}
+  .progress-fill { position: relative; overflow: hidden; }
+  .progress-fill.shimmer::after { content: ""; position: absolute; inset: 0; background-image: linear-gradient(120deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.35) 18%, rgba(255,255,255,0) 36%); background-size: 200% 100%; animation: bar-shimmer 2.6s linear infinite; pointer-events: none; }
   @keyframes bar-shimmer {0%   { background-position: 50% 0; } 30%  { background-position: -100% 0; } 100% { background-position: -100% 0; }}
   @media (prefers-reduced-motion: reduce) {.free-ship-bar .fill.shimmer::after { animation: none; }}  
+  @media (prefers-reduced-motion: reduce) {.progress-fill.shimmer::after { animation: none; }}
 
 .timeline.no-start > li {grid-template-columns: auto 1fr !important;}
 .timeline.no-start > li > .timeline-middle { grid-column: 1 !important; justify-self: center; }
@@ -418,7 +421,8 @@
         locale: (window.__fitI18n && window.__fitI18n.defaultLocale) || 'cs-CZ',
         currency: (window.__fitI18n && window.__fitI18n.defaultCurrency) || 'CZK',
         drMaxWomanPromo: false,
-        showTranslationHints: false
+        showTranslationHints: false,
+        showMenuChevrons: true
       };
       const load = () => {
         if (typeof localStorage === 'undefined') return {};
@@ -449,6 +453,9 @@
         currency: String(initial.currency || defaults.currency),
         drMaxWomanPromo: !!initial.drMaxWomanPromo,
         showTranslationHints: !!initial.showTranslationHints,
+        showMenuChevrons: initial.showMenuChevrons == null
+          ? defaults.showMenuChevrons
+          : !!initial.showMenuChevrons,
         persist() {
           if (typeof localStorage === 'undefined') return;
           const payload = {
@@ -456,7 +463,8 @@
             locale: this.locale,
             currency: this.currency,
             drMaxWomanPromo: !!this.drMaxWomanPromo,
-            showTranslationHints: !!this.showTranslationHints
+            showTranslationHints: !!this.showTranslationHints,
+            showMenuChevrons: !!this.showMenuChevrons
           };
           try {
             localStorage.setItem(this.key, JSON.stringify(payload));
@@ -472,6 +480,7 @@
           if (key === 'currency') normalized = String(value || defaults.currency);
           if (key === 'drMaxWomanPromo') normalized = !!value;
           if (key === 'showTranslationHints') normalized = !!value;
+          if (key === 'showMenuChevrons') normalized = !!value;
           if (this[key] === normalized) return;
           this[key] = normalized;
           this.persist();
@@ -487,7 +496,8 @@
             locale: this.locale,
             currency: this.currency,
             drMaxWomanPromo: !!this.drMaxWomanPromo,
-            showTranslationHints: !!this.showTranslationHints
+            showTranslationHints: !!this.showTranslationHints,
+            showMenuChevrons: !!this.showMenuChevrons
           };
         },
         reset() {
@@ -509,6 +519,7 @@
       emit('currency', cfgStore.currency);
       emit('drMaxWomanPromo', cfgStore.drMaxWomanPromo);
       emit('showTranslationHints', cfgStore.showTranslationHints);
+      emit('showMenuChevrons', cfgStore.showMenuChevrons);
     }
 
     const deliveryPickupRuntime = (() => {
@@ -756,7 +767,7 @@
           if (active) return active;
           return accountInitials(this.fallbackAccount) || '??';
         },
-        showAccountTooltip(message = 'Váš účet', duration = null) {
+        showAccountTooltip(message = 'Dokončete profil a získejte 100 Kč na první nákup!', duration = null) {
           const tip = this.accountTooltip;
           if (!tip) return;
           tip.message = message;
@@ -3743,10 +3754,10 @@ const normalizedPartnerOrders = partnerOrders.map(order => {
         role="status"
         aria-live="polite">
         <div class="relative">
-          <div class="relative rounded-xl border border-base-300/60 bg-base-content text-base-100 px-3 py-2 text-xs font-semibold shadow-lg">
+          <div class="relative rounded-xl border border-base-300/60 bg-base-content text-base-100 pl-3 pr-5 py-2 text-xs font-semibold shadow-lg min-w-[11rem]">
             <span class="pr-6" x-text="$store.auth?.accountTooltip?.message || 'Váš účet'"></span>
             <button type="button"
-                    class="absolute right-1.5 top-1/2 -translate-y-1/2 btn btn-ghost btn-xs btn-circle text-base-100 hover:text-base-100/80"
+                    class="absolute right-1.5 top-3 -translate-y-1/2 btn btn-ghost btn-xs btn-circle text-base-100 hover:text-base-100/80"
                     aria-label="Zavřít tooltip účtu"
                     @click="$store.auth?.hideAccountTooltip()">
               <i class="fa-solid fa-xmark text-xs"></i>
@@ -9160,7 +9171,7 @@ function deliveryPaymentUI() {
                         <div class="border border-dashed border-base-300 rounded-xl p-4 bg-max-green-25 w-full flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                           <div class="space-y-2 flex-1">
                             <div class="space-y-1">
-                              <template x-for="item in checkoutReview.shippingAddress" :key="'order-shipping-' + item.label">
+                            <template x-for="item in checkoutReview.shippingAddress" :key="'order-shipping-' + item.label">
                                 <div class="text-base space-y-0.5" x-data="{ lines: addressLineParts(item.value) }">
                                   <p class="font-medium leading-tight" x-text="lines.firstLine"></p>
                                   <template x-if="lines.remainingText">
@@ -9169,7 +9180,6 @@ function deliveryPaymentUI() {
                                 </div>
                               </template>
                             </div>
-                            <p class="text-sm font-medium whitespace-pre-line" x-text="item.value"></p>
                             <template x-if="order.key === 'partner'">
                               <p class="text-base text-base-content/80">Termín: <span class="font-normal text-amber-700">Budete kontaktováni dodavatelem</span></p>
                             </template>
@@ -9822,6 +9832,23 @@ function deliveryPaymentUI() {
         </div>
       </div>
       <div class="rounded-2xl border border-base-300 bg-white shadow-sm p-6 space-y-4">
+        <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 class="text-lg font-semibold">Šipky v hamburger menu</h2>
+            <p class="text-sm text-base-content/70">
+              Zobrazí pravou šipku u všech položek menu, i když neotevírají další úroveň.
+            </p>
+          </div>
+          <label class="flex items-center gap-3">
+            <input type="checkbox"
+                   class="toggle toggle-primary"
+                   :checked="menuChevronsEnabled"
+                   @change="setMenuChevrons($event.target.checked)">
+            <span class="text-sm font-semibold" x-text="menuChevronsEnabled ? 'Vždy zobrazit' : 'Jen u podnabídek'"></span>
+          </label>
+        </div>
+      </div>
+      <div class="rounded-2xl border border-base-300 bg-white shadow-sm p-6 space-y-4">
         <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div class="max-w-xl">
             <h2 class="text-lg font-semibold">Výchozí jazyk a měna</h2>
@@ -9991,7 +10018,6 @@ function deliveryPaymentUI() {
   <section class="w-auto md:w-11/12 xl:w-10/12 mx-auto px-4 pt-2 md:pt-10 pb-24">
     <header class="flex flex-col gap-2 md:flex-row md:items-center md:justify-between mb-6">
       <div>
-        <p class="text-sm text-base-content/60">Vítejte zpět</p>
         <h1 class="text-3xl font-semibold">Můj účet</h1>
       </div>
       <div class="text-sm text-base-content/70 flex items-center gap-2">
@@ -10000,20 +10026,26 @@ function deliveryPaymentUI() {
       </div>
     </header>
 
-    <div class="grid gap-6 lg:grid-cols-3">
+    <template x-if="!$store.auth?.isAuthenticated">
+      <div class="bg-white border border-base-200 rounded-2xl p-8 text-center space-y-4">
+        <h2 class="text-2xl font-semibold">Přihlaste se ke svému účtu</h2>
+        <p class="text-base text-base-content/70">
+          Historii objednávek, osobní údaje i věrnostní odměny zobrazíme hned po přihlášení.
+        </p>
+        <button type="button"
+                class="btn btn-primary"
+                @click="$store.auth?.handleAccountClick?.()">
+          Otevřít přihlášení
+        </button>
+      </div>
+    </template>
+
+    <template x-if="$store.auth?.isAuthenticated">
+      <div class="grid gap-6 lg:grid-cols-3">
       <!-- Left: Account menu -->
-      <aside class="lg:col-span-1">
+      <aside class="lg:col-span-1 lg:w-4/5">
         <div class="rounded-2xl border border-base-200 bg-base-100 shadow-sm overflow-hidden">
-          <div class="px-5 py-4 border-b border-base-200 flex items-center gap-3">
-            <div class="w-10 h-10 rounded-xl bg-primary/10 text-primary grid place-items-center">
-              <i class="fa-regular fa-user text-lg"></i>
-            </div>
-            <div>
-              <p class="text-xs uppercase tracking-wide text-base-content/60">Můj účet</p>
-              <p class="text-base font-semibold text-base-content/90">Navigace</p>
-            </div>
-          </div>
-          <nav class="divide-y divide-base-200">
+          <nav class="divide-y divide-max-gray-25">
             <template x-if="!accountMenuItems.length">
               <div class="p-4 text-sm text-base-content/60">
                 Načítám menu…
@@ -10021,9 +10053,9 @@ function deliveryPaymentUI() {
             </template>
             <template x-for="item in accountMenuItems" :key="item.name">
               <button type="button"
-                      class="w-full flex items-center gap-3 px-5 py-3 text-left hover:bg-base-200 transition"
+                      class="w-full flex items-center gap-2 px-5 py-3 text-left hover:bg-base-200 transition"
                       @click="goTo(item)">
-                <span class="w-10 h-10 rounded-xl bg-base-200 text-primary grid place-items-center">
+                <span class="w-10 h-10 rounded-xl bg-base-100 text-primary grid place-items-center">
                   <i :class="[item.iconSet || 'fa-regular', `fa-${item.icon || 'circle'}`, 'text-lg']"></i>
                 </span>
                 <span class="text-base font-medium text-base-content/90" x-text="item.name"></span>
@@ -10035,60 +10067,52 @@ function deliveryPaymentUI() {
 
       <!-- Right: Orders + quests -->
       <div class="lg:col-span-2 space-y-6">
-        <div class="rounded-2xl border border-base-200 bg-base-100 shadow-sm p-6 flex flex-col gap-4">
-          <div class="flex items-center justify-between gap-3">
-            <div>
-              <p class="text-xs uppercase tracking-wide text-base-content/60">Vaše objednávky</p>
-              <h2 class="text-xl font-semibold">Zatím nemáte žádné objednávky</h2>
+
+        <div class="rounded-2xl border border-base-200 bg-base-100 shadow-sm p-12 space-y-6">
+          <div class="flex items-center gap-4">
+            <div class="shrink-0 hidden sm:block">
+              <img src="./images/new-icons/discount.webp" alt="Bonus" class="w-20 h-20 object-contain">
             </div>
-            <button type="button" class="btn btn-primary btn-sm" @click="startShopping()">
-              Začít nakupovat
-            </button>
+            <div>
+              <h2 class="text-2xl font-semibold">Dokončete svůj profil a získejte <span class="font-bold text-max-green-500">100 Kč na první nákup</span>.</h2>
+              <p class="text-sm text-base-content/70 mt-1">Slevy, kupóny a další výhody plného členství ve věrnostním programu. Zabere to jen pár minut.</p>
+            </div>
           </div>
-          <p class="text-sm text-base-content/70">
-            Jakmile vytvoříte první objednávku, zobrazíme ji zde v přehledu historie.
-          </p>
-          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            <template x-for="n in 4" :key="n">
-              <div class="rounded-xl border border-base-200 bg-base-100 p-3 text-center">
-                <div class="skeleton h-4 w-14 mx-auto mb-2"></div>
-                <div class="skeleton h-3 w-20 mx-auto"></div>
+
+          <div class="space-y-2 mb-12">
+            <div class="flex items-center justify-between text-sm text-base-content/70 font-medium">
+              <span>Vyplnění profilu</span>
+              <span class="text-xl" x-text="`${progressPercent()} %`"></span>
+            </div>
+            <div class="relative h-5 rounded-full bg-base-200 overflow-hidden"
+                 role="progressbar"
+                 :aria-valuemin="0" :aria-valuemax="100"
+                 :aria-valuenow="progressPercent()">
+              <div class="h-full rounded-full transition-[width] duration-500 progress-fill"
+                   :class="progressPercent() >= 100 ? 'bg-max-green-500' : 'bg-max-green-500 shimmer'"
+                   :style="`width: ${progressPercent()}%`">
               </div>
-            </template>
-          </div>
-        </div>
-
-        <div class="rounded-2xl border border-base-200 bg-base-100 shadow-sm p-6 space-y-4">
-          <div class="flex items-center justify-between gap-3">
-            <div>
-              <p class="text-xs uppercase tracking-wide text-base-content/60">Vylepšete svůj profil</p>
-              <h2 class="text-xl font-semibold">Získejte kupón 100 Kč</h2>
-              <p class="text-sm text-base-content/70">Splňte úkoly níže a odměníme vás slevou na další nákup.</p>
-            </div>
-            <div class="text-right">
-              <div class="text-2xl font-semibold" x-text="`${completedTasks}/${tasks.length}`"></div>
-              <p class="text-xs text-base-content/60">Hotové úkoly</p>
             </div>
           </div>
 
-          <div class="space-y-3">
+          <div class="space-y-4">
             <template x-for="task in tasks" :key="task.id">
-              <div class="flex items-start gap-3 rounded-xl border border-base-200 px-4 py-3"
+              <div class="flex items-start gap-3 rounded-xl border border-base-200 px-6 py-6 shadow-sm"
                    :class="task.status === 'done' ? 'bg-success/5 border-success/40' : 'bg-base-100'">
                 <span class="mt-1">
-                  <i class="fa-solid" :class="task.status === 'done' ? 'fa-circle-check text-success' : 'fa-circle text-base-300'"></i>
+                  <i class="text-3xl" :class="task.status === 'done' ? 'fa-solid fa-circle-check text-success' : 'fa-light fa-circle text-base-300'"></i>
                 </span>
                 <div class="flex-1 space-y-1">
                   <div class="flex items-center justify-between gap-2">
                     <p class="font-semibold text-base-content/90" x-text="task.title"></p>
                     <span class="badge badge-outline" :class="task.status === 'done' ? 'badge-success' : ''"
-                          x-text="task.status === 'done' ? 'Hotovo' : 'Čeká'"></span>
+                          x-text="task.status === 'done' ? 'Hotovo' : '+ 5%'"></span>
                   </div>
                   <p class="text-sm text-base-content/70" x-text="task.description"></p>
-                  <div class="flex flex-wrap gap-2">
+                  <div class="flex flex-wrap gap-2 mt-2" x-show="task.status !== 'done'">
                     <template x-for="action in task.actions" :key="action.label">
                       <button type="button"
-                              class="btn btn-xs"
+                              class="btn btn-md btn-secondary"
                               :class="action.variant === 'ghost' ? 'btn-ghost' : (action.variant === 'secondary' ? 'btn-outline' : 'btn-primary')"
                               @click="handleTask(action)">
                         <span x-text="action.label"></span>
@@ -10100,8 +10124,22 @@ function deliveryPaymentUI() {
             </template>
           </div>
         </div>
+
+        <div class="rounded-2xl border border-base-200 bg-base-100 shadow-sm p-12 flex flex-col gap-4">
+          <div class="flex items-center justify-between gap-3">
+            <div>
+              <h2 class="text-xl font-semibold">Historie objednávek</h2>
+            </div>
+
+          </div>
+          <p class="text-sm text-base-content/70 rounded-xl border border-base-200 bg-base-100 p-3 text-center h-24 flex items-center justify-center">
+            Zde se objeví vyřízené objednávky a faktury. Právě doručovanou objednávku můžete sledovat <a href="#/active-order" class="underline text-max-blue-500 ml-1">zde</a>
+          </p>
+        </div>
+
       </div>
     </div>
+    </template>
   </section>
 </section>
 
@@ -14043,6 +14081,9 @@ addressAutocomplete(fieldKey) {
     open: false,
     highlighted: -1,
     isCommitted: false,
+    get addressPrefilledFromAccount() {
+      return !!store.addressPrefilledFromAccount;
+    },
     init() {
       store.loadAddressSuggestions().then(() => {
         this.syncFromValue(store.contactFormValues[this.fieldKey]);
@@ -14931,7 +14972,7 @@ loadCheckoutReviewFromStorage() {
     tasks: [],
     init() {
       this.loadMenuItems();
-      this.initTasks();
+      this.loadTasks();
     },
     loadMenuItems() {
       const menuStore = Alpine.store('menu');
@@ -14958,43 +14999,28 @@ loadCheckoutReviewFromStorage() {
         Promise.resolve(menuStore.load?.()).then(assign).catch(() => this.accountMenuItems = fallback);
       }
     },
-    initTasks() {
-      this.tasks = [
-        {
-          id: 'verify-email',
-          title: 'Ověřte e-mailovou adresu',
-          description: 'Zadejte kód, který jsme vám poslali po registraci. Platí 30 dní.',
-          status: 'pending',
-          actions: [{ label: 'Zadat kód', action: 'openVerification', variant: 'primary' }]
-        },
-        {
-          id: 'loyalty',
-          title: 'Staňte se členem věrnostního programu',
-          description: 'Vyplňte datum narození, pohlaví a potvrďte podmínky. Získáte lepší ceny a dárky.',
-          status: 'pending',
-          actions: [
-            { label: 'Chci být členem', action: 'openLoyalty', variant: 'primary' },
-            { label: 'Podmínky programu', action: 'openLoyaltyTerms', variant: 'ghost' }
-          ]
-        },
-        {
-          id: 'pharmacy',
-          title: 'Uložte svou oblíbenou lékárnu',
-          description: 'Zobrazíme dostupnost, rezervace a Rx rychleji na vaší pobočce.',
-          status: 'pending',
-          actions: [{ label: 'Vybrat lékárnu', action: 'pickPharmacy', variant: 'secondary' }]
-        },
-        {
-          id: 'favorites',
-          title: 'Přidejte produkt do oblíbených',
-          description: 'Budeme hlídat dostupnost, slevy a rychlé objednávky.',
-          status: 'pending',
-          actions: [{ label: 'Najít produkt', action: 'goFavorites', variant: 'secondary' }]
+    async loadTasks() {
+      try {
+        const res = await fetch('data/quests.json', { cache: 'no-store' });
+        const data = await res.json();
+        if (Array.isArray(data)) {
+          this.tasks = data;
+          return;
         }
-      ];
+      } catch (err) {
+        console.warn('Failed to load quests.json', err);
+      }
+      this.tasks = [];
     },
     get completedTasks() {
       return this.tasks.filter(t => t.status === 'done').length;
+    },
+    progressPercent() {
+      const base = 80;
+      const perTask = 5;
+      const completed = Math.max(0, this.completedTasks);
+      const pct = base + completed * perTask;
+      return Math.max(0, Math.min(100, Math.round(pct)));
     },
     goTo(item) {
       const route = (item && item.route) ? String(item.route) : '';
@@ -15042,6 +15068,8 @@ loadCheckoutReviewFromStorage() {
     viewKey: 0,        // bump to retrigger pane animation
     loading: false,
     error: null,
+    chevronsAlwaysOn: true,
+    _chevronListener: null,
 
     _currentLocale: null,
     async load(url = 'data/menus.json') {
@@ -15067,6 +15095,27 @@ loadCheckoutReviewFromStorage() {
     refreshForLocale() {
       this.menus = [];
       this.load();
+    },
+    setupChevronConfig() {
+      this.applyChevronConfig();
+      if (this._chevronListener) {
+        window.removeEventListener('fit:config-change', this._chevronListener);
+      }
+      this._chevronListener = (event) => {
+        if (!event || event.detail?.key !== 'showMenuChevrons') return;
+        this.applyChevronConfig(event.detail.value);
+      };
+      window.addEventListener('fit:config-change', this._chevronListener);
+    },
+    applyChevronConfig(value) {
+      let raw = value;
+      if (raw == null) {
+        const cfg = Alpine.store('appConfig');
+        raw = cfg?.get ? cfg.get('showMenuChevrons') : cfg?.showMenuChevrons;
+      }
+      if (raw == null) raw = true;
+      const normalized = !!raw;
+      this.chevronsAlwaysOn = normalized;
     },
 
     // Accepts either my camelCase schema or your snake_case + single-string icon
@@ -15157,11 +15206,49 @@ loadCheckoutReviewFromStorage() {
         this.viewKey++;
       }
     },
+    shouldShowChevron(item) {
+      if (this.chevronsAlwaysOn) return true;
+      return item?.linkMenuId != null;
+    },
 
     // click handlers
+    triggerAction(item) {
+      const raw = item?.action;
+      const action = typeof raw === 'string' ? raw.trim().toLowerCase() : '';
+      if (!action) return false;
+
+      if (['account', 'auth', 'auth-modal', 'open-auth', 'login'].includes(action)) {
+        const authStore = Alpine.store('auth');
+        // close menu before showing modal / navigating
+        this.close();
+        if (authStore?.handleAccountClick) {
+          requestAnimationFrame(() => authStore.handleAccountClick());
+        }
+        return true;
+      }
+
+      if (['contact', 'contacts', 'support', 'phone'].includes(action)) {
+        const contactsStore = Alpine.store('contacts');
+        if (!contactsStore) return false;
+        this.close();
+        const open = () => contactsStore.openModal?.();
+        const ensure = contactsStore.ensureLoaded?.();
+        if (ensure && typeof ensure.then === 'function') {
+          ensure.finally(() => requestAnimationFrame(open));
+        } else {
+          requestAnimationFrame(open);
+        }
+        return true;
+      }
+
+      return false;
+    },
     onItemClick(item) {
       if (item.linkMenuId != null) {
         this.goToMenu(item.linkMenuId);
+        return;
+      }
+      if (this.triggerAction(item)) {
         return;
       }
       if (item.route) {
@@ -15172,6 +15259,8 @@ loadCheckoutReviewFromStorage() {
       // no link/route: no-op
     }
   }),
+
+  Alpine.store('menu')?.setupChevronConfig?.();
   
   Alpine.data('menuPortal', () => ({
     product: null,
@@ -16450,6 +16539,21 @@ link(name, params = {}) {
           window.dispatchEvent(new CustomEvent('fit:config-change', { detail: { key: 'showTranslationHints', value: !!value } }));
         }
       },
+      get menuChevronsEnabled() {
+        const raw = this.store?.get ? this.store.get('showMenuChevrons') : this.store?.showMenuChevrons;
+        return raw == null ? true : !!raw;
+      },
+      setMenuChevrons(value) {
+        if (!this.store) return;
+        const normalized = !!value;
+        if (typeof this.store.set === 'function') {
+          this.store.set('showMenuChevrons', normalized);
+        } else {
+          this.store.showMenuChevrons = normalized;
+          this.store.persist?.();
+          window.dispatchEvent(new CustomEvent('fit:config-change', { detail: { key: 'showMenuChevrons', value: normalized } }));
+        }
+      },
       get localeCode() {
         return this.localeStore?.locale || this.defaultLocale;
       },
@@ -17150,7 +17254,7 @@ link(name, params = {}) {
                     <div x-show="it.description" class="text-xs opacity-70 mt-0.5" x-text="it.description"></div>
                   </div>
   
-                  <i x-show="it.linkMenuId" class="fa-solid fa-chevron-right text-base-content/40 self-center"></i>
+                  <i x-show="$store.menu.shouldShowChevron(it)" class="fa-solid fa-chevron-right text-base-content/40 self-center"></i>
                 </button>
               </template>
             </div>
@@ -17233,7 +17337,7 @@ link(name, params = {}) {
                             <div x-show="it.description" class="text-xs opacity-70 mt-0.5" x-text="it.description"></div>
                           </div>
   
-                          <i x-show="it.linkMenuId" class="fa-regular fa-chevron-right text-base-content/40 self-center"></i>
+                          <i x-show="$store.menu.shouldShowChevron(it)" class="fa-regular fa-chevron-right text-base-content/40 self-center"></i>
                         </button>
                       </template>
                     </div>
@@ -17986,6 +18090,7 @@ function topNav() {
         label,
         linkMenuId: raw?.linkMenuId ?? null,
         route: raw?.route ?? '',
+        action: raw?.action ?? null,
         key,
         isDrawer,
         translationKey: raw?._i18nKey || null
@@ -18001,6 +18106,10 @@ function topNav() {
       if (!item) return;
       if (item.linkMenuId != null) {
         Alpine.store('menu').openAt(item.linkMenuId);
+        return;
+      }
+      const menuStore = Alpine.store('menu');
+      if (menuStore?.triggerAction && menuStore.triggerAction(item)) {
         return;
       }
       if (item.route) {
@@ -18093,7 +18202,8 @@ function pageFooter() {
               key: `${menu.id}-item-${sIdx}-${iIdx}`,
               label: String(it.name || '').trim(),
               route: it.route || null,
-              linkMenuId: it.linkMenuId ?? null
+              linkMenuId: it.linkMenuId ?? null,
+              action: it.action ?? null
             }))
           })).filter(sec => sec.items.length);
 
@@ -18117,6 +18227,10 @@ function pageFooter() {
     handleItemClick(item) {
       if (item.linkMenuId != null) {
         Alpine.store('menu').openAt(item.linkMenuId);
+        return;
+      }
+      const menuStore = Alpine.store('menu');
+      if (menuStore?.triggerAction && menuStore.triggerAction(item)) {
         return;
       }
       if (item.route) {

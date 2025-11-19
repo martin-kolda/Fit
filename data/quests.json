@@ -1,0 +1,39 @@
+[
+  {
+    "id": "verify-email",
+    "title": "1. Ověřte e-mailovou adresu",
+    "description": "Zadejte kód, který jsme vám poslali při registraci. Platí 30 dní.",
+    "status": "pending",
+    "actions": [
+      { "label": "Opište kód", "action": "openVerification", "variant": "primary" }
+    ]
+  },
+  {
+    "id": "loyalty",
+    "title": "2. Řekněte nám o sobě víc",
+    "description": "Získáte dárky k narozeninám, lepší ceny u vybraných produktů i vlastní kupóny ve věrnostním programu.",
+    "status": "pending",
+    "actions": [
+      { "label": "Doplnit profil", "action": "openLoyalty", "variant": "primary" },
+      { "label": "Ochrana osobních údajů", "action": "openLoyaltyTerms", "variant": "ghost" }
+    ]
+  },
+  {
+    "id": "pharmacy",
+    "title": "3. Uložte si svou lékárnu",
+    "description": "Zobrazíme Vám skladovou dostupnost, umožníme rychlé rezervace i vyřízení eReceptu online.",
+    "status": "pending",
+    "actions": [
+      { "label": "Vybrat lékárnu", "action": "pickPharmacy", "variant": "primary" }
+    ]
+  },
+  {
+    "id": "favorites",
+    "title": "4. Přidejte produkt do oblíbených",
+    "description": "Nakoupíte rychleji a neunikne Vám žádná sleva.",
+    "status": "pending",
+    "actions": [
+      { "label": "Najít produkt", "action": "goFavorites", "variant": "primary" }
+    ]
+  }
+]

@@ -39,8 +39,7 @@
           "items": [
             { "name": "O dopravě, platbě, reklamaci", "iconSet": "fa-regular", "icon": "box-isometric-tape", "linkMenuId": 7 },
             { "name": "Média", "iconSet": "fa-regular", "icon": "share-nodes", "linkMenuId": 5 },
-            { "name": "Česko, čeština", "iconSet": "custom", "icon": "empty", "linkMenuId": 6 },
-            { "name": "Konfigurace", "iconSet": "fa-regular", "icon": "sliders", "route": "config" }
+            { "name": "Česko, čeština", "iconSet": "custom", "icon": "empty", "linkMenuId": 6 }
           ]
         }
       ]
@@ -189,9 +188,9 @@
         {
           "name": "Kontaktujte nás",
           "items": [
-            { "name": "Zákaznická linka", "iconSet": "fa-regular", "icon": "phone" },
-            { "name": "Dotazy na stav objednávky", "iconSet": "fa-regular", "icon": "boxes" },
-            { "name": "E-mail", "iconSet": "fa-regular", "icon": "envelope" }
+            { "name": "Zákaznická linka", "iconSet": "fa-regular", "icon": "phone", "action": "contact" },
+            { "name": "Dotazy na stav objednávky", "iconSet": "fa-regular", "icon": "boxes", "action": "contact" },
+            { "name": "E-mail", "iconSet": "fa-regular", "icon": "envelope", "action": "contact" }
           ]
         },
         {
@@ -204,7 +203,7 @@
         {
           "name": "Pro uchazeče",
           "items": [
-            { "name": "Kariéra a volná místa", "iconSet": "fa-regular", "icon": "handshake" }
+            { "name": "Kariéra a volná místa", "iconSet": "fa-regular", "icon": "handshake", "action": "contact" }
           ]
         }
       ]
@@ -268,7 +267,7 @@
             { "name": "Možnosti dopravy", "iconSet": "fa-regular", "icon": "boxes-packing" },
             { "name": "Reklamace nebo vrácení", "iconSet": "fa-regular", "icon": "arrow-left-from-line" },
             { "name": "Výdejní místa e-shopu", "iconSet": "fa-regular", "icon": "map-location" },
-            { "name": "Sledování objednávky", "iconSet": "fa-regular", "icon": "boxes" }
+            { "name": "Sledování objednávky", "iconSet": "fa-regular", "icon": "boxes", "route": "active-order" }
           ]
         },
         {
@@ -342,7 +341,7 @@
             { "name": "Benefity věrnostního programu", "iconSet": "fa-regular", "icon": "tags" },
             { "name": "Doprava zdarma", "iconSet": "fa-regular", "icon": "truck" },
             { "name": "Kolik ušetříte", "iconSet": "fa-regular", "icon": "piggy-bank" },
-            { "name": "Registrace / Přihlášení", "iconSet": "fa-regular", "icon": "key" }
+            { "name": "Registrace / Přihlášení", "iconSet": "fa-regular", "icon": "key", "action": "account" }
           ]
         }
       ]

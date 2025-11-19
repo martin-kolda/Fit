@@ -312,7 +312,8 @@
           {
             "name": "Customer service line",
             "iconSet": "fa-regular",
-            "icon": "phone"
+            "icon": "phone",
+            "action": "contact"
           },
           {
             "name": "Order status questions",
@@ -632,7 +633,8 @@
           {
             "name": "Register / Sign in",
             "iconSet": "fa-regular",
-            "icon": "key"
+            "icon": "key",
+            "action": "account"
           }
         ]
       }
