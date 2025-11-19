@@ -1,0 +1,193 @@
+[
+  {
+    "id": 37,
+    "name": "Celaskon 250 mg 100 tablet",
+    "price": 119,
+    "discounted_price": 119,
+    "image": "./images/celaskon-250-100.webp",
+    "description": "Vitamin C tablety (250 mg) pro prevenci a léčbu onemocnění spojených s nedostatkem vitaminu C. Vitamin C podporuje tvorbu kostí, zubů a pojivové tkáně, zvyšuje vstřebávání železa a přispívá k normální funkci imunitního systému.",
+    "category": "Vitamíny",
+    "stock": "Skladem",
+    "badges": [
+      "Super cena"
+    ],
+    "benefitPayment": false,
+    "consumers": [
+      "Dospělí",
+      "Děti"
+    ],
+    "form": "Tablety, pastilky, tobolky"
+  },
+  {
+    "id": 39,
+    "name": "Celaskon Červený pomeranč 500 mg 30 šumivých tablet",
+    "price": 179,
+    "discounted_price": 179,
+    "image": "./images/celaskon-red-500.webp",
+    "description": "Šumivé tablety s 500 mg vitaminu C s příchutí červeného pomeranče. Posilují imunitu během chřipky a nachlazení, podporují tvorbu kolagenu, funkci kostí, zubů a vstřebávání železa. Pro dospělé a děti od 3 let; 1 tableta denně rozpuštěná ve vodě.",
+    "category": "Vitamíny",
+    "stock": "Skladem",
+    "badges": [
+      "Super cena",
+      "KUPON"
+    ],
+    "benefitPayment": false,
+    "consumers": [
+      "Dospělí",
+      "Děti 3+"
+    ],
+    "form": "Tablety, pastilky, tobolky"
+  },
+  {
+    "id": 41,
+    "name": "Celaskon Long Effect 500 mg 60 tobolek",
+    "price": 275,
+    "discounted_price": 275,
+    "image": "./images/celaskon-long-60.webp",
+    "description": "Kapsle s postupným uvolňováním vitaminu C po dobu 8–12 hodin pro podporu imunity. Používají se k prevenci i léčbě nedostatku vitaminu C, zejména v období chřipky a nachlazení. Dospělí a děti od 3 let užívají 1 kapsli denně, maximálně 4 kapsle denně po doporučení lékaře.",
+    "category": "Vitamíny",
+    "stock": "Skladem",
+    "badges": [],
+    "benefitPayment": false,
+    "consumers": [
+      "Dospělí",
+      "Děti 3+"
+    ],
+    "form": "Tablety, pastilky, tobolky"
+  },
+  {
+    "id": 44,
+    "name": "Celaskon Long Effect 500 mg 30 tobolek",
+    "price": 185,
+    "discounted_price": 185,
+    "image": "./images/celaskon-long-30.webp",
+    "description": "Tobolky s vitaminem C, který se uvolňuje postupně 8–12 hodin. Podporují imunitu a používají se k prevenci a léčbě nedostatku vitaminu C. Pro dospělé a děti od 3 let; doporučené dávkování 1 tobolka denně.",
+    "category": "Vitamíny",
+    "stock": "Skladem",
+    "badges": [],
+    "benefitPayment": false,
+    "consumers": [
+      "Dospělí",
+      "Děti 3+"
+    ],
+    "form": "Tablety, pastilky, tobolky"
+  },
+  {
+    "id": 40,
+    "name": "Multi-sanostol sirup 300 g",
+    "price": 239,
+    "discounted_price": 239,
+    "image": "./images/multisanostol-300.webp",
+    "description": "Multivitaminový sirup s devíti esenciálními vitaminy a vápníkem. Doplní vitaminy při fyzické či psychické zátěži, nechuti k jídlu, poruchách růstu a rekonvalescenci. Pro děti od 1 roku, dospívající i dospělé; dávkování 5–10 ml 2× denně.",
+    "category": "Vitamíny",
+    "stock": "Skladem",
+    "badges": [
+      "Super cena",
+      "KUPON"
+    ],
+    "benefitPayment": false,
+    "consumers": [
+      "Děti",
+      "Dospělí"
+    ],
+    "form": "Sirup"
+  },
+  {
+    "id": 46,
+    "name": "Additiva Vitamin C Blutorange 20 šumivých tablet",
+    "price": 145,
+    "discounted_price": 109,
+    "image": "./images/additiva-blutorange.webp",
+    "description": "Šumivé tablety s vysokým obsahem vitaminu C a příchutí krvavého pomeranče. Doplňují nedostatek vitaminu C během období zvýšené potřeby a podporují imunitu. Tabletu rozpusťte ve sklenici vody a vypijte.",
+    "category": "Vitamíny",
+    "stock": "Skladem",
+    "badges": [
+      "Sleva 24%"
+    ],
+    "benefitPayment": false,
+    "consumers": [
+      "Dospělí",
+      "Děti"
+    ],
+    "form": "Tablety, pastilky, tobolky"
+  },
+  {
+    "id": 47,
+    "name": "Dr. Max Vitamin D3 Kids 30 kapslí",
+    "price": 99,
+    "image": "./images/Dr.Max_Vitamin_D3_Kids.webp",
+    "description": "Kapsle s obsahem vitaminu D3, který je potřebný pro normální růst a vývoj kostí Vašich dětí a pro zdravou imunitu.",
+    "category": "Vitamíny",
+    "stock": "Skladem",
+    "badges": ["Do 15 minut"],
+    "benefitPayment": true,
+    "consumers": [
+      "Pro větší děti",
+      "Pro děti",
+      "Děti",
+      "Děti 12+",
+      "Děti 3+"
+    ],
+    "form": "Tablety, pastilky, tobolky"
+  },
+  {
+    "id": 48,
+    "name": "Dr. Max Vitamin D Baby 10 ml",
+    "price": 199,
+    "image": "./images/Dr.Max_Vitamin_D_Baby.webp",
+    "description": "Přípravek Dr. Max Vitamin D Baby obsahuje vitamin D, který napomáhá zdravé imunitě Vašich dětí a příznivě ovlivňuje růst a vývoj kostí a zubů. Pro děti od 14 dní věku i dospělé.",
+    "category": "Vitamíny",
+    "stock": "Skladem",
+    "badges": ["Do 15 minut"],
+    "benefitPayment": true,
+    "consumers": [
+      "Pro větší děti",
+      "Pro děti",
+      "Děti",
+      "Děti 12+",
+      "Děti 3+",
+      "Dospělí"
+    ],
+    "form": "Kapky"
+  },
+  {
+    "id": 49,
+    "name": "Dr. Max Vitamin D 2000 IU 20 šumivých tablet",
+    "price": 99,
+    "image": "./images/Dr.Max_Vitamin_D_2000_IU.webp",
+    "description": "Dr. Max Vitamin D 2000 IU obsahuje enkapsulovaný vitamin D ve formě šumivých tablet s příchutí citrónů a limetek pro správné fungování imunitního systému a zdravé kosti.",
+    "category": "Vitamíny",
+    "stock": "Skladem",
+    "badges": ["Do 15 minut"],
+    "benefitPayment": true,
+    "consumers": [
+      "Pro větší děti",
+      "Pro děti",
+      "Děti",
+      "Děti 12+",
+      "Děti 3+",
+      "Dospělí"
+    ],
+    "form": "Tablety, pastilky, tobolky"
+  },
+  {
+    "id": 50,
+    "name": "Luvené FlexiColl Kloubní výživa FlexiColl citron",
+    "price": 699,
+    "image": "./images/luvene_flexicoll.webp",
+    "description": "Kloubní výživa pro podporu kloubů, vazů a šlach ve svěží citronové příchuti. Doplněk stravy obsahuje celkem 12 účinných látek.",
+    "category": "Vitamíny",
+    "stock": "Skladem u dodavatele",
+    "badges": [],
+    "benefitPayment": true,
+    "consumers": [
+      "Pro větší děti",
+      "Pro děti",
+      "Děti",
+      "Děti 12+",
+      "Děti 3+",
+      "Dospělí"
+    ],
+    "form": "Tablety, pastilky, tobolky"
+  }
+]

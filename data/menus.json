@@ -55,9 +55,9 @@
           "name": "Kategorie",
           "items": [
             { "name": "Domácnost a drogerie", "iconSet": "fa-regular", "icon": "jug-bottle" },
-            { "name": "Doplňky stravy", "iconSet": "fa-regular", "icon": "capsules" },
+            { "name": "Doplňky stravy", "iconSet": "fa-regular", "icon": "capsules", "linkMenuId": 12 },
             { "name": "Krása a péče", "iconSet": "fa-regular", "icon": "mortar-pestle" },
-            { "name": "Matka a dítě", "iconSet": "fa-regular", "icon": "person-breastfeeding" },
+            { "name": "Matka a dítě", "iconSet": "fa-regular", "icon": "person-breastfeeding", "linkMenuId": 11  },
             { "name": "Pro sportovce", "iconSet": "fa-regular", "icon": "dumbbell" },
             { "name": "Pro zvířata", "iconSet": "fa-regular", "icon": "dog-leashed" },
             { "name": "Zdravá výživa", "iconSet": "fa-regular", "icon": "pot-food" },
@@ -120,7 +120,66 @@
         }
       ]
     },
-  
+  {
+    "id": 11,
+    "parentId": 2,
+    "name": "Matka a dítě",
+    "banner": true,
+    "sections": [
+      {
+        "name": null,
+        "items": [
+          { "name": "Procházet vše", "route": "products/detska-vyziva" },
+          { "name": "Dětská výživa", "route": "products/detska-vyziva" },
+          { "name": "Pleny a přebalování" },
+          { "name": "Kosmetika a hygiena" },
+          { "name": "Maminka" },
+          { "name": "Kojenecké potřeby" },
+          { "name": "Péče o suchou a atopickou pokožku" },
+          { "name": "Chůvy a monitory dechu" },
+          { "name": "Dětské potřeby a vybavení" },
+          { "name": "Šetrné praní a čištění" },
+          { "name": "Hračky a doplňky pro děti" },
+          { "name": "Autosedačky" },
+          { "name": "Dětské kočárky" }
+        ]
+      }
+    ]
+  },
+
+  {
+    "id": 12,
+    "parentId": 2,
+    "name": "Doplňky stravy",
+    "banner": true,
+    "sections": [
+      {
+        "name": null,
+        "items": [
+          { "name": "Procházet vše", "route": "products/vitaminy-a-imunita" },
+          { "name": "Vitamíny", "route": "products/vitaminy-a-imunita" },
+          { "name": "Minerály" },
+          { "name": "Klouby, kosti, svaly" },
+          { "name": "Dle obsažené látky" },
+          { "name": "Srdce, oběhový systém" },
+          { "name": "Imunitní systém" },
+          { "name": "Zažívání, trávení" },
+          { "name": "Vlasy, kůže, nehty" },
+          { "name": "Bylinné přípravky" },
+          { "name": "Oči" },
+          { "name": "Prostata a potence" },
+          { "name": "Únava a vyčerpání" },
+          { "name": "Štíhlá linie, hubnutí" },
+          { "name": "Doplňky stravy pro diabetiky, sladidla" },
+          { "name": "Vitamíny pro děti", "route": "products/detska-vyziva"  },
+          { "name": "Spánek, nervy, stres" },
+          { "name": "Močové cesty" },
+          { "name": "Paměť" },
+          { "name": "Doplňky stravy pro ženy" }
+        ]
+      }
+    ]
+  },  
     {
       "id": 4,
       "parentId": 1,

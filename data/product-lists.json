@@ -74,6 +74,21 @@
     "descriptionHeading": "Kašel a rýma",
     "description": "Léky a spreje, které ulevují od kašle, ucpaného nosu a dalších příznaků nachlazení během chladných dní.",
     "search": { "include": true, "label": "Kašel a rýma", "preload": true }
+  },
+    {
+    "id": 304,
+    "slug": "detska-vyziva",
+    "aliases": [],
+    "dataSource": "data/products-detska-vyziva.json",
+    "title": "Dětská výživa",
+    "breadcrumbs": [
+      { "label": "Domů", "route": "home" },
+      { "label": "Dětská výživa" }
+    ],
+    "categoryHeading": "Kategorie",
+    "descriptionHeading": "Dětská výživa",
+    "description": "Léky a spreje, které ulevují od kašle, ucpaného nosu a dalších příznaků nachlazení během chladných dní.",
+    "search": { "include": true, "label": "Kašel a rýma", "preload": true }
   }
 
 ]
