@@ -8850,7 +8850,12 @@ function deliveryPaymentUI() {
                     <template x-for="item in homeAddressSummary()" :key="'summary-' + item.label">
                       <div>
                         <dt class="text-sm text-base-content/60" x-text="item.label"></dt>
-                        <dd class="text-sm font-medium whitespace-pre-line" x-text="item.value"></dd>
+                        <dd class="text-sm space-y-0.5" x-data="{ lines: addressLineParts(item.value) }">
+                          <p class="font-medium leading-tight" x-text="lines.firstLine"></p>
+                          <template x-if="lines.remainingText">
+                            <p class="font-normal whitespace-pre-line leading-tight" x-text="lines.remainingText"></p>
+                          </template>
+                        </dd>
                       </div>
                     </template>
                   </dl>
@@ -9154,23 +9159,19 @@ function deliveryPaymentUI() {
                       <template x-if="!order.delivery?.pickup && checkoutReview?.shippingAddress?.length">
                         <div class="border border-dashed border-base-300 rounded-xl p-4 bg-max-green-25 w-full flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                           <div class="space-y-2 flex-1">
-
                             <div class="space-y-1">
                               <template x-for="item in checkoutReview.shippingAddress" :key="'order-shipping-' + item.label">
-                                <p class="text-base font-medium whitespace-pre-line" x-text="item.value"></p>
+                                <div class="text-base space-y-0.5" x-data="{ lines: addressLineParts(item.value) }">
+                                  <p class="font-medium leading-tight" x-text="lines.firstLine"></p>
+                                  <template x-if="lines.remainingText">
+                                    <p class="font-normal whitespace-pre-line leading-tight text-base-content/70" x-text="lines.remainingText"></p>
+                                  </template>
+                                </div>
                               </template>
                             </div>
-                            <div class="text-sm space-y-0.5" x-data="(() => {
-                                  const lines = String(item.value || '').split('\n');
-                                  return { firstLine: lines.shift() || '', remainingLines: lines.join('\n') };
-                                })()">
-                              <p class="font-medium leading-tight" x-text="firstLine"></p>
-                              <template x-if="remainingLines">
-                                <p class="font-normal whitespace-pre-line leading-tight" x-text="remainingLines"></p>
-                              </template>
-                            </div>
+                            <p class="text-sm font-medium whitespace-pre-line" x-text="item.value"></p>
                             <template x-if="order.key === 'partner'">
-                              <p class="text-base text-base-content/80">Termín: <span class="font-medium">Budete kontaktováni dodavatelem</span></p>
+                              <p class="text-base text-base-content/80">Termín: <span class="font-normal text-amber-700">Budete kontaktováni dodavatelem</span></p>
                             </template>
                             <template x-if="order.key !== 'partner'">
                               <div class="text-base text-base-content/80" x-data="deliveryPickupTimes('short')" x-cloak x-show="!order.delivery?.timeslot">
@@ -9198,7 +9199,12 @@ function deliveryPaymentUI() {
                       <div class="text-sm text-base-content/60 uppercase tracking-wide">Fakturační adresa</div>
                       <div class="space-y-1">
                         <template x-for="item in checkoutReview.billingAddress" :key="'order-billing-' + item.label">
-                          <p class="text-sm font-medium whitespace-pre-line" x-text="item.value"></p>
+                          <div class="text-sm space-y-0.5" x-data="{ lines: addressLineParts(item.value) }">
+                            <p class="font-medium leading-tight" x-text="lines.firstLine"></p>
+                            <template x-if="lines.remainingText">
+                              <p class="font-normal whitespace-pre-line leading-tight" x-text="lines.remainingText"></p>
+                            </template>
+                          </div>
                         </template>
                       </div>
                     </div>
@@ -9233,10 +9239,26 @@ function deliveryPaymentUI() {
                                 </template>
                               </td>
                             </tr>
-                            <template x-if="(order.totals?.discount || 0) > 0">
+                            <template x-if="(order.totals?.productDiscount || 0) > 0">
                               <tr class="text-success">
-                                <td class="text-base font-normal">Slevy</td>
-                                <td class="text-right font-medium" x-text="'− ' + formatCZK(order.totals?.discount || 0)"></td>
+                                <td class="text-base font-normal">Slevy z produktů</td>
+                                <td class="text-right font-medium" x-text="'− ' + formatCZK(order.totals?.productDiscount || 0)"></td>
+                              </tr>
+                            </template>
+                            <template x-for="coupon in orderCouponEntries(order)" :key="'review-coupon-' + coupon.code">
+                              <tr class="text-success">
+                                <td class="text-base font-normal">
+                                  Slevový kupón <span class="font-mono" x-text="coupon.code"></span>
+                                </td>
+                                <td class="text-right font-medium" x-text="'− ' + formatCZK(coupon.amount || 0)"></td>
+                              </tr>
+                            </template>
+                            <template x-for="card in orderGiftCardEntries(order)" :key="'review-gift-' + card.code">
+                              <tr class="text-success">
+                                <td class="text-base font-normal">
+                                  Dárková karta <span class="font-mono" x-text="card.code"></span>
+                                </td>
+                                <td class="text-right font-medium" x-text="'− ' + formatCZK(card.amount || 0)"></td>
                               </tr>
                             </template>
                           </tbody>
@@ -9273,7 +9295,12 @@ function deliveryPaymentUI() {
               <template x-for="item in checkoutReview.deliveryDetails" :key="item.label">
                 <div>
                   <dt class="text-sm text-base-content/60" x-text="item.label"></dt>
-                  <dd class="text-sm font-medium whitespace-pre-line" x-text="item.value"></dd>
+                  <dd class="text-sm space-y-0.5" x-data="{ lines: addressLineParts(item.value) }">
+                    <p class="font-medium leading-tight" x-text="lines.firstLine"></p>
+                    <template x-if="lines.remainingText">
+                      <p class="font-normal whitespace-pre-line leading-tight" x-text="lines.remainingText"></p>
+                    </template>
+                  </dd>
                 </div>
               </template>
             </dl>
@@ -9299,87 +9326,97 @@ function deliveryPaymentUI() {
           </article>
         </template>
 
+ 
+        <div class="grid gap-6 lg:grid-cols-2">
+          <article class="border border-base-300 rounded-xl bg-white shadow-sm p-12 space-y-4">
+            <div class="flex items-center justify-between">
+              <h2 class="text-lg font-semibold">Kontaktní údaje</h2>
+              <button class="btn btn-xs btn-link text-secondary" type="button" @click="location.hash='/addresses'">
+                Upravit
+              </button>
+            </div>
+            <template x-if="checkoutReview?.contact?.length">
+              <dl class="grid gap-3">
+                <template x-for="item in checkoutReview.contact" :key="item.label">
+                  <div>
+                    <dt class="text-sm text-base-content/60" x-text="item.label"></dt>
+                    <dd class="font-medium whitespace-pre-line" x-text="item.value"></dd>
+                  </div>
+                </template>
+              </dl>
+            </template>
+            <p class="text-sm text-base-content/70" x-show="!(checkoutReview?.contact?.length)">
+              Žádné kontaktní údaje zatím nejsou vyplněné.
+            </p>
+          </article>
+          <div class="border border-base-300 rounded-xl bg-white shadow-sm p-12 space-y-3">
+            <h2 class="text-lg font-semibold">Souhrn ceny</h2>
+            <dl class="space-y-2 text-base">
+              <div class="flex items-center justify-between">
+                <dt>Mezisoučet</dt>
+                <dd class="font-medium" x-text="formatCZK(checkoutReview?.cart?.totals?.subtotal || 0)"></dd>
+              </div>
+              <template x-if="(checkoutReview?.cart?.totals?.productDiscount || 0) > 0">
+                <div class="flex items-center justify-between text-success">
+                  <dt>Slevy z produktů</dt>
+                  <dd class="font-medium" x-text="'− ' + formatCZK(checkoutReview?.cart?.totals?.productDiscount || 0)"></dd>
+                </div>
+              </template>
+              <template x-for="coupon in checkoutReview?.cart?.coupons || []" :key="'summary-coupon-' + coupon.code">
+                <div class="flex items-center justify-between text-success">
+                  <dt>Slevový kupón <span class="font-mono" x-text="coupon.code"></span></dt>
+                  <dd class="font-medium" x-text="'− ' + formatCZK(coupon.amount || 0)"></dd>
+                </div>
+              </template>
+              <template x-for="card in checkoutReview?.cart?.giftCards || []" :key="'summary-gift-' + card.code">
+                <div class="flex items-center justify-between text-success">
+                  <dt>Dárková karta <span class="font-mono" x-text="card.code"></span></dt>
+                  <dd class="font-medium" x-text="'− ' + formatCZK(card.amount || 0)"></dd>
+                </div>
+              </template>
+              <div class="flex items-center justify-between">
+                <dt>Doprava</dt>
+                <dd class="font-medium"
+                    x-text="deliveryFeeTotal() === 0 ? 'Zdarma' : formatCZK(deliveryFeeTotal())">
+                </dd>
+              </div>
+              <div class="flex items-center justify-between">
+                <dt>Platba</dt>
+                <dd class="font-medium"
+                    x-text="paymentFeeTotal() === 0 ? 'Zdarma' : formatCZK(paymentFeeTotal())">
+                </dd>
+              </div>
+              <hr class="border-base-200">
+              <div class="flex items-center justify-between text-base font-semibold">
+                <dt>Celkem k úhradě</dt>
+                <dd x-text="formatCZK((checkoutReview?.cart?.totals?.toPay || 0) + deliveryFeeTotal() + paymentFeeTotal())"></dd>
+              </div>
+            </dl>
+          </div>
+        </div>
         <div class="border border-base-300 rounded-xl bg-white shadow-sm p-12 space-y-3" x-ref="reviewConsents">
           <h2 class="text-lg font-semibold">Souhlasy</h2>
           <label class="flex items-center gap-3 text-sm text-base-content/80">
-            <input type="checkbox" class="checkbox checkbox-secondary mt-1"
+            <input type="checkbox" class="checkbox checkbox-secondary"
                    x-model="checkoutConsents.terms"
                    @change="reviewValidationErrors = []">
-            <span>Souhlasím s <a href="#" class="link link-primary">obchodními podmínkami</a>.</span>
+            <span class="text-base">Souhlasím s <a href="#" class="link link-primary">obchodními podmínkami</a>.</span>
           </label>
           <label class="flex items-center gap-3 text-sm text-base-content/80">
-            <input type="checkbox" class="checkbox checkbox-secondary mt-1"
+            <input type="checkbox" class="checkbox checkbox-secondary"
                    x-model="checkoutConsents.privacy"
                    @change="reviewValidationErrors = []">
-            <span>Souhlasím se zpracováním osobních údajů dle <a href="#" class="link link-primary">zásad ochrany soukromí</a>.</span>
+            <span class="text-base">Souhlasím se zpracováním osobních údajů dle <a href="#" class="link link-primary">zásad ochrany soukromí</a>.</span>
           </label>
           <label class="flex items-center gap-3 text-sm text-base-content/70">
-            <input type="checkbox" class="checkbox checkbox-secondary mt-1"
+            <input type="checkbox" class="checkbox checkbox-secondary"
                    x-model="checkoutConsents.marketing">
-            <span>Chci dostávat novinky a personalizované nabídky (volitelné).</span>
+            <span class="text-base">Chci dostávat novinky a personalizované nabídky (volitelné).</span>
           </label>
           <template x-if="reviewValidationErrors.length">
             <p class="text-sm text-error" x-text="reviewValidationErrors[0]"></p>
           </template>
-        </div>
-
-
-
-
- 
-        <article class="border border-base-300 rounded-xl bg-white shadow-sm p-12 space-y-4">
-          <div class="flex items-center justify-between">
-            <h2 class="text-xl font-medium">Kontaktní údaje</h2>
-            <button class="btn btn-xs btn-link text-secondary" type="button" @click="location.hash='/addresses'">
-              Upravit
-            </button>
-          </div>
-          <template x-if="checkoutReview?.contact?.length">
-            <dl class="grid gap-3">
-              <template x-for="item in checkoutReview.contact" :key="item.label">
-                <div>
-                  <dt class="text-sm text-base-content/60" x-text="item.label"></dt>
-                  <dd class="font-medium whitespace-pre-line" x-text="item.value"></dd>
-                </div>
-              </template>
-            </dl>
-          </template>
-          <p class="text-sm text-base-content/70" x-show="!(checkoutReview?.contact?.length)">
-            Žádné kontaktní údaje zatím nejsou vyplněné.
-          </p>
-        </article>        
-        <div class="border border-base-300 rounded-xl bg-white shadow-sm p-12 space-y-3">
-          <h2 class="text-lg font-semibold">Souhrn ceny</h2>
-          <dl class="space-y-2 text-sm">
-            <div class="flex items-center justify-between">
-              <dt>Mezisoučet</dt>
-              <dd class="font-medium" x-text="formatCZK(checkoutReview?.cart?.totals?.subtotal || 0)"></dd>
-            </div>
-            <template x-if="(checkoutReview?.cart?.totals?.discounts || 0) > 0">
-              <div class="flex items-center justify-between text-success">
-                <dt>Slevy</dt>
-                <dd class="font-medium" x-text="'− ' + formatCZK(checkoutReview?.cart?.totals?.discounts || 0)"></dd>
-              </div>
-            </template>
-            <div class="flex items-center justify-between">
-              <dt>Doprava</dt>
-              <dd class="font-medium"
-                  x-text="deliveryFeeTotal() === 0 ? 'Zdarma' : formatCZK(deliveryFeeTotal())">
-              </dd>
-            </div>
-            <div class="flex items-center justify-between">
-              <dt>Platba</dt>
-              <dd class="font-medium"
-                  x-text="paymentFeeTotal() === 0 ? 'Zdarma' : formatCZK(paymentFeeTotal())">
-              </dd>
-            </div>
-            <hr class="border-base-200">
-            <div class="flex items-center justify-between text-base font-semibold">
-              <dt>Celkem k úhradě</dt>
-              <dd x-text="formatCZK((checkoutReview?.cart?.totals?.toPay || 0) + deliveryFeeTotal() + paymentFeeTotal())"></dd>
-            </div>
-          </dl>
-        </div>
+        </div>        
 
     </div>
   </section>
@@ -10802,31 +10839,34 @@ this.$nextTick(() => requestAnimationFrame(focusRealInput));
     const subtotalOurs = sum(groups.ours);
     const subtotalPartner = sum(groups.partner);
     const subtotalAll = subtotalOurs + subtotalPartner;
-    const totalDiscount = this.promoDiscount();
-
-    let discountOurs = 0;
-    let discountPartner = 0;
-    if (totalDiscount > 0 && subtotalAll > 0) {
-      discountOurs = Math.round(totalDiscount * (subtotalOurs / subtotalAll));
-      discountPartner = totalDiscount - discountOurs;
-    }
+    const productDiscountOurs = (groups.ours || []).reduce((acc, it) => acc + this.lineDiscount(it), 0);
+    const productDiscountPartner = (groups.partner || []).reduce((acc, it) => acc + this.lineDiscount(it), 0);
+    const promoDiscount = this.promoDiscount();
+    const promoDiscountOurs = Math.min(promoDiscount, subtotalOurs);
+    const promoDiscountPartner = 0;
 
     return {
       ours: {
         items: groups.ours,
         subtotal: subtotalOurs,
-        discount: discountOurs,
-        total: Math.max(0, subtotalOurs - discountOurs)
+        discount: promoDiscountOurs,
+        promoDiscount: promoDiscountOurs,
+        productDiscount: productDiscountOurs,
+        total: Math.max(0, subtotalOurs - promoDiscountOurs)
       },
       partner: {
         items: groups.partner,
         subtotal: subtotalPartner,
-        discount: discountPartner,
-        total: Math.max(0, subtotalPartner - discountPartner)
+        discount: promoDiscountPartner,
+        promoDiscount: promoDiscountPartner,
+        productDiscount: productDiscountPartner,
+        total: Math.max(0, subtotalPartner - promoDiscountPartner)
       },
       subtotal: subtotalAll,
-      discount: totalDiscount,
-      total: Math.max(0, subtotalAll - totalDiscount)
+      discount: promoDiscount,
+      promoDiscount,
+      productDiscount: productDiscountOurs + productDiscountPartner,
+      total: Math.max(0, subtotalAll - promoDiscount)
     };
   },
 
@@ -13723,6 +13763,46 @@ orderDeliverySummary(order, info) {
   }
   return info.delivery || '';
 },
+addressLineParts(value = '') {
+  const lines = String(value ?? '').split('\n');
+  const firstLine = lines.shift() || '';
+  return {
+    firstLine,
+    remainingLines: lines,
+    remainingText: lines.join('\n')
+  };
+},
+couponValueFor(coupon, subtotal = 0) {
+  if (!coupon) return 0;
+  const base = Number(subtotal) || 0;
+  const value = Number(coupon.value) || 0;
+  if (coupon.type === 'percent') {
+    return Math.floor(base * (value / 100));
+  }
+  if (coupon.type === 'amount') {
+    return value;
+  }
+  return 0;
+},
+giftCardValueFor(card) {
+  if (!card) return 0;
+  if (card.type === 'amount') {
+    return Number(card.value) || 0;
+  }
+  return 0;
+},
+orderCouponEntries(order) {
+  if (!order || order.key !== 'ours') return [];
+  return Array.isArray(this.checkoutReview?.cart?.coupons)
+    ? this.checkoutReview.cart.coupons
+    : [];
+},
+orderGiftCardEntries(order) {
+  if (!order || order.key !== 'ours') return [];
+  return Array.isArray(this.checkoutReview?.cart?.giftCards)
+    ? this.checkoutReview.cart.giftCards
+    : [];
+},
 shouldShowCourierDetails() {
   if (this.hasPrimaryPickup()) return false;
   return this.addressFormSections('courier').length > 0;
@@ -14492,7 +14572,12 @@ groupSummary(groupName, saved = null) {
 checkoutCartSummary() {
   const cart = Alpine.store('cart');
   if (!cart) {
-    return { items: [], totals: { subtotal: 0, discounts: 0, toPay: 0 } };
+    return {
+      items: [],
+      totals: { subtotal: 0, productDiscount: 0, couponDiscount: 0, giftCardDiscount: 0, discounts: 0, toPay: 0 },
+      coupons: [],
+      giftCards: []
+    };
   }
   const items = cart.list().map(it => ({
     id: it.id,
@@ -14502,12 +14587,31 @@ checkoutCartSummary() {
     unitPrice: it.price,
     image: it.image
   }));
+  const subtotal = typeof cart.subtotal === 'function' ? cart.subtotal() : 0;
+  const productDiscount = typeof cart.totalDiscountsRaw === 'function' ? cart.totalDiscountsRaw() : 0;
+  const coupons = typeof cart.listCoupons === 'function' ? cart.listCoupons() : (cart.coupons || []);
+  const couponBreakdown = coupons.map(coupon => ({
+    ...coupon,
+    amount: this.couponValueFor(coupon, subtotal)
+  })).filter(entry => entry.amount > 0);
+  const couponDiscount = couponBreakdown.reduce((sum, entry) => sum + (Number(entry.amount) || 0), 0);
+  const giftCards = typeof cart.listGiftCards === 'function' ? cart.listGiftCards() : (cart.giftCards || []);
+  const giftCardBreakdown = giftCards.map(card => ({
+    ...card,
+    amount: this.giftCardValueFor(card)
+  })).filter(entry => entry.amount > 0);
+  const giftCardDiscount = giftCardBreakdown.reduce((sum, entry) => sum + (Number(entry.amount) || 0), 0);
   return {
     items,
+    coupons: couponBreakdown,
+    giftCards: giftCardBreakdown,
     totals: {
-      subtotal: cart.subtotal(),
-      discounts: cart.promoDiscount(),
-      toPay: cart.totalToPay()
+      subtotal,
+      productDiscount,
+      couponDiscount,
+      giftCardDiscount,
+      discounts: typeof cart.promoDiscount === 'function' ? cart.promoDiscount() : couponDiscount + giftCardDiscount,
+      toPay: typeof cart.totalToPay === 'function' ? cart.totalToPay() : Math.max(0, subtotal - (couponDiscount + giftCardDiscount))
     }
   };
 },
@@ -14582,15 +14686,21 @@ buildCheckoutOrders() {
     const rawItems = grouped?.[key]?.items || [];
     const items = rawItems.map(item => {
       const image = item.image || cart?.imgFor?.(item.product) || item.product?.image || '';
+      const qty = Number(item.qty || 1);
+      const unitPrice = Number(item.price || 0);
+      const unitPriceBefore = Number(item.priceBefore ?? item.product?.price ?? unitPrice);
       const linePrice = typeof cart?._linePrice === 'function'
         ? cart._linePrice(item)
-        : Number(item.price || 0) * Number(item.qty || 1);
+        : unitPrice * qty;
+      const lineDiscount = Math.max(0, (unitPriceBefore - unitPrice) * qty);
       return {
         id: item.id,
         name: item.product?.name || item.name || '',
         qty: item.qty,
         price: linePrice,
-        unitPrice: item.price,
+        unitPrice,
+        unitPriceBefore,
+        lineDiscount,
         image
       };
     });
@@ -14610,9 +14720,11 @@ buildCheckoutOrders() {
         ? {
             subtotal: grouped[key].subtotal || 0,
             discount: grouped[key].discount || 0,
+            productDiscount: grouped[key].productDiscount || 0,
+            promoDiscount: grouped[key].promoDiscount || 0,
             total: grouped[key].total || 0
           }
-        : { subtotal: 0, discount: 0, total: 0 }
+        : { subtotal: 0, discount: 0, productDiscount: 0, promoDiscount: 0, total: 0 }
     });
   };
   pushOrder('ours');

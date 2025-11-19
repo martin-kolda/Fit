@@ -247,5 +247,83 @@
       "Dospělí"
     ],
     "form": "Šumivé tablety"
+  },
+{
+    "id": 51,
+    "name": "Zinkorot 25 mg 50 tablet",
+    "price": 229,
+    "image": "./images/zinkorot-25mg.webp",
+    "description": "Přípravek Zinkorot 25 mg obsahuje stopový prvek zinek, který je důležitý pro imunitu a správné fungování biologických procesů. Pro dospělé a dospívající od 12 let.",
+    "category": "Vitamíny, minerály, imunita",
+    "stock": "Skladem",
+    "badges": [],
+    "benefitPayment": false,
+    "consumers": ["Pro dospělé", "Pro dospívající"],
+    "form": "Tablety, pastilky, tobolky"
+  },
+  {
+    "id": 52,
+    "name": "Calcium 500 mg Pharmavit 20 šumivých tablet",
+    "price": 149,
+    "image": "./images/calcium-500mg-pharmavit.webp",
+    "description": "Šumivé tablety s vápníkem, který je potřebný pro zdravé kosti a zuby. Vhodné při zvýšené potřebě vápníku.",
+    "category": "Vitamíny, minerály, imunita",
+    "stock": "Skladem",
+    "badges": [],
+    "benefitPayment": false,
+    "consumers": ["Pro děti od 5 let", "Pro dospělé"],
+    "form": "Šumivé tablety"
+  },
+  {
+    "id": 53,
+    "name": "Calcii carbonici 0,5 tbl MVM por.",
+    "price": 135,
+    "image": "./images/calcii-carbonici-0_5tbl.webp",
+    "description": "Léčivý přípravek s obsahem vápníku pro prevenci a léčbu jeho nedostatku (hypokalcémie).",
+    "category": "Vitamíny, minerály, imunita",
+    "stock": "Skladem",
+    "badges": [],
+    "benefitPayment": false,
+    "consumers": ["Pro dospělé", "Pro děti"],
+    "form": "Tablety, pastilky, tobolky"
+  },
+  {
+    "id": 54,
+    "name": "Caltrate Plus 90 tablet",
+    "price": 699,
+    "image": "./images/caltrate-plus-90-tablet.webp",
+    "description": "Kombinovaný přípravek s vápníkem, vitaminem D a minerály pro podporu kostní hmoty a prevenci jejího úbytku.",
+    "category": "Výživa kloubů a kostí",
+    "stock": "Skladem",
+    "badges": [],
+    "benefitPayment": false,
+    "consumers": ["Pro dospělé"],
+    "form": "Tablety, pastilky, tobolky"
+  },
+  {
+    "id": 55,
+    "name": "Phlogenzym 200 tablet",
+    "price": 2450,
+    "image": "./images/phlogenzym-200-tablet.webp",
+    "description": "Enzymatický přípravek na poúrazové a pooperační otoky a zánětlivé stavy.",
+    "category": "Enzymoterapie",
+    "stock": "Skladem",
+    "badges": [],
+    "benefitPayment": false,
+    "consumers": ["Pro dospělé"],
+    "form": "Tablety, pastilky, tobolky"
+  },
+  {
+    "id": 56,
+    "name": "Vitamin E 200 Zentiva",
+    "price": 185,
+    "image": "./images/vitamin-e-200-zentiva.webp",
+    "description": "Vitamin E s antioxidačním účinkem. Vhodný pro dospělé, dospívající a děti od 3 let.",
+    "category": "Vitamíny, minerály, imunita",
+    "stock": "Skladem",
+    "badges": [],
+    "benefitPayment": false,
+    "consumers": ["Pro děti 3+", "Pro dospívající", "Pro dospělé"],
+    "form": "Tablety, pastilky, tobolky"
   }
 ]
