@@ -1539,8 +1539,8 @@
             get filteredOptions() {
               const opts = Array.isArray(store.registration.addressOptions) ? store.registration.addressOptions : [];
               const q = this.query.trim().toLowerCase();
-              if (!q) return opts.slice(0, 8);
-              return opts.filter(opt => opt.search.includes(q)).slice(0, 8);
+              const results = q ? opts.filter(opt => opt.search.includes(q)) : opts;
+              return results.slice(0, 4);
             },
             get hasValue() {
               const val = store.normalizeRegistrationAddress(store.registration.values[this.fieldKey]);
@@ -6428,18 +6428,18 @@
     </div>
   </template>
 
+  <div class="flex justify-end mt-6" x-show="$store.cart.distinctCount() > 0">
+    <button class="btn btn-ghost btn-sm"
+            @click="confirm('Opravdu chcete vysypat košík?') && $store.cart.clear()">
+      Vysypat košík
+    </button>
+  </div>
+
   <!-- Sticky bottom bar -->
       <div class="fixed bottom-0 left-0 right-0 border-t border-base-200 bg-white py-6 z-10">
         <div class="w-12/12 md:w-11/12 xl:w-8/12 mx-auto px-4 flex items-center justify-between gap-3">
-          <div class="flex items-center gap-2">
-            <button class="btn btn-outline btn-lg" @click="location.hash='/products'">
-              Zpět</button>
-            <button class="btn btn-ghost btn-sm"
-                    @click="$store.cart.clear()"
-                    :disabled="$store.cart.distinctCount() === 0">
-              Vysypat košík
-            </button>
-          </div>
+          <button class="btn btn-outline btn-lg" @click="location.hash='/products'">
+            Zpět</button>
 
           <button class="btn btn-primary btn-lg"
             :disabled="$store.cart.distinctCount() === 0"
@@ -6725,6 +6725,21 @@ document.addEventListener('alpine:init', () => {
 <!-- Delivery & Payment (Alpine component) -->
 <div x-data="deliveryPaymentUI()" x-init="init()" x-ref="deliveryPayment" class="space-y-12">
 
+  <div class="fixed bottom-24 inset-x-0 z-20 flex justify-center"
+       x-show="hasPartnerItems && scrollHintVisible"
+       x-transition.opacity>
+    <button type="button"
+            class="bg-max-blue-500 backdrop-blur rounded-full px-3 py-2 flex items-center gap-2 shadow text-white pointer-events-auto"
+            @click="
+              scrollHintVisible = false;
+              const target = $refs.partnerSection;
+              target?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            ">
+      <i class="fa-solid fa-chevron-down animate-bounce"></i>
+      <span class="text-xs font-medium">Došlo k rozdělení zásilky • posuňte se níže</span>
+    </button>
+  </div>
+
   <div class="grid grid-cols-1 lg:grid-cols-2 gap-12" x-show="hasPrimaryItems">
 
   <!-- DOPRAVA -->
@@ -6951,7 +6966,7 @@ document.addEventListener('alpine:init', () => {
       </div>
 
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <fieldset class="border border-base-300 rounded-xl bg-white shadow-sm p-4 py-6 md:p-8 space-y-3">
+        <fieldset class="border border-base-300 rounded-xl bg-white shadow-sm p-4 py-6 md:p-8 space-y-3" x-ref="partnerSection">
 
             <h3 class="text-lg font-medium">Doprava od dodavatele</h3>
 
@@ -7315,12 +7330,32 @@ function deliveryPaymentUI() {
     benefitPrograms: [],
     benefitSelections: {},
     benefitModal: { selectedId: '' },
+    scrollHintVisible: false,
+    scrollHintObserver: null,
     resetSelections() {
-      this.clearDeliverySelection(null, 'ours');
-      this.clearPaymentSelection(null, 'ours');
-      this.clearDeliverySelection(null, 'partner');
-      this.clearPaymentSelection(null, 'partner');
+      // hard reset state + persisted selections
+      this.selectedDeliveryId = null;
+      this.selectedPaymentId = null;
+      this.selectedPartnerDeliveryId = null;
+      this.selectedPartnerPaymentId = null;
+      this.pending = null;
+      this.currentFollowup = null;
+      this.timeslotSelections = {};
+      this.pickupSelections = {};
+      this.benefitSelections = {};
+      localStorage.removeItem('selectedDeliveryId');
+      localStorage.removeItem('selectedPaymentId');
+      localStorage.removeItem('selectedPartnerDeliveryId');
+      localStorage.removeItem('selectedPartnerPaymentId');
+      this.clearCheckoutMeta('delivery', 'ours');
+      this.clearCheckoutMeta('payment', 'ours');
+      this.clearCheckoutMeta('delivery', 'partner');
+      this.clearCheckoutMeta('payment', 'partner');
+      this.persistTimeslotSelections();
+      this.persistPickupSelections();
+      this.persistBenefitSelections();
       this.syncProceedState();
+      this.scrollHintVisible = this.hasPartnerItems;
     },
 
     async init() {
@@ -7432,6 +7467,27 @@ function deliveryPaymentUI() {
       });
       this.$watch(() => Alpine.store('cart')?._version, () => this.updateCartContext());
       this.syncProceedState();
+      this.scrollHintVisible = this.hasPartnerItems;
+      const hideHintOnScroll = () => {
+        if (this.scrollHintVisible && window.scrollY > 220) {
+          this.scrollHintVisible = false;
+          window.removeEventListener('scroll', hideHintOnScroll);
+          if (this.scrollHintObserver) this.scrollHintObserver.disconnect();
+        }
+      };
+      window.addEventListener('scroll', hideHintOnScroll, { passive: true });
+      const partnerEl = this.$refs?.partnerSection;
+      if (partnerEl && 'IntersectionObserver' in window) {
+        this.scrollHintObserver = new IntersectionObserver((entries) => {
+          const visible = entries.some(e => e.isIntersecting);
+          if (visible) {
+            this.scrollHintVisible = false;
+            this.scrollHintObserver.disconnect();
+            window.removeEventListener('scroll', hideHintOnScroll);
+          }
+        }, { threshold: 0.25 });
+        this.scrollHintObserver.observe(partnerEl);
+      }
     },
 
     // ---------- helpers ----------
@@ -7519,8 +7575,10 @@ function deliveryPaymentUI() {
         this.clearPartnerSelections();
         this.partnerHintVisible = false;
         this.partnerHintDismissed = false;
+        this.scrollHintVisible = false;
       } else if (!this.partnerHintDismissed) {
         this.partnerHintVisible = true;
+        this.scrollHintVisible = true;
       }
       if (prevPartner !== this.hasPartnerItems) {
         if (!this.hasPartnerItems) {
@@ -8260,23 +8318,29 @@ function deliveryPaymentUI() {
 </script>
 
 
+      <div class="flex justify-end mt-6">
+        <button class="btn btn-ghost btn-sm"
+                @click="
+                  const ui = $refs.deliveryPayment?.__x?.$data;
+                  const proceed = confirm('Resetovat výběr dopravy a platby?');
+                  if (!proceed) return;
+                  if (ui?.resetSelections) {
+                    ui.resetSelections();
+                  } else {
+                    ['selectedDeliveryId','selectedPaymentId','selectedPartnerDeliveryId','selectedPartnerPaymentId'].forEach(k => localStorage.removeItem(k));
+                    ['checkout.delivery','checkout.payment'].forEach(k => localStorage.removeItem(k));
+                  }
+                "
+                :disabled="false">
+          Resetovat výběr
+        </button>
+      </div>
+
       <!-- Sticky bottom bar -->
       <div class="fixed bottom-0 left-0 right-0 border-t border-base-200 bg-white py-6 z-10">
         <div class="w-12/12 md:w-11/12 xl:w-8/12 mx-auto px-4 flex items-center justify-between gap-3">
-          <div class="flex items-center gap-2">
-            <button class="btn btn-outline btn-lg" @click="location.hash='/cart'">
-              Zpět</button>
-            <button class="btn btn-ghost btn-sm"
-                    @click="
-                      const ui = $refs.deliveryPayment?.__x?.$data;
-                      if (ui?.resetSelections) { ui.resetSelections(); return; }
-                      ['selectedDeliveryId','selectedPaymentId','selectedPartnerDeliveryId','selectedPartnerPaymentId'].forEach(k => localStorage.removeItem(k));
-                      ['checkout.delivery','checkout.payment'].forEach(k => localStorage.removeItem(k));
-                    "
-                    :disabled="!(['selectedDeliveryId','selectedPaymentId','selectedPartnerDeliveryId','selectedPartnerPaymentId'].some(k => !!localStorage.getItem(k)))">
-              Resetovat výběr
-            </button>
-          </div>
+          <button class="btn btn-outline btn-lg" @click="location.hash='/cart'">
+            Zpět</button>
 
           <button class="btn btn-primary btn-lg"
             :disabled="$store.cart.distinctCount() === 0 || !($store.checkoutFlow?.deliveryReady ?? false)"
@@ -10429,6 +10493,19 @@ this.$nextTick(() => requestAnimationFrame(focusRealInput));
   freeShipThreshold: 600, // Kč
   _badgePulse: false,
   
+
+  get hasAnySelection() {
+    return !!(
+      this.selectedDeliveryId ||
+      this.selectedPaymentId ||
+      this.selectedPartnerDeliveryId ||
+      this.selectedPartnerPaymentId
+    );
+  },
+  persistedSelectionExists() {
+    return ['selectedDeliveryId','selectedPaymentId','selectedPartnerDeliveryId','selectedPartnerPaymentId']
+      .some(k => !!localStorage.getItem(k));
+  },
 
   // --- lifecycle / persistence ---
   init() {
@@ -18047,7 +18124,7 @@ function precartModal() {
                                 <label class="input input-bordered flex items-center gap-3"
                                        :class="$store.auth.registration.errors[field.key]?.length ? 'input-error' : ''">
                                   <span class="font-semibold text-base-content/70" x-show="field.prefix" x-text="field.prefix"></span>
-                                  <div class="relative grow min-w-0">
+                                  <div class="relative grow min-w-0 w-full">
                                     <input type="tel"
                                            class="w-full bg-transparent focus:outline-none tabular-nums"
                                            :style="$store.auth.registration.values[field.key] ? 'color: transparent; caret-color: var(--fallback-bc, currentColor);' : ''"
@@ -18281,14 +18358,14 @@ function precartModal() {
                             <label class="input input-bordered flex items-center gap-3"
                                    :class="$store.auth.registration.errors[field.key]?.length ? 'input-error' : ''">
                               <span class="font-semibold text-base-content/70" x-show="field.prefix" x-text="field.prefix"></span>
-                              <div class="relative grow min-w-0">
+                              <div class="relative grow min-w-0 w-full">
                                 <input type="tel"
                                        class="w-full bg-transparent focus:outline-none tabular-nums"
                                        :style="$store.auth.registration.values[field.key] ? 'color: transparent; caret-color: var(--fallback-bc, currentColor);' : ''"
                                        x-model="$store.auth.registration.values[field.key]"
                                        @input="$store.auth.registrationHandleInput(field.key)"
                                        @blur="$store.auth.registrationHandleBlur(field.key)"
-                                       :placeholder="field.placeholder || '123456789'">
+                                       :placeholder="field.placeholder || '737 456 789'">
                                 <span class="pointer-events-none absolute inset-0 flex items-center text-base-content tabular-nums"
                                       :class="$store.auth.registration.values[field.key] ? 'opacity-100' : 'opacity-0'"
                                       x-text="$store.auth.registrationFormatPhoneDisplay($store.auth.registration.values[field.key])"></span>
@@ -18403,7 +18480,7 @@ function precartModal() {
                                       </button>
                                     </div>
                                     <div class="relative" x-show="open && filteredOptions.length">
-                                      <ul class="menu absolute z-10 w-full rounded-xl border border-base-200 bg-base-100 shadow">
+                                      <ul class="menu absolute z-10 w-full rounded-xl border border-base-200 bg-base-100 shadow overflow-hidden max-h-[240px]">
                                         <template x-for="(option, index) in filteredOptions" :key="option.id">
                                           <li>
                                             <button type="button"

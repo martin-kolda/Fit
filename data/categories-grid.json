@@ -2,7 +2,7 @@
   {
     "image": "./images/categories-grid/drmax.webp",
     "label": "Dr. Max produkty",
-    "background": "bg-max-gray-100",
+    "background": "bg-max-green-400",
     "slug": "dr-max"
   },
   {

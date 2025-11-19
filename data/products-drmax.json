@@ -1,5 +1,126 @@
 [
   {
+    "id": 21,
+    "name": "Dr. Max Xylomax 1 mg/ml nosní sprej 10 ml",
+    "price": 99,
+    "image": "./images/xylomax-1mg.webp",
+    "description": "Nosní sprej rychle uvolňuje ucpaný nos a snižuje otok sliznice u dospělých a dětí od 12 let.",
+    "category": "Nosní kapky, spreje a masti",
+    "stock": "Skladem",
+    "badges": [],
+    "benefitPayment": true,
+    "consumers": [
+      "Pro dospívající",
+      "Pro dospělé"
+    ],
+    "form": "Sprej"
+  },
+  {
+    "id": 25,
+    "name": "Dr. Max Ibuprofen 400 mg 100 potahovaných tablet",
+    "price": 159,
+    "discounted_price": 119,
+    "image": "./images/ibuprofen-400.webp",
+    "description": "Ibuprofen Dr. Max 400 mg se používá ke tlumení bolesti (např. hlavy včetně migrény, zubů, při pohmoždění), bolesti při menstruaci a snižuje horečku.",
+    "category": "Bolest a horečka",
+    "stock": "Skladem",
+    "badges": [
+      "Sleva 25%"
+    ],
+    "benefitPayment": true,
+    "consumers": [
+      "Pro dospívající",
+      "Pro dospělé"
+    ],
+    "form": "Tablety, pastilky, tobolky"
+  },
+  {
+    "id": 27,
+    "name": "Dr. Max Xylomax 0,5 mg/ml nosní sprej 10 ml",
+    "price": 99,
+    "image": "./images/xylomax-0_5.webp",
+    "description": "Nosní sprej k uvolnění ucpaného nosu při rýmě. Snižuje překrvení nosní sliznice a usnadňuje tak dýchání. Určeno pro děti od 1 do 11 let věku.",
+    "category": "Nosní kapky, spreje a masti",
+    "stock": "Skladem",
+    "badges": [],
+    "benefitPayment": true,
+    "consumers": [
+      "Pro děti"
+    ],
+    "form": "Sprej"
+  },
+  {
+    "id": 30,
+    "name": "Dr. Max Ambroxol 30 mg/5 ml sirup 100 ml",
+    "price": 149,
+    "discounted_price": 119,
+    "image": "./images/ambroxol.webp",
+    "description": "Sirup Dr. Max Ambroxol 30 mg/5 ml usnadňuje vykašlávání při vlhkém kašli, zvyšuje sekreci hlenu v dýchacích cestách, zlepšuje transport a vylučování hlenu. Pro dospělé a děti od 12 let.",
+    "category": "Kašel, bolest v krku",
+    "stock": "Skladem",
+    "badges": [
+      "Sleva 20%"
+    ],
+    "benefitPayment": true,
+    "consumers": [
+      "Pro dospělé",
+      "Pro dospívající"
+    ],
+    "form": "Sirup"
+  },
+  {
+    "id": 31,
+    "name": "Dr. Max Parapyrex 500 mg 30 tablet",
+    "price": 55,
+    "discounted_price": 39,
+    "image": "./images/parapyrex.webp",
+    "description": "Dr. Max Parapyrex 500 mg pomáhá při mírné až střední bolesti (bolest hlavy, zubů, zad, svalů a kloubů při chřipce) a snižuje horečku. Je určen pro dospělé a děti od 6 let.",
+    "category": "Bolest a horečka",
+    "stock": "Skladem",
+    "badges": [
+      "Sleva 29%"
+    ],
+    "benefitPayment": true,
+    "consumers": [
+      "Pro děti",
+      "Pro dospívající",
+      "Pro dospělé"
+    ],
+    "form": "Tablety, pastilky, tobolky"
+  },
+  {
+    "id": 33,
+    "name": "Dr. Max Paracetamol 500 mg 20 tablet",
+    "price": 35,
+    "image": "./images/paracetamol.webp",
+    "description": "Dr. Max Paracetamol 500 mg pomáhá při mírné až střední bolesti (bolest hlavy, zubů, zad, svalů a kloubů při chřipce) a snižuje horečku. Je určen pro dospělé a děti od 6 let.",
+    "category": "Bolest a horečka",
+    "stock": "Skladem",
+    "badges": [],
+    "benefitPayment": true,
+    "consumers": [
+      "Pro děti",
+      "Pro dospívající",
+      "Pro dospělé"
+    ],
+    "form": "Tablety, pastilky, tobolky"
+  },
+  {
+    "id": 34,
+    "name": "Dr. Max Larymed pomeranč a med 3 mg 20 pastilek",
+    "price": 159,
+    "image": "./images/larymed.webp",
+    "description": "Pastilky pomáhají léčit příznaky akutní bolesti v krku u dospělých, dospívajících a dětí od 6 let. S příchutí pomeranče a medu.",
+    "category": "Kašel, bolest v krku",
+    "stock": "Skladem",
+    "badges": [],
+    "benefitPayment": true,
+    "consumers": [
+      "Pro dospělé"
+    ],
+    "form": "Tablety, pastilky, tobolky"
+  },
+  {
     "id": 47,
     "name": "Dr. Max Vitamin D3 Kids 30 kapslí",
     "price": 99,
@@ -12,8 +133,49 @@
     "consumers": [
       "Pro větší děti",
       "Pro děti",
-      "Děti",      "Děti 12+",
+      "Děti",
+      "Děti 12+",
       "Děti 3+"
+    ],
+    "form": "Tablety, pastilky, tobolky"
+  },
+  {
+    "id": 48,
+    "name": "Dr. Max Vitamin D Baby 10 ml",
+    "price": 199,
+    "image": "./images/Dr.Max_Vitamin_D_Baby.webp",
+    "description": "Přípravek Dr. Max Vitamin D Baby obsahuje vitamin D, který napomáhá zdravé imunitě Vašich dětí a příznivě ovlivňuje růst a vývoj kostí a zubů. Pro děti od 14 dní věku i dospělé.",
+    "category": "Vitamíny",
+    "stock": "Skladem",
+    "badges": ["Do 15 minut"],
+    "benefitPayment": true,
+    "consumers": [
+      "Pro větší děti",
+      "Pro děti",
+      "Děti",
+      "Děti 12+",
+      "Děti 3+",
+      "Dospělí"
+    ],
+    "form": "Kapky"
+  },
+  {
+    "id": 49,
+    "name": "Dr. Max Vitamin D 2000 IU 20 šumivých tablet",
+    "price": 99,
+    "image": "./images/Dr.Max_Vitamin_D_2000_IU.webp",
+    "description": "Dr. Max Vitamin D 2000 IU obsahuje enkapsulovaný vitamin D ve formě šumivých tablet s příchutí citrónů a limetek pro správné fungování imunitního systému a zdravé kosti.",
+    "category": "Vitamíny",
+    "stock": "Skladem",
+    "badges": ["Do 15 minut"],
+    "benefitPayment": true,
+    "consumers": [
+      "Pro větší děti",
+      "Pro děti",
+      "Děti",
+      "Děti 12+",
+      "Děti 3+",
+      "Dospělí"
     ],
     "form": "Tablety, pastilky, tobolky"
   }
