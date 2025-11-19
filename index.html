@@ -2814,7 +2814,9 @@
           method,
           status: 'paid_online',
           badgeText: 'Zaplaceno online',
-          badgeClass: 'badge badge-success badge-outline',
+          badgeClass: 'inline-flex items-center gap-2 badge badge-success text-white',
+          showIcon: true,
+          iconClass: 'fa-solid fa-check',
           helper: method ? `${method}, částka ${formattedAmount}.` : `Částka ${formattedAmount} je uhrazena online.`
         };
 
@@ -2824,6 +2826,7 @@
             status: 'cash_on_delivery',
             badgeText: 'Zaplatíte při převzetí',
             badgeClass: 'badge badge-warning badge-outline',
+            showIcon: false,
             helper: `Připravte si ${formattedAmount} pro kurýra.`
           };
         }
@@ -2833,7 +2836,8 @@
             ...base,
             status: 'pay_in_pharmacy',
             badgeText: 'Zaplatíte v lékárně',
-            badgeClass: 'badge badge-warning badge-outline',
+            badgeClass: 'inline-flex items-center gap-2 badge bg-amber-600 text-white',
+            showIcon: false,
             helper: `V lékárně uhradíte ${formattedAmount}.`
           };
         }
@@ -3125,15 +3129,15 @@
           return template[key] ?? '';
         },
 
-        timeline() {
+  timeline() {
           if (!this.order) return [];
           this.normalizeOrder();
           const steps = this.flowSteps(this.order.flowId);
           if (!steps.length) return [];
           const vars = { ...(this.order.vars || {}) };
           vars.PURCHASE_TYPE_FORMS = this.order.purchaseTypeForms || vars.PURCHASE_TYPE_FORMS || computePurchaseForms();
-          return steps.map(stepId => {
-            const template = this.steps[stepId] || {};
+  return steps.map(stepId => {
+    const template = this.steps[stepId] || {};
             const meta = this.order.stepMeta?.[stepId] || { state: 'future', timestamp: null };
             const state = meta.state || (stepId === this.order.currentStepId ? 'now' : 'future');
             const headlineTpl = this.templateForState(template, state, 'headline')
@@ -3148,6 +3152,31 @@
               headline: this.plainText(headlineTpl, vars),
               description: this.richText(descriptionTpl, vars),
               timestamp: this.formatTimestamp(meta.timestamp)
+            };
+          });
+        },
+
+        partnerTimeline(currentStep = 'order_forwarded_to_partner') {
+          const flowId = 'partner_home_delivery_pay_online';
+          const steps = this.flowSteps(flowId);
+          if (!steps.length) return [];
+          const indexOfCurrent = Math.max(steps.indexOf(currentStep), 0);
+          const vars = { ...(this.order?.vars || {}) };
+          return steps.map((stepId, index) => {
+            const template = this.steps[stepId] || {};
+            let state = 'future';
+            if (index < indexOfCurrent) state = 'past';
+            else if (index === indexOfCurrent) state = 'now';
+            const headlineTpl = this.templateForState(template, state, 'headline')
+              || this.templateForState(template, 'past', 'headline')
+              || this.templateForState(template, 'now', 'headline')
+              || this.templateForState(template, 'future', 'headline');
+            const descriptionTpl = this.templateForState(template, state, 'description') || '';
+            return {
+              id: stepId,
+              state,
+              headline: this.plainText(headlineTpl, vars),
+              description: this.richText(descriptionTpl, vars)
             };
           });
         },
@@ -3221,13 +3250,13 @@
           const fallbackTotal = Number(context.review?.cart?.totals?.toPay || 0);
           const oursTotal = oursOrder ? computeOrderTotal(oursOrder, freeShippingApplied) : fallbackTotal;
           const paymentInfo = paymentInfoForFlow(flowId, paymentMeta, oursTotal);
-          const partnerOrders = Array.isArray(context.partnerOrders) ? context.partnerOrders : [];
-          const normalizedPartnerOrders = partnerOrders.map(order => {
-            const avatarItems = normalizeAvatarItems(order?.avatarItems || order?.items);
-            const total = computeOrderTotal(order, false);
-            const info = order?.paymentInfo || paymentInfoForFlow('home_delivery_pay_online', order?.payment || {}, total);
-            return { ...order, avatarItems, paymentInfo: info };
-          });
+const partnerOrders = Array.isArray(context.partnerOrders) ? context.partnerOrders : [];
+const normalizedPartnerOrders = partnerOrders.map(order => {
+  const avatarItems = normalizeAvatarItems(order?.avatarItems || order?.items);
+  const total = computeOrderTotal(order, false);
+  const info = order?.paymentInfo || paymentInfoForFlow('home_delivery_pay_online', order?.payment || {}, total);
+  return { ...order, avatarItems, paymentInfo: info, stepMeta: this.buildPartnerStepMeta(order) };
+});
           const number = context.orderNumber || this.generateOrderNumber();
           const targetStep = steps.includes('order_completion') ? 'order_completion' : steps[steps.length - 1];
           const targetIndex = Math.max(0, steps.indexOf(targetStep));
@@ -3264,6 +3293,55 @@
           this.normalizeOrder();
           this.persist();
           this.openCashModalIfNeeded();
+        },
+
+        buildPartnerStepMeta(order = {}) {
+          const steps = this.flowSteps('partner_home_delivery_pay_online');
+          if (!steps.length) return {};
+          const meta = {};
+          const now = Date.now();
+          const totalSteps = steps.length;
+          steps.forEach((id, index) => {
+            let state = 'past';
+            if (index === totalSteps - 1) state = 'now';
+            else if (index > totalSteps - 1) state = 'future';
+            const offset = (totalSteps - 1 - index) * 45 * 60 * 1000;
+            meta[id] = {
+              state,
+              timestamp: new Date(now - offset).toISOString()
+            };
+          });
+          return meta;
+        },
+
+        partnerTimelineFor(order = {}) {
+          const steps = this.flowSteps('partner_home_delivery_pay_online');
+          if (!steps.length) return [];
+          const vars = { ...(this.order?.vars || {}) };
+          vars.PURCHASE_TYPE_FORMS = computePurchaseForms('order');
+          if (order?.payment?.name) {
+            vars.PAYMENT_METHOD = order.payment.name;
+          }
+          return steps.map((stepId, index) => {
+            const template = this.steps[stepId] || {};
+            const meta = order.stepMeta?.[stepId] || {
+              state: index === steps.length - 1 ? 'now' : 'past',
+              timestamp: null
+            };
+            const state = meta.state || 'future';
+            const headlineTpl = this.templateForState(template, state, 'headline')
+              || this.templateForState(template, 'past', 'headline')
+              || this.templateForState(template, 'now', 'headline')
+              || this.templateForState(template, 'future', 'headline');
+            const descriptionTpl = this.templateForState(template, state, 'description') || '';
+            return {
+              id: stepId,
+              state,
+              headline: this.plainText(headlineTpl, vars),
+              description: this.richText(descriptionTpl, vars),
+              timestamp: this.formatTimestamp(meta.timestamp)
+            };
+          });
         },
 
         openCashModalIfNeeded() {
@@ -6725,20 +6803,22 @@ document.addEventListener('alpine:init', () => {
 <!-- Delivery & Payment (Alpine component) -->
 <div x-data="deliveryPaymentUI()" x-init="init()" x-ref="deliveryPayment" class="space-y-12">
 
-  <div class="fixed bottom-24 inset-x-0 z-20 flex justify-center"
-       x-show="hasPartnerItems && scrollHintVisible"
-       x-transition.opacity>
-    <button type="button"
-            class="bg-max-blue-500 backdrop-blur rounded-full px-3 py-2 flex items-center gap-2 shadow text-white pointer-events-auto"
-            @click="
-              scrollHintVisible = false;
-              const target = $refs.partnerSection;
-              target?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            ">
-      <i class="fa-solid fa-chevron-down animate-bounce"></i>
-      <span class="text-xs font-medium">Došlo k rozdělení zásilky • posuňte se níže</span>
-    </button>
-  </div>
+      <template x-if="hasPartnerItems">
+        <div class="fixed bottom-24 inset-x-0 z-20 flex justify-center"
+             x-show="scrollHintVisible"
+             x-transition.opacity>
+          <button type="button"
+                  class="bg-max-blue-500 backdrop-blur rounded-full px-3 py-2 flex items-center gap-2 shadow text-white pointer-events-auto"
+                  @click="
+                    scrollHintVisible = false;
+                    const target = $refs.partnerSection;
+                    target?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                  ">
+            <i class="fa-solid fa-chevron-down animate-bounce"></i>
+            <span class="text-xs font-medium">Došlo k rozdělení zásilky • posuňte se níže</span>
+          </button>
+        </div>
+      </template>
 
   <div class="grid grid-cols-1 lg:grid-cols-2 gap-12" x-show="hasPrimaryItems">
 
@@ -9340,12 +9420,10 @@ function deliveryPaymentUI() {
   <section class="w-auto md:w-11/12 xl:w-8/12 mx-auto px-4 pt-2 md:pt-12 pb-32 space-y-8">
     <div class="flex items-start justify-between gap-4">
       <div>
-        <h1 class="text-3xl mb-2">Aktivní objednávka</h1>
+        <h1 class="text-3xl mb-2 font-semibold">Už to chystáme!</h1>
         <template x-if="$store.activeOrder.hasOrder()">
           <p class="text-base text-base-content/70">
-            Číslo objednávky:
-            <span class="underline underline-offset-4 decoration-4 decoration-max-blue-500"
-                  x-text="$store.activeOrder.formattedOrderNumber()"></span>
+            Tyto objednávky a rezervace Vám právě připravujeme, doručujeme nebo chystáme k vyzvednutí.
           </p>
         </template>
         <template x-if="!$store.activeOrder.hasOrder()">
@@ -9357,8 +9435,8 @@ function deliveryPaymentUI() {
     </div>
 
     <template x-if="$store.activeOrder.hasOrder()">
-      <article class="border border-base-300 rounded-xl bg-white shadow-sm p-6 space-y-5">
-        <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+      <article class="border border-base-300 rounded-xl bg-white shadow-sm p-12 pt-8 space-y-5">
+        <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between mb-0">
           <div class="flex items-center gap-4">
             <h2 class="text-3xl">Nákup</h2>
             <div x-data="{
@@ -9371,7 +9449,7 @@ function deliveryPaymentUI() {
               <template x-if="visible().length">
                 <div class="avatar-group -space-x-6 overflow-visible">
                   <template x-for="it in visible()" :key="it.id + '-' + it.img">
-                    <div class="avatar" :title="it.name">
+                    <div class="avatar shadow-md :title="it.name">
                       <div class="w-14 xl:w-18">
                         <img
                           :src="it.img || './images/placeholder.png'"
@@ -9398,13 +9476,13 @@ function deliveryPaymentUI() {
             </div>
           </div>
           <template x-if="$store.activeOrder.paymentInfo('ours')">
-            <div class="flex flex-wrap items-center gap-3 rounded-xl bg-base-100 border border-base-300 px-4 py-3">
-              <span class="text-xs uppercase tracking-wide font-semibold text-base-content/70">Platba</span>
-              <span :class="$store.activeOrder.paymentInfo('ours').badgeClass"
-                    x-text="$store.activeOrder.paymentInfo('ours').badgeText"></span>
+            <div class="flex flex-wrap items-center gap-3 px-4 py-3">
+              <span :class="$store.activeOrder.paymentInfo('ours').badgeClass">
+                <i :class="$store.activeOrder.paymentInfo('ours').iconClass"
+                   x-show="$store.activeOrder.paymentInfo('ours').showIcon"></i>
+                <span x-text="$store.activeOrder.paymentInfo('ours').badgeText"></span>
+              </span>
               <span class="text-base font-semibold" x-text="$store.activeOrder.paymentInfo('ours').formattedAmount"></span>
-              <span class="text-sm text-base-content/70" x-show="$store.activeOrder.paymentInfo('ours').helper"
-                    x-text="$store.activeOrder.paymentInfo('ours').helper"></span>
             </div>
           </template>
         </div>
@@ -9428,7 +9506,7 @@ function deliveryPaymentUI() {
                 </template>
                 <template x-if="item.state === 'now'">
                   <div class="relative">
-                    <div class="absolute w-10 h-10 m-1 rounded-full bg-primary/30 animate-ping opacity-60"></div>
+                    <div class="absolute w-10 h-10 mx-1 rounded-full bg-primary/30 animate-ping opacity-60"></div>
                     <div class="relative w-10 h-10 m-1 rounded-full border-2 border-primary bg-white flex items-center justify-center shadow">
                       <i class="fa-solid fa-box-isometric-tape text-primary"></i>
                     </div>
@@ -9457,11 +9535,10 @@ function deliveryPaymentUI() {
     </template>
 
     <template x-if="$store.activeOrder.partnerOrders?.length">
-      <div class="space-y-4">
-        <h2 class="text-2xl font-medium">Balíček od dodavatele</h2>
+      <div class="space-y-4" id="active-order-partners">
         <template x-for="(porder, idx) in $store.activeOrder.partnerOrders" :key="porder.key + '-' + idx">
-          <article class="border border-base-300 rounded-xl bg-white shadow-sm p-6 space-y-4">
-            <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          <article class="border border-base-300 rounded-xl bg-white shadow-sm p-12 pt-8 space-y-5">
+            <div class="flex flex-col gap-4 md:flex-row md:items-center mb-0">
               <div>
                 <p class="text-sm uppercase tracking-wider text-secondary font-semibold">Marketplace</p>
                 <h3 class="text-3xl">Nákup od dodavatele</h3>
@@ -9476,7 +9553,7 @@ function deliveryPaymentUI() {
                 <template x-if="visible().length">
                   <div class="avatar-group -space-x-6 overflow-visible">
                     <template x-for="it in visible()" :key="(it.id || it.image || '') + '-' + (it.img || it.image || '')">
-                      <div class="avatar" :title="it.name">
+                      <div class="avatar shadow-md" :title="it.name">
                         <div class="w-14 xl:w-18">
                           <img
                             :src="it.img || it.image || './images/placeholder.png'"
@@ -9501,23 +9578,65 @@ function deliveryPaymentUI() {
                   </div>
                 </template>
               </div>
-            </div>
+           
 
-            <div class="flex flex-wrap items-center gap-3">
-              <span class="badge badge-info">Čeká na zprávu</span>
+            
               <template x-if="porder.paymentInfo">
-                <div class="flex flex-wrap items-center gap-2 rounded-xl bg-base-100 border border-base-300 px-3 py-2">
-                  <span :class="porder.paymentInfo.badgeClass" x-text="porder.paymentInfo.badgeText"></span>
+                <div class="flex flex-wrap items-center gap-2 px-3 py-2 ml-auto">
+                  <span :class="porder.paymentInfo.badgeClass">
+                    <i :class="porder.paymentInfo.iconClass"
+                       x-show="porder.paymentInfo.showIcon"></i>
+                    <span x-text="porder.paymentInfo.badgeText"></span>
+                  </span>
                   <span class="text-sm font-semibold" x-text="porder.paymentInfo.formattedAmount"></span>
-                  <span class="text-sm text-base-content/70" x-show="porder.paymentInfo.helper"
-                        x-text="porder.paymentInfo.helper"></span>
                 </div>
               </template>
-            </div>
+             </div>
 
-            <p class="text-base text-base-content/80">
-              Dodavatel vás bude informovat o doručení e‑mailem a SMS. Sledujte zprávy, detaily cesty přijdou od něj.
-            </p>
+            <ul class="timeline timeline-snap-icon timeline-compact timeline-vertical no-start"
+                x-data="{
+                  steps: $store.activeOrder.partnerTimelineFor(porder),
+                  connector(state) { return state === 'past' ? 'bg-primary' : 'bg-max-gray-200'; }
+                }"
+                x-effect="steps = $store.activeOrder.partnerTimelineFor(porder)">
+              <template x-for="(item, index) in steps" :key="'partner-step-' + item.id">
+                <li>
+                  <template x-if="index !== 0">
+                    <hr :class="connector(steps[index - 1]?.state || 'future')">
+                  </template>
+                  <div class="timeline-middle">
+                    <template x-if="item.state === 'past'">
+                      <div class="w-10 h-10 m-1 rounded-full bg-primary flex items-center justify-center text-primary-content shadow">
+                        <i class="fa-solid fa-check"></i>
+                      </div>
+                    </template>
+                    <template x-if="item.state === 'now'">
+                      <div class="relative">
+                        <div class="absolute w-10 h-10 mx-1 rounded-full bg-primary/30 animate-ping opacity-60"></div>
+                        <div class="relative w-10 h-10 m-1 rounded-full border-2 border-primary bg-white flex items-center justify-center shadow">
+                          <i class="fa-solid fa-box-isometric-tape text-primary"></i>
+                        </div>
+                      </div>
+                    </template>
+                    <template x-if="item.state === 'future'">
+                      <div class="w-10 h-10 m-1 rounded-full border-2 border-max-gray-200 bg-white"></div>
+                    </template>
+                  </div>
+                  <div class="timeline-end text-base space-y-0 !ml-4">
+                    <time class="font-medium text-sm text-primary block mt-4"
+                          x-show="item.timestamp"
+                          x-text="item.timestamp"></time>
+                    <div class="text-lg font-medium" x-text="item.headline"></div>
+                    <div class="text-base text-base-content/80 leading-relaxed"
+                         x-show="item.description"
+                         x-html="item.description"></div>
+                  </div>
+                  <template x-if="index !== steps.length - 1">
+                    <hr :class="connector(item.state)">
+                  </template>
+                </li>
+              </template>
+            </ul>
           </article>
         </template>
       </div>
@@ -12378,6 +12497,39 @@ _formatPriceRangeLabel(minValue, maxValue) {
   return window.t('routes.products.filters.sections.price.range.full', '{min} – {max}', {
     min: fmt(minBound),
     max: fmt(maxBound)
+  });
+},
+partnerTimeline(currentStepId = 'order_forwarded_to_partner') {
+  const flowId = 'partner_home_delivery_pay_online';
+  const steps = this.flowSteps(flowId);
+  if (!steps.length) return [];
+  const vars = { ...(this.order?.vars || {}) };
+  const baseMeta = this.order?.stepMeta || {};
+  const currentIdx = Math.max(steps.indexOf(currentStepId), 0);
+  const refTs = baseMeta.order_acceptation?.timestamp || this.order?.createdAt || new Date().toISOString();
+  const refDate = refTs ? new Date(refTs).getTime() : Date.now();
+  return steps.map((stepId, index) => {
+    const template = this.steps[stepId] || {};
+    let state = 'future';
+    if (index < currentIdx) state = 'past';
+    else if (index === currentIdx) state = 'now';
+    const headlineTpl = this.templateForState(template, state, 'headline')
+      || this.templateForState(template, 'past', 'headline')
+      || this.templateForState(template, 'now', 'headline')
+      || this.templateForState(template, 'future', 'headline');
+    const descriptionTpl = this.templateForState(template, state, 'description') || '';
+    let timestampValue = baseMeta[stepId]?.timestamp || null;
+    if (!timestampValue && state !== 'future') {
+      const offset = (currentIdx - index) * 45 * 60 * 1000;
+      timestampValue = new Date(refDate - offset).toISOString();
+    }
+    return {
+      id: stepId,
+      state,
+      headline: this.plainText(headlineTpl, vars),
+      description: this.richText(descriptionTpl, vars),
+      timestamp: this.formatTimestamp(timestampValue)
+    };
   });
 },
 priceUpToLabel(maxValue) {

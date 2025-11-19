@@ -41,7 +41,7 @@
       "future_headline": "Příprava a zabalení",
       "future_description": null,
       "now_headline": "Vaši {{PURCHASE_TYPE}} právě připravujeme a balíme",
-      "now_description": null,
+      "now_description": "Obvykle to stihneme <u>do 15 minut</u> (v otevírací době lékárny)",
       "past_headline": "Vaši {{PURCHASE_TYPE}} jsme připravili a zabalili",
       "past_description": "Očekávejte {{PACKAGES_COUNT}} balíček(y) o hmotnosti {{TOTAL_WEIGHT}} kg"
     },
@@ -80,5 +80,14 @@
       "now_description": "PIN k vyzvednutí je <u>110 112</u>",
       "past_headline": "Balíček jste vyzvedli",
       "past_description": "Jak jste se zbožím spokojeni? Těšíme se na <u>hodnocení!</u>"
-    }
+    },
+  {
+    "id": "order_forwarded_to_partner",
+    "future_headline": "Předání dodavateli",
+    "future_description": null,
+    "now_headline": "{{PURCHASE_TYPE}} nyní předáváme dodavateli",
+    "now_description": "Další podrobnosti očekávejte na <u>SMS a e-mailem</u>",
+    "past_headline": "{{PURCHASE_TYPE}} jsme předali dodavateli",
+    "past_description": "Další podrobnosti očekávejte na <u>SMS a e-mailem</u>"
+  }
 ]

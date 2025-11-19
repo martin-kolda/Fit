@@ -1,4 +1,4 @@
-[    
+[
     {
       "id": "home_delivery_pay_online",
       "steps": [
@@ -26,9 +26,16 @@
       "steps": [
         "order_acceptation",
         "order_completion",
-        "order_prepared",
         "order_payment_pharmacy",
         "order_received"
       ]
+    },
+    {
+      "id": "partner_home_delivery_pay_online",
+      "steps": [
+        "order_acceptation",
+        "order_payment_online",
+        "order_forwarded_to_partner"
+      ]
     }
-]
+  ]
