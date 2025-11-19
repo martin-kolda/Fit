@@ -9099,7 +9099,7 @@ function deliveryPaymentUI() {
                       <div class="text-sm text-base-content/60 uppercase tracking-wide mb-0">Produkty</div>
                       <div class="divide-y divide-max-gray-50">
                         <template x-for="item in order.items" :key="order.key + '-item-' + item.id">
-                          <div class="flex items-end justify-between gap-3 py-3">
+                          <div class="flex items-center justify-between gap-3 py-3">
                             <div class="flex items-end gap-3">
                               <img :src="item.image || './images/placeholder.png'"
                                    alt=""
@@ -9120,46 +9120,73 @@ function deliveryPaymentUI() {
                     </div>
                   </template>
 
-                <div class="space-y-4">
+                <div class="space-y-4 mt-6">
                   <div class="flex items-end justify-between gap-4">
-                    <div>
-                      <div class="text-sm uppercase text-base-content/60 tracking-wide">Doprava</div>
-                      <div class="text-lg font-semibold mb-2" x-text="order.delivery?.name || 'Doprava nevybrána'"></div>
+                    <div class="w-full">
+                      <div class="text-sm text-base-content/60 uppercase tracking-wide mb-3" x-text="order.delivery?.name || 'Doprava nevybrána'"></div>
                       <template x-if="order.delivery?.pickup">
-                        <div class="border border-dashed border-base-300 rounded-lg p-4 space-y-1">
-                          <div class="font-medium" x-text="order.delivery?.pickup?.name || ''"></div>
-                          <p class="text-sm text-base-content/80 whitespace-pre-line" x-text="order.delivery?.pickup?.addressLine || ''"></p>
-                        </div>
-                      </template>
-                      <template x-if="!order.delivery?.pickup && checkoutReview?.shippingAddress?.length">
-                        <div class="border border-dashed border-base-300 rounded-lg p-4 space-y-1">
-                          <div class="text-sm text-base-content/60 uppercase tracking-wide" x-text="orderShippingHeading(order)"></div>
-                          <div class="space-y-1">
-                            <template x-for="item in checkoutReview.shippingAddress" :key="'order-shipping-' + item.label">
-                              <p class="text-sm font-medium whitespace-pre-line" x-text="item.value"></p>
-                            </template>
+                        <div class="border border-dashed border-base-300 rounded-xl p-4 bg-max-green-25 w-full flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                          <div class="space-y-3 flex-1">
+                            <div class="space-y-1 flex-1">
+                              <div class="font-medium" x-text="order.delivery?.pickup?.name || ''"></div>
+                              <p class="text-base text-base-content/80 whitespace-pre-line" x-text="order.delivery?.pickup?.addressLine || ''"></p>
+                              <p class="text-base text-base-content/70" x-show="order.delivery?.description" x-text="order.delivery?.description"></p>
+                              <template x-if="order.key === 'partner'">
+                                <p class="text-base text-base-content/80">Termín: <span class="font-medium">Budete kontaktováni dodavatelem</span></p>
+                              </template>
+                              <template x-if="order.key !== 'partner'">
+                                <div class="text-base text-base-content/80" x-data="deliveryPickupTimes('short')" x-cloak x-show="!order.delivery?.timeslot">
+                                  <template x-if="info">
+                                    <p class="leading-tight" x-html="orderDeliverySummary(order, info)"></p>
+                                  </template>
+                                </div>
+                                <p class="text-base text-base-content/80" x-show="order.delivery?.timeslot?.label">
+                                  Termín: <span class="font-medium" x-text="order.delivery?.timeslot?.label"></span>
+                                </p>
+                              </template>
+                            </div>
+                          </div>
+                          <div class="flex items-center gap-2 shrink-0">
+                            <i class="fa-solid fa-check text-max-green-500 text-2xl"></i>
                           </div>
                         </div>
                       </template>
-                      
-                      
-                      <p class="text-sm text-base-content/70" x-show="order.delivery?.description" x-text="order.delivery?.description"></p>
-                      <div class="text-sm text-base-content/80" x-data="deliveryPickupTimes('short')" x-cloak x-show="!order.delivery?.timeslot">
-                        <template x-if="info">
-                          <p class="leading-tight"
-                             x-html="orderDeliverySummary(order, info)"></p>
-                        </template>
-                      </div>
-                      <p class="text-sm text-base-content/80" x-show="order.delivery?.timeslot?.label">
-                        Termín: <span class="font-medium" x-text="order.delivery?.timeslot?.label"></span>
-                      </p>
-                    </div>
-                    <div class="text-base font-medium">
-                      <template x-if="effectiveDeliveryPrice(order) === 0">
-                        <span>Zdarma</span>
-                      </template>
-                      <template x-if="effectiveDeliveryPrice(order) > 0">
-                        <span x-text="formatCZK(effectiveDeliveryPrice(order))"></span>
+                      <template x-if="!order.delivery?.pickup && checkoutReview?.shippingAddress?.length">
+                        <div class="border border-dashed border-base-300 rounded-xl p-4 bg-max-green-25 w-full flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                          <div class="space-y-2 flex-1">
+
+                            <div class="space-y-1">
+                              <template x-for="item in checkoutReview.shippingAddress" :key="'order-shipping-' + item.label">
+                                <p class="text-base font-medium whitespace-pre-line" x-text="item.value"></p>
+                              </template>
+                            </div>
+                            <div class="text-sm space-y-0.5" x-data="(() => {
+                                  const lines = String(item.value || '').split('\n');
+                                  return { firstLine: lines.shift() || '', remainingLines: lines.join('\n') };
+                                })()">
+                              <p class="font-medium leading-tight" x-text="firstLine"></p>
+                              <template x-if="remainingLines">
+                                <p class="font-normal whitespace-pre-line leading-tight" x-text="remainingLines"></p>
+                              </template>
+                            </div>
+                            <template x-if="order.key === 'partner'">
+                              <p class="text-base text-base-content/80">Termín: <span class="font-medium">Budete kontaktováni dodavatelem</span></p>
+                            </template>
+                            <template x-if="order.key !== 'partner'">
+                              <div class="text-base text-base-content/80" x-data="deliveryPickupTimes('short')" x-cloak x-show="!order.delivery?.timeslot">
+                                <template x-if="info">
+                                  <p class="leading-tight" x-html="orderDeliverySummary(order, info)"></p>
+                                </template>
+                              </div>
+                              <p class="text-base text-base-content/80" x-show="order.delivery?.timeslot?.label">
+                                Termín: <span class="font-medium" x-text="order.delivery?.timeslot?.label"></span>
+                              </p>
+                            </template>
+                          </div>
+                          <div class="flex items-center gap-2 shrink-0">
+                            <i class="fa-solid fa-check text-max-green-500 text-2xl"></i>
+                          </div>
+                        </div>
                       </template>
                     </div>
                   </div>
@@ -9176,42 +9203,58 @@ function deliveryPaymentUI() {
                       </div>
                     </div>
                   </template>
-
-                  <div class="flex items-start justify-between gap-4 pt-3">
-                    <div>
-                      <div class="text-sm uppercase text-base-content/60 tracking-wide">Platba</div>
-                      <div class="text-lg font-semibold" x-text="order.payment?.name || 'Platba nevybrána'"></div>
-                      <p class="text-sm text-base-content/70" x-show="order.payment?.description" x-text="order.payment?.description"></p>
-                      <p class="text-sm text-base-content/80" x-show="order.payment?.benefit?.name">
-                        <span class="font-medium" x-text="order.payment?.benefit?.name"></span>
-                      </p>
-                    </div>
-                    <div class="text-base font-medium">
-                      <template x-if="(order.payment?.finalPrice || 0) === 0">
-                        <span>Zdarma</span>
-                      </template>
-                      <template x-if="(order.payment?.finalPrice || 0) > 0">
-                        <span x-text="formatCZK(order.payment?.finalPrice || 0)"></span>
-                      </template>
-                    </div>
-                  </div>
-
-
                 </div>
-                <div class="pt-3 text-sm flex items-center justify-between">
-                        <span>Mezisoučet</span>
-                        <span class="font-medium" x-text="formatCZK(order.totals?.subtotal || 0)"></span>
+                      <div class="pt-3 overflow-x-auto">
+                        <table class="table table-md w-full text-sm">
+                          <tbody>
+                            <tr>
+                              <td class="text-base font-normal">Mezisoučet</td>
+                              <td class="text-right text-base font-medium" x-text="formatCZK(order.totals?.subtotal || 0)"></td>
+                            </tr>
+                            <tr>
+                              <td class="text-base font-normal">Doprava</td>
+                              <td class="text-right text-base font-medium">
+                                <template x-if="effectiveDeliveryPrice(order) === 0">
+                                  <span>Zdarma</span>
+                                </template>
+                                <template x-if="effectiveDeliveryPrice(order) > 0">
+                                  <span x-text="formatCZK(effectiveDeliveryPrice(order))"></span>
+                                </template>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td class="text-base font-normal">Platba</td>
+                              <td class="text-right text-base font-medium">
+                                <template x-if="(order.payment?.finalPrice || 0) === 0">
+                                  <span>Zdarma</span>
+                                </template>
+                                <template x-if="(order.payment?.finalPrice || 0) > 0">
+                                  <span x-text="formatCZK(order.payment?.finalPrice || 0)"></span>
+                                </template>
+                              </td>
+                            </tr>
+                            <template x-if="(order.totals?.discount || 0) > 0">
+                              <tr class="text-success">
+                                <td class="text-base font-normal">Slevy</td>
+                                <td class="text-right font-medium" x-text="'− ' + formatCZK(order.totals?.discount || 0)"></td>
+                              </tr>
+                            </template>
+                          </tbody>
+                          <tfoot>
+                            <tr>
+                              <th class="align-top text-black">
+                                <div class="text-sm uppercase text-base-content/60 font-normal tracking-wide">Celkem k úhradě</div>
+                                <div class="text-lg font-medium" x-text="order.payment?.name || 'Platba nevybrána'"></div>
+                                <p class="text-sm text-base-content/70" x-show="order.payment?.description" x-text="order.payment?.description"></p>
+                                <p class="text-sm text-base-content/80" x-show="order.payment?.benefit?.name">
+                                  <span class="font-medium" x-text="order.payment?.benefit?.name"></span>
+                                </p>
+                              </th>
+                              <th class="text-right text-lg font-semibold align-center text-black" x-text="formatCZK((order.totals?.total || 0) + effectiveDeliveryPrice(order) + (order.payment?.finalPrice || 0))"></th>
+                            </tr>
+                          </tfoot>
+                        </table>
                       </div>
-                      <template x-if="(order.totals?.discount || 0) > 0">
-                        <div class="text-sm text-success flex items-center justify-between">
-                          <span>Slevy</span>
-                          <span class="font-medium" x-text="'− ' + formatCZK(order.totals?.discount || 0)"></span>
-                        </div>
-                      </template>
-                      <div class="text-base font-semibold flex items-center justify-between">
-                        <span class="text-2xl font-semibold">K úhradě</span>
-                        <span x-text="formatCZK(order.totals?.total || 0)"></span>
-                </div>
 
               </article>
             </template>
@@ -9373,10 +9416,10 @@ function deliveryPaymentUI() {
           <h3 class="text-lg font-semibold"
               x-text="paygateModal.variant === 'benefit' ? 'Platba benefitní kartou online' : 'Online platba'"></h3>
           <p class="text-sm text-base-content/70">
-            Platba probíhá pouze jako simulace pro potřeby testování použitelnosti. Žádné peníze nebudou stržené.
+            Platba probíhá pouze jako simulace pro potřeby našeho testu. Žádné peníze nebudou stržené :)
           </p>
           <p class="text-xs text-base-content/70" x-show="paygateModal.variant === 'benefit'">
-            Benefitní karta se chová stejně jako online platba kartou (např. Visa), jen použijete kartu zvoleného programu.
+            Platili byste benefitní kartou.
           </p>
         </div>
         <button type="button"
