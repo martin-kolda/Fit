@@ -8424,10 +8424,10 @@ function deliveryPaymentUI() {
 
             <template x-if="renderHomeFormIn('ours')">
               <div class="space-y-6">
-                <template x-for="section in addressFormSections('delivery')" :key="'ours-' + section.name">
-                  <fieldset x-show="shouldShowSection(section.name)"
-                            class="grid gap-y-4">
-                  
+            <template x-for="section in addressFormSections('delivery')" :key="'ours-' + section.name">
+              <fieldset x-show="shouldShowSection(section.name)"
+                        class="grid gap-y-4">
+              
                     <template x-for="field in section.fields" :key="field.key">
                       <div x-show="isFieldVisible(field)" class="space-y-2">
                         <template x-if="field.isToggle">
@@ -8509,19 +8509,27 @@ function deliveryPaymentUI() {
                                   </div>
                                 </template>
 
-                                <template x-if="hasSelection">
-                                  <div class="border border-dashed border-base-300 rounded-xl p-4 bg-max-green-25 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-                                    <div class="space-y-3 flex-1">
-                                      <div class="text-sm text-base-content/60 uppercase tracking-wide"
-                                           x-text="addressSummaryLabel(field)"></div>
-                                      <div class="text-base font-semibold"
-                                           x-text="summaryHeading || field.summaryTitle || 'Vybraná adresa'"></div>
-                                      <p class="text-sm text-base-content/80 whitespace-pre-line" x-text="summaryBody"></p>
-                                      <button type="button"
-                                              class="btn btn-sm btn-ghost text-max-blue-500 px-0"
-                                              @click="clearSelection(true)">
-                                        Změnit adresu
-                                      </button>
+                    <template x-if="hasSelection">
+                      <div class="border border-dashed border-base-300 rounded-xl p-4 bg-max-green-25 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                        <div class="space-y-3 flex-1">
+                    <div class="text-sm text-base-content/60 uppercase tracking-wide flex items-center gap-2"
+                         x-text="addressSummaryLabel(field)">
+                      <span class="text-success text-xs font-semibold" x-show="addressPrefilledFromAccount">Předvyplněno z vašeho účtu.</span>
+                    </div>
+                    <div class="text-base font-semibold"
+                         x-text="summaryHeading || field.summaryTitle || 'Vybraná adresa'"></div>
+                    <p class="text-sm text-base-content/80 whitespace-pre-line" x-text="summaryBody"></p>
+                      <p class="text-xs text-success font-medium" x-show="addressPrefilledFromAccount">
+                        Předvyplněno z vašeho účtu.
+                      </p>
+                      <p class="text-xs text-success font-medium" x-show="addressPrefilledFromAccount">
+                        Předvyplněno z vašeho účtu.
+                      </p>
+                      <button type="button"
+                              class="btn btn-sm btn-ghost text-max-blue-500 px-0"
+                              @click="clearSelection(true)">
+                        Změnit adresu
+                      </button>
                                     </div>
                                     <div class="flex items-center gap-2 shrink-0">
                                       <template x-if="!addressSummaryIsBilling(field)">
@@ -8696,8 +8704,11 @@ function deliveryPaymentUI() {
                                 <template x-if="hasSelection">
                                   <div class="border border-dashed border-base-300 rounded-xl p-4 bg-max-green-25 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                                     <div class="space-y-3 flex-1">
-                                      <div class="text-sm text-base-content/60 uppercase tracking-wide"
-                                           x-text="addressSummaryLabel(field)"></div>
+                    <div class="text-sm text-base-content/60 uppercase tracking-wide flex items-center gap-2"
+                         >
+                      <span x-text="addressSummaryLabel(field)"></span>
+                      <span class="text-success text-xs font-semibold" x-show="addressPrefilledFromAccount">Předvyplněno z vašeho účtu.</span>
+                    </div>
                                       <div class="text-base font-semibold"
                                            x-text="summaryHeading || field.summaryTitle || 'Vybraná adresa'"></div>
                                       <p class="text-sm text-base-content/80 whitespace-pre-line" x-text="summaryBody"></p>
@@ -8754,7 +8765,6 @@ function deliveryPaymentUI() {
 
             <template x-if="!renderHomeFormIn('partner') && requiresHomeAddress()">
               <div class="border border-dashed border-base-300 rounded-xl p-4 space-y-2">
-                <div class="text-sm text-base-content/60 uppercase tracking-wide">Adresa pro doručení</div>
                 <template x-if="homeAddressSummary().length">
                   <dl class="space-y-2">
                     <template x-for="item in homeAddressSummary()" :key="'summary-' + item.label">
@@ -13497,9 +13507,9 @@ addressSummaryIsBilling(field) {
   return this.isBillingAddressField(field);
 },
 addressSummaryLabel(field) {
-  if (!field) return 'Adresa pro doručení';
+  if (!field) return '';
   if (this.addressSummaryIsBilling(field)) return 'Fakturační adresa';
-  return field.summaryEyebrow || 'Adresa pro doručení';
+  return field.summaryEyebrow || '';
 },
 shippingAddressHeading() {
   const meta = this.deliveryMetaFor('ours');
@@ -13933,7 +13943,17 @@ hydrateAddressFormValues() {
       this.contactFormGroups[field.groupKey] = boolVal;
       this.contactFormValues[key] = boolVal;
     } else if (this.isAddressField(field)) {
-      this.contactFormValues[key] = this.normalizeAddressValue(values[key] ?? this.contactFormValues[key]);
+      if (values[key]) {
+        this.contactFormValues[key] = this.normalizeAddressValue(values[key]);
+      } else if (allowAccountPrefill && !this.addressSummaryIsBilling(field)) {
+        const pref = this.prefillValueFromAccount(field, account);
+        if (pref) {
+          this.contactFormValues[key] = pref;
+          prefilledFromAccount = true;
+        }
+      } else {
+        this.contactFormValues[key] = this.normalizeAddressValue(this.contactFormValues[key]);
+      }
     } else if (!field.isToggle && Object.prototype.hasOwnProperty.call(values, key)) {
       this.contactFormValues[key] = values[key];
     } else if (allowAccountPrefill) {
@@ -14174,15 +14194,32 @@ formatFieldValue(field, value) {
 },
 prefillValueFromAccount(field, account) {
   if (!field || !account) return '';
-  if (this.isAddressField(field)) return '';
+  if (this.isAddressField(field)) {
+    if (this.addressSummaryIsBilling(field)) return '';
+    const addr = account.address || account.deliveryAddress || null;
+    if (!addr) return '';
+    return this.normalizeAddressValue(addr);
+  }
   const label = String(field.label || '').toLowerCase();
   const type = String(field.type || '').toLowerCase();
   const phone = account.phone || account.tel || account.phoneNumber || '';
+  const stripPrefix = (value, prefix) => {
+    if (!value) return '';
+    let next = String(value).trim();
+    const esc = (str) => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    if (prefix) {
+      const regex = new RegExp('^' + esc(prefix.trim()) + '\\s*', 'i');
+      next = next.replace(regex, '');
+    }
+    const defaultRegex = new RegExp('^\\+?420\\s*', 'i');
+    next = next.replace(defaultRegex, '');
+    return next.trim();
+  };
   if (type === 'email' || label.includes('e-mail') || label.includes('email')) {
     return account.email || '';
   }
   if (this.isPhoneField(field) || label.includes('telefon')) {
-    return phone || '';
+    return stripPrefix(phone, field.prefix);
   }
   if (label.includes('jméno a příjmení')) {
     return [account.firstName, account.lastName].filter(Boolean).join(' ').trim();
@@ -18102,7 +18139,7 @@ function precartModal() {
               <template x-if="$store.auth.registration.emailVerified">
                 <div class="space-y-5">
                   <div class="space-y-4">
-                    <template x-for="field in $store.auth.registrationStepFields(2, { excludeTypes: ['email'] })" :key="field.key">
+                    <template x-for="field in $store.auth.registrationStepFields(2, { excludeTypes: ['email', 'tel'] })" :key="field.key">
                       <div class="space-y-2">
                         <template x-if="field.isToggle">
                           <label class="flex items-center gap-3 rounded-lg border border-base-200 bg-base-100 px-4 py-3">
@@ -18118,30 +18155,6 @@ function precartModal() {
                         </template>
                         <template x-if="!field.isToggle">
                           <div class="space-y-2">
-                            <template x-if="$store.auth.registrationIsPhoneField(field)">
-                              <div class="space-y-1">
-                                <span class="text-sm font-semibold text-base-content/80" x-text="field.label"></span>
-                                <label class="input input-bordered flex items-center gap-3"
-                                       :class="$store.auth.registration.errors[field.key]?.length ? 'input-error' : ''">
-                                  <span class="font-semibold text-base-content/70" x-show="field.prefix" x-text="field.prefix"></span>
-                                  <div class="relative grow min-w-0 w-full">
-                                    <input type="tel"
-                                           class="w-full bg-transparent focus:outline-none tabular-nums"
-                                           :style="$store.auth.registration.values[field.key] ? 'color: transparent; caret-color: var(--fallback-bc, currentColor);' : ''"
-                                           :name="field.key"
-                                           :autocomplete="$store.auth.registrationInputAutocomplete(field)"
-                                           x-model="$store.auth.registration.values[field.key]"
-                                           @input="$store.auth.registrationHandleInput(field.key)"
-                                           @blur="$store.auth.registrationHandleBlur(field.key)"
-                                            :placeholder="field.placeholder || '123456789'">
-                                    <span class="pointer-events-none absolute inset-0 flex items-center text-base-content tabular-nums"
-                                          :class="$store.auth.registration.values[field.key] ? 'opacity-100' : 'opacity-0'"
-                                          x-text="$store.auth.registrationFormatPhoneDisplay($store.auth.registration.values[field.key])"></span>
-                                  </div>
-                                </label>
-                              </div>
-                            </template>
-
                             <template x-if="!$store.auth.registrationIsPhoneField(field) && field.type === 'password'">
                               <label class="form-control w-full gap-2">
                                 <span class="text-sm font-semibold text-base-content/80" x-text="field.label"></span>
@@ -18236,79 +18249,6 @@ function precartModal() {
                               </label>
                             </template>
 
-                            <template x-if="$store.auth.registrationIsAddressField(field)">
-                              <div x-data="$store.auth.registrationAddressField(field.key)" x-init="init()" class="space-y-2">
-                                <label class="form-control w-full gap-2">
-                                  <span class="text-sm font-semibold text-base-content/80"
-                                        x-text="field.label"
-                                        x-show="!hasSelection || !((query || '').trim().length)"></span>
-                                  <template x-if="!hasSelection">
-                                    <div class="space-y-3">
-                                      <div class="relative">
-                                        <input type="text"
-                                               class="input input-bordered w-full"
-                                               :placeholder="(field.placeholder && field.placeholder.street) || 'Začněte psát adresu'"
-                                               x-model="query"
-                                               x-ref="input"
-                                               :name="`${field.key}-search`"
-                                               autocomplete="street-address"
-                                               autocapitalize="none"
-                                               spellcheck="false"
-                                                @focus="openSuggestions()"
-                                                @input="onInput($event)"
-                                                @blur="onBlur()"
-                                               @keydown.arrow-down.prevent="highlightNext()"
-                                               @keydown.arrow-up.prevent="highlightPrev()"
-                                               @keydown.enter.prevent="selectHighlighted()">
-                                        <button type="button"
-                                                class="btn btn-xs btn-ghost absolute right-2 top-1/2 -translate-y-1/2"
-                                                x-show="hasValue"
-                                                @mousedown.prevent
-                                                @click="clearSelection(false)">
-                                          Vymazat
-                                        </button>
-                                      </div>
-                                      <div class="relative" x-show="open && filteredOptions.length">
-                                        <ul class="menu absolute z-10 w-full rounded-xl border border-base-200 bg-base-100 shadow">
-                                          <template x-for="(option, index) in filteredOptions" :key="option.id">
-                                            <li>
-                                              <button type="button"
-                                                      class="w-full text-left text-base px-4 py-2 hover:bg-base-200 focus:bg-base-200 flex items-center gap-3"
-                                                      :class="{ 'active text-primary': highlighted === index }"
-                                                      @mouseenter="highlighted = index"
-                                                      @mousedown.prevent="selectOption(option)">
-                                                <span class="font-medium truncate" x-text="option.label"></span>
-                                                <span class="text-sm text-base-content/70 truncate" x-text="option.cityLine"></span>
-                                              </button>
-                                            </li>
-                                          </template>
-                                        </ul>
-                                      </div>
-                                    </div>
-                                  </template>
-
-                                  <template x-if="hasSelection">
-                                    <div class="border border-dashed border-base-300 rounded-xl p-4 bg-max-green-25 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-                                      <div class="space-y-2">
-                                        <div class="text-sm text-base-content/60 uppercase tracking-wide"
-                                             x-text="field.summaryEyebrow || field.label || 'Adresa'"></div>
-                                        <div class="text-base font-semibold"
-                                             x-text="summaryHeading || field.summaryTitle || 'Vybraná adresa'"></div>
-                                        <p class="text-sm text-base-content/80 whitespace-pre-line" x-text="summaryBody"></p>
-                                      </div>
-                                      <div class="flex items-center gap-3 shrink-0">
-                                        <button type="button"
-                                                class="btn btn-xs btn-ghost text-max-green-500"
-                                                @click="clearSelection(true)">
-                                          Změnit adresu
-                                        </button>
-                                        <i class="fa-solid fa-check text-max-green-500 text-xl"></i>
-                                      </div>
-                                    </div>
-                                  </template>
-                                </label>
-                              </div>
-                            </template>
 
                             <p class="text-xs text-base-content/70" x-show="field.note" x-text="field.note"></p>
                             <p class="text-sm text-error"
@@ -18355,7 +18295,7 @@ function precartModal() {
                         <template x-if="$store.auth.registrationIsPhoneField(field)">
                           <div class="space-y-1">
                             <span class="text-sm font-semibold text-base-content/80" x-text="field.label"></span>
-                            <label class="input input-bordered flex items-center gap-3"
+                            <label class="input input-bordered flex items-center gap-3 w-full"
                                    :class="$store.auth.registration.errors[field.key]?.length ? 'input-error' : ''">
                               <span class="font-semibold text-base-content/70" x-show="field.prefix" x-text="field.prefix"></span>
                               <div class="relative grow min-w-0 w-full">
@@ -18372,27 +18312,6 @@ function precartModal() {
                               </div>
                             </label>
                           </div>
-                        </template>
-
-                        <template x-if="!$store.auth.registrationIsPhoneField(field) && field.type === 'password'">
-                          <label class="form-control w-full gap-2">
-                            <span class="text-sm font-semibold text-base-content/80" x-text="field.label"></span>
-                            <div class="relative">
-                              <input :type="$store.auth.registration.passwordVisible ? 'text' : 'password'"
-                                     class="input input-bordered w-full pr-12"
-                                     :placeholder="field.placeholder || '••••••••'"
-                                     x-model="$store.auth.registration.values[field.key]"
-                                     @input="$store.auth.registrationHandleInput(field.key)"
-                                     @blur="$store.auth.registrationHandleBlur(field.key)">
-                              <button type="button"
-                                      class="absolute inset-y-0 right-2 flex items-center px-2 text-base-content transition-colors duration-150 hover:text-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-base-100 z-20"
-                                      @click="$store.auth.registration.passwordVisible = !$store.auth.registration.passwordVisible"
-                                      :aria-label="$store.auth.registration.passwordVisible ? 'Skrýt heslo' : 'Zobrazit heslo'">
-                                <i class="fa-regular text-base-content"
-                                   :class="$store.auth.registration.passwordVisible ? 'fa-eye-slash' : 'fa-eye'"></i>
-                              </button>
-                            </div>
-                          </label>
                         </template>
 
                         <template x-if="!$store.auth.registrationIsPhoneField(field) && ['text','email'].includes(field.type) && field.type !== 'password'">
@@ -18484,7 +18403,7 @@ function precartModal() {
                                         <template x-for="(option, index) in filteredOptions" :key="option.id">
                                           <li>
                                             <button type="button"
-                                                    class="w-full text-left text-base px-4 py-2 hover:bg-base-200 focus:bg-base-200 flex items-center gap-3"
+                                                    class="w-full text-left text-base px-4 py-1 hover:bg-base-200 focus:bg-base-200 flex items-center gap-2"
                                                     :class="{ 'active text-primary': highlighted === index }"
                                                     @mouseenter="highlighted = index"
                                                     @mousedown.prevent="selectOption(option)">
@@ -18501,8 +18420,6 @@ function precartModal() {
                               <template x-if="hasSelection">
                                 <div class="border border-dashed border-base-300 rounded-xl p-4 bg-max-green-25 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                                   <div class="space-y-2">
-                                    <div class="text-sm text-base-content/60 uppercase tracking-wide"
-                                         x-text="field.summaryEyebrow || field.label || 'Adresa'"></div>
                                     <div class="text-base font-semibold"
                                          x-text="summaryHeading || field.summaryTitle || 'Vybraná adresa'"></div>
                                     <p class="text-sm text-base-content/80 whitespace-pre-line" x-text="summaryBody"></p>
@@ -18555,8 +18472,7 @@ function precartModal() {
                   <span class="text-4xl text-success">
                     <i class="fa-solid fa-circle-check"></i>
                   </span>
-                  <h3 class="text-lg font-semibold">Hotovo! Přihlašujeme vás…</h3>
-                  <p class="text-sm text-base-content/70">Za malou chvíli budete pokračovat jako přihlášený uživatel.</p>
+                  <h3 class="text-lg font-semibold">Probíhá první přihlášení…</h3>
                 </div>
               </template>
             </div>
