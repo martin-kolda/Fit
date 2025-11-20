@@ -2,8 +2,14 @@
   {
     "image": "./images/categories-grid/drmax.webp",
     "label": "Dr. Max produkty",
-    "background": "bg-max-green-400",
+    "background": "bg-max-green-100",
     "slug": "dr-max"
+  },
+    {
+    "image": "./images/new-icons/sales-red.webp",
+    "label": "Akce a slevy",
+    "background": "bg-max-red-100",
+    "slug": "akce-a-slevy"
   },
   {
     "image": "./images/categories-grid/zdravotnicke-pomucky.webp",

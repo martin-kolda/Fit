@@ -128,8 +128,8 @@
       {
         "name": null,
         "items": [
-          { "name": "Procházet vše", "route": "products/detska-vyziva" },
-          { "name": "Dětská výživa", "route": "products/detska-vyziva" },
+          { "name": "Procházet vše" },
+          { "name": "Dětská výživa"},
           { "name": "Pleny a přebalování" },
           { "name": "Kosmetika a hygiena" },
           { "name": "Maminka" },
@@ -156,7 +156,6 @@
         "name": null,
         "items": [
           { "name": "Procházet vše", "route": "products/vitaminy-a-imunita" },
-          { "name": "Vitamíny", "route": "products/vitaminy-a-imunita" },
           { "name": "Minerály" },
           { "name": "Klouby, kosti, svaly" },
           { "name": "Dle obsažené látky" },
@@ -170,7 +169,8 @@
           { "name": "Únava a vyčerpání" },
           { "name": "Štíhlá linie, hubnutí" },
           { "name": "Doplňky stravy pro diabetiky, sladidla" },
-          { "name": "Vitamíny pro děti", "route": "products/detska-vyziva"  },
+          { "name": "Vitamíny", "route": "products/vitaminy-a-imunita" },
+          { "name": "Vitamíny pro děti", "route": "products/vitaminy-pro-deti"  },
           { "name": "Spánek, nervy, stres" },
           { "name": "Močové cesty" },
           { "name": "Paměť" },

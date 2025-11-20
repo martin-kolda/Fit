@@ -77,18 +77,18 @@
   },
     {
     "id": 304,
-    "slug": "detska-vyziva",
+    "slug": "vitaminy-pro-deti",
     "aliases": [],
-    "dataSource": "data/products-detska-vyziva.json",
-    "title": "Dětská výživa",
+    "dataSource": "data/products-vitaminy-pro-deti.json",
+    "title": "Vitamíny pro děti",
     "breadcrumbs": [
       { "label": "Domů", "route": "home" },
-      { "label": "Dětská výživa" }
+      { "label": "Vitamíny pro děti" }
     ],
     "categoryHeading": "Kategorie",
-    "descriptionHeading": "Dětská výživa",
+    "descriptionHeading": "Vitamíny pro děti",
     "description": "Léky a spreje, které ulevují od kašle, ucpaného nosu a dalších příznaků nachlazení během chladných dní.",
-    "search": { "include": true, "label": "Kašel a rýma", "preload": true }
+    "search": { "include": true, "label": "Vitamíny pro děti", "preload": true }
   }
 
 ]

@@ -32,8 +32,14 @@
     {
         "name": "Vitamíny, minerály, imunita",
         "image": "./images/vitaminy.webp",
-        "products": 178,
-        "route": "TBD"
+        "products": null,
+        "route": "products/vitaminy-a-imunita"
+    },
+    {
+        "name": "Vitamíny pro děti",
+        "image": "./images/pro-deti.webp",
+        "products": null,
+        "route": "products/vitaminy-pro-deti"
     },
     {
         "name": "Jak vybrat vitamíny?",

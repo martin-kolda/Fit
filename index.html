@@ -3481,11 +3481,11 @@ const normalizedPartnerOrders = partnerOrders.map(order => {
     
         <!-- Dropdown  -->
         <div
-        x-show="open"
-        x-transition.opacity
-        class="fixed z-[33]"
-        :style="dropdownStyle"
-      >
+          x-show="open"
+          x-transition.opacity
+          class="fixed z-[90]"
+          :style="dropdownStyle"
+        >
         <div class="bg-base-100 rounded-2xl shadow-xl border border-base-200 w-full box-border">
           <!-- RECENT -->
           <template x-if="q.trim().length < minChars">
@@ -4721,16 +4721,6 @@ const normalizedPartnerOrders = partnerOrders.map(order => {
 
       </div>
         </div>
-      <div class="hidden lg:flex justify-end">
-        <button type="button"
-                class="btn btn-outline btn-secondary"
-                @click="clearFilters()"
-                x-show="hasActiveFilters()"
-                x-cloak
-                x-transition.opacity>
-          <span x-text="t('routes.products.actions.clearFilters', 'Vymazat filtry')"></span>
-        </button>
-      </div>
 
         <div class="lg:hidden px-6 pb-6 pt-4 bg-base-100 border-t border-base-200">
           <button type="button"
@@ -5167,7 +5157,7 @@ const normalizedPartnerOrders = partnerOrders.map(order => {
            class="py-16 text-center opacity-70"
            x-text="t('routes.products.results.empty', 'Nic jsme nenašli pro zadané filtrování.')">
       </div>
-
+      <div class="mb-20">
       <div x-show="!isLoading && (totalPages() > 1 || canLoadMoreFirstPage())"
            class="mt-4 flex flex-col gap-3 py-4 w-full sm:flex-row sm:items-center sm:justify-between">
         <div class="w-full sm:w-auto">
@@ -5196,7 +5186,8 @@ const normalizedPartnerOrders = partnerOrders.map(order => {
           <span x-text="loadMoreLabel()"></span>
         </button>
       </div>
-      <!-- CATEGORIES GRID -->
+      </div>
+      <!-- CATEGORIES GRID 
       <div x-data="categoriesList" x-cloak class="w-full mx-auto pt-14">
         <h2 class="font-semibold mb-4" x-text="productCategoriesHeading()"></h2>
         <div class="grid gap-2 md:gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">    
@@ -5236,7 +5227,7 @@ const normalizedPartnerOrders = partnerOrders.map(order => {
       <div class="py-4 mb-10">
         <h2 class="font-semibold mb-4" x-text="productDescriptionHeading()"></h2>
         <p class="text-sm leading-relaxed" x-text="productDescriptionText()"></p>
-      </div>
+      </div>-->
     </div>
   </div>
 </section>
@@ -6028,7 +6019,9 @@ const normalizedPartnerOrders = partnerOrders.map(order => {
   <!-- EMPTY STATE -->
   <template x-if="$store.cart.distinctCount() === 0">
     <div class="grid place-items-center py-16">
-      <dotlottie-wc src="https://lottie.host/eb88511c-2fed-471c-8171-78a57701e4ef/z9tvJoPVCp.lottie" style="width: 160px;height: 160px" autoplay loop></dotlottie-wc>
+            <div class="shrink-0 hidden sm:block">
+              <img src="./images/new-icons/empty-cart.webp" alt="Bonus" class="w-40 h-40 object-contain">
+            </div>
       <p class="mt-4 font-medium">Váš košík je prázdný. Pojďme to napravit!</p>
       <button class="btn btn-outline mt-6" @click="location.hash='/products'">Pokračovat v nákupu</button>
     </div>
@@ -6518,7 +6511,7 @@ const normalizedPartnerOrders = partnerOrders.map(order => {
     </div>
   </template>
 
-  <div class="flex justify-end mt-6" x-show="$store.cart.distinctCount() > 0">
+  <div class="flex justify-start mt-6" x-show="$store.cart.distinctCount() > 0">
     <button class="btn btn-ghost btn-sm"
             @click="confirm('Opravdu chcete vysypat košík?') && $store.cart.clear()">
       Vysypat košík
@@ -8427,8 +8420,8 @@ function deliveryPaymentUI() {
 </script>
 
 
-      <div class="flex justify-end mt-6">
-        <button class="btn btn-ghost btn-sm"
+      <div class="flex justify-start mt-6">
+        <button class="btn btn-ghost btn-sm px-0"
                 @click="
                   const ui = $refs.deliveryPayment?.__x?.$data;
                   const proceed = confirm('Resetovat výběr dopravy a platby?');
@@ -8484,7 +8477,7 @@ function deliveryPaymentUI() {
                 <template x-if="items.length">
                   <div class="avatar-group -space-x-6 overflow-visible" aria-label="Produkty v košíku">
                     <template x-for="it in visible()" :key="it.id + '-' + it.img">
-                      <div class="avatar shadow-md" :title="it.name">
+                      <div class="avatar shadow-md bg-white" :title="it.name">
                         <div class="w-14 xl:w-18 h-14 xl:h-18 rounded-full bg-base-200 overflow-hidden">
                           <img
                             :src="it.img"
@@ -8513,12 +8506,13 @@ function deliveryPaymentUI() {
               <div class="border border-dashed border-base-300 rounded-xl p-4 space-y-2 bg-max-green-25 flex justify-between items-center">
                 <div class="flex flex-col space-y-2">
                 <div class="text-sm text-base-content/60 uppercase tracking-wide">Výdejní místo</div>
-                <div class="text-base font-semibold" x-text="pickupSummary('ours')?.name || 'Vybrané místo'"></div>
-                <p class="text-sm text-base-content/80 whitespace-pre-line" x-text="pickupSummary('ours')?.addressLine || 'Výdejní místo je nastaveno v předchozím kroku.'"></p>
-                <p class="text-sm text-base-content/80" x-show="pickupSummary('ours')?.phone">
+                <div class="text-lg font-semibold" x-text="pickupSummary('ours')?.name || 'Vybrané místo'"></div>
+                <div>
+                <p class="text-base text-base-content/80 whitespace-pre-line" x-text="pickupSummary('ours')?.addressLine || 'Výdejní místo je nastaveno v předchozím kroku.'"></p>
+                <p class="text-base text-base-content/80" x-show="pickupSummary('ours')?.phone">
                   Kontakt: <span class="font-medium" x-text="pickupSummary('ours')?.phone"></span>
                 </p>
-
+                </div>
                 </div>
                 <div class="flex items-center gap-2">
                   <div class="text-sm text-base-content/80" x-data="deliveryPickupTimes('short')" x-cloak x-show="!deliveryMetaFor('ours')?.timeslot">
@@ -8623,16 +8617,13 @@ function deliveryPaymentUI() {
                         <div class="space-y-3 flex-1">
                     <div class="text-sm text-base-content/60 uppercase tracking-wide flex items-center gap-2"
                          x-text="addressSummaryLabel(field)">
-                      <span class="text-success text-xs font-semibold" x-show="addressPrefilledFromAccount">Předvyplněno z vašeho účtu.</span>
+                      <span class="text-success text-xs font-semibold" x-show="addressPrefilledFromAccount">Předvyplněno z vašeho účtu</span>
                     </div>
                     <div class="text-base font-semibold"
                          x-text="summaryHeading || field.summaryTitle || 'Vybraná adresa'"></div>
                     <p class="text-sm text-base-content/80 whitespace-pre-line" x-text="summaryBody"></p>
                       <p class="text-xs text-success font-medium" x-show="addressPrefilledFromAccount">
-                        Předvyplněno z vašeho účtu.
-                      </p>
-                      <p class="text-xs text-success font-medium" x-show="addressPrefilledFromAccount">
-                        Předvyplněno z vašeho účtu.
+                        Předvyplněno z vašeho účtu
                       </p>
                       <button type="button"
                               class="btn btn-sm btn-ghost text-max-blue-500 px-0"
@@ -8700,7 +8691,7 @@ function deliveryPaymentUI() {
                 <template x-if="items.length">
                   <div class="avatar-group -space-x-6 overflow-visible" aria-label="Produkty od dodavatele">
                     <template x-for="it in visible()" :key="it.id + '-' + it.img">
-                      <div class="avatar shadow-md" :title="it.name">
+                      <div class="avatar shadow-md bg-white" :title="it.name">
                         <div class="w-14 xl:w-18 h-14 xl:h-18 rounded-full bg-base-200 overflow-hidden">
                           <img
                             :src="it.img"
@@ -8813,16 +8804,15 @@ function deliveryPaymentUI() {
                                 <template x-if="hasSelection">
                                   <div class="border border-dashed border-base-300 rounded-xl p-4 bg-max-green-25 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                                     <div class="space-y-3 flex-1">
-                    <div class="text-sm text-base-content/60 uppercase tracking-wide flex items-center gap-2"
-                         >
+                    <div class="text-sm text-base-content/60 tracking-wide flex items-center">
                       <span x-text="addressSummaryLabel(field)"></span>
-                      <span class="text-success text-xs font-semibold" x-show="addressPrefilledFromAccount">Předvyplněno z vašeho účtu.</span>
+                      <span class="text-success text-sm font-medium" x-show="addressPrefilledFromAccount">Adresa předvyplněna z vašeho účtu</span>
                     </div>
-                                      <div class="text-base font-semibold"
+                                      <div class="text-lg font-semibold"
                                            x-text="summaryHeading || field.summaryTitle || 'Vybraná adresa'"></div>
-                                      <p class="text-sm text-base-content/80 whitespace-pre-line" x-text="summaryBody"></p>
+                                      <p class="text-base text-base-content/80 whitespace-pre-line" x-text="summaryBody"></p>
                                       <button type="button"
-                                              class="btn btn-sm btn-ghost text-max-blue-500 px-0"
+                                              class="btn btn-md btn-ghost text-max-blue-500 px-0"
                                               @click="clearSelection(true)">
                                         Změnit adresu
                                       </button>
@@ -8902,8 +8892,8 @@ function deliveryPaymentUI() {
         <article class="border border-base-300 rounded-2xl bg-white shadow-sm p-6 md:p-10 space-y-6">
           <div class="flex items-center justify-between">
               <h2 class="text-2xl font-medium">Kontaktní údaje</h2>
-              <p class="text-sm text-success/80" x-show="addressPrefilledFromAccount">
-                Předvyplněno z vašeho účtu.
+              <p class="text-sm text-success/80 font-medium" x-show="addressPrefilledFromAccount">
+                Kontakty předvyplněny z vašeho účtu
               </p>
           </div>
 
@@ -9477,14 +9467,17 @@ function deliveryPaymentUI() {
 
     <template x-if="paygateModal.step === 'intro'">
       <div class="space-y-5">
-        <div class="space-y-2">
-          <h3 class="text-lg font-semibold"
+        <div class="space-y-2 w-full">
+            <div class="shrink-0 hidden sm:block">
+              <img src="./images/new-icons/private-label.webp" alt="Bonus" class="w-40 h-40 object-contain mx-auto">
+            </div>
+          <h3 class="text-lg font-semibold text-center"
               x-text="paygateModal.variant === 'benefit' ? 'Platba benefitní kartou online' : 'Online platba'"></h3>
-          <p class="text-sm text-base-content/70">
-            Platba probíhá pouze jako simulace pro potřeby našeho testu. Žádné peníze nebudou stržené :)
+          <p class="text-sm text-base-content/70 w-full text-center">
+            Visa, MasterCard, GooglePay, ApplePay...
           </p>
           <p class="text-xs text-base-content/70" x-show="paygateModal.variant === 'benefit'">
-            Platili byste benefitní kartou.
+            Platili byste benefitní kartou online.
           </p>
         </div>
         <button type="button"
@@ -9493,9 +9486,6 @@ function deliveryPaymentUI() {
           <span x-text="paygateModal.variant === 'benefit' ? 'Zaplatit benefitní kartou' : 'Zaplatit'"></span>
           <span x-text="formatCZK(paygateModal.amount || paygateTotal())"></span>
         </button>
-        <button type="button"
-                class="btn btn-ghost btn-block"
-                @click="paygateManualCancel()">Zrušit a vrátit se</button>
       </div>
     </template>
 
@@ -9512,7 +9502,7 @@ function deliveryPaymentUI() {
           <i class="fa-solid fa-circle-check"></i>
         </span>
         <h3 class="text-lg font-semibold">Platba dokončena</h3>
-        <p class="text-sm text-base-content/70">Pokračujeme k potvrzení objednávky…</p>
+        <p class="text-sm text-base-content/70">Vše proběhlo v pořádku</p>
       </div>
     </template>
   </div>
@@ -9536,7 +9526,7 @@ function deliveryPaymentUI() {
         </template>
         <template x-if="!$store.activeOrder.hasOrder()">
           <p class="text-base text-base-content/70">
-            Dokončete nákup a přehled jeho průběhu se zobrazí právě zde.
+            Dokončete nákup a zde můžete sledovat pohyb zásilky.
           </p>
         </template>
       </div>
@@ -9557,7 +9547,7 @@ function deliveryPaymentUI() {
               <template x-if="visible().length">
                 <div class="avatar-group -space-x-6 overflow-visible">
                   <template x-for="it in visible()" :key="it.id + '-' + it.img">
-                    <div class="avatar shadow-md :title="it.name">
+                    <div class="avatar shadow-md bg-white" :title="it.name">
                       <div class="w-14 xl:w-18">
                         <img
                           :src="it.img || './images/placeholder.png'"
@@ -9661,7 +9651,7 @@ function deliveryPaymentUI() {
                 <template x-if="visible().length">
                   <div class="avatar-group -space-x-6 overflow-visible">
                     <template x-for="it in visible()" :key="(it.id || it.image || '') + '-' + (it.img || it.image || '')">
-                      <div class="avatar shadow-md" :title="it.name">
+                      <div class="avatar shadow-md bg-white" :title="it.name">
                         <div class="w-14 xl:w-18">
                           <img
                             :src="it.img || it.image || './images/placeholder.png'"
@@ -9752,7 +9742,10 @@ function deliveryPaymentUI() {
 
     <template x-if="!$store.activeOrder.hasOrder()">
       <div class="rounded-2xl border border-dashed border-base-300 bg-base-100/80 p-8 text-center text-base-content/70">
-        Nemáte žádnou aktivní objednávku. Jakmile dokončíte nákup, ukážeme tady její průběh krok za krokem.
+              <div class="shrink-0">
+              <img src="./images/new-icons/free-shipping.webp" alt="Bonus" class="w-40 h-40 object-contain mx-auto">
+      </div>
+        Nemáte žádnou aktivní objednávku
       </div>
     </template>
   </section>
@@ -10038,22 +10031,29 @@ function deliveryPaymentUI() {
       <div>
         <h1 class="text-3xl font-semibold">Můj účet</h1>
       </div>
-      <div class="text-sm text-base-content/70 flex items-center gap-2">
-        <i class="fa-regular fa-shield-check text-primary"></i>
-        Ověřte svůj e-mail
-      </div>
+      <button type="button"
+              x-show="$store.auth?.isAuthenticated"
+              x-cloak
+              class="text-sm text-base-content/70 flex items-center gap-2 hover:text-primary cursor-pointer transition"
+              @click="$store.auth?.logout?.()">
+        <i class="fa-regular fa-arrow-right-from-bracket"></i>
+        Odhlásit se
+      </button>
     </header>
 
     <template x-if="!$store.auth?.isAuthenticated">
-      <div class="bg-white border border-base-200 rounded-2xl p-8 text-center space-y-4">
-        <h2 class="text-2xl font-semibold">Přihlaste se ke svému účtu</h2>
+      <div class="bg-white border border-base-200 rounded-2xl p-8 lg:py-20 text-center space-y-4">
+            <div class="shrink-0 hidden sm:block w-full">
+              <img src="./images/new-icons/users.webp" alt="Bonus" class="w-40 h-40 object-contain mx-auto">
+            </div>
+        <h2 class="text-2xl font-semibold">Jste odhlášení</h2>
         <p class="text-base text-base-content/70">
           Historii objednávek, osobní údaje i věrnostní odměny zobrazíme hned po přihlášení.
         </p>
         <button type="button"
                 class="btn btn-primary"
                 @click="$store.auth?.handleAccountClick?.()">
-          Otevřít přihlášení
+          Přihlásit se
         </button>
       </div>
     </template>
@@ -10062,7 +10062,7 @@ function deliveryPaymentUI() {
       <div class="grid gap-6 lg:grid-cols-3">
       <!-- Left: Account menu -->
       <aside class="lg:col-span-1 lg:w-4/5">
-        <div class="rounded-2xl border border-base-200 bg-base-100 shadow-sm overflow-hidden">
+        <div class="rounded-2xl border border-base-200 bg-base-100 shadow-sm overflow-hidden py-3">
           <nav class="divide-y divide-max-gray-25">
             <template x-if="!accountMenuItems.length">
               <div class="p-4 text-sm text-base-content/60">
@@ -10071,12 +10071,12 @@ function deliveryPaymentUI() {
             </template>
             <template x-for="item in accountMenuItems" :key="item.name">
               <button type="button"
-                      class="w-full flex items-center gap-2 px-5 py-3 text-left hover:bg-base-200 transition"
+                      class="w-full flex items-center gap-2 px-5 py-1 text-left hover:bg-base-200 transition"
                       @click="goTo(item)">
                 <span class="w-10 h-10 rounded-xl text-primary grid place-items-center">
                   <i :class="[item.iconSet || 'fa-regular', `fa-${item.icon || 'circle'}`, 'text-lg']"></i>
                 </span>
-                <span class="text-base font-medium text-base-content/90" x-text="item.name"></span>
+                <span class="text-base font-normal text-base-content/90" x-text="item.name"></span>
               </button>
             </template>
           </nav>
@@ -10150,9 +10150,15 @@ function deliveryPaymentUI() {
             </div>
 
           </div>
-          <p class="text-sm text-base-content/70 rounded-xl border border-base-200 bg-base-100 p-3 text-center h-24 flex items-center justify-center">
-            Zde se objeví vyřízené objednávky a faktury. Právě doručovanou objednávku můžete sledovat <a href="#/active-order" class="underline text-max-blue-500 ml-1">zde</a>
-          </p>
+          <div class="text-sm text-base-content/70 rounded-xl border border-base-200 bg-base-100 p-6 text-center flex flex-col items-center justify-center gap-4">
+            <div class="shrink-0">
+              <img src="./images/new-icons/package.webp" alt="Bonus" class="w-20 h-20 object-contain mx-auto">
+            </div>
+            <p class="max-w-md">
+              Zde se objeví vyřízené objednávky a faktury. Právě doručovanou objednávku můžete sledovat
+              <a href="#/active-order" class="underline text-max-blue-500 whitespace-nowrap">zde</a>
+            </p>
+          </div>
         </div>
 
       </div>
@@ -10171,7 +10177,10 @@ function deliveryPaymentUI() {
 
     <template x-if="!$store.saved.items.length">
       <div class="bg-white border border-base-200 rounded-2xl p-8 text-center space-y-4">
-        <p class="text-base text-base-content/70">Zatím nemáte uložené žádné produkty.</p>
+              <div class="shrink-0">
+              <img src="./images/new-icons/package.webp" alt="Bonus" class="w-40 h-40 object-contain mx-auto">
+      </div>
+        <p class="text-base text-base-content/70">Zatím nemáte uložené žádné produkty</p>
         <button type="button" class="btn btn-primary" @click="location.hash='/products'">Zpět na nabídku</button>
       </div>
     </template>
@@ -11845,6 +11854,15 @@ this.$nextTick(() => requestAnimationFrame(focusRealInput));
   get links()      { return (opts.getLinks && opts.getLinks())         || []; },
 
   // --- normalization to a single row shape ---
+  routeHref(route) {
+    if (!route) return null;
+    const trimmed = String(route).trim();
+    if (!trimmed || trimmed.toUpperCase() === 'TBD') return null;
+    if (/^(https?:)?\/\//i.test(trimmed)) return trimmed;
+    if (trimmed.startsWith('/')) return trimmed;
+    if (trimmed.startsWith('#')) return trimmed;
+    return `#/${trimmed.replace(/^#?\/?/, '')}`;
+  },
   asProduct(p) {
     const parts = [];
     if (p.stock) parts.push(p.stock);
@@ -11863,10 +11881,13 @@ this.$nextTick(() => requestAnimationFrame(focusRealInput));
     };
   },
   asCategory(c) {
+    const count = Number(c.products ?? 0);
+    const hasCount = Number.isFinite(count) && count > 0;
+    const suffix = hasCount ? ` • ${count} produktů` : '';
     return {
       t:'category', k:String(c.name || ''), id:null,
-      name:c.name, sub:`Kategorie • ${c.products ?? 0} produktů`,
-      img:c.image || null, icon:null, raw:c
+      name:c.name, sub:`Kategorie${suffix}`,
+      img:c.image || null, icon:null, href:this.routeHref(c.route), raw:c
     };
   },
   asInfo(l) {
@@ -11875,7 +11896,7 @@ this.$nextTick(() => requestAnimationFrame(focusRealInput));
     return {
       t:'info', k:String(l.name || ''), id:null,
       name:l.name, sub:l.description || '',
-      img:null, icon:`${set} fa-${name}`, raw:l
+      img:null, icon:`${set} fa-${name}`, href:this.routeHref(l.route || l.href), raw:l
     };
   },
   asPharmacy(p) {
@@ -11971,7 +11992,16 @@ this.$nextTick(() => requestAnimationFrame(focusRealInput));
       return;
     }
 
-    // categories/info: wire routes if/when needed
+    if ((item.t === 'category' || item.t === 'info') && item.href) {
+      if (item.href.startsWith('http')) {
+        window.location.href = item.href;
+      } else if (item.href.startsWith('/')) {
+        window.location.href = item.href;
+      } else {
+        location.hash = item.href.startsWith('#') ? item.href : `#/${item.href.replace(/^#?\/?/, '')}`;
+      }
+      return;
+    }
   },
 
   clear() { this.q = ''; this.highlighted = -1; },
@@ -18353,8 +18383,9 @@ function precartModal() {
      @keydown.escape.window="$store.auth?.closeModal()">
   <div class="modal-box max-w-md space-y-2 relative p-6 md:p-10" @click.stop>
     <div class="flex items-start justify-between gap-4">
-      <div class="space-y-1">
+        <div class="space-y-1">
         <h2 class="text-2xl font-semibold"
+            x-show="!['processing','success'].includes($store.auth?.registration?.phase)"
             x-text="$store.auth?.view === 'register'
               ? 'Registrace'
               : ($store.auth?.view === 'forgot' ? 'Zapomenuté heslo' : 'Přihlášení')"></h2>
@@ -18903,7 +18934,7 @@ function precartModal() {
               <template x-if="$store.auth.registration.phase === 'processing'">
                 <div class="flex flex-col items-center gap-3">
                   <span class="loading loading-spinner loading-lg text-secondary"></span>
-                  <p class="text-sm text-base-content/70">Dokončujeme registraci…</p>
+                  <p class="text-lg font-normal text-base-content/70">Dokončujeme registraci…</p>
                 </div>
               </template>
               <template x-if="$store.auth.registration.phase === 'success'">
@@ -18911,7 +18942,7 @@ function precartModal() {
                   <span class="text-4xl text-success">
                     <i class="fa-solid fa-circle-check"></i>
                   </span>
-                  <h3 class="text-lg font-semibold">Probíhá první přihlášení…</h3>
+                  <h3 class="text-lg font-normal text-base-content/70">Probíhá první přihlášení…</h3>
                 </div>
               </template>
             </div>

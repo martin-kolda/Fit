@@ -14,7 +14,8 @@
     "benefitPayment": false,
     "consumers": [
       "Dospělí",
-      "Děti"
+      "Děti 3+",
+      "Děti 12+"
     ],
     "form": "Tablety, pastilky, tobolky"
   },
@@ -34,7 +35,8 @@
     "benefitPayment": false,
     "consumers": [
       "Dospělí",
-      "Děti 3+"
+      "Děti 3+",
+      "Děti 12+"
     ],
     "form": "Tablety, pastilky, tobolky"
   },
@@ -51,7 +53,8 @@
     "benefitPayment": false,
     "consumers": [
       "Dospělí",
-      "Děti 3+"
+      "Děti 3+",
+      "Děti 12+"
     ],
     "form": "Tablety, pastilky, tobolky"
   },
@@ -68,7 +71,8 @@
     "benefitPayment": false,
     "consumers": [
       "Dospělí",
-      "Děti 3+"
+      "Děti 3+",
+      "Děti 12+"
     ],
     "form": "Tablety, pastilky, tobolky"
   },
@@ -87,7 +91,7 @@
     ],
     "benefitPayment": false,
     "consumers": [
-      "Děti",
+      "Děti 12+",
       "Dospělí"
     ],
     "form": "Sirup"
@@ -107,7 +111,7 @@
     "benefitPayment": false,
     "consumers": [
       "Dospělí",
-      "Děti"
+      "Děti 12+"
     ],
     "form": "Tablety, pastilky, tobolky"
   },
@@ -122,9 +126,6 @@
     "badges": ["Do 15 minut"],
     "benefitPayment": true,
     "consumers": [
-      "Pro větší děti",
-      "Pro děti",
-      "Děti",
       "Děti 12+",
       "Děti 3+"
     ],
@@ -141,9 +142,6 @@
     "badges": ["Do 15 minut"],
     "benefitPayment": true,
     "consumers": [
-      "Pro větší děti",
-      "Pro děti",
-      "Děti",
       "Děti 12+",
       "Děti 3+",
       "Dospělí"
@@ -161,9 +159,6 @@
     "badges": ["Do 15 minut"],
     "benefitPayment": true,
     "consumers": [
-      "Pro větší děti",
-      "Pro děti",
-      "Děti",
       "Děti 12+",
       "Děti 3+",
       "Dospělí"
@@ -181,9 +176,6 @@
     "badges": [],
     "benefitPayment": true,
     "consumers": [
-      "Pro větší děti",
-      "Pro děti",
-      "Děti",
       "Děti 12+",
       "Děti 3+",
       "Dospělí"

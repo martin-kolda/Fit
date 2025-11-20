@@ -10,11 +10,11 @@
     "badges": [],
     "benefitPayment": true,
     "consumers": [
-      "Pro kojence",
-      "Pro batolata",
-      "Pro větší děti",
-      "Pro dospělé",
-      "Pro kojící & těhotné"
+      "Kojenci",
+      "Děti 3+",
+      "Děti 12+",
+      "Dospělí",
+      "Kojící & těhotné"
     ],
     "form": "Mast, gel"
   },
@@ -33,11 +33,11 @@
     "stock": "Skladem",
     "benefitPayment": true,
     "consumers": [
-      "Pro kojence",
-      "Pro batolata",
-      "Pro větší děti",
-      "Pro dospělé",
-      "Pro kojící & těhotné"
+      "Kojenci",
+      "Děti 3+",
+      "Děti 12+",
+      "Dospělí",
+      "Kojící & těhotné"
     ],
     "form": "Sáčky, granule"
   },
@@ -46,14 +46,14 @@
     "name": "Ibalgin 400 mg 48 tablet",
     "price": 125,
     "image": "./images/ibalgin.webp",
-    "description": "Zmírňuje bolest a zánět různého původu a snižuje horečku. Pro dospělé a dospívající od 12 let.",
+    "description": "Zmírňuje bolest a zánět různého původu a snižuje horečku. Dospělí a dospívající od 12 let.",
     "category": "Bolest a horečka",
     "stock": "Skladem",
     "badges": [],
     "benefitPayment": true,
     "consumers": [
-      "Pro větší děti",
-      "Pro dospělé"
+      "Děti 12+",
+      "Dospělí"
     ],
     "form": "Tablety, pastilky, tobolky"
   },
@@ -71,8 +71,8 @@
     ],
     "benefitPayment": true,
     "consumers": [
-      "Pro větší děti",
-      "Pro dospělé"
+      "Děti 12+",
+      "Dospělí"
     ],
     "form": "Tablety, pastilky, tobolky"
   },
@@ -90,7 +90,7 @@
     ],
     "benefitPayment": true,
     "consumers": [
-      "Pro dospělé"
+      "Dospělí"
     ],
     "form": "Sáčky, granule"
   },
@@ -105,8 +105,8 @@
     "badges": [],
     "benefitPayment": true,
     "consumers": [
-      "Pro větší děti",
-      "Pro dospělé"
+      "Děti 12+",
+      "Dospělí"
     ],
     "form": "Tablety, pastilky, tobolky"
   },
@@ -121,10 +121,10 @@
     "badges": [],
     "benefitPayment": true,
     "consumers": [
-      "Pro batolata",
-      "Pro větší děti",
-      "Pro dospělé",
-      "Pro kojící & těhotné"
+      "Děti 3+",
+      "Děti 12+",
+      "Dospělí",
+      "Kojící & těhotné"
     ],
     "form": "Kapky"
   },
@@ -133,15 +133,15 @@
     "name": "Nasivin 0,5 mg/ml nosní sprej 10 ml",
     "price": 115,
     "image": "./images/nasivin.webp",
-    "description": "Uvolňuje ucpaný nos při akutní a alergické rýmě. Pro dospělé a děti od 8 let.",
+    "description": "Uvolňuje ucpaný nos při akutní a alergické rýmě. Dospělí a děti od 8 let.",
     "category": "Rýma",
     "stock": "Skladem",
     "badges": [],
     "benefitPayment": true,
     "consumers": [
-      "Pro větší děti",
-      "Pro dospělé",
-      "Pro kojící & těhotné"
+      "Děti 12+",
+      "Dospělí",
+      "Kojící & těhotné"
     ],
     "form": "Sprej"
   },
@@ -156,8 +156,8 @@
     "badges": [],
     "benefitPayment": true,
     "consumers": [
-      "Pro větší děti",
-      "Pro dospělé"
+      "Děti 12+",
+      "Dospělí"
     ],
     "form": "Sáčky, granule"
   },
@@ -172,8 +172,8 @@
     "badges": [],
     "benefitPayment": true,
     "consumers": [
-      "Pro větší děti",
-      "Pro dospělé"
+      "Děti 12+",
+      "Dospělí"
     ],
     "form": "Tablety, pastilky, tobolky"
   },
@@ -188,9 +188,9 @@
     "badges": [],
     "benefitPayment": true,
     "consumers": [
-      "Pro větší děti",
-      "Pro dospělé",
-      "Pro kojící & těhotné"
+      "Děti 12+",
+      "Dospělí",
+      "Kojící & těhotné"
     ],
     "form": "Tablety, pastilky, tobolky"
   },
@@ -205,8 +205,8 @@
     "badges": [],
     "benefitPayment": true,
     "consumers": [
-      "Pro větší děti",
-      "Pro dospělé"
+      "Děti 12+",
+      "Dospělí"
     ],
     "form": "Tablety, pastilky, tobolky"
   },
@@ -223,7 +223,7 @@
     ],
     "benefitPayment": false,
     "consumers": [
-      "Pro dospělé"
+      "Dospělí"
     ],
     "form": "Tablety, pastilky, tobolky"
   },
@@ -238,8 +238,8 @@
     "badges": [],
     "benefitPayment": true,
     "consumers": [
-      "Pro děti",
-      "Pro dospělé"
+      "Děti 3+",
+      "Dospělí"
     ],
     "form": "Kapky"
   },
@@ -256,9 +256,8 @@
     ],
     "benefitPayment": true,
     "consumers": [
-      "Pro větší děti",
-      "Pro dospívající",
-      "Pro dospělé"
+      "Děti 12+",
+      "Dospělí"
     ],
     "form": "Sprej"
   },
@@ -273,8 +272,8 @@
     "badges": [],
     "benefitPayment": true,
     "consumers": [
-      "Pro dospívající",
-      "Pro dospělé"
+      "Děti 12+",
+      "Dospělí"
     ],
     "form": "Tablety, pastilky, tobolky"
   },
@@ -289,9 +288,9 @@
     "badges": [],
     "benefitPayment": true,
     "consumers": [
-      "Pro děti",
-      "Pro dospívající",
-      "Pro dospělé"
+      "Děti 3+",
+      "Děti 12+",
+      "Dospělí"
     ],
     "form": "Tablety, pastilky, tobolky"
   },
@@ -308,7 +307,7 @@
     ],
     "benefitPayment": false,
     "consumers": [
-      "Pro ženy"
+      "Ženy"
     ],
     "form": "Čípky"
   },
@@ -323,9 +322,9 @@
     "badges": [],
     "benefitPayment": true,
     "consumers": [
-      "Pro děti",
-      "Pro dospívající",
-      "Pro dospělé"
+      "Děti 3+",
+      "Děti 12+",
+      "Dospělí"
     ],
     "form": "Sprej"
   },
@@ -342,8 +341,8 @@
     ],
     "benefitPayment": true,
     "consumers": [
-      "Pro dospívající",
-      "Pro dospělé"
+      "Děti 12+",
+      "Dospělí"
     ],
     "form": "Mast, gel"
   },
@@ -358,8 +357,8 @@
     "badges": [],
     "benefitPayment": true,
     "consumers": [
-      "Pro dospívající",
-      "Pro dospělé"
+      "Děti 12+",
+      "Dospělí"
     ],
     "form": "Sprej"
   },
@@ -374,8 +373,8 @@
     "badges": [],
     "benefitPayment": true,
     "consumers": [
-      "Pro dospívající",
-      "Pro dospělé"
+      "Děti 12+",
+      "Dospělí"
     ],
     "form": "Tablety, pastilky, tobolky"
   },
@@ -392,7 +391,7 @@
     ],
     "benefitPayment": false,
     "consumers": [
-      "Pro dospělé"
+      "Dospělí"
     ],
     "form": "Kapky"
   },
@@ -407,8 +406,8 @@
     "badges": [],
     "benefitPayment": true,
     "consumers": [
-      "Pro dospívající",
-      "Pro dospělé"
+      "Děti 12+",
+      "Dospělí"
     ],
     "form": "Sprej"
   },
@@ -423,8 +422,8 @@
     "badges": [],
     "benefitPayment": true,
     "consumers": [
-      "Pro dospívající",
-      "Pro dospělé"
+      "Děti 12+",
+      "Dospělí"
     ],
     "form": "Sprej"
   },
@@ -442,8 +441,8 @@
     ],
     "benefitPayment": true,
     "consumers": [
-      "Pro dospívající",
-      "Pro dospělé"
+      "Děti 12+",
+      "Dospělí"
     ],
     "form": "Tablety, pastilky, tobolky"
   },
@@ -458,7 +457,7 @@
     "badges": [],
     "benefitPayment": true,
     "consumers": [
-      "Pro dospělé"
+      "Dospělí"
     ],
     "form": "Tablety, pastilky, tobolky"
   },
@@ -467,13 +466,13 @@
     "name": "Dr. Max Xylomax 0,5 mg/ml nosní sprej 10 ml",
     "price": 99,
     "image": "./images/xylomax-0_5.webp",
-    "description": "Nosní sprej k uvolnění ucpaného nosu při rýmě. Snižuje překrvení nosní sliznice a usnadňuje tak dýchání. Určeno pro děti od 1 do 11 let věku.",
+    "description": "Nosní sprej k uvolnění ucpaného nosu při rýmě. Snižuje překrvení nosní sliznice a usnadňuje tak dýchání. Určeno Děti 3+ od 1 do 11 let věku.",
     "category": "Nosní kapky, spreje a masti",
     "stock": "Skladem",
     "badges": [],
     "benefitPayment": true,
     "consumers": [
-      "Pro děti"
+      "Děti 3+"
     ],
     "form": "Sprej"
   },
@@ -488,8 +487,8 @@
     "badges": [],
     "benefitPayment": true,
     "consumers": [
-      "Pro dospívající",
-      "Pro dospělé"
+      "Děti 12+",
+      "Dospělí"
     ],
     "form": "Tablety, pastilky, tobolky"
   },
@@ -504,9 +503,9 @@
     "badges": [],
     "benefitPayment": true,
     "consumers": [
-      "Pro kojence",
-      "Pro děti",
-      "Pro dospělé"
+      "Kojenci",
+      "Děti 3+",
+      "Dospělí"
     ],
     "form": "Kapky"
   },
@@ -516,7 +515,7 @@
     "price": 149,
     "discounted_price": 119,
     "image": "./images/ambroxol.webp",
-    "description": "Sirup Dr. Max Ambroxol 30 mg/5 ml usnadňuje vykašlávání při vlhkém kašli, zvyšuje sekreci hlenu v dýchacích cestách, zlepšuje transport a vylučování hlenu. Pro dospělé a děti od 12 let.",
+    "description": "Sirup Dr. Max Ambroxol 30 mg/5 ml usnadňuje vykašlávání při vlhkém kašli, zvyšuje sekreci hlenu v dýchacích cestách, zlepšuje transport a vylučování hlenu. Dospělí a děti od 12 let.",
     "category": "Kašel, bolest v krku",
     "stock": "Skladem",
     "badges": [
@@ -524,8 +523,8 @@
     ],
     "benefitPayment": true,
     "consumers": [
-      "Pro dospělé",
-      "Pro dospívající"
+      "Dospělí",
+      "Děti 12+"
     ],
     "form": "Sirup"
   },
@@ -535,7 +534,7 @@
     "price": 55,
     "discounted_price": 39,
     "image": "./images/parapyrex.webp",
-    "description": "Dr. Max Parapyrex 500 mg pomáhá při mírné až střední bolesti (bolest hlavy, zubů, zad, svalů a kloubů při chřipce) a snižuje horečku. Je určen pro dospělé a děti od 6 let.",
+    "description": "Dr. Max Parapyrex 500 mg pomáhá při mírné až střední bolesti (bolest hlavy, zubů, zad, svalů a kloubů při chřipce) a snižuje horečku. Je určen Dospělí a děti od 6 let.",
     "category": "Bolest a horečka",
     "stock": "Skladem",
     "badges": [
@@ -543,9 +542,9 @@
     ],
     "benefitPayment": true,
     "consumers": [
-      "Pro děti",
-      "Pro dospívající",
-      "Pro dospělé"
+      "Děti 3+",
+      "Děti 12+",
+      "Dospělí"
     ],
     "form": "Tablety, pastilky, tobolky"
   },
@@ -560,7 +559,7 @@
     "badges": [],
     "benefitPayment": true,
     "consumers": [
-      "Pro dospělé"
+      "Dospělí"
     ],
     "form": "Tablety, pastilky, tobolky"
   },
@@ -569,15 +568,15 @@
     "name": "Dr. Max Paracetamol 500 mg 20 tablet",
     "price": 35,
     "image": "./images/paracetamol.webp",
-    "description": "Dr. Max Paracetamol 500 mg pomáhá při mírné až střední bolesti (bolest hlavy, zubů, zad, svalů a kloubů při chřipce) a snižuje horečku. Je určen pro dospělé a děti od 6 let.",
+    "description": "Dr. Max Paracetamol 500 mg pomáhá při mírné až střední bolesti (bolest hlavy, zubů, zad, svalů a kloubů při chřipce) a snižuje horečku. Je určen Dospělí a děti od 6 let.",
     "category": "Bolest a horečka",
     "stock": "Skladem",
     "badges": [],
     "benefitPayment": true,
     "consumers": [
-      "Pro děti",
-      "Pro dospívající",
-      "Pro dospělé"
+      "Děti 3+",
+      "Děti 12+",
+      "Dospělí"
     ],
     "form": "Tablety, pastilky, tobolky"
   },
@@ -592,7 +591,7 @@
     "badges": [],
     "benefitPayment": true,
     "consumers": [
-      "Pro dospělé"
+      "Dospělí"
     ],
     "form": "Tablety, pastilky, tobolky"
   },
@@ -607,7 +606,7 @@
     "badges": [],
     "benefitPayment": true,
     "consumers": [
-      "Pro dospělé"
+      "Dospělí"
     ],
     "form": "Kapky"
   },
@@ -622,8 +621,8 @@
     "badges": [],
     "benefitPayment": true,
     "consumers": [
-      "Pro děti",
-      "Pro dospělé"
+      "Děti 3+",
+      "Dospělí"
     ],
     "form": "Sirup"
   },
@@ -642,7 +641,8 @@
     "benefitPayment": false,
     "consumers": [
       "Dospělí",
-      "Děti"
+      "Děti 3+",
+      "Děti 12+"
     ],
     "form": "Tablety, pastilky, tobolky"
 
@@ -671,7 +671,7 @@
     "price": 179,
     "discounted_price": 179,
     "image": "./images/celaskon-red-500.webp",
-    "description": "Šumivé tablety s 500 mg vitaminu C s příchutí červeného pomeranče. Posilují imunitu během chřipky a nachlazení, podporují tvorbu kolagenu, funkci kostí, zubů a vstřebávání železa. Pro dospělé a děti od 3 let; 1 tableta denně rozpuštěná ve vodě.",
+    "description": "Šumivé tablety s 500 mg vitaminu C s příchutí červeného pomeranče. Posilují imunitu během chřipky a nachlazení, podporují tvorbu kolagenu, funkci kostí, zubů a vstřebávání železa. Dospělí a děti od 3 let; 1 tableta denně rozpuštěná ve vodě.",
     "category": "Vitamíny",
     "stock": "Skladem",
     "badges": [
@@ -700,7 +700,8 @@
     ],
     "benefitPayment": false,
     "consumers": [
-      "Děti",
+      "Děti 3+",
+      "Děti 12+",
       "Dospělí"
     ],
     "form": "Sirup"
@@ -762,7 +763,7 @@
     "price": 185,
     "discounted_price": 185,
     "image": "./images/celaskon-long-30.webp",
-    "description": "Tobolky s vitaminem C, který se uvolňuje postupně 8–12 hodin. Podporují imunitu a používají se k prevenci a léčbě nedostatku vitaminu C. Pro dospělé a děti od 3 let; doporučené dávkování 1 tobolka denně.",
+    "description": "Tobolky s vitaminem C, který se uvolňuje postupně 8–12 hodin. Podporují imunitu a používají se k prevenci a léčbě nedostatku vitaminu C. Dospělí a děti od 3 let; doporučené dávkování 1 tobolka denně.",
     "category": "Vitamíny",
     "stock": "Skladem",
     "badges": [],
@@ -779,7 +780,7 @@
     "price": 215,
     "discounted_price": 215,
     "image": "./images/fultium-d3-800.webp",
-    "description": "Léčivý přípravek s vitaminem D3 (cholekalciferol) v dávce 800 IU. Vitamin D podporuje vstřebávání a metabolismus vápníku a pomáhá udržovat zdravé kosti a zuby. Vhodný pro dospělé, starší osoby a dospívající od 12 let.",
+    "description": "Léčivý přípravek s vitaminem D3 (cholekalciferol) v dávce 800 IU. Vitamin D podporuje vstřebávání a metabolismus vápníku a pomáhá udržovat zdravé kosti a zuby. Vhodný Dospělí, starší osoby a dospívající od 12 let.",
     "category": "Vitamíny",
     "stock": "Skladem",
     "badges": [],
@@ -805,7 +806,8 @@
     "benefitPayment": false,
     "consumers": [
       "Dospělí",
-      "Děti"
+      "Děti 3+",
+      "Děti 12+"
     ],
     "form": "Tablety, pastilky, tobolky"
   },
@@ -820,9 +822,7 @@
     "badges": ["Do 15 minut"],
     "benefitPayment": true,
     "consumers": [
-      "Pro větší děti",
-      "Pro děti",
-      "Děti",      "Děti 12+",
+      "Děti 12+",
       "Děti 3+"
     ],
     "form": "Tablety, pastilky, tobolky"
@@ -838,9 +838,7 @@
     "badges": ["Do 15 minut"],
     "benefitPayment": true,
     "consumers": [
-      "Pro větší děti",
-      "Pro děti",
-      "Děti",      "Děti 12+",
+      "Děti 12+",
       "Děti 3+",
       "Dospělí"
     ],
@@ -857,9 +855,7 @@
     "badges": ["Do 15 minut"],
     "benefitPayment": true,
     "consumers": [
-      "Pro větší děti",
-      "Pro děti",
-      "Děti",      "Děti 12+",
+      "Děti 12+",
       "Děti 3+",
       "Dospělí"
     ],
@@ -876,9 +872,7 @@
     "badges": [],
     "benefitPayment": true,
     "consumers": [
-      "Pro větší děti",
-      "Pro děti",
-      "Děti",      "Děti 12+",
+      "Děti 12+",
       "Děti 3+",
       "Dospělí"
     ],
@@ -889,12 +883,12 @@
     "name": "Zinkorot 25 mg 50 tablet",
     "price": 229,
     "image": "./images/zinkorot-25mg.webp",
-    "description": "Přípravek Zinkorot 25 mg obsahuje stopový prvek zinek, který je důležitý pro imunitu a správné fungování biologických procesů. Pro dospělé a dospívající od 12 let.",
+    "description": "Přípravek Zinkorot 25 mg obsahuje stopový prvek zinek, který je důležitý pro imunitu a správné fungování biologických procesů. Dospělí a dospívající od 12 let.",
     "category": "Vitamíny, minerály, imunita",
     "stock": "Skladem",
     "badges": [],
     "benefitPayment": false,
-    "consumers": ["Pro dospělé", "Pro dospívající"],
+    "consumers": ["Dospělí", "Děti 12+"],
     "form": "Tablety, pastilky, tobolky"
   },
   {
@@ -907,7 +901,7 @@
     "stock": "Skladem",
     "badges": [],
     "benefitPayment": false,
-    "consumers": ["Pro děti od 5 let", "Pro dospělé"],
+    "consumers": ["Dospělí", "Děti 3+"],
     "form": "Šumivé tablety"
   },
   {
@@ -920,7 +914,7 @@
     "stock": "Skladem",
     "badges": [],
     "benefitPayment": false,
-    "consumers": ["Pro dospělé", "Pro děti"],
+    "consumers": ["Dospělí", "Děti 3+"],
     "form": "Tablety, pastilky, tobolky"
   },
   {
@@ -933,7 +927,7 @@
     "stock": "Skladem",
     "badges": [],
     "benefitPayment": false,
-    "consumers": ["Pro dospělé"],
+    "consumers": ["Dospělí"],
     "form": "Tablety, pastilky, tobolky"
   },
   {
@@ -946,7 +940,7 @@
     "stock": "Skladem",
     "badges": [],
     "benefitPayment": false,
-    "consumers": ["Pro dospělé"],
+    "consumers": ["Dospělí"],
     "form": "Tablety, pastilky, tobolky"
   },
   {
@@ -954,12 +948,12 @@
     "name": "Vitamin E 200 Zentiva",
     "price": 185,
     "image": "./images/vitamin-e-200-zentiva.webp",
-    "description": "Vitamin E s antioxidačním účinkem. Vhodný pro dospělé, dospívající a děti od 3 let.",
+    "description": "Vitamin E s antioxidačním účinkem. Vhodný Dospělí, dospívající a děti od 3 let.",
     "category": "Vitamíny, minerály, imunita",
     "stock": "Skladem",
     "badges": [],
     "benefitPayment": false,
-    "consumers": ["Pro děti 3+", "Pro dospívající", "Pro dospělé"],
+    "consumers": ["Děti 3+", "Děti 12+", "Dospělí"],
     "form": "Tablety, pastilky, tobolky"
   },
 {
@@ -976,7 +970,7 @@
     ],
     "benefitPayment": true,
     "consumers": [
-      "Pro dospělé"
+      "Dospělí"
     ],
     "form": "Tablety, pastilky, tobolky"
   },
@@ -991,8 +985,8 @@
     "badges": [],
     "benefitPayment": false,
     "consumers": [
-      "Pro děti",
-      "Pro dospělé"
+      "Děti 3+",
+      "Dospělí"
     ],
     "form": "Sprej"
   },
@@ -1007,7 +1001,7 @@
     "badges": [],
     "benefitPayment": false,
     "consumers": [
-      "Pro dospělé"
+      "Dospělí"
     ],
     "form": "Tablety, pastilky, tobolky"
   },
@@ -1022,7 +1016,7 @@
     "badges": [],
     "benefitPayment": true,
     "consumers": [
-      "Pro dospělé"
+      "Dospělí"
     ],
     "form": "Sáčky, granule"
   },
@@ -1037,9 +1031,9 @@
     "badges": [],
     "benefitPayment": true,
     "consumers": [
-      "Pro kojence",
-      "Pro děti",
-      "Pro dospělé"
+      "Kojenci",
+      "Děti 3+",
+      "Dospělí"
     ],
     "form": "Kapky"
   },
@@ -1056,8 +1050,8 @@
     ],
     "benefitPayment": true,
     "consumers": [
-      "Pro děti",
-      "Pro dospělé"
+      "Děti 3+",
+      "Dospělí"
     ],
     "form": "Sprej"
   },
@@ -1074,7 +1068,7 @@
     ],
     "benefitPayment": true,
     "consumers": [
-      "Pro dospělé"
+      "Dospělí"
     ],
     "form": "Roztok"
   },
@@ -1089,8 +1083,8 @@
     "badges": [],
     "benefitPayment": false,
     "consumers": [
-      "Pro kojence",
-      "Pro batolata"
+      "Kojenci",
+      "Děti 3+"
     ],
     "form": "Gel"
   },
@@ -1107,7 +1101,7 @@
     ],
     "benefitPayment": true,
     "consumers": [
-      "Pro dospělé"
+      "Dospělí"
     ],
     "form": "Nápoj"
   },
@@ -1122,8 +1116,8 @@
     "badges": [],
     "benefitPayment": false,
     "consumers": [
-      "Pro děti",
-      "Pro dospělé"
+      "Děti 3+",
+      "Dospělí"
     ],
     "form": "Roztok"
   }  

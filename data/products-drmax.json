@@ -10,8 +10,8 @@
     "badges": [],
     "benefitPayment": true,
     "consumers": [
-      "Pro dospívající",
-      "Pro dospělé"
+      "Děti 12+",
+      "Dospělí"
     ],
     "form": "Sprej"
   },
@@ -29,8 +29,8 @@
     ],
     "benefitPayment": true,
     "consumers": [
-      "Pro dospívající",
-      "Pro dospělé"
+      "Děti 12+",
+      "Dospělí"
     ],
     "form": "Tablety, pastilky, tobolky"
   },
@@ -45,7 +45,8 @@
     "badges": [],
     "benefitPayment": true,
     "consumers": [
-      "Pro děti"
+      "Děti 3+",
+      "Děti 12+"
     ],
     "form": "Sprej"
   },
@@ -55,7 +56,7 @@
     "price": 149,
     "discounted_price": 119,
     "image": "./images/ambroxol.webp",
-    "description": "Sirup Dr. Max Ambroxol 30 mg/5 ml usnadňuje vykašlávání při vlhkém kašli, zvyšuje sekreci hlenu v dýchacích cestách, zlepšuje transport a vylučování hlenu. Pro dospělé a děti od 12 let.",
+    "description": "Sirup Dr. Max Ambroxol 30 mg/5 ml usnadňuje vykašlávání při vlhkém kašli, zvyšuje sekreci hlenu v dýchacích cestách, zlepšuje transport a vylučování hlenu. Dospělí a děti od 12 let.",
     "category": "Kašel, bolest v krku",
     "stock": "Skladem",
     "badges": [
@@ -63,8 +64,8 @@
     ],
     "benefitPayment": true,
     "consumers": [
-      "Pro dospělé",
-      "Pro dospívající"
+      "Dospělí",
+      "Děti 12+"
     ],
     "form": "Sirup"
   },
@@ -74,7 +75,7 @@
     "price": 55,
     "discounted_price": 39,
     "image": "./images/parapyrex.webp",
-    "description": "Dr. Max Parapyrex 500 mg pomáhá při mírné až střední bolesti (bolest hlavy, zubů, zad, svalů a kloubů při chřipce) a snižuje horečku. Je určen pro dospělé a děti od 6 let.",
+    "description": "Dr. Max Parapyrex 500 mg pomáhá při mírné až střední bolesti (bolest hlavy, zubů, zad, svalů a kloubů při chřipce) a snižuje horečku. Je určen Dospělí a děti od 6 let.",
     "category": "Bolest a horečka",
     "stock": "Skladem",
     "badges": [
@@ -82,9 +83,9 @@
     ],
     "benefitPayment": true,
     "consumers": [
-      "Pro děti",
-      "Pro dospívající",
-      "Pro dospělé"
+      "Děti 3+",
+      "Děti 12+",
+      "Dospělí"
     ],
     "form": "Tablety, pastilky, tobolky"
   },
@@ -93,15 +94,15 @@
     "name": "Dr. Max Paracetamol 500 mg 20 tablet",
     "price": 35,
     "image": "./images/paracetamol.webp",
-    "description": "Dr. Max Paracetamol 500 mg pomáhá při mírné až střední bolesti (bolest hlavy, zubů, zad, svalů a kloubů při chřipce) a snižuje horečku. Je určen pro dospělé a děti od 6 let.",
+    "description": "Dr. Max Paracetamol 500 mg pomáhá při mírné až střední bolesti (bolest hlavy, zubů, zad, svalů a kloubů při chřipce) a snižuje horečku. Je určen Dospělí a děti od 6 let.",
     "category": "Bolest a horečka",
     "stock": "Skladem",
     "badges": [],
     "benefitPayment": true,
     "consumers": [
-      "Pro děti",
-      "Pro dospívající",
-      "Pro dospělé"
+      "Děti 3+",
+      "Děti 12+",
+      "Dospělí"
     ],
     "form": "Tablety, pastilky, tobolky"
   },
@@ -116,7 +117,7 @@
     "badges": [],
     "benefitPayment": true,
     "consumers": [
-      "Pro dospělé"
+      "Dospělí"
     ],
     "form": "Tablety, pastilky, tobolky"
   },
@@ -131,9 +132,6 @@
     "badges": ["Do 15 minut"],
     "benefitPayment": true,
     "consumers": [
-      "Pro větší děti",
-      "Pro děti",
-      "Děti",
       "Děti 12+",
       "Děti 3+"
     ],
@@ -150,9 +148,6 @@
     "badges": ["Do 15 minut"],
     "benefitPayment": true,
     "consumers": [
-      "Pro větší děti",
-      "Pro děti",
-      "Děti",
       "Děti 12+",
       "Děti 3+",
       "Dospělí"
@@ -170,9 +165,6 @@
     "badges": ["Do 15 minut"],
     "benefitPayment": true,
     "consumers": [
-      "Pro větší děti",
-      "Pro děti",
-      "Děti",
       "Děti 12+",
       "Děti 3+",
       "Dospělí"
