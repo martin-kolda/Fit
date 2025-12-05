@@ -17,7 +17,8 @@
     "Akce -5%"
   ],
   "images": [
-    "./images/olynth-ha.webp"
+    "./images/olynth-ha.webp",
+    "./images/olynth-ha-2.webp"
   ],
   "price": 125,
   "discounted_price": 119,

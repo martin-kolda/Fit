@@ -1,0 +1,304 @@
+<!-- ROUTE == MAP -->
+<template x-if="is('map')">
+  <section x-cloak
+           x-data="pickupMapUI({
+             jsonUrl: ($store.i18n.resolveConfig('map.points', { fallback: 'data/map-points.json' }) || 'data/map-points.json'),
+             enableClustering: true,
+             defaultCenter: (Alpine.store('i18n')?.resolveConfig('map.center') || [50.0755, 14.4378]),
+             defaultZoom: Number(Alpine.store('i18n')?.resolveConfig('map.zoom') || 12)
+           })"
+           x-init="init()"
+           class="fixed inset-0 z-[80] flex flex-col bg-base-200/95 backdrop-blur-sm overflow-x-hidden"
+           @keydown.escape.window="closeModal()"
+           @click.self="closeModal()">
+    <button type="button"
+            class="absolute top-24 right-6 md:top-10 md:right-8 z-[90] btn btn-circle btn-ghost bg-base-100 border-base-300 border-2 hover:bg-base-200/60  btn-md md:btn-lg"
+            aria-label="Zavřít mapu"
+            @click.stop="closeModal()">
+      <i class="fa-solid fa-xmark"></i>
+    </button>
+
+    <div class="relative flex-1 overflow-hidden pointer-events-none">
+      <div class="absolute inset-0 px-4 pt-8 pb-4 md:pt-6 md:pb-6 pointer-events-auto flex flex-col gap-4">
+        <div class="md:hidden flex-shrink-0" x-show="!selected || isLg">
+          <div class="join w-full">
+            <input class="join-item btn btn-block flex-1"
+                   type="radio" name="maplist" aria-label="Mapa"
+                   :checked="mode==='map'" @click="mode='map'"/>
+            <input class="join-item btn btn-block flex-1"
+                   type="radio" name="maplist" aria-label="Výpis"
+                   :checked="mode==='list'" @click="mode='list'"/>
+          </div>
+        </div>
+
+        <div class="grid flex-1 min-h-0 grid-cols-1 md:grid-cols-12 gap-4 items-stretch">
+
+        <!-- LEFT COLUMN (hidden on <lg unless 'list' tab is selected on mobile) -->
+          <aside class="min-h-0 col-span-12 lg:col-span-3 flex flex-col"
+          x-show="isLg || mode==='list'">
+          <div class="bg-white border border-base-300 rounded-xl xl:p-8 p-4 flex-1 flex flex-col overflow-hidden">
+            <h1 class="text-3xl mt-2 md:mt-4 pb-4">Lékárny a boxy</h1>
+
+            <!-- Search -->
+            <div class="pb-4">
+              <label class="input input-bordered items-center gap-2 w-full"
+                     aria-label="Vyhledávání">
+                <i class="fa-solid fa-magnifying-glass text-max-gray-600"></i>
+                <input type="search" placeholder="Filtruj dle adresy"
+                       x-model.debounce.250ms="search"
+                       @input="applyFilters($event.target.value)" />
+              </label>
+            </div>
+
+            <div class="flex-1 min-h-0 overflow-y-auto overflow-x-hidden space-y-3 pr-1">
+              <!-- “Městská část” (simple chips) -->
+              <div class="items-center mt-1 gap-2 flex flex-wrap">
+
+                <!-- Vše (show all) -->
+                <button type="button"
+                        class="btn btn-sm"
+                        :class="district==='' ? 'btn-primary' : 'btn-outline'"
+                        @click="district=''; applyFilters()">
+                  Vše
+                </button>
+
+                <!-- District chips -->
+                <template x-for="d in districts" :key="d">
+                  <button type="button"
+                          class="btn btn-sm"
+                          :class="district===d ? 'btn-primary' : 'btn-outline'"
+                          @click="district = (district===d ? '' : d); applyFilters()"
+                          x-text="d">
+                  </button>
+                </template>
+              </div>
+
+              <!-- Filter summary -->
+              <p class="text-sm opacity-70"
+                 x-text="`Zobrazuji ${filtered.length} z ${all.length}`"></p>
+
+              <!-- List -->
+              <div class="overflow-y-auto overflow-x-hidden pe-1">
+                <table class="table w-full">
+                  <tbody>
+                    <template x-for="p in filtered" :key="p.id">
+                      <tr class="cursor-pointer"
+                          :class="selected && selected.id===p.id ? 'bg-max-blue-50' : 'hover:bg-max-gray-50'"
+                          :data-pickup-id="p.id"
+                          @click="selectFromList(p)">
+                        <td>
+                          <div class="flex items-center gap-3">
+                            <div class="h-20 w-20 rounded bg-base-200 overflow-hidden mr-2 shrink-0">
+                              <img :src="p.photo || placeholderImg" alt=""
+                                   class="h-full w-full object-cover object-center" loading="lazy">
+                            </div>
+                            <div class="min-w-0">
+                              <div class="font-medium text-base truncate" x-text="p.name"></div>
+                              <div class="text-base opacity-70 truncate"
+                                   x-text="`${p.address.street} • ${p.address.city}`"></div>
+                            </div>
+                          </div>
+                        </td>
+                      </tr>
+                    </template>
+                    <template x-if="!filtered.length">
+                      <tr><td class="py-8 text-center text-sm opacity-70">Žádné výsledky.</td></tr>
+                    </template>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            
+          </div>
+        </aside>
+
+        <!-- RIGHT: MAP -->
+        <main class="min-h-0 col-span-12 lg:col-span-9 flex flex-col" x-data="mapPane()" x-init="boot()" x-effect="onVisibilityChange(isLg || mode==='map')" x-show="isLg || mode==='map'">
+  
+          <div x-ref="wrap" class="relative flex-1 rounded-xl border border-base-300 min-h-0 md:min-h-[600px] overflow-hidden">
+
+            <!-- Overlay (desktop / tablet) -->
+            <div x-show="selected"
+                 x-data="{ tab: 'overview', currentId: null }"
+                 x-effect="if (!selected || currentId !== (selected?.id ?? null)) { tab = 'overview'; currentId = selected?.id ?? null; }"
+                 class="absolute inset-0 md:right-auto md:bottom-auto m-2 w-full md:w-80 lg:w-96 h-full md:h-auto bg-white rounded-none md:rounded-xl shadow-none md:shadow-xl z-[110] flex flex-col overflow-hidden md:max-h-[calc(100vh-4rem)]">
+                
+                 <button class="btn btn-md btn-circle btn-ghost bg-base-100 absolute right-3 top-3 z-10 shadow"
+                        @click="closeDetail()">
+                  <i class="fa-solid fa-xmark fa-lg" aria-hidden="true"></i>
+                </button>
+
+             <div class="flex-1 overflow-y-auto">
+              <div class="relative">
+                <div class="h-50 w-full rounded-t-lg bg-base-200 overflow-hidden">
+                  <img :src="(selected && selected.photo) || placeholderImg" alt=""
+                       class="h-full w-full object-cover object-center" loading="lazy">
+                </div>
+              </div>
+              
+              <div class="px-4 pt-2 lg:px-8 flex-1 overflow-y-auto space-y-4 mt-4">
+                <div>
+                  <div class="font-medium text-base" x-text="selected?.name"></div>
+                  <div class="text-base opacity-70"
+                      x-text="`${selected?.address?.street} • ${selected?.address?.city}`"></div>
+                </div>
+
+                <div x-show="selected?.note">
+                  <p class="text-sm text-base-content/80" x-text="selected?.note"></p>
+                </div>
+
+                <div class="flex overflow-x-auto overflow-y-hidden border-b border-base-200">
+                  <button type="button"
+                          class="relative whitespace-nowrap pr-7 pb-3 pt-2 text-base font-semibold transition-colors"
+                          :class="tab === 'overview' ? 'text-secondary' : 'text-base-content hover:text-base-content/90 cursor-pointer'"
+                          @click="tab = 'overview'">
+                    <span>Otevřeno</span>
+                    <span class="absolute left-0 right-6 -bottom-[1px] h-1 rounded-full bg-secondary"
+                          x-show="tab === 'overview'"></span>
+                  </button>
+                  <button type="button"
+                          class="relative whitespace-nowrap pr-7 pb-3 pt-2 text-base font-semibold transition-colors"
+                          :class="tab === 'details' ? 'text-secondary' : 'text-base-content hover:text-base-content/90 cursor-pointer'"
+                          @click="tab = 'details'">
+                    <span>Podrobnosti</span>
+                    <span class="absolute left-0 right-6 -bottom-[1px] h-1 rounded-full bg-secondary"
+                          x-show="tab === 'details'"></span>
+                  </button>
+                </div>
+              </div>
+
+              <div class="px-4 pb-4 mt-4 lg:px-8" x-show="tab === 'overview'" x-transition.opacity>
+                <div class="overflow-y-auto max-h-[55vh] lg:max-h-max pr-1">
+                  <table class="table table-zebra">
+                    <tbody>
+                      <template x-if="selected && selected.opening_hours">
+                        <template x-for="(val, day) in selected.opening_hours" :key="day">
+                          <tr>
+                            <td x-text="dayCZ(day)"></td>
+                            <td x-text="val"></td>
+                          </tr>
+                        </template>
+                      </template>
+                      <template x-if="selected && !selected.opening_hours">
+                        <tr><td class="py-3 text-sm opacity-70">Bez zveřejněné provozní doby.</td></tr>
+                      </template>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <div class="space-y-5 px-4 lg:px-8 pb-4 pt-3 mt-4" x-show="tab === 'details'" x-transition.opacity>
+                <template x-if="selected?.senior_pharmacist">
+                  <div>
+                    <h5 class="text-sm font-semibold text-base-content/80 mb-1">Vedoucí lékárník</h5>
+                    <p class="text-sm text-base-content/80" x-text="selected.senior_pharmacist"></p>
+                  </div>
+                </template>
+                <address class="not-italic" x-show="selected?.phone" x-cloak>
+                  <p class="flex flex-wrap items-center gap-y-2 gap-x-6">
+                    <a :href="selected?.phone ? `tel:${selected.phone}` : '#'"
+                       class="group inline-flex items-center gap-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 rounded">
+                      <i class="fa-solid fa-phone fa-sm" aria-hidden="true"></i>
+                      <span class="group-hover:underline group-focus-visible:underline underline-offset-2"
+                            x-text="selected?.phone"></span>
+                    </a>
+                  </p>
+                </address>
+
+                <div>
+                  <h5 class="text-sm font-semibold text-base-content/80 mb-2" x-show="selected?.tags?.length">Služby</h5>
+                  <template x-if="selected?.tags && selected.tags.length">
+                    <div class="flex flex-wrap gap-1">
+                      <template x-for="t in selected.tags" :key="t">
+                        <div class="badge badge-soft badge-neutral" x-text="t"></div>
+                      </template>
+                    </div>
+                  </template>
+                  <template x-if="!selected?.tags || !selected.tags.length">
+                    <p class="text-sm text-base-content/70">Další informace připravujeme.</p>
+                  </template>
+                </div>
+
+                <template x-if="selected?.brands && selected.brands.length">
+                  <div>
+                    <h5 class="text-sm font-semibold text-base-content/80 mb-2">Dostupná dermokosmetika</h5>
+                    <div class="flex flex-wrap gap-2">
+                      <template x-for="brand in selected.brands" :key="brand">
+                        <span class="badge badge-outline" x-text="brand"></span>
+                      </template>
+                    </div>
+                  </div>
+                </template>
+
+                <template x-if="selected?.billing">
+                  <div class="mt-6">
+                    <h5 class="text-sm font-semibold text-base-content/80 mb-1">Fakturační údaje lékárny</h5>
+                    <p class="text-sm text-base-content/70 whitespace-pre-line" x-text="selected.billing"></p>
+                  </div>
+                </template>
+
+              </div>
+            </div>
+
+            <div class="px-4 lg:px-8 pb-4 pt-3 bg-white sticky bottom-0">
+              <button class="btn btn-active btn-primary w-full"
+                      @click="confirmSelection()">Potvrdit výběr</button>
+            </div>
+            </div>
+
+            <!-- The map element -->
+            <div x-ref="mapEl" id="map" class="w-full h-full z-0"></div>
+
+          </div>
+        </main>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Type filter FAB -->
+  <div class="absolute bottom-12 right-8 sm:bottom-28 sm:right-6 md:bottom-14 md:right-10 z-[95]"
+       x-show="typeOptions.length"
+       x-cloak
+       @keydown.escape.window="fabOpen=false"
+       @click.outside="fabOpen=false">
+    <div class="flex flex-col items-end gap-3">
+      <div class="w-max flex flex-col items-end gap-2"
+           x-show="fabOpen"
+           x-transition:enter="transition ease-out duration-150"
+           x-transition:enter-start="opacity-0 translate-y-2"
+           x-transition:enter-end="opacity-100 translate-y-0"
+           x-transition:leave="transition ease-in duration-100"
+           x-transition:leave-start="opacity-100 translate-y-0"
+           x-transition:leave-end="opacity-0 translate-y-2">
+        <template x-for="option in typeOptions" :key="option.value">
+          <button type="button"
+                  class="flex items-center gap-3 rounded-full px-4 py-2 text-base font-medium shadow-lg backdrop-blur border-2 hover:border-base-300 transition"
+                  :class="typeFilter === option.value ? 'bg-white text-base-content border-max-blue-300' : 'bg-white/90 text-base-content border-base-200'"
+                  @click="setTypeFilter(option.value)">
+            <i :class="typeFilter === option.value ? 'fa-solid fa-check-circle text-max-blue-500' : 'fa-regular fa-circle opacity-40'"></i>
+            <span x-text="option.label"></span>
+          </button>
+        </template>
+      </div>
+
+      <div class="tooltip tooltip-left tooltip-open flex" data-tip="Filtruj zde">
+        <button type="button"
+                class="relative flex items-center justify-center w-14 h-14 rounded-full bg-primary text-primary-content shadow-xl transition transform hover:scale-105 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary/60 focus-visible:ring-offset-base-200"
+                aria-label="Filtrovat výdejní místa podle typu"
+                @click="fabOpen = !fabOpen">
+          <i class="fa-solid fa-bars-filter fa-lg"></i>
+          <span class="absolute top-0 right-0" x-show="typeFilter !== defaultType">
+            <span class="relative flex h-4 w-4">
+              <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-max-red-500 opacity-75"></span>
+              <span class="relative inline-flex rounded-full h-4 w-4 bg-max-red-500"></span>
+            </span>
+          </span>
+        </button>
+      </div>
+    </div>
+  </div>
+</section>
+</template>
+
+

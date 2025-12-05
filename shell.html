@@ -1,0 +1,68 @@
+<!doctype html>
+<html data-theme="max">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Fit App Shell</title>
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+  <link rel="manifest" href="/site.webmanifest">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Figtree:ital,wght@0,300..900;1,300..900&display=swap" rel="stylesheet">
+  <script src="https://kit.fontawesome.com/2c7f1c6cae.js" crossorigin="anonymous"></script>
+  <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css" />
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <link rel="stylesheet" href="./theme/max-tokens.css">
+  <script>
+    fetch('./theme/tw-mapping.css', { cache: 'no-store' })
+      .then(r => r.text())
+      .then(css => { const s = document.createElement('style'); s.type = 'text/tailwindcss'; s.textContent = css; document.head.appendChild(s); });
+  </script>
+  <link rel="stylesheet" href="./theme/max.css" type="text/css">
+  <script defer src="https://unpkg.com/@alpinejs/persist@3.x.x/dist/cdn.min.js"></script>
+  <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
+
+  <style>
+    body { font-family: 'Figtree', sans-serif; }
+    [x-cloak] { display: none !important; }
+  </style>
+</head>
+<body class="bg-base-200 text-base-content min-h-screen" x-data="routerShell()">
+  <header class="bg-base-100 border-b border-base-200">
+    <div class="max-w-6xl mx-auto px-4 py-4 flex flex-wrap items-center gap-3">
+      <button class="btn btn-ghost" @click="navigate('home')">Domů</button>
+      <button class="btn btn-ghost" @click="navigate('products')">Produkty</button>
+      <button class="btn btn-ghost" @click="navigate('map')">Mapa</button>
+      <div class="ml-auto flex gap-2">
+        <button class="btn btn-outline" @click="$store.auth?.openModal('register')">Registrace</button>
+        <button class="btn btn-primary" @click="$store.auth?.openModal('login')">Můj účet</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="min-h-[70vh]" x-ref="view">
+    <div class="max-w-4xl mx-auto py-12 px-4 text-center text-base-content/70">
+      <p>Probíhá načítání…</p>
+    </div>
+  </main>
+
+  <footer class="bg-base-100 border-t border-base-200">
+    <div class="max-w-6xl mx-auto px-4 py-8 text-sm text-base-content/70">
+      © 2025 Dr. Max — Prototype build
+    </div>
+  </footer>
+
+  <div id="modal-root"></div>
+
+  <script src="./fragments/auth-store.js" type="module"></script>
+  <script src="./fragments/router-shell.js" type="module"></script>
+  <script type="module">
+    import './fragments/common-stores.js';
+  </script>
+</body>
+</html>
