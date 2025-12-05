@@ -5,10 +5,6 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Registration Perf Sandbox</title>
 
-  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
-  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
-  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
-  <link rel="manifest" href="/site.webmanifest">
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -26,12 +22,7 @@
   <script defer src="https://unpkg.com/@alpinejs/persist@3.x.x/dist/cdn.min.js"></script>
   <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
-  <style type="text/tailwindcss">
-    @layer components {
-      .tw-input { @apply w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-base text-gray-900 shadow-sm transition focus-visible:border-emerald-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-200 focus-visible:ring-offset-2 focus-visible:ring-offset-white; }
-      .tw-input-lg { @apply py-3; }
-    }
-  </style>
+
   <style>
     body { font-family: 'Figtree', sans-serif; }
     [x-cloak] { display: none !important; }
@@ -105,24 +96,10 @@
   </footer>
 
   <!-- Auth Modal -->
-<div class="modal bg-base-200/95"
-     x-cloak
-     :class="{ 'modal-open': $store.auth?.modalOpen }"
-     x-show="$store.auth?.modalOpen"
-     @click.self="$store.auth?.closeModal()"
-     @keydown.escape.window="$store.auth?.closeModal()">
-  <div class="modal-box max-w-md space-y-6 relative p-6 md:p-10" @click.stop>
+<div class="bg-base-200">
+  <div class="max-w-md space-y-6 p-6 md:p-10">
     <div class="flex items-start justify-between gap-4">
-      <div>
-        <h2 class="text-2xl font-semibold">Testování hesla</h2>
-        <p class="text-sm text-base-content/70">Soustřeďte se pouze na pole pro heslo a jeho validační pravidla.</p>
-      </div>
-      <button type="button"
-              class="btn btn-md btn-circle btn-ghost shrink-0"
-              aria-label="Zavřít dialog"
-              @click="$store.auth?.closeModal()">
-        <i class="fa-solid fa-xmark"></i>
-      </button>
+
     </div>
 
     <div class="space-y-4">
@@ -133,7 +110,7 @@
                  class="tw-input pr-12 tw-input-lg"
                  placeholder="Zadejte heslo"
                  autocomplete="new-password"
-                 :value="$store.auth.registration.values.__perfPassword || ''"
+                 
                  @input="
                    const value = $event.target.value;
                    $store.auth.registration.values.__perfPassword = value;
