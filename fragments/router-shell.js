@@ -1,38 +1,35 @@
 const ROUTE_CONFIG = {
   map: {
-    path: './pages/map.html',
-    module: './pages/map.js'
+    path: './fragments/map-view.html',
+    module: './fragments/map-view.js'
   }
 };
 
-export function routerShell() {
+function createRouter() {
+  const viewEl = document.querySelector('[data-router-view]');
   return {
-    current: 'map',
-    viewEl: null,
-    init() {
-      this.viewEl = this.$refs.view;
-      window.addEventListener('hashchange', () => this.onHashChange());
-      this.onHashChange();
-    },
-    onHashChange() {
-      const hash = location.hash.replace(/^#\/?/, '') || 'map';
-      const route = hash.split('/')[0];
-      this.navigate(route);
-    },
+    current: null,
     async navigate(route) {
-      if (!ROUTE_CONFIG[route]) {
-        console.warn('Unknown route', route);
-        return;
-      }
+      if (!ROUTE_CONFIG[route] || !viewEl) return;
       this.current = route;
       const frag = await fetch(ROUTE_CONFIG[route].path, { cache: 'no-store' }).then(r => r.text());
-      this.viewEl.innerHTML = frag;
+      viewEl.innerHTML = frag;
       if (ROUTE_CONFIG[route].module) {
         await import(ROUTE_CONFIG[route].module);
       }
       history.replaceState(null, '', `#/${route}`);
+    },
+    init() {
+      const hash = location.hash.replace(/^#\/?/, '') || 'map';
+      const route = hash.split('/')[0];
+      this.navigate(route);
+      window.addEventListener('hashchange', () => {
+        const h = location.hash.replace(/^#\/?/, '') || 'map';
+        this.navigate(h.split('/')[0]);
+      });
     }
   };
 }
 
-window.routerShell = routerShell;
+window.appRouter = createRouter();
+window.appRouter.init();
